@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="referrer" content="no-referrer">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
 <title>GameShelf</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style>
@@ -635,19 +637,63 @@ html, body {
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
   </div>
 
-  <!-- EXPLORE -->
+  <!-- ASSISTANT -->
   <div class="screen" id="screen-explore">
-    <div class="explore-header">
-      <div class="explore-title">Explorer</div>
-      <div class="search-bar">
-        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="explore-search" placeholder="Chercher parmi 500 000 jeux…" oninput="searchExplore(this.value)">
+    <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
+
+      <!-- HEADER -->
+      <div style="padding:calc(var(--safe-t) + 16px) 20px 12px;flex-shrink:0">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Assistant</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Vocal · Ajouter · Recommander</div>
       </div>
-    </div>
-    <div class="scroll-area">
-      <div class="sec-label" id="explore-sec-label">Recommandé pour toi</div>
-      <div id="explore-search-results" style="display:none;padding:0 16px;flex-direction:column;gap:6px;margin-bottom:12px"></div>
-      <div class="reco-section" id="explore-recos"></div>
+
+      <!-- QUICK ACTION BUTTONS -->
+      <div style="display:flex;gap:10px;padding:0 16px 14px;flex-shrink:0">
+        <button onclick="quickAction('add')" id="btn-quick-add" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;cursor:pointer;transition:border-color 0.2s,background 0.2s">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);display:flex;align-items:center;justify-content:center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Ajouter un jeu</div>
+          <div style="font-size:10px;color:var(--muted2);text-align:center;line-height:1.4">Dis le nom,<br>je l'ajoute</div>
+        </button>
+        <button onclick="quickAction('recommend')" id="btn-quick-reco" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;cursor:pointer;transition:border-color 0.2s,background 0.2s">
+          <div style="width:36px;height:36px;border-radius:50%;background:rgba(253,121,168,0.12);border:0.5px solid rgba(253,121,168,0.25);display:flex;align-items:center;justify-content:center">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fd79a8" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          </div>
+          <div style="font-size:12px;font-weight:600;color:var(--text)">Que jouer ?</div>
+          <div style="font-size:10px;color:var(--muted2);text-align:center;line-height:1.4">Dis ton humeur,<br>je recommande</div>
+        </button>
+      </div>
+
+      <!-- CHAT MESSAGES -->
+      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none">
+        <!-- Welcome message -->
+        <div class="msg-ai" style="align-self:flex-start;max-width:85%">
+          <div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px">
+            <div style="font-size:13px;color:var(--text);line-height:1.5">Salut ! Je suis ton assistant gaming. Utilise les boutons ou dis-moi ce que tu veux — ajouter un jeu, une recommandation, ou n'importe quelle question gaming.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INPUT ZONE -->
+      <div style="flex-shrink:0;padding:10px 16px calc(80px + var(--safe-b));background:var(--bg)">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:6px 6px 6px 14px">
+          <input type="text" id="chat-input" placeholder="Pose ta question…"
+            style="flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:6px 0"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
+          >
+          <!-- Mic button -->
+          <button id="mic-btn" onclick="toggleVoice()" style="width:40px;height:40px;border-radius:12px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s">
+            <svg id="mic-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <!-- Send button -->
+          <button onclick="sendChat()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div id="voice-status" style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
+      </div>
+
     </div>
   </div>
 
@@ -787,8 +833,8 @@ html, body {
       <span>Biblio</span>
     </button>
     <button class="nav-btn" id="nav-explore" onclick="appGoTo('explore')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      <span>Explorer</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
+      <span>Assistant</span>
     </button>
     <button class="nav-btn" id="nav-profile" onclick="appGoTo('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1693,73 +1739,293 @@ function renderFeed(){
   renderHomeRecos();
 }
 
-async function renderExplore(){
-  const c=document.getElementById('explore-recos'); 
-  c.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
-  const live = await rawgPopular();
-  const games = live || RECOS;
-  c.innerHTML = games.map((r,i)=>{
-    const src = r.cover || null;
-    const initials = r.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    return `<div class="reco-card anim" style="animation-delay:${i*0.06}s" onclick="showToast('${r.title.replace(/'/g,"\\'")} — bientôt disponible')">
-      <div class="reco-cover" style="background:var(--s3);overflow:hidden;padding:0;display:flex;align-items:center;justify-content:center">
-        ${src
-          ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
-          : `<span style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--muted)">${initials}</span>`}
-      </div>
-      <div class="reco-info">
-        <div class="reco-title">${r.title}</div>
-        <div class="reco-reason">${r.reason||r.why||''}</div>
-        <div class="reco-meta">${r.genre}</div>
-      </div>
-    </div>`;
-  }).join('');
-  if (!RAWG_KEY) {
-    c.insertAdjacentHTML('beforeend',`
-      <div style="background:rgba(108,92,231,0.1);border:0.5px solid rgba(108,92,231,0.3);border-radius:14px;padding:14px 16px;margin-top:4px;display:flex;align-items:center;gap:12px">
-        <span style="font-size:20px">🔑</span>
-        <div style="flex:1">
-          <div style="font-size:13px;font-weight:500;margin-bottom:2px">Active la vraie BDD gaming</div>
-          <div style="font-size:11px;color:var(--muted2)">500 000 jeux réels avec covers HD</div>
-        </div>
-        <button onclick="promptForKey()" style="background:var(--a);border:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé</button>
-      </div>`);
-  }
-}
-let exploreTimer;
-async function searchExplore(q) {
-  clearTimeout(exploreTimer);
-  const recos = document.getElementById('explore-recos');
-  const results = document.getElementById('explore-search-results');
-  const label = document.getElementById('explore-sec-label');
-  if (!q.trim()) {
-    results.style.display='none'; recos.style.display='';
-    label.textContent='Recommandé pour toi'; return;
-  }
-  label.textContent='Résultats de recherche';
-  recos.style.display='none';
-  results.style.display='flex';
-  results.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
-  exploreTimer = setTimeout(async ()=>{
-    const games = await rawgSearch(q, 10);
-    if (!games.length) { results.innerHTML='<div style="text-align:center;padding:30px 0;color:var(--muted);font-size:13px">Aucun résultat</div>'; return; }
-    results.innerHTML = games.map(g=>{
-      const src = g.cover||(g.steamId?`https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`:null);
-      const already = GAMES.find(x=>x.id===g.id||x.title===g.title);
-      return `<div class="result-item" onclick="showToast('${g.title.replace(/'/g,"\\'")} — ajouter bientôt disponible')">
-        <div class="result-cover">${src?`<img src="${src}" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span>${g.emoji}</span>')">`:`<span>${g.emoji}</span>`}</div>
-        <div class="result-info">
-          <div class="result-title">${g.title}</div>
-          <div class="result-meta">${g.genre}${g.year?' · '+g.year:''}${g.meta?' · Metacritic '+g.meta:''}</div>
-        </div>
-        <span style="font-size:10px;color:${already?'var(--green)':'var(--muted)'}">${already?'✓ Lib':'+'}</span>
-      </div>`;
-    }).join('');
-  }, 500);
+// ══════════════════════════════════════
+// AI ASSISTANT
+// ══════════════════════════════════════
+const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyC56YTRBzff_MphRXNpZd5rutVd3Cx8yYQ';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
+// Voice recognition setup
+let recognition = null;
+let isListening = false;
+let currentQuickAction = null;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) return null;
+  const rec = new SpeechRecognition();
+  rec.lang = 'fr-FR';
+  rec.continuous = false;
+  rec.interimResults = true;
+  rec.onstart = () => {
+    isListening = true;
+    document.getElementById('mic-btn').style.background = 'rgba(255,82,82,0.2)';
+    document.getElementById('mic-btn').style.borderColor = 'var(--red)';
+    document.getElementById('mic-icon').setAttribute('stroke', 'var(--red)');
+    document.getElementById('voice-status').textContent = '🎤 En écoute…';
+  };
+  rec.onresult = (e) => {
+    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
+    document.getElementById('chat-input').value = transcript;
+    if (e.results[e.results.length-1].isFinal) {
+      stopVoice();
+      sendChat();
+    }
+  };
+  rec.onend = () => stopVoice();
+  rec.onerror = () => { stopVoice(); showToast('Micro non disponible'); };
+  return rec;
 }
 
+function toggleVoice() {
+  if (!recognition) recognition = initVoice();
+  if (!recognition) { showToast('Reconnaissance vocale non supportée'); return; }
+  if (isListening) { stopVoice(); return; }
+  document.getElementById('chat-input').value = '';
+  recognition.start();
+}
+
+function stopVoice() {
+  isListening = false;
+  const btn = document.getElementById('mic-btn');
+  if (btn) {
+    btn.style.background = 'rgba(108,92,231,0.15)';
+    btn.style.borderColor = 'rgba(108,92,231,0.3)';
+  }
+  const icon = document.getElementById('mic-icon');
+  if (icon) icon.setAttribute('stroke', '#a29bfe');
+  const vs = document.getElementById('voice-status');
+  if (vs) vs.textContent = '';
+  try { recognition?.stop(); } catch(e) {}
+}
+
+function quickAction(type) {
+  currentQuickAction = type;
+  const input = document.getElementById('chat-input');
+  const prompts = {
+    add: 'Quel jeu veux-tu ajouter ?',
+    recommend: 'Décris ton humeur ou ce que tu cherches…'
+  };
+  input.placeholder = prompts[type] || 'Pose ta question…';
+  input.focus();
+  // Highlight active button
+  ['add','recommend'].forEach(t => {
+    const btn = document.getElementById('btn-quick-'+t);
+    if (btn) btn.style.borderColor = t===type ? 'var(--a)' : 'var(--border2)';
+  });
+  // Also trigger voice immediately
+  toggleVoice();
+}
+
+function addMsgUser(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'align-self:flex-end;max-width:80%';
+  div.innerHTML = `<div style="background:linear-gradient(135deg,var(--a),var(--a2));border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:13px;color:#fff;line-height:1.5">${text}</div>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addMsgAI(html, typing=false) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.style.cssText = 'align-self:flex-start;max-width:88%';
+  if (typing) {
+    div.id = 'ai-typing';
+    div.innerHTML = `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px"><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
+  } else {
+    div.innerHTML = `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:13px;color:var(--text);line-height:1.6">${html}</div>`;
+  }
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+function removeTyping() {
+  const t = document.getElementById('ai-typing');
+  if (t) t.remove();
+}
+
+function buildProfileContext() {
+  const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
+  const finished  = all.filter(g => isDone(g.status));
+  const playing   = all.filter(g => isPlaying(g.status));
+  const backlog   = all.filter(g => g.status === 'backlog');
+  const topGenres = (() => {
+    const gc = {};
+    finished.forEach(g => { gc[g.genre] = (gc[g.genre]||0) + (g.score||5); });
+    return Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]).join(', ');
+  })();
+  return `Profil du joueur :
+- Jeux finis (${finished.length}) : ${finished.slice(0,6).map(g=>`${g.title}${g.score?` (${g.score}/10)`:''}`).join(', ')}
+- En cours : ${playing.map(g=>g.title).join(', ') || 'aucun'}
+- Backlog (${backlog.length} jeux) : ${backlog.slice(0,8).map(g=>g.title).join(', ')}
+- Genres préférés : ${topGenres || 'variés'}`;
+}
+
+async function callGemini(userMsg, systemCtx) {
+  if (!GEMINI_KEY) {
+    return `⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé Gemini</button>`;
+  }
+  try {
+    const prompt = `${systemCtx}\n\nUtilisateur : ${userMsg}\n\nRéponds en français, de façon concise et naturelle.`;
+    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{parts: [{text: prompt}]}],
+        generationConfig: {maxOutputTokens: 500, temperature: 0.7}
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Pas de réponse.';
+  } catch(e) {
+    console.warn('Gemini error:', e);
+    return `Erreur Gemini (${e.message}). Vérifie ta clé API ou réessaie.`;
+  }
+}
+
+// Parse intent via Gemini — returns JSON {action, games[], mood, question}
+async function parseIntent(text) {
+  try {
+    const prompt = `Tu es un parser d'intention pour une app de gaming. Analyse ce message et réponds UNIQUEMENT en JSON valide, sans markdown.
+
+Message : "${text}"
+
+Réponds avec ce format JSON exact :
+{"action":"add"|"recommend"|"question","games":["titre1","titre2"],"mood":"description humeur si recommandation","question":"question si besoin"}
+
+- action "add" : l'utilisateur veut ajouter un ou plusieurs jeux (mots-clés: ajoute, rajoute, mets, add)
+- action "recommend" : l'utilisateur veut une recommandation (mots-clés: que jouer, recommande, conseil, envie, humeur)  
+- action "question" : autre question gaming
+- games : liste des titres de jeux mentionnés (vides si pas de titre spécifique)
+- Pour "add" avec statut en cours, note aussi le statut voulu dans games comme "Titre|playing-solo" ou "Titre|playing-multi"`;
+
+    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{parts: [{text: prompt}]}],
+        generationConfig: {maxOutputTokens: 200, temperature: 0}
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+    const clean = raw.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    // Fallback: simple regex parsing
+    const lc = text.toLowerCase();
+    if (/ajoute|rajoute|mets|add/i.test(lc)) return {action:'add', games:[text.replace(/^(ajoute|rajoute|mets|add)\s+/i,'').trim()]};
+    if (/jouer|recommande|conseil|humeur|envie/i.test(lc)) return {action:'recommend', mood:text};
+    return {action:'question', question:text};
+  }
+}
+
+async function addSingleGame(titleRaw, defaultStatus) {
+  // Support "Titre|status" format
+  const [title, statusHint] = titleRaw.split('|');
+  const status = statusHint || defaultStatus || 'backlog';
+  const results = await rawgSearch(title.trim(), 3);
+  if (!results.length) {
+    return `Jeu <strong>"${title}"</strong> non trouvé dans la base.`;
+  }
+  const g = results[0];
+  const existing = GAMES.find(x => x.id === g.id || x.title.toLowerCase() === g.title.toLowerCase());
+  if (existing) {
+    // If already in library, just update status if needed
+    if (status !== 'backlog' && userGames[existing.id]) {
+      userGames[existing.id].status = status;
+      renderGameGrid(); renderFeed();
+      return `<strong>${g.title}</strong> déjà en bibliothèque — statut mis à jour : ${status.replace('-',' ')}.`;
+    }
+    return `<strong>${g.title}</strong> est déjà dans ta bibliothèque.`;
+  }
+  GAMES.push({...g, status, score:0, notes:'', hours:0});
+  userGames[g.id] = {status, score:0, notes:'', hours:0};
+  renderGameGrid(); renderFeed();
+  const src = coverUrl(g);
+  const coverHtml = src
+    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
+    : '';
+  const statusLabel = {backlog:'backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · En cours'}[status]||status;
+  return `${coverHtml}<strong>${g.title}</strong> (${g.genre}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${g.id}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
+}
+
+async function handleAddGame(games, defaultStatus) {
+  addMsgAI('', true);
+  const results = await Promise.all(games.map(t => addSingleGame(t, defaultStatus)));
+  removeTyping();
+  addMsgAI(results.join('<br><br>'));
+}
+
+async function handleRecommend(mood) {
+  addMsgAI('', true);
+  const ctx = `Tu es un assistant gaming expert. ${buildProfileContext()}\n\nLe joueur cherche une recommandation. Analyse son profil et recommande UN jeu de son backlog (ou un nouveau) qui correspond à son humeur. Explique pourquoi en 2-3 phrases max. Donne le titre exact en gras.`;
+  const reply = await callGemini(mood || 'Que me conseilles-tu de jouer maintenant ?', ctx);
+  removeTyping();
+  addMsgAI(reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'));
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  input.placeholder = 'Pose ta question…';
+  ['add','recommend'].forEach(t => {
+    const btn = document.getElementById('btn-quick-'+t);
+    if (btn) btn.style.borderColor = 'var(--border2)';
+  });
+  addMsgUser(text);
+
+  const savedAction = currentQuickAction;
+  currentQuickAction = null;
+
+  // If no Gemini key, use simple regex fallback
+  if (!GEMINI_KEY) {
+    addMsgAI(`⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé Gemini</button>`);
+    return;
+  }
+
+  // Show typing while parsing
+  addMsgAI('', true);
+  const intent = await parseIntent(text);
+  removeTyping();
+
+  if (intent.action === 'add' && intent.games?.length) {
+    // Detect if "en cours" is mentioned to set status
+    const lc = text.toLowerCase();
+    const status = /multi/i.test(lc) ? 'playing-multi'
+                 : /solo|cours/i.test(lc) ? 'playing-solo'
+                 : 'backlog';
+    await handleAddGame(intent.games, status);
+  } else if (intent.action === 'recommend' || savedAction === 'recommend') {
+    await handleRecommend(intent.mood || text);
+  } else {
+    addMsgAI('', true);
+    const ctx = `Tu es un assistant gaming expert intégré à l'app GameShelf. ${buildProfileContext()}\n\nRéponds à la question de façon utile et concise. Mets les titres de jeux en gras.`;
+    const reply = await callGemini(text, ctx);
+    removeTyping();
+    addMsgAI(reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'));
+  }
+}
+
+function promptGeminiKey() {
+  const k = prompt('Entre ta clé API Gemini (aistudio.google.com) :');
+  if (k && k.length > 10) {
+    localStorage.setItem('gemini_key', k);
+    location.reload();
+  }
+}
+
+function renderExplore() { /* replaced by assistant */ }
+function searchExplore() {}
+
 function renderFriendsList(){ /* masqué — fonctionnalité sociale désactivée */ }
-function initApp(){ renderFeed(); renderGameGrid(); renderExplore(); renderProfileStats(); }
+function initApp(){ renderFeed(); renderGameGrid(); renderProfileStats(); }
 
 // clock
 function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0'); }
