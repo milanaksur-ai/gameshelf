@@ -706,6 +706,10 @@ html, body {
           <div class="dot"></div>
           <span>Connecter Steam</span>
         </div>
+        <div class="steam-badge" id="xbox-badge" onclick="connectXbox()" style="margin-left:6px;border-color:rgba(16,124,16,0.4)">
+          <div class="dot" id="xbox-dot"></div>
+          <span id="xbox-badge-text">Connecter Xbox</span>
+        </div>
       </div>
 
       <!-- STATS -->
@@ -741,6 +745,20 @@ html, body {
           <div class="connect-title">Connecter Steam</div>
           <div class="connect-sub">Active Steam Guard sur l'app mobile Steam, puis reviens dans 7 jours pour importer ta vraie bibliothèque automatiquement.</div>
           <button class="connect-btn" onclick="showToast('Active Steam Guard dans l\'app Steam mobile')">Comment faire →</button>
+        </div>
+      </div>
+
+      <!-- CONNECTER XBOX -->
+      <div class="connect-section" id="xbox-connect-section">
+        <div class="connect-card" style="background:linear-gradient(135deg,rgba(16,124,16,0.12),rgba(0,0,0,0));border-color:rgba(16,124,16,0.25)">
+          <div class="connect-title" style="display:flex;align-items:center;gap:8px">
+            <span style="color:#107c10">🟩</span> Connecter Xbox
+          </div>
+          <div class="connect-sub" id="xbox-connect-sub">Importe ta bibliothèque Xbox automatiquement via OpenXBL.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+            <button class="connect-btn" style="background:#107c10" onclick="connectXbox()">Se connecter →</button>
+            <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer">Clé OpenXBL</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1826,7 +1844,117 @@ function renderFeed(){
 }
 
 // ══════════════════════════════════════
-// AI ASSISTANT
+// XBOX — OpenXBL Integration
+// ══════════════════════════════════════
+const XBL_KEY = localStorage.getItem('xbl_key') || 'b15268e0-da41-4fad-ac2c-baee2f4d46a0';
+const XBL_BASE = 'https://xbl.io/api/v2';
+
+function promptXblKey() {
+  const k = prompt('Entre ta clé API OpenXBL (xbl.io) :');
+  if (k && k.length > 8) {
+    localStorage.setItem('xbl_key', k);
+    showToast('Clé Xbox sauvegardée ✓ — synchronisation en cours…');
+    setTimeout(() => importXboxLibrary(k), 500);
+  }
+}
+
+function connectXbox() {
+  const key = localStorage.getItem('xbl_key');
+  if (key) {
+    importXboxLibrary(key);
+  } else {
+    promptXblKey();
+  }
+}
+
+async function importXboxLibrary(key) {
+  const badge = document.getElementById('xbox-badge-text');
+  const dot   = document.getElementById('xbox-dot');
+  const sub   = document.getElementById('xbox-connect-sub');
+
+  if (badge) badge.textContent = 'Synchronisation…';
+  showToast('Connexion Xbox en cours…');
+
+  try {
+    // 1. Get profile
+    const profileRes = await fetch(`${XBL_BASE}/account`, {
+      headers: { 'X-Authorization': key, 'Accept': 'application/json' }
+    });
+    if (!profileRes.ok) throw new Error(`Profil: HTTP ${profileRes.status}`);
+    const profileData = await profileRes.json();
+    const gamertag = profileData.profileUsers?.[0]?.settings?.find(s => s.id === 'Gamertag')?.value
+                  || profileData.profileUsers?.[0]?.settings?.[0]?.value
+                  || 'Xbox Player';
+
+    // 2. Get titles (games played)
+    const titlesRes = await fetch(`${XBL_BASE}/achievements/titles`, {
+      headers: { 'X-Authorization': key, 'Accept': 'application/json' }
+    });
+    if (!titlesRes.ok) throw new Error(`Titres: HTTP ${titlesRes.status}`);
+    const titlesData = await titlesRes.json();
+    const titles = titlesData.titles || [];
+
+    let added = 0;
+    titles.forEach(t => {
+      const id = `xbox_${t.titleId}`;
+      if (GAMES.find(g => g.id === id)) return; // already imported
+
+      const earned  = t.achievement?.currentAchievements || 0;
+      const total   = t.achievement?.totalAchievements   || 0;
+      const pct     = total > 0 ? Math.round((earned / total) * 100) : 0;
+      const isDone  = pct === 100;
+
+      GAMES.push({
+        id,
+        title:    t.name,
+        steamId:  0,
+        cover:    t.displayImage || null,
+        genre:    t.category || 'Xbox',
+        year:     t.titleHistory?.lastTimePlayed ? new Date(t.titleHistory.lastTimePlayed).getFullYear() : 0,
+        meta:     0,
+        platform: 'Xbox',
+        achievements: { earned, total, pct },
+      });
+      userGames[id] = {
+        status: isDone ? 'finished' : earned > 0 ? 'playing-solo' : 'backlog',
+        score: 0, notes: '', hours: 0,
+      };
+      added++;
+    });
+
+    renderGameGrid();
+    renderFeed();
+    renderProfileStats();
+
+    // Update UI
+    if (dot)   { dot.style.background = '#4caf50'; }
+    if (badge) { badge.textContent = `Xbox · ${gamertag}`; }
+    if (sub)   { sub.innerHTML = `<strong style="color:#4caf50">${gamertag}</strong> connecté — ${added} jeux importés.`; }
+    localStorage.setItem('xbl_gamertag', gamertag);
+    showToast(`✓ ${added} jeux Xbox importés !`);
+
+  } catch(e) {
+    console.error('Xbox import error:', e);
+    if (badge) badge.textContent = 'Connecter Xbox';
+    const msg = e.message.includes('401') || e.message.includes('403')
+      ? 'Clé OpenXBL invalide ou expirée. Vérifie sur xbl.io.'
+      : `Erreur Xbox : ${e.message}`;
+    showToast(msg);
+    if (sub) sub.textContent = msg;
+  }
+}
+
+// Init Xbox status on load
+(function initXboxStatus() {
+  const key = localStorage.getItem('xbl_key');
+  const gt  = localStorage.getItem('xbl_gamertag');
+  if (key && gt) {
+    const badge = document.getElementById('xbox-badge-text');
+    const dot   = document.getElementById('xbox-dot');
+    if (badge) badge.textContent = `Xbox · ${gt}`;
+    if (dot)   dot.style.background = '#4caf50';
+  }
+})();
 // ══════════════════════════════════════
 const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyD44HfgBprjXFgWNz-ICaGCzhBOnTsNoZs';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
