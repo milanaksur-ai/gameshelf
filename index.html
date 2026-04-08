@@ -1846,8 +1846,14 @@ function renderFeed(){
 // ══════════════════════════════════════
 // XBOX — OpenXBL Integration
 // ══════════════════════════════════════
-const XBL_KEY = localStorage.getItem('xbl_key') || 'b15268e0-da41-4fad-ac2c-baee2f4d46a0';
-const XBL_BASE = 'https://xbl.io/api/v2';
+const XBL_KEY   = localStorage.getItem('xbl_key') || 'b15268e0-da41-4fad-ac2c-baee2f4d46a0';
+const XBL_PROXY = 'https://gameshelf-back-end.vercel.app/api/xbl';
+
+async function xblFetch(endpoint) {
+  const res = await fetch(`${XBL_PROXY}?endpoint=${encodeURIComponent(endpoint)}`);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
 
 function promptXblKey() {
   const k = prompt('Entre ta clé API OpenXBL (xbl.io) :');
@@ -1876,22 +1882,13 @@ async function importXboxLibrary(key) {
   showToast('Connexion Xbox en cours…');
 
   try {
-    // 1. Get profile
-    const profileRes = await fetch(`${XBL_BASE}/account`, {
-      headers: { 'X-Authorization': key, 'Accept': 'application/json' }
-    });
-    if (!profileRes.ok) throw new Error(`Profil: HTTP ${profileRes.status}`);
-    const profileData = await profileRes.json();
-    const gamertag = profileData.profileUsers?.[0]?.settings?.find(s => s.id === 'Gamertag')?.value
-                  || profileData.profileUsers?.[0]?.settings?.[0]?.value
-                  || 'Xbox Player';
+    // 1. Get profile via proxy
+    const profileData = await xblFetch('account');
+    const user = profileData.profileUsers?.[0];
+    const gamertag = user?.settings?.find(s => s.id === 'Gamertag')?.value || 'Xbox Player';
 
-    // 2. Get titles (games played)
-    const titlesRes = await fetch(`${XBL_BASE}/achievements/titles`, {
-      headers: { 'X-Authorization': key, 'Accept': 'application/json' }
-    });
-    if (!titlesRes.ok) throw new Error(`Titres: HTTP ${titlesRes.status}`);
-    const titlesData = await titlesRes.json();
+    // 2. Get titles via proxy
+    const titlesData = await xblFetch('achievements/titles');
     const titles = titlesData.titles || [];
 
     let added = 0;
@@ -1936,9 +1933,10 @@ async function importXboxLibrary(key) {
   } catch(e) {
     console.error('Xbox import error:', e);
     if (badge) badge.textContent = 'Connecter Xbox';
-    const msg = e.message.includes('401') || e.message.includes('403')
-      ? 'Clé OpenXBL invalide ou expirée. Vérifie sur xbl.io.'
-      : `Erreur Xbox : ${e.message}`;
+    let msg = 'Erreur Xbox — vérifie ta clé OpenXBL.';
+    if (e.message.includes('401')) msg = 'Clé OpenXBL invalide. Vérifie sur xbl.io.';
+    else if (e.message.includes('403')) msg = 'Accès refusé. La clé est peut-être expirée.';
+    else if (e.message.includes('fetch')) msg = 'Connexion impossible à OpenXBL. Vérifie ta connexion.';
     showToast(msg);
     if (sub) sub.textContent = msg;
   }
