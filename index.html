@@ -719,21 +719,23 @@ html, body {
       <div class="sec-label">Genres favoris</div>
       <div style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="genre-stats"></div>
 
-      <!-- FIL D'ACTIVITÉ -->
-      <div class="sec-label">Fil d'activité</div>
-      <div id="profile-activity" style="padding:0 16px;display:flex;flex-direction:column;gap:0;margin-bottom:16px"></div>
+      <!-- TOP SOLO -->
+      <div class="sec-label">Top Solo</div>
+      <div id="top-solo" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+
+      <!-- TOP MULTI -->
+      <div class="sec-label">Top Multi</div>
+      <div id="top-multi" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
 
       <!-- PHOTOS & VIDÉOS -->
       <div class="sec-label">Screenshots & vidéos</div>
       <div id="profile-media" style="padding:0 16px 16px"></div>
 
-      <!-- STEAM -->
-      <div class="sec-label">Top Solo</div>
-      <div id="top-solo" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+      <!-- FIL D'ACTIVITÉ -->
+      <div class="sec-label">Fil d'activité</div>
+      <div id="profile-activity" style="padding:0 16px;display:flex;flex-direction:column;gap:0;margin-bottom:16px"></div>
 
-      <div class="sec-label">Top Multi</div>
-      <div id="top-multi" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
-
+      <!-- CONNECTER STEAM -->
       <div class="connect-section anim" style="animation-delay:0.2s">
         <div class="connect-card">
           <div class="connect-title">Connecter Steam</div>
@@ -1826,7 +1828,7 @@ function renderFeed(){
 // ══════════════════════════════════════
 // AI ASSISTANT
 // ══════════════════════════════════════
-const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyC56YTRBzff_MphRXNpZd5rutVd3Cx8yYQ';
+const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyD44HfgBprjXFgWNz-ICaGCzhBOnTsNoZs';
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
 // Keep backward compat
@@ -1889,19 +1891,13 @@ function stopVoice() {
 function quickAction(type) {
   currentQuickAction = type;
   const input = document.getElementById('chat-input');
-  const prompts = {
-    add: 'Quel jeu veux-tu ajouter ?',
-    recommend: 'Décris ton humeur ou ce que tu cherches…'
-  };
+  const prompts = { add: 'Quel jeu veux-tu ajouter ?', recommend: 'Décris ton humeur ou ce que tu cherches…' };
   input.placeholder = prompts[type] || 'Pose ta question…';
   input.focus();
-  // Highlight active button
   ['add','recommend'].forEach(t => {
     const btn = document.getElementById('btn-quick-'+t);
     if (btn) btn.style.borderColor = t===type ? 'var(--a)' : 'var(--border2)';
   });
-  // Also trigger voice immediately
-  toggleVoice();
 }
 
 function addMsgUser(text) {
