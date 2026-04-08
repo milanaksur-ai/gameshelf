@@ -591,8 +591,7 @@ html, body {
 
       <!-- EN COURS SOLO -->
       <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
-        <div class="sec-label" style="padding:0;margin:0">Solo · En cours</div>
-        <span id="solo-count-label" style="font-size:12px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600"></span>
+        <div class="sec-label" style="padding:0;margin:0" id="solo-section-label">Solo · En cours</div>
       </div>
       <div id="playing-solo-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
 
@@ -601,8 +600,7 @@ html, body {
 
       <!-- EN COURS MULTI -->
       <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
-        <div class="sec-label" style="padding:0;margin:0">Multi · En cours</div>
-        <span id="multi-count-label" style="font-size:12px;color:var(--muted);font-family:'Space Grotesk',sans-serif;font-weight:600"></span>
+        <div class="sec-label" style="padding:0;margin:0" id="multi-section-label">Multi · En cours</div>
       </div>
       <div id="playing-multi-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
 
@@ -712,9 +710,9 @@ html, body {
 
       <!-- STATS -->
       <div class="stats-grid anim" style="animation-delay:0.1s">
-        <div class="stat-card"><div class="stat-val accent" id="stat-total">0</div><div class="stat-label">Total</div></div>
-        <div class="stat-card"><div class="stat-val green" id="stat-finished">0</div><div class="stat-label">Finis</div></div>
-        <div class="stat-card"><div class="stat-val" style="color:var(--a2)" id="stat-playing">0</div><div class="stat-label">En cours</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('all')"><div class="stat-val accent" id="stat-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('finished')"><div class="stat-val green" id="stat-finished">0</div><div class="stat-label">Finis</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('playing')"><div class="stat-val" style="color:var(--a2)" id="stat-playing">0</div><div class="stat-label">En cours</div></div>
       </div>
 
       <!-- GENRES -->
@@ -730,6 +728,12 @@ html, body {
       <div id="profile-media" style="padding:0 16px 16px"></div>
 
       <!-- STEAM -->
+      <div class="sec-label">Top Solo</div>
+      <div id="top-solo" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+
+      <div class="sec-label">Top Multi</div>
+      <div id="top-multi" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+
       <div class="connect-section anim" style="animation-delay:0.2s">
         <div class="connect-card">
           <div class="connect-title">Connecter Steam</div>
@@ -841,6 +845,16 @@ html, body {
       <span>Profil</span>
     </button>
   </nav>
+  <!-- PROFILE PANEL OVERLAY -->
+  <div id="profile-panel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:flex-end" onclick="if(event.target===this)closeProfilePanel()">
+    <div style="background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:75dvh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:var(--safe-b)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:0.5px solid var(--border)">
+        <div id="panel-title" style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700"></div>
+        <button onclick="closeProfilePanel()" style="background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--muted2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
+      <div id="panel-content" style="overflow-y:auto;flex:1;padding:12px 16px"></div>
+    </div>
+  </div>
 
 </div><!-- /app-shell -->
 </div><!-- /view-app -->
@@ -1335,10 +1349,10 @@ function updateSlotLabels() {
       : 'Multi · En cours';
   }
 
-  const soloLabel  = document.getElementById('solo-count-label');
-  const multiLabel = document.getElementById('multi-count-label');
-  if (soloLabel)  soloLabel.textContent  = allSolo.length  > 0 ? allSolo.length  : '';
-  if (multiLabel) multiLabel.textContent = allMulti.length > 0 ? allMulti.length : '';
+  const soloLabel  = document.getElementById('solo-section-label');
+  const multiLabel = document.getElementById('multi-section-label');
+  if (soloLabel)  soloLabel.textContent = allSolo.length  > 0 ? `Solo · En cours ${allSolo.length}`  : 'Solo · En cours';
+  if (multiLabel) multiLabel.textContent = allMulti.length > 0 ? `Multi · En cours ${allMulti.length}` : 'Multi · En cours';
 }
 
 function isPlaying(status) {
@@ -1574,12 +1588,26 @@ function renderProfileStats() {
   if (gc) {
     gc.innerHTML = top.map(([genre, score]) => {
       const count = all.filter(g=>g.genre===genre).length;
-      return `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;text-align:center">
+      return `<div onclick="showProfilePanel('genre','${genre}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='var(--a)'" onmouseleave="this.style.borderColor='var(--border)'">
         <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--a)">${count}</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:2px">${genre}</div>
       </div>`;
     }).join('');
   }
+
+  // Top 3 Solo by score
+  const topSolo = all
+    .filter(g => g.status === 'playing-solo' || (isDone(g.status) && g.score > 0))
+    .sort((a,b) => (b.score||0) - (a.score||0)).slice(0,3);
+  const topSoloEl = document.getElementById('top-solo');
+  if (topSoloEl) topSoloEl.innerHTML = topSolo.length ? topSolo.map(g => profileGameRow(g)).join('') : `<div style="font-size:13px;color:var(--muted);padding:4px 0">Aucun jeu solo noté pour l'instant.</div>`;
+
+  // Top 3 Multi by score
+  const topMulti = all
+    .filter(g => g.status === 'playing-multi' && g.score > 0)
+    .sort((a,b) => (b.score||0) - (a.score||0)).slice(0,3);
+  const topMultiEl = document.getElementById('top-multi');
+  if (topMultiEl) topMultiEl.innerHTML = topMulti.length ? topMulti.map(g => profileGameRow(g)).join('') : `<div style="font-size:13px;color:var(--muted);padding:4px 0">Aucun jeu multi noté pour l'instant.</div>`;
 
   // Activity feed — recently finished or added
   const activity = document.getElementById('profile-activity');
@@ -1626,6 +1654,62 @@ function renderProfileStats() {
           </div>`).join('') + `</div>`;
     }
   }
+}
+
+function profileGameRow(g) {
+  const ug = userGames[g.id]||g;
+  const src = coverUrl(g);
+  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  return `<div class="feed-item" onclick="openDetail('${g.id}');closeProfilePanel()" style="cursor:pointer">
+    <div style="width:44px;height:25px;border-radius:6px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
+      ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:10px;font-weight:700;color:var(--muted)">${initials}</span>`}
+    </div>
+    <div class="feed-content">
+      <div class="feed-name" style="font-size:13px">${g.title}</div>
+      <div style="font-size:11px;color:var(--muted2)">${g.genre||''}${ug.score>0?` · ★ ${ug.score}/10`:''}</div>
+    </div>
+  </div>`;
+}
+
+function showProfilePanel(type, extra) {
+  const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
+  const panel = document.getElementById('profile-panel');
+  const title = document.getElementById('panel-title');
+  const content = document.getElementById('panel-content');
+
+  let games = [], label = '';
+  if (type === 'all') {
+    label = `Tous les jeux (${all.length})`;
+    games = all;
+  } else if (type === 'finished') {
+    games = all.filter(g => isDone(g.status));
+    label = `Jeux finis (${games.length})`;
+  } else if (type === 'playing') {
+    games = all.filter(g => isPlaying(g.status));
+    label = `En cours (${games.length})`;
+  } else if (type === 'genre') {
+    games = all.filter(g => g.genre === extra);
+    label = `${extra} (${games.length})`;
+  }
+
+  title.textContent = label;
+  content.innerHTML = games.length
+    ? games.map(g => profileGameRow(g)).join('')
+    : `<div style="font-size:13px;color:var(--muted);padding:12px 0">Aucun jeu ici pour l'instant.</div>`;
+
+  panel.style.display = 'flex';
+  // Animate in
+  panel.firstElementChild.style.transform = 'translateY(100%)';
+  requestAnimationFrame(() => {
+    panel.firstElementChild.style.transition = 'transform 0.3s cubic-bezier(0.22,1,0.36,1)';
+    panel.firstElementChild.style.transform = 'translateY(0)';
+  });
+}
+
+function closeProfilePanel() {
+  const panel = document.getElementById('profile-panel');
+  panel.firstElementChild.style.transform = 'translateY(100%)';
+  setTimeout(() => { panel.style.display = 'none'; }, 300);
 }
 
 function renderHomeRecos() {
@@ -1743,7 +1827,10 @@ function renderFeed(){
 // AI ASSISTANT
 // ══════════════════════════════════════
 const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyC56YTRBzff_MphRXNpZd5rutVd3Cx8yYQ';
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
+// Keep backward compat
+const GEMINI_URL = `${GEMINI_BASE}/gemini-1.5-flash:generateContent`;
 
 // Voice recognition setup
 let recognition = null;
@@ -1867,23 +1954,30 @@ async function callGemini(userMsg, systemCtx) {
   if (!GEMINI_KEY) {
     return `⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé Gemini</button>`;
   }
-  try {
-    const prompt = `${systemCtx}\n\nUtilisateur : ${userMsg}\n\nRéponds en français, de façon concise et naturelle.`;
-    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents: [{parts: [{text: prompt}]}],
-        generationConfig: {maxOutputTokens: 500, temperature: 0.7}
-      })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Pas de réponse.';
-  } catch(e) {
-    console.warn('Gemini error:', e);
-    return `Erreur Gemini (${e.message}). Vérifie ta clé API ou réessaie.`;
+  const prompt = `${systemCtx}\n\nUtilisateur : ${userMsg}\n\nRéponds en français, de façon concise et naturelle.`;
+  const body = JSON.stringify({
+    contents: [{parts: [{text: prompt}]}],
+    generationConfig: {maxOutputTokens: 500, temperature: 0.7}
+  });
+  for (const model of GEMINI_MODELS) {
+    try {
+      const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`, {
+        method: 'POST', headers: {'Content-Type':'application/json'}, body
+      });
+      if (res.status === 403) {
+        // Try next model; if all fail, show helpful message
+        continue;
+      }
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Pas de réponse.';
+    } catch(e) {
+      if (e.message?.includes('403')) continue;
+      console.warn('Gemini error:', model, e);
+    }
   }
+  // All models failed — likely regional restriction
+  return `⚠️ <strong>Accès Gemini bloqué</strong> (erreur 403).<br><br>Si tu es en France/UK/UE, le tier gratuit est restreint géographiquement. Solutions :<br>• Active la facturation sur <a href="https://console.cloud.google.com" target="_blank" style="color:var(--a)">Google Cloud Console</a> (gratuit sous les limites)<br>• Ou génère une nouvelle clé sur <a href="https://aistudio.google.com" target="_blank" style="color:var(--a)">aistudio.google.com</a>`;
 }
 
 // Parse intent via Gemini — returns JSON {action, games[], mood, question}
@@ -1902,16 +1996,12 @@ Réponds avec ce format JSON exact :
 - games : liste des titres de jeux mentionnés (vides si pas de titre spécifique)
 - Pour "add" avec statut en cours, note aussi le statut voulu dans games comme "Titre|playing-solo" ou "Titre|playing-multi"`;
 
-    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+    const res = await fetch(`${GEMINI_BASE}/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({
-        contents: [{parts: [{text: prompt}]}],
-        generationConfig: {maxOutputTokens: 200, temperature: 0}
-      })
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0}})
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const clean = raw.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
