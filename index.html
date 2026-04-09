@@ -181,6 +181,9 @@ html, body {
 .ob-tab.active[data-status="playing-solo"] { background:rgba(108,92,231,0.15); border-color:var(--a); color:var(--a); }
 .ob-tab.active[data-status="playing-multi"] { background:rgba(253,121,168,0.12); border-color:var(--a2); color:var(--a2); }
 .ob-tab.active[data-status="backlog"] { background:rgba(100,100,122,0.18); border-color:var(--muted); color:var(--text); }
+.ob-inline-picker { display:flex;flex-wrap:wrap;gap:4px;margin-top:6px; }
+.ob-pick-btn { font-size:10px;padding:3px 9px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;transition:all 0.12s; }
+.ob-pick-btn:active { transform:scale(0.93); }
 
 .added-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; min-height: 32px; }
 .added-chip  { display: flex; align-items: center; gap: 5px; background: rgba(108,92,231,0.12); border: 0.5px solid; border-radius: 20px; padding: 4px 10px; font-size: 12px; }
@@ -851,7 +854,7 @@ html, body {
       <p class="step-sub">Où en es-tu avec chaque jeu ? Choisis la catégorie avant d'ajouter.</p>
       <div class="ob-status-tabs">
         <button class="ob-tab active" data-status="playing-solo" onclick="setObTab('playing-solo',this)">🎮<br>En cours<br>solo</button>
-        <button class="ob-tab" data-status="playing-multi" onclick="setObTab('playing-multi',this)">👥<br>Multi<br>en cours</button>
+        <button class="ob-tab" data-status="playing-multi" onclick="setObTab('playing-multi',this)">👥<br>Multi<br>actif</button>
         <button class="ob-tab" data-status="backlog" onclick="setObTab('backlog',this)">📋<br>À jouer<br>(backlog)</button>
       </div>
       <div class="search-wrap">
@@ -933,7 +936,7 @@ html, body {
 
       <!-- EN COURS MULTI -->
       <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
-        <div class="sec-label" style="padding:0;margin:0" id="multi-section-label">Multi · En cours</div>
+        <div class="sec-label" style="padding:0;margin:0" id="multi-section-label">Multi · Actif</div>
       </div>
       <div id="playing-multi-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
 
@@ -1373,10 +1376,11 @@ async function igdbFetch(action, extra = {}) {
   } catch(e) { console.warn('IGDB fetch error:', e); return null; }
 }
 
+const DLC_RE = /\b(dlc|bundle|pack|season pass|expansion pass|artbook|soundtrack)\b/i;
 async function igdbSearch(query, limit = 12) {
   const data = await igdbFetch('search', { query, limit });
   if (!data?.length) return mockSearch(query);
-  return data.map(mapIgdbGame);
+  return data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
 }
 
 async function igdbTrending() {
@@ -1436,6 +1440,7 @@ window.addEventListener('resize', initParticles);
 // ══════════════════════════════════════
 let selectedImport = 'steam';
 let addedGames = [];
+let obPickerGames = {};
 let trendingAdded = new Set();
 let obCurrentStatus = 'playing-solo';
 let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer' };
@@ -1444,6 +1449,7 @@ const OB_STATUS_COLORS = {
   'playing-solo':  { border: 'rgba(108,92,231,0.7)', color: '#a29bfe', bg: 'rgba(108,92,231,0.12)' },
   'playing-multi': { border: 'rgba(253,121,168,0.7)', color: '#fd79a8', bg: 'rgba(253,121,168,0.1)' },
   'backlog':       { border: 'rgba(100,100,122,0.5)', color: 'var(--muted2)', bg: 'rgba(100,100,122,0.1)' },
+  'finished':      { border: 'rgba(0,230,118,0.5)', color: '#00e676', bg: 'rgba(0,230,118,0.1)' },
 };
 const OB_STATUS_PLACEHOLDERS = {
   'playing-solo':  "Ex: Elden Ring, Baldur\u2019s Gate 3\u2026",
@@ -1570,13 +1576,13 @@ async function searchGames(q) {
   if (!q.trim()) { list.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Commence à taper…</div>'; return; }
   list.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
   searchTimer = setTimeout(async ()=>{
-    const results = await igdbSearch(q, 8);
+    const results = await igdbSearch(q, 20);
     if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat</div>`; return; }
     list.innerHTML = results.map(g=>{
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
+      obPickerGames[g.id] = {id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'\uD83C\uDFAE',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]};
       return `<div class="result-item ${isAdded?'added':''}" id="ri-${g.id}">
         <div class="result-cover" style="background:var(--s3)">
           ${src
@@ -1584,7 +1590,7 @@ async function searchGames(q) {
             : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         </div>
         <div class="result-info"><div class="result-title">${g.title}</div><div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>${renderPlatforms(g.platforms)}</div>
-        <button class="result-add" onclick="toggleGame(${safeG})">${isAdded?'✓':'+'}</button>
+        <button class="result-add" onclick="showObStatusPicker('${g.id}')">${isAdded?'\u2713':'+'}</button>
       </div>`;
     }).join('');
   }, 500);
@@ -1605,7 +1611,7 @@ function toggleGame(g) {
   }
 }
 function updateAddedChips() {
-  const OB_STATUS_ICONS = { 'playing-solo': '🎮', 'playing-multi': '👥', 'backlog': '📋' };
+  const OB_STATUS_ICONS = { 'playing-solo': '🎮', 'playing-multi': '👥', 'backlog': '📋', 'finished': '✅' };
   document.getElementById('added-chips').innerHTML = addedGames.map(g => {
     const s = g.status || 'backlog';
     const c = OB_STATUS_COLORS[s] || OB_STATUS_COLORS['backlog'];
@@ -1616,6 +1622,45 @@ function updateAddedChips() {
   const n = addedGames.length;
   document.getElementById('added-count').textContent = n;
   document.getElementById('manual-cta').style.opacity = n > 0 ? '1' : '0.5';
+}
+function showObStatusPicker(id) {
+  const item = document.getElementById('ri-' + id);
+  if (!item) return;
+  const idx = addedGames.findIndex(a => a.id === id);
+  if (idx >= 0) {
+    addedGames.splice(idx, 1);
+    updateAddedChips();
+    item.classList.remove('added');
+    item.querySelector('.result-add').textContent = '+';
+    const existing = item.querySelector('.ob-inline-picker');
+    if (existing) existing.remove();
+    return;
+  }
+  let picker = item.querySelector('.ob-inline-picker');
+  if (picker) { picker.remove(); return; }
+  picker = document.createElement('div');
+  picker.className = 'ob-inline-picker';
+  picker.innerHTML = [
+    ['finished','\u2705 Fini'],
+    ['playing-solo','\uD83C\uDFAE Solo'],
+    ['playing-multi','\uD83D\uDC65 Multi'],
+    ['backlog','\uD83D\uDCCB Backlog'],
+  ].map(([s,l]) => `<button class="ob-pick-btn" onclick="addWithObStatus('${id}','${s}')">${l}</button>`).join('');
+  item.querySelector('.result-info').appendChild(picker);
+}
+function addWithObStatus(id, status) {
+  const g = obPickerGames[id];
+  if (!g) return;
+  addedGames = addedGames.filter(a => a.id !== id);
+  addedGames.push({ ...g, status });
+  updateAddedChips();
+  const item = document.getElementById('ri-' + id);
+  if (item) {
+    item.classList.add('added');
+    item.querySelector('.result-add').textContent = '\u2713';
+    const picker = item.querySelector('.ob-inline-picker');
+    if (picker) picker.remove();
+  }
 }
 async function renderTrending() {
   const list = document.getElementById('trending-list');
@@ -1816,14 +1861,14 @@ function updateSlotLabels() {
   if (multiBtn) {
     const idx = allMulti.findIndex(g => g.id === currentGame?.id);
     multiBtn.textContent = (ug.status === 'playing-multi' && idx >= 0)
-      ? `Multi · En cours ${idx + 1}`
-      : 'Multi · En cours';
+      ? `Multi · Actif ${idx + 1}`
+      : 'Multi · Actif';
   }
 
   const soloLabel  = document.getElementById('solo-section-label');
   const multiLabel = document.getElementById('multi-section-label');
   if (soloLabel)  soloLabel.textContent = allSolo.length  > 0 ? `Solo · En cours ${allSolo.length}`  : 'Solo · En cours';
-  if (multiLabel) multiLabel.textContent = allMulti.length > 0 ? `Multi · En cours ${allMulti.length}` : 'Multi · En cours';
+  if (multiLabel) multiLabel.textContent = allMulti.length > 0 ? `Multi · Actif ${allMulti.length}` : 'Multi · Actif';
 }
 
 function isPlaying(status) {
@@ -2285,7 +2330,7 @@ function renderFeed(){
   }
 
   document.getElementById('playing-solo-slots').innerHTML  = playingSolo.map((g,i) => slotCard(g,i)).join('') || `<div style="padding:8px 0;font-size:13px;color:var(--muted)">Aucun jeu solo en cours</div>`;
-  document.getElementById('playing-multi-slots').innerHTML = playingMulti.map((g,i) => slotCard(g,i)).join('') || `<div style="padding:8px 0;font-size:13px;color:var(--muted)">Aucun jeu multi en cours</div>`;
+  document.getElementById('playing-multi-slots').innerHTML = playingMulti.map((g,i) => slotCard(g,i)).join('') || `<div style="padding:8px 0;font-size:13px;color:var(--muted)">Aucun jeu multi actif</div>`;
 
   // Update count labels
   updateSlotLabels();
@@ -2617,7 +2662,7 @@ async function addSingleGame(titleRaw, defaultStatus) {
   const coverHtml = src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
     : '';
-  const statusLabel = {backlog:'backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · En cours'}[status]||status;
+  const statusLabel = {backlog:'Backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
   return `${coverHtml}<strong>${g.title}</strong> (${g.genre}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${g.id}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
 }
 
