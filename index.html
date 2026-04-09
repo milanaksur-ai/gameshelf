@@ -363,6 +363,75 @@ html, body {
 
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 .anim { animation: fadeUp2 0.3s ease forwards; opacity: 0; }
+
+/* ══════════════════════════════════════
+   SCREEN TRANSITIONS
+══════════════════════════════════════ */
+@keyframes screenFadeIn  { from{opacity:0;transform:translateY(6px)}  to{opacity:1;transform:translateY(0)} }
+@keyframes screenSlideIn { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
+.screen.active           { animation: screenFadeIn  0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
+#screen-detail.active    { animation: screenSlideIn 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
+
+/* ══════════════════════════════════════
+   NAV INDICATOR
+══════════════════════════════════════ */
+#nav-indicator {
+  position: absolute;
+  bottom: calc(var(--safe-b) + 5px);
+  height: 3px; width: 24px;
+  background: linear-gradient(90deg, var(--a), var(--a2));
+  border-radius: 2px;
+  transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════
+   MIC — PULSE WHILE LISTENING
+══════════════════════════════════════ */
+@keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,82,82,0.5)} 60%{box-shadow:0 0 0 10px rgba(255,82,82,0)} }
+#mic-btn.listening { animation: micPulse 1.4s ease-in-out infinite; }
+
+/* ══════════════════════════════════════
+   ADD-GAME MODAL
+══════════════════════════════════════ */
+#add-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 400;
+  display: none; align-items: flex-end;
+}
+#add-modal.open { display: flex; }
+#add-modal-inner {
+  background: var(--s1);
+  border-radius: 20px 20px 0 0;
+  width: 100%; max-width: 430px;
+  margin: 0 auto;
+  max-height: 82dvh;
+  display: flex; flex-direction: column;
+  padding-bottom: var(--safe-b);
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+}
+#add-modal.open #add-modal-inner { transform: translateY(0); }
+#add-modal-results { display: flex; flex-direction: column; gap: 6px; min-height: 160px; overflow-y: auto; flex: 1; scrollbar-width: none; }
+#add-modal-results::-webkit-scrollbar { display: none; }
+
+/* ══════════════════════════════════════
+   SHIMMER SKELETON
+══════════════════════════════════════ */
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+.skeleton {
+  background: linear-gradient(90deg, var(--s2) 25%, var(--s3) 50%, var(--s2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+/* ══════════════════════════════════════
+   ONBOARDING — directional slides
+══════════════════════════════════════ */
+.step.entering-fwd  { animation: slideIn     0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
+.step.entering-back { animation: slideInBack 0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes slideInBack { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
 </style>
 </head>
 <body>
@@ -616,7 +685,12 @@ html, body {
     <div class="lib-header">
       <div class="lib-title-row">
         <div class="lib-title">Ma bibliothèque</div>
-        <div class="lib-count" id="lib-count">12 jeux</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="lib-count" id="lib-count">12 jeux</div>
+          <button onclick="openAddModal()" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Ajouter un jeu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
       </div>
       <div class="search-bar">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -847,7 +921,8 @@ html, body {
   </div>
 
   <!-- NAV -->
-  <nav id="app-nav">
+  <nav id="app-nav" style="position:relative">
+    <div id="nav-indicator"></div>
     <button class="nav-btn active" id="nav-feed" onclick="appGoTo('feed')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span>Accueil</span>
@@ -880,6 +955,31 @@ html, body {
 </div><!-- /view-app -->
 
 <div id="toast"></div>
+
+<!-- ████████████████ ADD GAME MODAL ████████████████ -->
+<div id="add-modal" onclick="if(event.target===this)closeAddModal()">
+  <div id="add-modal-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700">Ajouter un jeu</div>
+      <button onclick="closeAddModal()" style="background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--muted2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    </div>
+    <div style="padding:12px 16px 8px;flex-shrink:0">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="add-modal-input" placeholder="Rechercher un jeu…" oninput="searchAddModal(this.value)" autocomplete="off">
+      </div>
+      <div id="add-modal-status-row" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">Backlog</div>
+        <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
+        <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
+        <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
+      </div>
+    </div>
+    <div id="add-modal-results" style="padding:0 16px 8px">
+      <div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ══════════════════════════════════════
@@ -1038,15 +1138,21 @@ const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':62,'3d':80,'4':100
 function obStep(target) {
   const ids = ['0','1','2','3','3b','3c','3d','4'];
   const cur = ids.find(id => document.getElementById('step-'+id)?.classList.contains('active'));
+  const curIdx = ids.indexOf(String(cur));
+  const nxtIdx = ids.indexOf(String(target));
+  const goingBack = nxtIdx < curIdx;
+
   const curEl = document.getElementById('step-'+cur);
   const nxtEl = document.getElementById('step-'+target);
   if (!nxtEl) return;
-  if (curEl) curEl.classList.remove('active');
-  nxtEl.classList.add('active','entering');
-  setTimeout(()=>nxtEl.classList.remove('entering'),350);
+  if (curEl) curEl.classList.remove('active','entering-fwd','entering-back');
+  nxtEl.classList.remove('entering-fwd','entering-back');
+  void nxtEl.offsetWidth; // reflow
+  nxtEl.classList.add('active', goingBack ? 'entering-back' : 'entering-fwd');
+  setTimeout(()=>nxtEl.classList.remove('entering-fwd','entering-back'),350);
   document.getElementById('progress-fill').style.width = (OB_PROGRESS[String(target)]??0)+'%';
   nxtEl.querySelector('.step-scroll')?.scrollTo(0,0);
-  if (target===4)   buildSuccessPreview();
+  if (target===4)    buildSuccessPreview();
   if (target==='3d') renderTrending();
 }
 
@@ -1324,17 +1430,40 @@ let appPrevScreen = 'feed';
 function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
   appPrevScreen = appCurrentScreen;
+
+  // Swap active screen (CSS animation fires on .active class)
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+screen).classList.add('active');
+  const nextEl = document.getElementById('screen-'+screen);
+  if (nextEl) {
+    // Force reflow so animation re-triggers
+    void nextEl.offsetWidth;
+    nextEl.classList.add('active');
+    nextEl.querySelector('.scroll-area')?.scrollTo(0,0);
+  }
+
+  // Nav buttons + sliding indicator
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const nb = document.getElementById('nav-'+screen);
-  if(nb) nb.classList.add('active');
+  if(nb) {
+    nb.classList.add('active');
+    moveNavIndicator(nb);
+  }
+
   appCurrentScreen = screen;
-  document.getElementById('app-nav').style.display = screen==='detail'?'none':'flex';
-  document.getElementById('screen-'+screen).querySelector('.scroll-area')?.scrollTo(0,0);
+
   // Side effects per screen
   if (screen === 'profile') renderProfileStats();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
+}
+
+function moveNavIndicator(btn) {
+  const indicator = document.getElementById('nav-indicator');
+  if (!indicator || !btn) return;
+  const nav = document.getElementById('app-nav');
+  const navRect = nav.getBoundingClientRect();
+  const btnRect = btn.getBoundingClientRect();
+  const centerX = btnRect.left - navRect.left + btnRect.width / 2;
+  indicator.style.left = (centerX - 12) + 'px';
 }
 function appGoBack() { appGoTo(appPrevScreen==='detail'?'library':appPrevScreen); }
 
@@ -1974,8 +2103,10 @@ function initVoice() {
   rec.interimResults = true;
   rec.onstart = () => {
     isListening = true;
-    document.getElementById('mic-btn').style.background = 'rgba(255,82,82,0.2)';
-    document.getElementById('mic-btn').style.borderColor = 'var(--red)';
+    const btn = document.getElementById('mic-btn');
+    btn.style.background = 'rgba(255,82,82,0.2)';
+    btn.style.borderColor = 'var(--red)';
+    btn.classList.add('listening');
     document.getElementById('mic-icon').setAttribute('stroke', 'var(--red)');
     document.getElementById('voice-status').textContent = '🎤 En écoute…';
   };
@@ -2004,6 +2135,7 @@ function stopVoice() {
   isListening = false;
   const btn = document.getElementById('mic-btn');
   if (btn) {
+    btn.classList.remove('listening');
     btn.style.background = 'rgba(108,92,231,0.15)';
     btn.style.borderColor = 'rgba(108,92,231,0.3)';
   }
@@ -2124,6 +2256,7 @@ Réponds avec ce format JSON exact :
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0}})
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const clean = raw.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
@@ -2237,10 +2370,110 @@ function renderExplore() { /* replaced by assistant */ }
 function searchExplore() {}
 
 function renderFriendsList(){ /* masqué — fonctionnalité sociale désactivée */ }
-function initApp(){ renderFeed(); renderGameGrid(); renderProfileStats(); }
+function initApp(){
+  renderFeed(); renderGameGrid(); renderProfileStats();
+  // Init nav indicator on first active btn
+  const firstActive = document.querySelector('#app-nav .nav-btn.active');
+  if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
+}
+
+// ══════════════════════════════════════
+// ADD-GAME MODAL
+// ══════════════════════════════════════
+let addModalStatus = 'backlog';
+let addModalTimer;
+
+function openAddModal() {
+  const modal = document.getElementById('add-modal');
+  modal.classList.add('open');
+  // Reset
+  document.getElementById('add-modal-input').value = '';
+  document.getElementById('add-modal-results').innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>';
+  setAddStatus('backlog', document.getElementById('add-status-backlog'));
+  setTimeout(() => document.getElementById('add-modal-input').focus(), 350);
+}
+
+function closeAddModal() {
+  const modal = document.getElementById('add-modal');
+  const inner = document.getElementById('add-modal-inner');
+  inner.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    modal.classList.remove('open');
+    inner.style.transform = '';
+  }, 320);
+}
+
+function setAddStatus(status, el) {
+  addModalStatus = status;
+  document.querySelectorAll('#add-modal-status-row .chip').forEach(c => c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  // Re-render results if there's a query
+  const q = document.getElementById('add-modal-input')?.value?.trim();
+  if (q) searchAddModal(q);
+}
+
+function searchAddModal(q) {
+  clearTimeout(addModalTimer);
+  const results = document.getElementById('add-modal-results');
+  if (!q.trim()) {
+    results.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>';
+    return;
+  }
+  results.innerHTML = '<div class="loading-dots" style="padding:32px 0"><span></span><span></span><span></span></div>';
+  addModalTimer = setTimeout(async () => {
+    const games = await rawgSearch(q, 8);
+    if (!games.length) {
+      results.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Aucun résultat</div>';
+      return;
+    }
+    results.innerHTML = games.map(g => {
+      const inLib = GAMES.find(x => x.id === g.id);
+      const src = g.cover || (g.steamId > 0 ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
+      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||''}).replace(/"/g,'&quot;');
+      return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
+        <div class="result-cover">
+          ${src ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+        </div>
+        <div class="result-info">
+          <div class="result-title">${g.title}</div>
+          <div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>
+        </div>
+        <button class="result-add" onclick="addGameFromModal(${safeG},this)">${inLib?'✓':'+'}</button>
+      </div>`;
+    }).join('');
+  }, 350);
+}
+
+function addGameFromModal(g, btn) {
+  const existing = GAMES.find(x => x.id === g.id);
+  if (existing) {
+    // Update status if different
+    if (userGames[existing.id] && userGames[existing.id].status !== addModalStatus) {
+      userGames[existing.id].status = addModalStatus;
+      renderGameGrid(); renderFeed();
+      showToast(`${g.title} → ${addModalStatus.replace('-',' ')}`);
+    } else {
+      showToast(`${g.title} déjà en bibliothèque`);
+    }
+    return;
+  }
+  GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours:0});
+  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours:0};
+  renderGameGrid(); renderFeed();
+  document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
+
+  // Update button
+  const item = document.getElementById('am-'+g.id);
+  if (item) item.classList.add('added');
+  if (btn) btn.textContent = '✓';
+
+  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini'};
+  showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
+}
 
 // clock
-function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0'); }
+function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); }
 updateClock(); setInterval(updateClock,30000);
 
 // toast
