@@ -171,9 +171,20 @@ html, body {
 .plat-badges { display:flex;flex-wrap:wrap;gap:3px;margin-top:4px; }
 .plat-badge  { display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:0.03em;color:rgba(255,255,255,0.92); }
 
+/* onboarding status tabs */
+.ob-status-tabs { display:flex;gap:7px;margin-bottom:14px; }
+.ob-tab {
+  flex:1; background:var(--s2); border:1px solid var(--border); border-radius:12px;
+  padding:10px 6px; font-size:11px; font-weight:700; color:var(--muted2);
+  cursor:pointer; transition:all 0.15s; letter-spacing:0.02em; line-height:1.3; text-align:center;
+}
+.ob-tab.active[data-status="playing-solo"] { background:rgba(108,92,231,0.15); border-color:var(--a); color:var(--a); }
+.ob-tab.active[data-status="playing-multi"] { background:rgba(253,121,168,0.12); border-color:var(--a2); color:var(--a2); }
+.ob-tab.active[data-status="backlog"] { background:rgba(100,100,122,0.18); border-color:var(--muted); color:var(--text); }
+
 .added-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; min-height: 32px; }
-.added-chip  { display: flex; align-items: center; gap: 5px; background: rgba(108,92,231,0.15); border: 0.5px solid rgba(108,92,231,0.35); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #a29bfe; }
-.chip-remove { background: none; border: none; color: #a29bfe; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 0 0 2px; }
+.added-chip  { display: flex; align-items: center; gap: 5px; background: rgba(108,92,231,0.12); border: 0.5px solid; border-radius: 20px; padding: 4px 10px; font-size: 12px; }
+.chip-remove { background: none; border: none; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 0 0 2px; opacity: 0.7; }
 
 /* success */
 .success-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 40px 32px; text-align: center; }
@@ -836,11 +847,16 @@ html, body {
     <button class="back-btn" onclick="obStep(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 3 sur 5</div>
-      <div class="step-title">Ajoute tes <span>jeux</span></div>
-      <p class="step-sub">Cherche les jeux que tu as joués ou que tu veux suivre.</p>
+      <div class="step-title">Construis ton <span>profil</span></div>
+      <p class="step-sub">Où en es-tu avec chaque jeu ? Choisis la catégorie avant d'ajouter.</p>
+      <div class="ob-status-tabs">
+        <button class="ob-tab active" data-status="playing-solo" onclick="setObTab('playing-solo',this)">🎮<br>En cours<br>solo</button>
+        <button class="ob-tab" data-status="playing-multi" onclick="setObTab('playing-multi',this)">👥<br>Multi<br>en cours</button>
+        <button class="ob-tab" data-status="backlog" onclick="setObTab('backlog',this)">📋<br>À jouer<br>(backlog)</button>
+      </div>
       <div class="search-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="game-search" placeholder="Ex: Elden Ring, Hades, Celeste…" oninput="searchGames(this.value)" autocomplete="off">
+        <input type="text" id="game-search" placeholder="Ex: Elden Ring, Baldur's Gate 3…" oninput="searchGames(this.value)" autocomplete="off">
       </div>
       <div class="added-chips" id="added-chips"></div>
       <div class="results-list" id="results-list"><div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div></div>
@@ -1421,7 +1437,29 @@ window.addEventListener('resize', initParticles);
 let selectedImport = 'steam';
 let addedGames = [];
 let trendingAdded = new Set();
+let obCurrentStatus = 'playing-solo';
 let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer' };
+
+const OB_STATUS_COLORS = {
+  'playing-solo':  { border: 'rgba(108,92,231,0.7)', color: '#a29bfe', bg: 'rgba(108,92,231,0.12)' },
+  'playing-multi': { border: 'rgba(253,121,168,0.7)', color: '#fd79a8', bg: 'rgba(253,121,168,0.1)' },
+  'backlog':       { border: 'rgba(100,100,122,0.5)', color: 'var(--muted2)', bg: 'rgba(100,100,122,0.1)' },
+};
+const OB_STATUS_PLACEHOLDERS = {
+  'playing-solo':  'Ex: Elden Ring, Baldur's Gate 3…',
+  'playing-multi': 'Ex: Valorant, Rocket League…',
+  'backlog':       'Ex: Zelda, Hollow Knight…',
+};
+
+function setObTab(status, btn) {
+  obCurrentStatus = status;
+  document.querySelectorAll('.ob-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const input = document.getElementById('game-search');
+  if (input) input.placeholder = OB_STATUS_PLACEHOLDERS[status] || 'Chercher un jeu…';
+  // Clear search & results to avoid confusion
+  if (input && input.value) { input.value = ''; searchGames(''); }
+}
 const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':62,'3d':80,'4':100 };
 
 function obStep(target) {
@@ -1552,17 +1590,32 @@ async function searchGames(q) {
   }, 500);
 }
 function toggleGame(g) {
-  const idx = addedGames.findIndex(a=>a.id===g.id);
-  if(idx>=0) addedGames.splice(idx,1); else addedGames.push(g);
+  const idx = addedGames.findIndex(a => a.id === g.id);
+  if (idx >= 0) {
+    addedGames.splice(idx, 1);
+  } else {
+    addedGames.push({ ...g, status: obCurrentStatus });
+  }
   updateAddedChips();
-  const item = document.getElementById('ri-'+g.id);
-  if(item){ const a=addedGames.some(x=>x.id===g.id); item.classList.toggle('added',a); item.querySelector('.result-add').textContent=a?'✓':'+'; }
+  const item = document.getElementById('ri-' + g.id);
+  if (item) {
+    const isAdded = addedGames.some(x => x.id === g.id);
+    item.classList.toggle('added', isAdded);
+    item.querySelector('.result-add').textContent = isAdded ? '✓' : '+';
+  }
 }
 function updateAddedChips() {
-  document.getElementById('added-chips').innerHTML = addedGames.map(g=>`<div class="added-chip">${g.emoji} ${g.title}<button class="chip-remove" onclick="toggleGame(${JSON.stringify(g).replace(/"/g,'&quot;')})">×</button></div>`).join('');
+  const OB_STATUS_ICONS = { 'playing-solo': '🎮', 'playing-multi': '👥', 'backlog': '📋' };
+  document.getElementById('added-chips').innerHTML = addedGames.map(g => {
+    const s = g.status || 'backlog';
+    const c = OB_STATUS_COLORS[s] || OB_STATUS_COLORS['backlog'];
+    const icon = OB_STATUS_ICONS[s] || '📋';
+    const safeG = JSON.stringify(g).replace(/"/g,'&quot;');
+    return `<div class="added-chip" style="background:${c.bg};border-color:${c.border};color:${c.color}">${icon} ${g.title}<button class="chip-remove" style="color:${c.color}" onclick="toggleGame(${safeG})">×</button></div>`;
+  }).join('');
   const n = addedGames.length;
   document.getElementById('added-count').textContent = n;
-  document.getElementById('manual-cta').style.opacity = n>0?'1':'0.5';
+  document.getElementById('manual-cta').style.opacity = n > 0 ? '1' : '0.5';
 }
 async function renderTrending() {
   const list = document.getElementById('trending-list');
@@ -1610,11 +1663,12 @@ function launchApp() {
   document.getElementById('app-profile-name').textContent = obProfile.username;
   document.getElementById('app-profile-handle').textContent = '@'+obProfile.username.toLowerCase().replace(/\s+/g,'');
 
-  // Merge onboarding games into library
+  // Merge onboarding games into library with their chosen status
   addedGames.forEach(g => {
     if (!userGames[g.id]) {
-      GAMES.push({...g, meta:0, status:'backlog', score:0, hours:0, year:g.year||2024, genre:g.genre||'', notes:''});
-      userGames[g.id] = { status:'backlog', score:0, notes:'' };
+      const status = g.status || 'backlog';
+      GAMES.push({...g, meta:0, status, score:0, hours:0, year:g.year||2024, genre:g.genre||'', notes:''});
+      userGames[g.id] = { status, score:0, notes:'' };
     }
   });
 
