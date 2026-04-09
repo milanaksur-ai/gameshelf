@@ -639,14 +639,14 @@ html, body {
 .champ-trophy  { font-size: 50px; position: relative; animation: popIn 0.5s cubic-bezier(0.22,1,0.36,1); margin-bottom: 4px; }
 .champ-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--a); margin-bottom: 14px; position: relative; animation: fadeUp 0.45s 0.1s ease both; }
 .champ-cover-wrap {
-  width: 160px; aspect-ratio: 3/4; border-radius: 14px; overflow: hidden;
+  width: 150px; aspect-ratio: 3/4; border-radius: 14px; overflow: hidden;
   margin: 0 auto 18px;
   box-shadow: 0 20px 60px rgba(108,92,231,0.55);
   border: 1.5px solid rgba(108,92,231,0.45);
   position: relative;
   animation: popIn 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both;
 }
-.champ-cover-wrap img { width:100%;height:100%;object-fit:cover;object-position:center top;display:block; }
+.champ-cover-wrap img { width:100%;height:100%;object-fit:cover;display:block; }
 .champ-cover-fallback {
   width: 100%; height: 100%;
   display: flex; align-items: center; justify-content: center;
@@ -1326,16 +1326,12 @@ const PLAT_COLORS = {
   'iOS':     '#5856d6', 'Android':'#3ddc84',
 };
 
-// Platforms to never display (dead/irrelevant)
-const HIDDEN_PLATFORMS = new Set(['Stadia', 'Google Stadia', 'STADIA', 'Ouya', 'Wii', 'WiiU', 'GC', 'GBA', 'NDS', 'N64', 'SNES', 'NES', 'PS1', 'PS2', 'PS3', 'X360', 'XBOX', 'PSP', 'PSV', 'GB', 'GBC']);
-
 function mapIgdbGame(g) {
   const steamId = extractIgdbSteamId(g);
   const imageId = g.cover?.image_id || null;
-  const screenshotId = g.screenshots?.[0]?.image_id || null;
   const platforms = (g.platforms || [])
     .map(p => p.abbreviation || p.name || '')
-    .filter(p => p && !HIDDEN_PLATFORMS.has(p));
+    .filter(Boolean);
   return {
     id: String(g.id),
     title: g.name,
@@ -1345,23 +1341,15 @@ function mapIgdbGame(g) {
     emoji: '🎮',
     cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${imageId}.jpg` : null,
     imageId,
-    screenshotId,
     meta: Math.round(g.aggregated_rating || g.rating || 0) || 0,
     platforms,
   };
 }
 
-// Best image for bracket full-bleed: screenshot > Steam header > cover
-function bracketImageUrl(g) {
-  if (g.screenshotId) return `https://images.igdb.com/igdb/image/upload/t_screenshot_huge/${g.screenshotId}.jpg`;
-  if (g.steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`;
-  return coverUrl(g);
-}
-
 function renderPlatforms(platforms = []) {
   if (!platforms.length) return '';
   return `<div class="plat-badges">${
-    platforms.slice(0, 4).map(p => {
+    platforms.slice(0, 5).map(p => {
       const color = PLAT_COLORS[p] || 'rgba(255,255,255,0.12)';
       return `<span class="plat-badge" style="background:${color}">${p}</span>`;
     }).join('')
@@ -1588,7 +1576,7 @@ async function searchGames(q) {
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,screenshotId:g.screenshotId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
+      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${isAdded?'added':''}" id="ri-${g.id}">
         <div class="result-cover" style="background:var(--s3)">
           ${src
@@ -1639,7 +1627,7 @@ async function renderTrending() {
 
   list.innerHTML = games.map(g => {
     const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
-    const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,screenshotId:g.screenshotId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
+    const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
     const desc = [g.genre, g.year||''].filter(Boolean).join(' · ');
     return `<div class="result-item" id="tr-${g.id}" style="align-items:center;padding:10px 12px;gap:12px">
       <div style="width:80px;height:45px;border-radius:8px;flex-shrink:0;overflow:hidden;background:var(--s3);display:flex;align-items:center;justify-content:center">
@@ -1697,8 +1685,63 @@ function launchApp() {
 // APP DATA
 // ══════════════════════════════════════
 // status: 'playing-solo' | 'playing-multi' | 'finished' | 'backlog' | 'abandoned'
-const GAMES = [];
+const GAMES = [
+  // En cours
+  {id:'elden-ring',title:'Elden Ring',steamId:1245620,meta:96,status:'playing-solo',score:9,hours:248,year:2022,genre:'Action RPG',notes:''},
+  {id:'rdr2',title:'Red Dead Redemption 2',steamId:1174180,meta:97,status:'playing-solo',score:9,hours:67,year:2019,genre:'Open World',notes:''},
+  {id:'apex',title:'Apex Legends',steamId:1172470,meta:0,status:'playing-multi',score:7,hours:120,year:2019,genre:'Battle Royale',notes:''},
+  // Finis
+  {id:'hollow-knight',title:'Hollow Knight',steamId:367520,meta:87,status:'finished',score:10,hours:52,year:2017,genre:'Metroidvania',notes:''},
+  {id:'hades',title:'Hades',steamId:1145360,meta:93,status:'finished',score:8,hours:78,year:2020,genre:'Roguelike',notes:''},
+  {id:'celeste',title:'Celeste',steamId:504230,meta:94,status:'finished',score:10,hours:28,year:2018,genre:'Platformer',notes:''},
+  {id:'witcher3',title:'The Witcher 3',steamId:292030,meta:92,status:'finished',score:9,hours:120,year:2015,genre:'Action RPG',notes:''},
+  {id:'tlou2',title:'The Last of Us Part II',steamId:0,meta:93,status:'finished',score:9,hours:26,year:2020,genre:'Action',notes:''},
+  // Backlog récents
+  {id:'bg3',title:"Baldur's Gate 3",steamId:1086940,meta:96,status:'backlog',score:0,hours:0,year:2023,genre:'RPG',notes:''},
+  {id:'disco',title:'Disco Elysium',steamId:632470,meta:91,status:'backlog',score:0,hours:0,year:2019,genre:'RPG',notes:''},
+  {id:'returnal',title:'Returnal',steamId:1649240,meta:86,status:'backlog',score:0,hours:0,year:2023,genre:'Roguelike',notes:''},
+  {id:'metaphor',title:'Metaphor: ReFantazio',steamId:2679460,meta:94,status:'backlog',score:0,hours:0,year:2024,genre:'JRPG',notes:''},
+  {id:'astro-bot',title:'Astro Bot',steamId:0,meta:94,status:'backlog',score:0,hours:0,year:2024,genre:'Platformer',notes:''},
+  {id:'black-myth',title:'Black Myth: Wukong',steamId:2358720,meta:82,status:'backlog',score:0,hours:0,year:2024,genre:'Action RPG',notes:''},
+  {id:'silent-hill2r',title:'Silent Hill 2 Remake',steamId:2114740,meta:87,status:'backlog',score:0,hours:0,year:2024,genre:'Survival Horror',notes:''},
+  {id:'indiana-jones',title:'Indiana Jones and the Great Circle',steamId:2677660,meta:88,status:'backlog',score:0,hours:0,year:2024,genre:'Action/Aventure',notes:''},
+  // 2025 récents / très attendus
+  {id:'crimson-desert',title:'Crimson Desert',steamId:2131630,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action RPG',notes:''},
+  {id:'arc-raiders',title:'Arc Raiders',steamId:1016490,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Extraction Shooter',notes:''},
+  {id:'ghost-of-yotei',title:'Ghost of Yotei',steamId:0,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action/Aventure',notes:''},
+  {id:'death-stranding2',title:'Death Stranding 2',steamId:0,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action',notes:''},
+  // Rétro
+  {id:'ocarina',title:'The Legend of Zelda: Ocarina of Time',steamId:0,meta:99,status:'finished',score:10,hours:30,year:1998,genre:'Action/Aventure',notes:''},
+  {id:'ff7',title:'Final Fantasy VII',steamId:39140,meta:92,status:'finished',score:9,hours:45,year:1997,genre:'JRPG',notes:''},
+  {id:'sotn',title:'Castlevania: Symphony of the Night',steamId:0,meta:93,status:'finished',score:10,hours:18,year:1997,genre:'Metroidvania',notes:''},
+  {id:'metal-gear-solid',title:'Metal Gear Solid',steamId:0,meta:94,status:'finished',score:9,hours:15,year:1998,genre:'Infiltration',notes:''},
+  {id:'half-life2',title:'Half-Life 2',steamId:220,meta:96,status:'finished',score:10,hours:14,year:2004,genre:'FPS',notes:''},
+  {id:'mass-effect2',title:'Mass Effect 2',steamId:24980,meta:96,status:'finished',score:10,hours:40,year:2010,genre:'RPG',notes:''},
+  // Abandonné
+  {id:'cyberpunk',title:'Cyberpunk 2077',steamId:1091500,meta:90,status:'abandoned',score:5,hours:14,year:2020,genre:'Action RPG',notes:''},
+  {id:'sekiro',title:'Sekiro',steamId:814380,meta:90,status:'abandoned',score:6,hours:22,year:2019,genre:'Action',notes:''},
+];
+const FRIENDS = [
+  {id:'alex',name:'Alex',initials:'A',color:'#fd79a8,#e84393'},
+  {id:'jul',name:'Julien',initials:'J',color:'#43d8c9,#4396d8'},
+  {id:'sara',name:'Sara',initials:'S',color:'#a843d8,#d843a8'},
+];
+const FEED_DATA = [
+  {friend:'alex',action:'a fini',game:'God of War',score:9,time:'2h'},
+  {friend:'jul',action:'joue à',game:"Baldur's Gate 3",score:0,time:'5h'},
+  {friend:'sara',action:'a ajouté au backlog',game:'Hollow Knight',score:0,time:'1j'},
+  {friend:'alex',action:'recommande',game:'Celeste',score:10,time:'2j'},
+  {friend:'jul',action:'a abandonné',game:'Cyberpunk 2077',score:5,time:'3j'},
+  {friend:'sara',action:'a fini',game:'Hades',score:9,time:'4j'},
+];
+const RECOS = [
+  {id:'dead-cells',title:'Dead Cells',emoji:'⚗️',reason:'Alex et Julien l\'adorent',meta:91,genre:'Roguelike'},
+  {id:'ori',title:'Ori and the Will of the Wisps',emoji:'✨',reason:'Tu as adoré Hollow Knight',meta:90,genre:'Platformer'},
+  {id:'blasphemous',title:'Blasphemous',emoji:'⛪',reason:'Similaire à Hollow Knight',meta:80,genre:'Metroidvania'},
+  {id:'sifu',title:'Sifu',emoji:'🥋',reason:'Populaire chez tes amis',meta:81,genre:'Action'},
+];
 let userGames = {};
+GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
 // ══════════════════════════════════════
 // APP NAVIGATION
@@ -2660,16 +2703,15 @@ let bracketAnimating = false;
 let bracketChampGame = null;
 
 async function enrichMissingCovers(games) {
-  const toEnrich = games.filter(g => !g.imageId && !g.screenshotId);
+  const toEnrich = games.filter(g => !g.imageId);
   if (!toEnrich.length) return;
   await Promise.allSettled(toEnrich.map(async g => {
     try {
       const res = await igdbFetch('search', { query: g.title, limit: 1 });
       if (res?.length) {
         const m = mapIgdbGame(res[0]);
-        if (m.screenshotId) { g.screenshotId = m.screenshotId; }
         if (m.imageId) { g.imageId = m.imageId; g.cover = m.cover; }
-        if (m.steamId > 0 && !g.steamId) { g.steamId = m.steamId; }
+        else if (m.steamId > 0 && !g.steamId) { g.steamId = m.steamId; }
       }
     } catch(e) {}
   }));
@@ -2958,7 +3000,7 @@ function searchAddModal(q) {
       const inLib = GAMES.find(x => x.id === g.id);
       const src = g.cover || (g.steamId > 0 ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,screenshotId:g.screenshotId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
+      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
         <div class="result-cover">
           ${src ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
