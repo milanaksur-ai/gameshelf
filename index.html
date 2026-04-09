@@ -2764,17 +2764,12 @@ function fillBracketSide(idx, g) {
   const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   fallbackEl.textContent = initials;
 
-  // Screenshots look much better than covers for the full-bleed arena
-  const src = bracketImageUrl(g);
+  const src = coverUrl(g);
   if (src) {
     const img = document.createElement('img');
     img.src = src; img.referrerPolicy = 'no-referrer';
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center center;display:block';
-    img.onerror = () => {
-      // Fallback chain: if screenshot fails try cover, then give up
-      const fallback = coverUrl(g);
-      if (fallback && fallback !== src) { img.src = fallback; } else { img.remove(); }
-    };
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block';
+    img.onerror = () => img.remove();
     coverEl.insertBefore(img, coverEl.firstChild);
   }
 
