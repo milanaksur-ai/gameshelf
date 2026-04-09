@@ -363,306 +363,6 @@ html, body {
 
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 .anim { animation: fadeUp2 0.3s ease forwards; opacity: 0; }
-
-/* ══════════════════════════════════════
-   SCREEN TRANSITIONS
-══════════════════════════════════════ */
-@keyframes screenFadeIn  { from{opacity:0;transform:translateY(6px)}  to{opacity:1;transform:translateY(0)} }
-@keyframes screenSlideIn { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
-.screen.active           { animation: screenFadeIn  0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
-#screen-detail.active    { animation: screenSlideIn 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
-
-/* ══════════════════════════════════════
-   NAV INDICATOR
-══════════════════════════════════════ */
-#nav-indicator {
-  position: absolute;
-  bottom: calc(var(--safe-b) + 5px);
-  height: 3px; width: 24px;
-  background: linear-gradient(90deg, var(--a), var(--a2));
-  border-radius: 2px;
-  transition: left 0.3s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s;
-  pointer-events: none;
-}
-
-/* ══════════════════════════════════════
-   MIC — PULSE WHILE LISTENING
-══════════════════════════════════════ */
-@keyframes micPulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,82,82,0.5)} 60%{box-shadow:0 0 0 10px rgba(255,82,82,0)} }
-#mic-btn.listening { animation: micPulse 1.4s ease-in-out infinite; }
-
-/* ══════════════════════════════════════
-   ADD-GAME MODAL
-══════════════════════════════════════ */
-#add-modal {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 400;
-  display: none; align-items: flex-end;
-}
-#add-modal.open { display: flex; }
-#add-modal-inner {
-  background: var(--s1);
-  border-radius: 20px 20px 0 0;
-  width: 100%; max-width: 430px;
-  margin: 0 auto;
-  max-height: 82dvh;
-  display: flex; flex-direction: column;
-  padding-bottom: var(--safe-b);
-  transform: translateY(100%);
-  transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
-}
-#add-modal.open #add-modal-inner { transform: translateY(0); }
-#add-modal-results { display: flex; flex-direction: column; gap: 6px; min-height: 160px; overflow-y: auto; flex: 1; scrollbar-width: none; }
-#add-modal-results::-webkit-scrollbar { display: none; }
-
-/* ══════════════════════════════════════
-   SHIMMER SKELETON
-══════════════════════════════════════ */
-@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-.skeleton {
-  background: linear-gradient(90deg, var(--s2) 25%, var(--s3) 50%, var(--s2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
-
-/* ══════════════════════════════════════
-   ONBOARDING — directional slides
-══════════════════════════════════════ */
-.step.entering-fwd  { animation: slideIn     0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
-.step.entering-back { animation: slideInBack 0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
-@keyframes slideInBack { from{opacity:0;transform:translateX(-28px)} to{opacity:1;transform:translateX(0)} }
-
-/* ══════════════════════════════════════
-   BACKLOG BRACKET
-══════════════════════════════════════ */
-#bracket-overlay {
-  position: fixed; inset: 0; z-index: 500;
-  display: none; background: #030306;
-}
-#bracket-overlay.open { display: block; }
-
-/* Full-screen arena */
-#bracket-arena {
-  position: absolute; inset: 0;
-  display: flex; gap: 2px; overflow: hidden;
-}
-
-/* Vertical center divider */
-#bracket-arena::after {
-  content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
-  width: 2px; transform: translateX(-50%);
-  background: rgba(255,255,255,0.04);
-  pointer-events: none; z-index: 8;
-}
-
-/* Each side */
-.b-side {
-  flex: 1; position: relative;
-  cursor: pointer; overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.15s;
-}
-.b-side:active { transform: scale(0.985); }
-
-/* Full-bleed cover */
-.b-cover-full {
-  position: absolute; inset: 0;
-  background: #0a0a14;
-}
-.b-cover-full img {
-  width: 100%; height: 100%;
-  object-fit: cover; object-position: center top;
-  display: block;
-}
-/* Dark gradient over the cover */
-.b-cover-full::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top,
-    rgba(3,3,6,0.95) 0%,
-    rgba(3,3,6,0.35) 45%,
-    rgba(3,3,6,0.12) 100%);
-}
-/* Coloured side tint */
-#b-side-0 .b-cover-full::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to right, rgba(108,92,231,0.22) 0%, transparent 65%);
-}
-#b-side-1 .b-cover-full::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to left, rgba(253,121,168,0.18) 0%, transparent 65%);
-}
-.b-cover-fallback-full {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 36px; font-weight: 800;
-  color: rgba(255,255,255,0.15);
-  background: linear-gradient(135deg, #0a0a18, #12121e);
-}
-
-/* Title / genre — bottom overlay */
-.b-game-info {
-  position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
-  padding: 48px 14px calc(var(--safe-b) + 60px);
-}
-#b-side-1 .b-game-info { text-align: right; }
-.b-game-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px; font-weight: 700; color: #fff; line-height: 1.25;
-  margin-bottom: 3px; text-shadow: 0 1px 8px rgba(0,0,0,0.9);
-  display: -webkit-box; -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical; overflow: hidden;
-}
-.b-game-genre { font-size: 10px; color: rgba(255,255,255,0.45); text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
-.b-meta-pill {
-  display: inline-block; background: rgba(0,0,0,0.55);
-  border-radius: 4px; padding: 1px 6px;
-  font-size: 10px; font-weight: 700; margin-top: 4px;
-  font-family: 'Space Grotesk', sans-serif;
-}
-
-/* VS badge — centered */
-#bracket-vs-center {
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 10; pointer-events: none;
-}
-.vs-badge-outer {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(5,5,10,0.85);
-  border: 1.5px solid rgba(255,255,255,0.13);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  display: flex; align-items: center; justify-content: center;
-}
-.vs-badge-text {
-  font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 900;
-  background: linear-gradient(135deg, var(--a), var(--a2));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-
-/* Header overlay */
-#bracket-header {
-  position: absolute; top: 0; left: 0; right: 0; z-index: 10;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: calc(var(--safe-t) + 12px) 16px 10px;
-  background: linear-gradient(to bottom, rgba(3,3,6,0.85) 0%, transparent 100%);
-  pointer-events: none;
-}
-#bracket-header button { pointer-events: all; }
-#b-round-label {
-  font-size: 10px; font-weight: 700; letter-spacing: 0.14em;
-  text-transform: uppercase; color: var(--a);
-}
-#b-match-info {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.45);
-}
-#bracket-close-btn {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: rgba(255,255,255,0.08); border: none;
-  color: rgba(255,255,255,0.55); cursor: pointer; font-size: 15px;
-  display: flex; align-items: center; justify-content: center;
-}
-
-/* Progress footer overlay */
-#bracket-progress {
-  position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
-  padding: 28px 28px calc(var(--safe-b) + 14px);
-  background: linear-gradient(to top, rgba(3,3,6,0.7) 0%, transparent 100%);
-  display: flex; flex-direction: column; align-items: center; gap: 7px;
-  pointer-events: none;
-}
-.b-progress-track {
-  width: 100px; height: 3px; background: rgba(255,255,255,0.1);
-  border-radius: 2px; overflow: hidden;
-}
-.b-progress-fill {
-  height: 100%; border-radius: 2px;
-  background: linear-gradient(90deg, var(--a), var(--a2));
-  transition: width 0.45s cubic-bezier(0.22,1,0.36,1);
-}
-.b-hint {
-  font-size: 10px; color: rgba(255,255,255,0.3);
-  letter-spacing: 0.07em; text-transform: uppercase;
-}
-
-/* Selection animations */
-@keyframes bEnterLeft  { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
-@keyframes bEnterRight { from{opacity:0;transform:translateX( 40px)} to{opacity:1;transform:translateX(0)} }
-@keyframes bWinGlow    { 0%{box-shadow:inset 0 0 0 3px var(--green)} 100%{box-shadow:inset 0 0 0 0 transparent} }
-
-.b-side.b-enter-left  { animation: bEnterLeft  0.38s cubic-bezier(0.22,1,0.36,1) both; }
-.b-side.b-enter-right { animation: bEnterRight 0.38s cubic-bezier(0.22,1,0.36,1) both; }
-.b-side.b-winner      { animation: bWinGlow 0.55s ease-out; }
-.b-side.b-winner .b-cover-full::after {
-  background: linear-gradient(to top, rgba(0,180,80,0.55) 0%, rgba(0,0,0,0.1) 60%) !important;
-}
-.b-side.b-loser .b-cover-full { filter: grayscale(0.85) brightness(0.35); transition: filter 0.45s; }
-.b-side.b-loser .b-game-info  { opacity: 0; transition: opacity 0.35s; }
-
-/* Champion screen */
-#bracket-champ {
-  position: absolute; inset: 0; z-index: 20;
-  background: #030306;
-  display: none; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center;
-  padding: calc(var(--safe-t)+24px) 32px calc(var(--safe-b)+24px);
-}
-.champ-rays {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 30%, rgba(108,92,231,0.28) 0%, transparent 55%);
-}
-.champ-trophy  { font-size: 50px; position: relative; animation: popIn 0.5s cubic-bezier(0.22,1,0.36,1); margin-bottom: 4px; }
-.champ-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--a); margin-bottom: 14px; position: relative; animation: fadeUp 0.45s 0.1s ease both; }
-.champ-cover-wrap {
-  width: 220px; aspect-ratio: 16/9; border-radius: 14px; overflow: hidden;
-  margin: 0 auto 18px;
-  box-shadow: 0 16px 48px rgba(108,92,231,0.45);
-  border: 1.5px solid rgba(108,92,231,0.45);
-  position: relative;
-  animation: popIn 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both;
-}
-.champ-cover-wrap img { width:100%;height:100%;object-fit:cover;display:block; }
-.champ-cover-fallback {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 800;
-  color: rgba(255,255,255,0.2); background: linear-gradient(135deg,#10102a,#1a1a2e);
-}
-.champ-title {
-  font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800;
-  margin-bottom: 5px; position: relative;
-  animation: fadeUp 0.45s 0.2s ease both;
-}
-.champ-meta { font-size: 12px; color: var(--muted2); margin-bottom: 28px; position: relative; animation: fadeUp 0.45s 0.25s ease both; }
-.champ-btn-play {
-  width: 100%; max-width: 280px; position: relative;
-  background: linear-gradient(135deg, var(--a), var(--a2));
-  border: none; border-radius: 16px; padding: 16px;
-  font-family: 'Space Grotesk', sans-serif; font-size: 15px; font-weight: 700;
-  color: #fff; cursor: pointer; letter-spacing: 0.03em;
-  transition: opacity 0.15s, transform 0.15s; margin-bottom: 10px;
-  animation: fadeUp 0.45s 0.3s ease both;
-}
-.champ-btn-play:active { opacity: 0.85; transform: scale(0.98); }
-.champ-btn-dismiss {
-  background: none; border: none; color: var(--muted); font-size: 13px;
-  cursor: pointer; padding: 8px; position: relative;
-  animation: fadeUp 0.45s 0.35s ease both;
-}
-
-/* Feed — bracket launch button */
-.bracket-launch-btn {
-  flex: 1;
-  background: linear-gradient(135deg, rgba(108,92,231,0.13), rgba(253,121,168,0.07));
-  border: 0.5px solid rgba(108,92,231,0.28);
-  border-radius: 14px; padding: 11px 10px;
-  font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
-  color: #a29bfe; cursor: pointer;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: border-color 0.2s, background 0.2s; white-space: nowrap;
-}
-.bracket-launch-btn:active { border-color: var(--a); background: rgba(108,92,231,0.2); }
 </style>
 </head>
 <body>
@@ -879,14 +579,10 @@ html, body {
     <div class="scroll-area">
 
       <!-- BOUTON AJOUTER EN HAUT -->
-      <div style="padding:10px 16px 4px;display:flex;gap:8px">
-        <button onclick="appGoTo('library')" style="flex:1;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+      <div style="padding:10px 16px 4px">
+        <button onclick="appGoTo('library')" style="width:100%;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Ajouter un jeu
-        </button>
-        <button class="bracket-launch-btn" onclick="initBracket()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
-          ⚔ Bracket
         </button>
       </div>
 
@@ -920,12 +616,7 @@ html, body {
     <div class="lib-header">
       <div class="lib-title-row">
         <div class="lib-title">Ma bibliothèque</div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="lib-count" id="lib-count">12 jeux</div>
-          <button onclick="openAddModal()" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Ajouter un jeu">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </button>
-        </div>
+        <div class="lib-count" id="lib-count">12 jeux</div>
       </div>
       <div class="search-bar">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -1156,8 +847,7 @@ html, body {
   </div>
 
   <!-- NAV -->
-  <nav id="app-nav" style="position:relative">
-    <div id="nav-indicator"></div>
+  <nav id="app-nav">
     <button class="nav-btn active" id="nav-feed" onclick="appGoTo('feed')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       <span>Accueil</span>
@@ -1191,168 +881,52 @@ html, body {
 
 <div id="toast"></div>
 
-<!-- ████████████████ BACKLOG BRACKET ████████████████ -->
-<div id="bracket-overlay">
-
-  <!-- Arena (full-screen, two sides) -->
-  <div id="bracket-arena">
-
-    <!-- Left — contestant 0 -->
-    <div class="b-side" id="b-side-0" onclick="pickBracketWinner(0)">
-      <div class="b-cover-full" id="b-cover-0">
-        <div class="b-cover-fallback-full" id="b-fallback-0"></div>
-      </div>
-      <div class="b-game-info">
-        <div class="b-game-title" id="b-title-0"></div>
-        <div class="b-game-genre" id="b-genre-0"></div>
-      </div>
-    </div>
-
-    <!-- VS badge -->
-    <div id="bracket-vs-center">
-      <div class="vs-badge-outer"><span class="vs-badge-text">VS</span></div>
-    </div>
-
-    <!-- Right — contestant 1 -->
-    <div class="b-side" id="b-side-1" onclick="pickBracketWinner(1)">
-      <div class="b-cover-full" id="b-cover-1">
-        <div class="b-cover-fallback-full" id="b-fallback-1"></div>
-      </div>
-      <div class="b-game-info">
-        <div class="b-game-title" id="b-title-1"></div>
-        <div class="b-game-genre" id="b-genre-1"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Header overlay -->
-  <div id="bracket-header">
-    <div id="b-round-label">QUARTS DE FINALE</div>
-    <div id="b-match-info">Match 1/4</div>
-    <button id="bracket-close-btn" onclick="closeBracket()">✕</button>
-  </div>
-
-  <!-- Progress footer -->
-  <div id="bracket-progress">
-    <div class="b-progress-track">
-      <div class="b-progress-fill" id="b-progress-fill" style="width:0%"></div>
-    </div>
-    <div class="b-hint">Tape le jeu que tu veux jouer</div>
-  </div>
-
-  <!-- Champion screen -->
-  <div id="bracket-champ">
-    <div class="champ-rays"></div>
-    <div class="champ-trophy">🏆</div>
-    <div class="champ-eyebrow">Ton prochain jeu</div>
-    <div class="champ-cover-wrap" id="champ-cover-wrap">
-      <img id="champ-cover-img" src="" referrerpolicy="no-referrer" style="display:none;width:100%;height:100%;object-fit:cover">
-      <div id="champ-cover-fallback" class="champ-cover-fallback"></div>
-    </div>
-    <div class="champ-title" id="champ-title"></div>
-    <div class="champ-meta"  id="champ-meta"></div>
-    <button class="champ-btn-play"    onclick="playBracketChampion()">🎮 Jouer maintenant</button>
-    <button class="champ-btn-dismiss" onclick="closeBracket()">Fermer</button>
-  </div>
-
-</div>
-
-<!-- ████████████████ ADD GAME MODAL ████████████████ -->
-<div id="add-modal" onclick="if(event.target===this)closeAddModal()">
-  <div id="add-modal-inner">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700">Ajouter un jeu</div>
-      <button onclick="closeAddModal()" style="background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--muted2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
-    </div>
-    <div style="padding:12px 16px 8px;flex-shrink:0">
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="add-modal-input" placeholder="Rechercher un jeu…" oninput="searchAddModal(this.value)" autocomplete="off">
-      </div>
-      <div id="add-modal-status-row" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">Backlog</div>
-        <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
-        <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
-        <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
-      </div>
-    </div>
-    <div id="add-modal-results" style="padding:0 16px 8px">
-      <div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>
-    </div>
-  </div>
-</div>
-
 <script>
 // ══════════════════════════════════════
 // RAWG CONFIG
 // ══════════════════════════════════════
-const RAWG_KEY = localStorage.getItem('rawg_key') || 'ef4b95f373ee411e987ca1a0242486c0';
-const RAWG_BASE = 'https://api.rawg.io/api';
+// ══════════════════════════════════════
+// IGDB — Twitch Game Database
+// ══════════════════════════════════════
+const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
 
-// Map a RAWG result to our game object — always prefer Steam CDN for images (not blocked by CSP)
-function mapRawgGame(g) {
-  const steamId = extractSteamId(g);
-  return {
-    id: String(g.id),
-    title: g.name,
-    year: g.released ? parseInt(g.released.slice(0,4)) : 0,
-    genre: g.genres?.[0]?.name || '',
-    steamId: steamId,
-    emoji: '🎮',
-    // Use Steam CDN first (CSP-safe), fall back to RAWG only if no Steam store
-    cover: steamId > 0
-      ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamId}/header.jpg`
-      : (g.background_image || null),
-    meta: g.metacritic || 0,
-  };
-}
-
-async function rawgSearch(query, pageSize = 12) {
-  if (!RAWG_KEY) return mockSearch(query);
+async function igdbCall(action, params = {}) {
   try {
-    // No search_precise — too restrictive, kills partial matches
-    const url = `${RAWG_BASE}/games?key=${RAWG_KEY}&search=${encodeURIComponent(query)}&page_size=${pageSize}&ordering=-rating`;
-    const r = await fetch(url); if (!r.ok) throw new Error('HTTP '+r.status);
-    const data = await r.json();
-    if (!data.results?.length) return mockSearch(query);
-    return data.results.map(mapRawgGame);
+    const res = await fetch(IGDB_PROXY, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...params })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
   } catch(e) {
-    console.warn('RAWG search failed:', e);
-    return mockSearch(query);
+    console.warn('IGDB error:', e);
+    return null;
   }
 }
 
-async function rawgTrending() {
-  if (!RAWG_KEY) return null;
-  try {
-    const today = new Date().toISOString().slice(0,10);
-    const year = new Date().getFullYear();
-    // No metacritic filter — many recent games don't have a score yet
-    const url = `${RAWG_BASE}/games?key=${RAWG_KEY}&dates=${year-1}-01-01,${today}&ordering=-added&page_size=16`;
-    const r = await fetch(url); if (!r.ok) throw new Error();
-    const data = await r.json();
-    if (!data.results?.length) return null;
-    return data.results.map(g => ({
-      ...mapRawgGame(g),
-      why: `${g.ratings_count > 0 ? g.ratings_count.toLocaleString()+' notes' : 'Nouveau'} · ${g.genres?.[0]?.name||''}`,
-    }));
-  } catch(e) { return null; }
+async function igdbSearch(query, limit = 10) {
+  const data = await igdbCall('search', { query, limit });
+  if (!data?.games?.length) return mockSearch(query);
+  return data.games;
 }
 
-async function rawgPopular() {
-  if (!RAWG_KEY) return null;
-  try {
-    // Popular recent games — not just all-time which returns very old titles
-    const url = `${RAWG_BASE}/games?key=${RAWG_KEY}&ordering=-added&page_size=12&metacritic=75,100`;
-    const r = await fetch(url); if (!r.ok) throw new Error();
-    const data = await r.json();
-    if (!data.results?.length) return null;
-    return data.results.map(g => ({
-      ...mapRawgGame(g),
-      reason: `${g.metacritic ? 'Metacritic '+g.metacritic+' · ' : ''}${g.genres?.[0]?.name||''}`,
-    }));
-  } catch(e) { return null; }
+async function igdbPopular() {
+  const data = await igdbCall('popular');
+  return data?.games || null;
 }
+
+async function igdbRecent() {
+  const data = await igdbCall('recent');
+  return data?.games || null;
+}
+
+// Keep rawgSearch as alias for compatibility with assistant add flow
+async function rawgSearch(query, pageSize = 10) {
+  return igdbSearch(query, pageSize);
+}
+async function rawgPopular() { return igdbPopular(); }
+async function rawgTrending() { return igdbRecent(); }
 
 function extractSteamId(g) {
   const store = g.stores?.find(s => s.store?.slug === 'steam');
@@ -1360,44 +934,17 @@ function extractSteamId(g) {
   const m = store.url.match(/app\/(\d+)/); return m ? parseInt(m[1]) : 0;
 }
 function mockSearch(query) {
-  return MOCK_DB.filter(g => g.title.toLowerCase().includes(query.toLowerCase())).slice(0,8);
-}
-function promptForKey() {
-  const k = prompt('Entre ta clé API RAWG (rawg.io/apidocs) :');
-  if (k && k.length > 10) { localStorage.setItem('rawg_key', k); location.reload(); }
+  return MOCK_DB.filter(g => g.title.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
 }
 
-// coverUrl — Steam CDN first (CSP-safe), then RAWG cover, then null
-// coverUrl returns synchronous best guess; for games without steamId use RAWG cache
-const rawgCoverCache = {};
-
+// coverUrl — IGDB cover first, Steam CDN fallback, then null
 function coverUrl(g) {
+  if (g.cover && g.cover.includes('igdb.com')) return g.cover;
   if (g.steamId && g.steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`;
-  if (rawgCoverCache[g.id]) return rawgCoverCache[g.id];
-  if (g.cover && !g.cover.includes('media.rawg.io')) return g.cover;
-  // Trigger async fetch for this game if not cached
-  if (RAWG_KEY && g.title && !rawgCoverCache[g.id+'_pending']) {
-    rawgCoverCache[g.id+'_pending'] = true;
-    fetch(`${RAWG_BASE}/games?key=${RAWG_KEY}&search=${encodeURIComponent(g.title)}&page_size=1`)
-      .then(r => r.json())
-      .then(data => {
-        const result = data.results?.[0];
-        const steamId = result ? extractSteamId(result) : 0;
-        if (steamId > 0) {
-          rawgCoverCache[g.id] = `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamId}/header.jpg`;
-          g.steamId = steamId; // persist for future calls
-        } else if (result?.background_image && !result.background_image.includes('media.rawg.io')) {
-          rawgCoverCache[g.id] = result.background_image;
-        }
-        // Refresh any visible img elements for this game
-        document.querySelectorAll(`[data-game-id="${g.id}"] img`).forEach(img => {
-          if (rawgCoverCache[g.id]) img.src = rawgCoverCache[g.id];
-        });
-      })
-      .catch(() => {});
-  }
+  if (g.cover) return g.cover;
   return null;
 }
+
 
 // ══════════════════════════════════════
 // PARTICLES
@@ -1439,21 +986,15 @@ const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':62,'3d':80,'4':100
 function obStep(target) {
   const ids = ['0','1','2','3','3b','3c','3d','4'];
   const cur = ids.find(id => document.getElementById('step-'+id)?.classList.contains('active'));
-  const curIdx = ids.indexOf(String(cur));
-  const nxtIdx = ids.indexOf(String(target));
-  const goingBack = nxtIdx < curIdx;
-
   const curEl = document.getElementById('step-'+cur);
   const nxtEl = document.getElementById('step-'+target);
   if (!nxtEl) return;
-  if (curEl) curEl.classList.remove('active','entering-fwd','entering-back');
-  nxtEl.classList.remove('entering-fwd','entering-back');
-  void nxtEl.offsetWidth; // reflow
-  nxtEl.classList.add('active', goingBack ? 'entering-back' : 'entering-fwd');
-  setTimeout(()=>nxtEl.classList.remove('entering-fwd','entering-back'),350);
+  if (curEl) curEl.classList.remove('active');
+  nxtEl.classList.add('active','entering');
+  setTimeout(()=>nxtEl.classList.remove('entering'),350);
   document.getElementById('progress-fill').style.width = (OB_PROGRESS[String(target)]??0)+'%';
   nxtEl.querySelector('.step-scroll')?.scrollTo(0,0);
-  if (target===4)    buildSuccessPreview();
+  if (target===4)   buildSuccessPreview();
   if (target==='3d') renderTrending();
 }
 
@@ -1731,40 +1272,17 @@ let appPrevScreen = 'feed';
 function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
   appPrevScreen = appCurrentScreen;
-
-  // Swap active screen (CSS animation fires on .active class)
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  const nextEl = document.getElementById('screen-'+screen);
-  if (nextEl) {
-    // Force reflow so animation re-triggers
-    void nextEl.offsetWidth;
-    nextEl.classList.add('active');
-    nextEl.querySelector('.scroll-area')?.scrollTo(0,0);
-  }
-
-  // Nav buttons + sliding indicator
+  document.getElementById('screen-'+screen).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const nb = document.getElementById('nav-'+screen);
-  if(nb) {
-    nb.classList.add('active');
-    moveNavIndicator(nb);
-  }
-
+  if(nb) nb.classList.add('active');
   appCurrentScreen = screen;
-
+  document.getElementById('app-nav').style.display = screen==='detail'?'none':'flex';
+  document.getElementById('screen-'+screen).querySelector('.scroll-area')?.scrollTo(0,0);
   // Side effects per screen
   if (screen === 'profile') renderProfileStats();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
-}
-
-function moveNavIndicator(btn) {
-  const indicator = document.getElementById('nav-indicator');
-  if (!indicator || !btn) return;
-  const nav = document.getElementById('app-nav');
-  const navRect = nav.getBoundingClientRect();
-  const btnRect = btn.getBoundingClientRect();
-  const centerX = btnRect.left - navRect.left + btnRect.width / 2;
-  indicator.style.left = (centerX - 12) + 'px';
 }
 function appGoBack() { appGoTo(appPrevScreen==='detail'?'library':appPrevScreen); }
 
@@ -2404,10 +1922,8 @@ function initVoice() {
   rec.interimResults = true;
   rec.onstart = () => {
     isListening = true;
-    const btn = document.getElementById('mic-btn');
-    btn.style.background = 'rgba(255,82,82,0.2)';
-    btn.style.borderColor = 'var(--red)';
-    btn.classList.add('listening');
+    document.getElementById('mic-btn').style.background = 'rgba(255,82,82,0.2)';
+    document.getElementById('mic-btn').style.borderColor = 'var(--red)';
     document.getElementById('mic-icon').setAttribute('stroke', 'var(--red)');
     document.getElementById('voice-status').textContent = '🎤 En écoute…';
   };
@@ -2436,7 +1952,6 @@ function stopVoice() {
   isListening = false;
   const btn = document.getElementById('mic-btn');
   if (btn) {
-    btn.classList.remove('listening');
     btn.style.background = 'rgba(108,92,231,0.15)';
     btn.style.borderColor = 'rgba(108,92,231,0.3)';
   }
@@ -2557,7 +2072,6 @@ Réponds avec ce format JSON exact :
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0}})
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
     const clean = raw.replace(/```json|```/g, '').trim();
     return JSON.parse(clean);
@@ -2670,323 +2184,11 @@ function promptGeminiKey() {
 function renderExplore() { /* replaced by assistant */ }
 function searchExplore() {}
 
-// ══════════════════════════════════════
-// BACKLOG BRACKET
-// ══════════════════════════════════════
-let bracketPool      = [];   // games in current round
-let bracketWinners   = [];   // accumulated winners this round
-let bracketPairIdx   = 0;    // current pair index
-let bracketMatchNum  = 0;    // matches played so far
-let bracketTotalMatches = 0;
-let bracketAnimating = false;
-let bracketChampGame = null;
-
-function initBracket() {
-  const backlog = GAMES.filter(g => (userGames[g.id]||g).status === 'backlog');
-  if (backlog.length < 2) {
-    showToast('Ajoute au moins 2 jeux au backlog pour lancer un bracket !');
-    return;
-  }
-  const shuffled = [...backlog].sort(() => Math.random() - 0.5);
-  const size = shuffled.length >= 8 ? 8 : shuffled.length >= 4 ? 4 : 2;
-
-  bracketPool      = shuffled.slice(0, size);
-  bracketWinners   = [];
-  bracketPairIdx   = 0;
-  bracketMatchNum  = 0;
-  bracketTotalMatches = size - 1;
-  bracketAnimating = false;
-  bracketChampGame = null;
-
-  // Reset UI state
-  document.getElementById('bracket-champ').style.display  = 'none';
-  document.getElementById('bracket-arena').style.display  = 'flex';
-  document.getElementById('bracket-arena').style.opacity  = '1';
-  document.getElementById('bracket-header').style.display = 'flex';
-  document.getElementById('bracket-header').style.opacity = '1';
-  document.getElementById('bracket-progress').style.opacity = '1';
-  document.getElementById('b-progress-fill').style.width = '0%';
-
-  document.getElementById('bracket-overlay').classList.add('open');
-  showNextBracketMatch();
-}
-
-function bracketRoundLabel() {
-  const n = bracketPool.length;
-  if (n <= 2) return '⚔ FINALE';
-  if (n <= 4) return '🔥 DEMI-FINALES';
-  return '⚡ QUARTS DE FINALE';
-}
-
-function showNextBracketMatch() {
-  const a = bracketPool[bracketPairIdx * 2];
-  const b = bracketPool[bracketPairIdx * 2 + 1];
-  if (!a || !b) return;
-
-  const matchInRound = bracketPairIdx + 1;
-  const totalInRound = Math.floor(bracketPool.length / 2);
-
-  document.getElementById('b-round-label').textContent = bracketRoundLabel();
-  document.getElementById('b-match-info').textContent  =
-    totalInRound > 1 ? `Match ${matchInRound}/${totalInRound}` : 'Qui va jouer ?';
-  document.getElementById('b-progress-fill').style.width =
-    (bracketTotalMatches > 0 ? bracketMatchNum / bracketTotalMatches * 100 : 0) + '%';
-
-  fillBracketSide(0, a);
-  fillBracketSide(1, b);
-
-  // Animate sides in
-  ['b-side-0','b-side-1'].forEach((id, i) => {
-    const el = document.getElementById(id);
-    el.className = 'b-side';
-    el.style.cssText = '';
-    void el.offsetWidth;
-    el.classList.add(i === 0 ? 'b-enter-left' : 'b-enter-right');
-  });
-}
-
-function fillBracketSide(idx, g) {
-  const coverEl    = document.getElementById('b-cover-' + idx);
-  const fallbackEl = document.getElementById('b-fallback-' + idx);
-  const titleEl    = document.getElementById('b-title-' + idx);
-  const genreEl    = document.getElementById('b-genre-' + idx);
-
-  // Cover image
-  const existing = coverEl.querySelector('img');
-  if (existing) existing.remove();
-  const badgeOld = coverEl.querySelector('.b-meta-pill');
-  if (badgeOld) badgeOld.remove();
-
-  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  fallbackEl.textContent = initials;
-
-  const src = coverUrl(g);
-  if (src) {
-    const img = document.createElement('img');
-    img.src = src; img.referrerPolicy = 'no-referrer';
-    img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block';
-    img.onerror = () => img.remove();
-    coverEl.insertBefore(img, coverEl.firstChild);
-  }
-
-  // Metacritic pill
-  if (g.meta > 0) {
-    const pill = document.createElement('div');
-    pill.className = 'b-meta-pill';
-    pill.style.color = g.meta >= 80 ? 'var(--green)' : g.meta >= 60 ? 'var(--amber)' : 'var(--red)';
-    pill.style.cssText += ';position:absolute;top:8px;' + (idx===0?'left':'right') + ':8px;z-index:4';
-    pill.textContent = g.meta;
-    coverEl.appendChild(pill);
-  }
-
-  titleEl.textContent = g.title;
-  genreEl.textContent = [g.genre, g.year||''].filter(Boolean).join(' · ');
-}
-
-function pickBracketWinner(sideIdx) {
-  if (bracketAnimating) return;
-  bracketAnimating = true;
-
-  const loserIdx = sideIdx === 0 ? 1 : 0;
-  const winnerEl = document.getElementById('b-side-' + sideIdx);
-  const loserEl  = document.getElementById('b-side-' + loserIdx);
-  const winner   = bracketPool[bracketPairIdx * 2 + sideIdx];
-
-  winnerEl.classList.add('b-winner');
-  loserEl.classList.add('b-loser');
-  bracketWinners.push(winner);
-  bracketMatchNum++;
-
-  setTimeout(() => {
-    bracketPairIdx++;
-    bracketAnimating = false;
-
-    // Round complete?
-    if (bracketPairIdx * 2 >= bracketPool.length) {
-      if (bracketWinners.length === 1) {
-        showBracketChampion(bracketWinners[0]);
-        return;
-      }
-      bracketPool    = [...bracketWinners];
-      bracketWinners = [];
-      bracketPairIdx = 0;
-    }
-    showNextBracketMatch();
-  }, 750);
-}
-
-function showBracketChampion(g) {
-  bracketChampGame = g;
-
-  // Fade out arena
-  ['bracket-arena','bracket-header','bracket-progress'].forEach(id => {
-    const el = document.getElementById(id);
-    el.style.transition = 'opacity 0.35s';
-    el.style.opacity = '0';
-  });
-
-  setTimeout(() => {
-    ['bracket-arena','bracket-header','bracket-progress'].forEach(id =>
-      document.getElementById(id).style.display = 'none');
-
-    const src      = coverUrl(g);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const img      = document.getElementById('champ-cover-img');
-    const fallback = document.getElementById('champ-cover-fallback');
-
-    if (src) {
-      img.src = src; img.style.display = 'block';
-      fallback.style.display = 'none';
-    } else {
-      img.style.display = 'none';
-      fallback.style.display = 'flex';
-      fallback.textContent = initials;
-    }
-
-    document.getElementById('champ-title').textContent = g.title;
-    document.getElementById('champ-meta').textContent  =
-      [g.genre, g.year||'', g.meta > 0 ? `Metacritic ${g.meta}` : ''].filter(Boolean).join(' · ');
-
-    const champ = document.getElementById('bracket-champ');
-    champ.style.display = 'flex';
-  }, 380);
-}
-
-function playBracketChampion() {
-  if (!bracketChampGame) return;
-  const g = bracketChampGame;
-  if (!userGames[g.id]) userGames[g.id] = {status:'playing-solo', score:0, notes:'', hours:0};
-  else userGames[g.id].status = 'playing-solo';
-  renderFeed(); renderGameGrid();
-  closeBracket();
-  showToast(`🎮 ${g.title} — c'est parti !`);
-  appGoTo('feed');
-}
-
-function closeBracket() {
-  const ov = document.getElementById('bracket-overlay');
-  ov.style.transition = 'opacity 0.22s ease';
-  ov.style.opacity = '0';
-  setTimeout(() => {
-    ov.classList.remove('open');
-    ov.style.opacity = '';
-    ov.style.transition = '';
-    // Restore display for next run
-    ['bracket-arena','bracket-header','bracket-progress'].forEach(id => {
-      const el = document.getElementById(id);
-      el.style.display = '';
-      el.style.opacity = '';
-      el.style.transition = '';
-    });
-    document.getElementById('bracket-champ').style.display = 'none';
-  }, 230);
-}
-
 function renderFriendsList(){ /* masqué — fonctionnalité sociale désactivée */ }
-function initApp(){
-  renderFeed(); renderGameGrid(); renderProfileStats();
-  // Init nav indicator on first active btn
-  const firstActive = document.querySelector('#app-nav .nav-btn.active');
-  if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
-}
-
-// ══════════════════════════════════════
-// ADD-GAME MODAL
-// ══════════════════════════════════════
-let addModalStatus = 'backlog';
-let addModalTimer;
-
-function openAddModal() {
-  const modal = document.getElementById('add-modal');
-  modal.classList.add('open');
-  // Reset
-  document.getElementById('add-modal-input').value = '';
-  document.getElementById('add-modal-results').innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>';
-  setAddStatus('backlog', document.getElementById('add-status-backlog'));
-  setTimeout(() => document.getElementById('add-modal-input').focus(), 350);
-}
-
-function closeAddModal() {
-  const modal = document.getElementById('add-modal');
-  const inner = document.getElementById('add-modal-inner');
-  inner.style.transform = 'translateY(100%)';
-  setTimeout(() => {
-    modal.classList.remove('open');
-    inner.style.transform = '';
-  }, 320);
-}
-
-function setAddStatus(status, el) {
-  addModalStatus = status;
-  document.querySelectorAll('#add-modal-status-row .chip').forEach(c => c.classList.remove('active'));
-  if (el) el.classList.add('active');
-  // Re-render results if there's a query
-  const q = document.getElementById('add-modal-input')?.value?.trim();
-  if (q) searchAddModal(q);
-}
-
-function searchAddModal(q) {
-  clearTimeout(addModalTimer);
-  const results = document.getElementById('add-modal-results');
-  if (!q.trim()) {
-    results.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>';
-    return;
-  }
-  results.innerHTML = '<div class="loading-dots" style="padding:32px 0"><span></span><span></span><span></span></div>';
-  addModalTimer = setTimeout(async () => {
-    const games = await rawgSearch(q, 8);
-    if (!games.length) {
-      results.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Aucun résultat</div>';
-      return;
-    }
-    results.innerHTML = games.map(g => {
-      const inLib = GAMES.find(x => x.id === g.id);
-      const src = g.cover || (g.steamId > 0 ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
-      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||''}).replace(/"/g,'&quot;');
-      return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
-        <div class="result-cover">
-          ${src ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
-        </div>
-        <div class="result-info">
-          <div class="result-title">${g.title}</div>
-          <div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>
-        </div>
-        <button class="result-add" onclick="addGameFromModal(${safeG},this)">${inLib?'✓':'+'}</button>
-      </div>`;
-    }).join('');
-  }, 350);
-}
-
-function addGameFromModal(g, btn) {
-  const existing = GAMES.find(x => x.id === g.id);
-  if (existing) {
-    // Update status if different
-    if (userGames[existing.id] && userGames[existing.id].status !== addModalStatus) {
-      userGames[existing.id].status = addModalStatus;
-      renderGameGrid(); renderFeed();
-      showToast(`${g.title} → ${addModalStatus.replace('-',' ')}`);
-    } else {
-      showToast(`${g.title} déjà en bibliothèque`);
-    }
-    return;
-  }
-  GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours:0});
-  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours:0};
-  renderGameGrid(); renderFeed();
-  document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
-
-  // Update button
-  const item = document.getElementById('am-'+g.id);
-  if (item) item.classList.add('added');
-  if (btn) btn.textContent = '✓';
-
-  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini'};
-  showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
-}
+function initApp(){ renderFeed(); renderGameGrid(); renderProfileStats(); }
 
 // clock
-function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); }
+function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=n.getHours()+':'+String(n.getMinutes()).padStart(2,'0'); }
 updateClock(); setInterval(updateClock,30000);
 
 // toast
