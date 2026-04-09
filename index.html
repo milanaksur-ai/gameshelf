@@ -168,6 +168,8 @@ html, body {
 .result-meta  { font-size: 11px; color: var(--muted2); margin-top: 2px; }
 .result-add   { width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--border2); background: none; color: var(--muted2); display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
 .result-item.added .result-add { background: var(--green); border-color: var(--green); color: #000; font-size: 14px; }
+.plat-badges { display:flex;flex-wrap:wrap;gap:3px;margin-top:4px; }
+.plat-badge  { display:inline-flex;align-items:center;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;font-family:'Space Grotesk',sans-serif;letter-spacing:0.03em;color:rgba(255,255,255,0.92); }
 
 .added-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; min-height: 32px; }
 .added-chip  { display: flex; align-items: center; gap: 5px; background: rgba(108,92,231,0.15); border: 0.5px solid rgba(108,92,231,0.35); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: #a29bfe; }
@@ -587,18 +589,29 @@ html, body {
 }
 
 /* Selection animations */
-@keyframes bEnterLeft  { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
-@keyframes bEnterRight { from{opacity:0;transform:translateX( 40px)} to{opacity:1;transform:translateX(0)} }
-@keyframes bWinGlow    { 0%{box-shadow:inset 0 0 0 3px var(--green)} 100%{box-shadow:inset 0 0 0 0 transparent} }
+@keyframes bEnterLeft  { from{opacity:0;transform:translateX(-55px) scale(0.94)} to{opacity:1;transform:translateX(0) scale(1)} }
+@keyframes bEnterRight { from{opacity:0;transform:translateX( 55px) scale(0.94)} to{opacity:1;transform:translateX(0) scale(1)} }
+@keyframes bWinFlash   { 0%{filter:brightness(1)} 25%{filter:brightness(2.2) saturate(1.6)} 100%{filter:brightness(1)} }
+@keyframes bWinPush    { 0%{transform:scale(1)} 35%{transform:scale(1.03)} 100%{transform:scale(1)} }
+@keyframes vsPulse     { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.14);opacity:0.82} }
+@keyframes rippleOut   { 0%{transform:translate(-50%,-50%) scale(0);opacity:0.7} 100%{transform:translate(-50%,-50%) scale(3.5);opacity:0} }
 
-.b-side.b-enter-left  { animation: bEnterLeft  0.38s cubic-bezier(0.22,1,0.36,1) both; }
-.b-side.b-enter-right { animation: bEnterRight 0.38s cubic-bezier(0.22,1,0.36,1) both; }
-.b-side.b-winner      { animation: bWinGlow 0.55s ease-out; }
+.b-side.b-enter-left  { animation: bEnterLeft  0.42s cubic-bezier(0.22,1,0.36,1) both; }
+.b-side.b-enter-right { animation: bEnterRight 0.42s cubic-bezier(0.22,1,0.36,1) both; }
+.b-side.b-winner      { animation: bWinFlash 0.45s ease-out, bWinPush 0.45s ease-out; }
 .b-side.b-winner .b-cover-full::after {
-  background: linear-gradient(to top, rgba(0,180,80,0.55) 0%, rgba(0,0,0,0.1) 60%) !important;
+  background: linear-gradient(to top, rgba(0,200,90,0.6) 0%, rgba(0,0,0,0.05) 55%) !important;
+  transition: background 0.3s;
 }
-.b-side.b-loser .b-cover-full { filter: grayscale(0.85) brightness(0.35); transition: filter 0.45s; }
-.b-side.b-loser .b-game-info  { opacity: 0; transition: opacity 0.35s; }
+.b-side.b-loser { transition: transform 0.45s, opacity 0.45s; transform: scale(0.96); opacity: 0.6; }
+.b-side.b-loser .b-cover-full { filter: grayscale(1) brightness(0.2); transition: filter 0.45s; }
+.b-side.b-loser .b-game-info  { opacity: 0; transition: opacity 0.3s; }
+.vs-badge-outer { animation: vsPulse 2.2s ease-in-out infinite; }
+.b-side-ripple {
+  position: absolute; width: 60px; height: 60px; border-radius: 50%;
+  background: rgba(255,255,255,0.25); pointer-events: none;
+  animation: rippleOut 0.55s ease-out forwards; z-index: 5;
+}
 
 /* Champion screen */
 #bracket-champ {
@@ -615,9 +628,9 @@ html, body {
 .champ-trophy  { font-size: 50px; position: relative; animation: popIn 0.5s cubic-bezier(0.22,1,0.36,1); margin-bottom: 4px; }
 .champ-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--a); margin-bottom: 14px; position: relative; animation: fadeUp 0.45s 0.1s ease both; }
 .champ-cover-wrap {
-  width: 220px; aspect-ratio: 16/9; border-radius: 14px; overflow: hidden;
+  width: 150px; aspect-ratio: 3/4; border-radius: 14px; overflow: hidden;
   margin: 0 auto 18px;
-  box-shadow: 0 16px 48px rgba(108,92,231,0.45);
+  box-shadow: 0 20px 60px rgba(108,92,231,0.55);
   border: 1.5px solid rgba(108,92,231,0.45);
   position: relative;
   animation: popIn 0.5s 0.1s cubic-bezier(0.22,1,0.36,1) both;
@@ -1198,7 +1211,7 @@ html, body {
   <div id="bracket-arena">
 
     <!-- Left — contestant 0 -->
-    <div class="b-side" id="b-side-0" onclick="pickBracketWinner(0)">
+    <div class="b-side" id="b-side-0" onclick="pickBracketWinner(0,event)">
       <div class="b-cover-full" id="b-cover-0">
         <div class="b-cover-fallback-full" id="b-fallback-0"></div>
       </div>
@@ -1214,7 +1227,7 @@ html, body {
     </div>
 
     <!-- Right — contestant 1 -->
-    <div class="b-side" id="b-side-1" onclick="pickBracketWinner(1)">
+    <div class="b-side" id="b-side-1" onclick="pickBracketWinner(1,event)">
       <div class="b-cover-full" id="b-cover-1">
         <div class="b-cover-fallback-full" id="b-fallback-1"></div>
       </div>
@@ -1288,9 +1301,21 @@ html, body {
 // ══════════════════════════════════════
 const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
 
+// Platform abbreviation colours
+const PLAT_COLORS = {
+  'PC':      '#1a6dbd',
+  'PS4':     '#003087', 'PS5':  '#003087',
+  'XBO':     '#107c10', 'XBSX': '#107c10',
+  'Switch':  '#e4000f', 'NSW':  '#e4000f',
+  'iOS':     '#5856d6', 'Android':'#3ddc84',
+};
+
 function mapIgdbGame(g) {
   const steamId = extractIgdbSteamId(g);
   const imageId = g.cover?.image_id || null;
+  const platforms = (g.platforms || [])
+    .map(p => p.abbreviation || p.name || '')
+    .filter(Boolean);
   return {
     id: String(g.id),
     title: g.name,
@@ -1298,10 +1323,21 @@ function mapIgdbGame(g) {
     genre: g.genres?.[0]?.name || '',
     steamId,
     emoji: '🎮',
-    cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${imageId}.jpg` : null,
+    cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${imageId}.jpg` : null,
     imageId,
     meta: Math.round(g.aggregated_rating || g.rating || 0) || 0,
+    platforms,
   };
+}
+
+function renderPlatforms(platforms = []) {
+  if (!platforms.length) return '';
+  return `<div class="plat-badges">${
+    platforms.slice(0, 5).map(p => {
+      const color = PLAT_COLORS[p] || 'rgba(255,255,255,0.12)';
+      return `<span class="plat-badge" style="background:${color}">${p}</span>`;
+    }).join('')
+  }</div>`;
 }
 
 function extractIgdbSteamId(g) {
@@ -1344,7 +1380,7 @@ function mockSearch(query) {
 }
 
 function coverUrl(g) {
-  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.imageId}.jpg`;
   if (g.cover?.startsWith('https://images.igdb.com')) return g.cover;
   if (g.steamId && g.steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`;
   if (g.cover) return g.cover;
@@ -1502,14 +1538,14 @@ async function searchGames(q) {
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null}).replace(/"/g,'&quot;');
+      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${isAdded?'added':''}" id="ri-${g.id}">
         <div class="result-cover" style="background:var(--s3)">
           ${src
             ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:6px">`
             : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         </div>
-        <div class="result-info"><div class="result-title">${g.title}</div><div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div></div>
+        <div class="result-info"><div class="result-title">${g.title}</div><div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>${renderPlatforms(g.platforms)}</div>
         <button class="result-add" onclick="toggleGame(${safeG})">${isAdded?'✓':'+'}</button>
       </div>`;
     }).join('');
@@ -1538,7 +1574,7 @@ async function renderTrending() {
 
   list.innerHTML = games.map(g => {
     const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
-    const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null}).replace(/"/g,'&quot;');
+    const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
     const desc = [g.genre, g.year||''].filter(Boolean).join(' · ');
     return `<div class="result-item" id="tr-${g.id}" style="align-items:center;padding:10px 12px;gap:12px">
       <div style="width:80px;height:45px;border-radius:8px;flex-shrink:0;overflow:hidden;background:var(--s3);display:flex;align-items:center;justify-content:center">
@@ -2612,7 +2648,22 @@ let bracketTotalMatches = 0;
 let bracketAnimating = false;
 let bracketChampGame = null;
 
-function initBracket() {
+async function enrichMissingCovers(games) {
+  const toEnrich = games.filter(g => !g.imageId);
+  if (!toEnrich.length) return;
+  await Promise.allSettled(toEnrich.map(async g => {
+    try {
+      const res = await igdbFetch('search', { query: g.title, limit: 1 });
+      if (res?.length) {
+        const m = mapIgdbGame(res[0]);
+        if (m.imageId) { g.imageId = m.imageId; g.cover = m.cover; }
+        else if (m.steamId > 0 && !g.steamId) { g.steamId = m.steamId; }
+      }
+    } catch(e) {}
+  }));
+}
+
+async function initBracket() {
   const backlog = GAMES.filter(g => (userGames[g.id]||g).status === 'backlog');
   if (backlog.length < 2) {
     showToast('Ajoute au moins 2 jeux au backlog pour lancer un bracket !');
@@ -2640,6 +2691,16 @@ function initBracket() {
 
   document.getElementById('bracket-overlay').classList.add('open');
   showNextBracketMatch();
+
+  // Enrich missing covers in background, refresh current match if updated
+  enrichMissingCovers(bracketPool).then(() => {
+    if (!bracketAnimating) {
+      const a = bracketPool[bracketPairIdx * 2];
+      const b = bracketPool[bracketPairIdx * 2 + 1];
+      if (a) fillBracketSide(0, a);
+      if (b) fillBracketSide(1, b);
+    }
+  });
 }
 
 function bracketRoundLabel() {
@@ -2714,7 +2775,7 @@ function fillBracketSide(idx, g) {
   genreEl.textContent = [g.genre, g.year||''].filter(Boolean).join(' · ');
 }
 
-function pickBracketWinner(sideIdx) {
+function pickBracketWinner(sideIdx, evt) {
   if (bracketAnimating) return;
   bracketAnimating = true;
 
@@ -2722,6 +2783,17 @@ function pickBracketWinner(sideIdx) {
   const winnerEl = document.getElementById('b-side-' + sideIdx);
   const loserEl  = document.getElementById('b-side-' + loserIdx);
   const winner   = bracketPool[bracketPairIdx * 2 + sideIdx];
+
+  // Ripple on tap point
+  if (evt) {
+    const r = winnerEl.getBoundingClientRect();
+    const rip = document.createElement('div');
+    rip.className = 'b-side-ripple';
+    rip.style.left = (evt.clientX - r.left) + 'px';
+    rip.style.top  = (evt.clientY - r.top ) + 'px';
+    winnerEl.appendChild(rip);
+    setTimeout(() => rip.remove(), 600);
+  }
 
   winnerEl.classList.add('b-winner');
   loserEl.classList.add('b-loser');
@@ -2874,7 +2946,7 @@ function searchAddModal(q) {
       const inLib = GAMES.find(x => x.id === g.id);
       const src = g.cover || (g.steamId > 0 ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null}).replace(/"/g,'&quot;');
+      const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
         <div class="result-cover">
           ${src ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
@@ -2882,6 +2954,7 @@ function searchAddModal(q) {
         <div class="result-info">
           <div class="result-title">${g.title}</div>
           <div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>
+          ${renderPlatforms(g.platforms)}
         </div>
         <button class="result-add" onclick="addGameFromModal(${safeG},this)">${inLib?'✓':'+'}</button>
       </div>`;
