@@ -689,6 +689,249 @@ html, body {
   transition: border-color 0.2s, background 0.2s; white-space: nowrap;
 }
 .bracket-launch-btn:active { border-color: var(--a); background: rgba(108,92,231,0.2); }
+
+/* ── Profile: Completion Ring ── */
+.comp-card {
+  margin: 0 16px 10px;
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 18px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.comp-card:active { border-color: var(--a); }
+.ring-wrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+.ring-svg {
+  width: 88px;
+  height: 88px;
+  transform: rotate(-90deg);
+}
+.ring-bg {
+  fill: none;
+  stroke: var(--s3);
+  stroke-width: 7;
+}
+.ring-fill {
+  fill: none;
+  stroke: url(#ringGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(0.22,1,0.36,1);
+}
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ring-pct {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #a29bfe, #fd79a8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.ring-sub {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.comp-stats { flex: 1; }
+.comp-total {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.comp-total-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+/* ── Stat Pills ── */
+.stat-pills {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.stat-pills::-webkit-scrollbar { display: none; }
+.stat-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: var(--s2);
+  border: 0.5px solid var(--border);
+  border-radius: 14px;
+  padding: 10px 14px;
+  min-width: 68px;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.1s;
+  flex-shrink: 0;
+}
+.stat-pill:active { transform: scale(0.93); }
+.pill-val {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+}
+.pill-label {
+  font-size: 9px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+/* ── Shelf Panel ── */
+#shelf-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 300;
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+#shelf-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(390px, 100vw);
+  background: var(--s1);
+  border-left: 0.5px solid var(--border);
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  padding-bottom: var(--safe-b);
+}
+#shelf-drawer.open { transform: translateX(0); }
+.shelf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 56px 16px 12px;
+  border-bottom: 0.5px solid var(--border);
+  flex-shrink: 0;
+}
+.shelf-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+}
+.shelf-actions { display: flex; align-items: center; gap: 8px; }
+.shelf-sort-btn {
+  background: var(--s2);
+  border: 0.5px solid var(--border2);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: var(--muted2);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.shelf-sort-btn:active { color: var(--a); border-color: var(--a); }
+.shelf-close-btn {
+  background: var(--s2);
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  color: var(--muted2);
+  cursor: pointer;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 12px;
+  overflow-y: auto;
+  flex: 1;
+}
+.shelf-item {
+  cursor: pointer;
+  position: relative;
+  opacity: 0;
+  animation: shelfFadeIn 0.35s ease forwards;
+}
+.shelf-cover {
+  aspect-ratio: 2/3;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--s3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+.shelf-item:active .shelf-cover {
+  transform: scale(0.94);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+.shelf-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.shelf-cover-initials {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted2);
+  text-align: center;
+  padding: 4px;
+}
+.shelf-status-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--s1);
+}
+.shelf-name {
+  font-size: 10px;
+  color: var(--muted2);
+  text-align: center;
+  margin-top: 5px;
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+@keyframes shelfFadeIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
 </style>
 </head>
 <body>
@@ -1051,11 +1294,54 @@ html, body {
         </div>
       </div>
 
-      <!-- STATS -->
-      <div class="stats-grid anim" style="animation-delay:0.1s">
-        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('all')"><div class="stat-val accent" id="stat-total">0</div><div class="stat-label">Total</div></div>
-        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('finished')"><div class="stat-val green" id="stat-finished">0</div><div class="stat-label">Finis</div></div>
-        <div class="stat-card" style="cursor:pointer" onclick="showProfilePanel('playing')"><div class="stat-val" style="color:var(--a2)" id="stat-playing">0</div><div class="stat-label">En cours</div></div>
+      <!-- STATS: Completion Ring -->
+      <div class="comp-card anim" style="animation-delay:0.1s" onclick="openShelf('all')">
+        <div class="ring-wrap">
+          <svg class="ring-svg" viewBox="0 0 88 88">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#a29bfe"/>
+                <stop offset="100%" style="stop-color:#fd79a8"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-bg" cx="44" cy="44" r="37"/>
+            <circle class="ring-fill" id="ring-fill-circle" cx="44" cy="44" r="37"
+              stroke-dasharray="232.48" stroke-dashoffset="232.48"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-pct" id="ring-pct">0%</div>
+            <div class="ring-sub">fini</div>
+          </div>
+        </div>
+        <div class="comp-stats">
+          <div class="comp-total" id="stat-total">0</div>
+          <div class="comp-total-label">jeux au total</div>
+          <div style="font-size:11px;color:var(--muted2)">Voir tous mes jeux →</div>
+        </div>
+      </div>
+
+      <!-- STAT PILLS -->
+      <div class="stat-pills anim" style="animation-delay:0.15s">
+        <div class="stat-pill" onclick="openShelf('playing')" style="border-color:rgba(108,92,231,0.35)">
+          <div class="pill-val" style="color:#a29bfe" id="stat-playing">0</div>
+          <div class="pill-label">En cours</div>
+        </div>
+        <div class="stat-pill" onclick="openShelf('finished')" style="border-color:rgba(0,230,118,0.3)">
+          <div class="pill-val" style="color:var(--green)" id="stat-finished">0</div>
+          <div class="pill-label">Finis</div>
+        </div>
+        <div class="stat-pill" onclick="openShelf('platine')" style="border-color:rgba(255,202,40,0.3)">
+          <div class="pill-val" style="color:var(--amber)" id="stat-platine">0</div>
+          <div class="pill-label">100%</div>
+        </div>
+        <div class="stat-pill" onclick="openShelf('backlog')" style="border-color:rgba(150,150,170,0.3)">
+          <div class="pill-val" style="color:var(--muted2)" id="stat-backlog">0</div>
+          <div class="pill-label">Backlog</div>
+        </div>
+        <div class="stat-pill" onclick="openShelf('abandoned')" style="border-color:rgba(255,82,82,0.3)">
+          <div class="pill-val" style="color:var(--red)" id="stat-abandoned">0</div>
+          <div class="pill-label">Abandonné</div>
+        </div>
       </div>
 
       <!-- GENRES -->
@@ -1192,15 +1478,17 @@ html, body {
       <span>Profil</span>
     </button>
   </nav>
-  <!-- PROFILE PANEL OVERLAY -->
-  <div id="profile-panel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:300;align-items:flex-end" onclick="if(event.target===this)closeProfilePanel()">
-    <div style="background:var(--s1);border-radius:20px 20px 0 0;width:100%;max-height:75dvh;overflow:hidden;display:flex;flex-direction:column;padding-bottom:var(--safe-b)">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:0.5px solid var(--border)">
-        <div id="panel-title" style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700"></div>
-        <button onclick="closeProfilePanel()" style="background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--muted2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">×</button>
+  <!-- SHELF PANEL -->
+  <div id="shelf-backdrop" onclick="closeShelf()"></div>
+  <div id="shelf-drawer">
+    <div class="shelf-header">
+      <div class="shelf-title" id="shelf-title">Mes jeux</div>
+      <div class="shelf-actions">
+        <button class="shelf-sort-btn" id="shelf-sort-btn" onclick="cycleShelfSort()">★ Score</button>
+        <button class="shelf-close-btn" onclick="closeShelf()">×</button>
       </div>
-      <div id="panel-content" style="overflow-y:auto;flex:1;padding:12px 16px"></div>
     </div>
+    <div class="shelf-grid" id="shelf-grid"></div>
   </div>
 
 </div><!-- /app-shell -->
@@ -2075,26 +2363,45 @@ function removeMedia(gameId, idx) {
 }
 
 function renderProfileStats() {
-  const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
-  const finished = all.filter(g => isDone(g.status)).length;
+  const all      = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
   const playing  = all.filter(g => isPlaying(g.status)).length;
-  document.getElementById('stat-total').textContent    = all.length;
-  document.getElementById('stat-finished').textContent = finished;
+  const finished = all.filter(g => g.status === 'finished').length;
+  const platine  = all.filter(g => g.status === 'platine').length;
+  const backlog  = all.filter(g => g.status === 'backlog').length;
+  const abandoned= all.filter(g => g.status === 'abandoned').length;
+  const done     = finished + platine;
+  const total    = all.length;
+
+  document.getElementById('stat-total').textContent    = total;
   document.getElementById('stat-playing').textContent  = playing;
+  document.getElementById('stat-finished').textContent = finished;
+  document.getElementById('stat-platine').textContent  = platine;
+  document.getElementById('stat-backlog').textContent  = backlog;
+  document.getElementById('stat-abandoned').textContent= abandoned;
+
+  // Animate SVG ring
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const circumference = 232.48;
+  const offset = circumference - (pct / 100) * circumference;
+  document.getElementById('ring-pct').textContent = pct + '%';
+  requestAnimationFrame(() => {
+    const fill = document.getElementById('ring-fill-circle');
+    if (fill) fill.style.strokeDashoffset = offset;
+  });
 
   // Genre breakdown — weight finished games more
   const genreScore = {};
   all.forEach(g => {
     if (!g.genre) return;
-    const weight = g.status === 'finished' ? 3 : isPlaying(g.status) ? 2 : 1;
+    const weight = isDone(g.status) ? 3 : isPlaying(g.status) ? 2 : 1;
     genreScore[g.genre] = (genreScore[g.genre]||0) + weight;
   });
   const top = Object.entries(genreScore).sort((a,b)=>b[1]-a[1]).slice(0,4);
   const gc = document.getElementById('genre-stats');
   if (gc) {
-    gc.innerHTML = top.map(([genre, score]) => {
+    gc.innerHTML = top.map(([genre]) => {
       const count = all.filter(g=>g.genre===genre).length;
-      return `<div onclick="showProfilePanel('genre','${genre}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='var(--a)'" onmouseleave="this.style.borderColor='var(--border)'">
+      return `<div onclick="openShelf('genre','${genre}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='var(--a)'" onmouseleave="this.style.borderColor='var(--border)'">
         <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--a)">${count}</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:2px">${genre}</div>
       </div>`;
@@ -2166,7 +2473,7 @@ function profileGameRow(g) {
   const ug = userGames[g.id]||g;
   const src = coverUrl(g);
   const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  return `<div class="feed-item" onclick="openDetail('${g.id}');closeProfilePanel()" style="cursor:pointer">
+  return `<div class="feed-item" onclick="openDetail('${g.id}');closeShelf()" style="cursor:pointer">
     <div style="width:44px;height:25px;border-radius:6px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
       ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:10px;font-weight:700;color:var(--muted)">${initials}</span>`}
     </div>
@@ -2177,45 +2484,106 @@ function profileGameRow(g) {
   </div>`;
 }
 
-function showProfilePanel(type, extra) {
+// ── Shelf Panel ──────────────────────────────────────────
+let shelfGames = [];
+let shelfSort  = 'score';
+let shelfType  = '';
+let shelfExtra = '';
+
+const SHELF_SORT_LABELS = { score: '★ Score', year: '📅 Année', alpha: 'A–Z' };
+const SHELF_SORT_CYCLE  = ['score', 'year', 'alpha'];
+
+const STATUS_DOT_COLORS = {
+  'playing-solo':  '#a29bfe',
+  'playing-multi': '#fd79a8',
+  'finished':      '#00e676',
+  'platine':       '#ffca28',
+  'backlog':       '#64647a',
+  'abandoned':     '#ff5252',
+};
+
+function openShelf(type, extra) {
   const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
-  const panel = document.getElementById('profile-panel');
-  const title = document.getElementById('panel-title');
-  const content = document.getElementById('panel-content');
+  shelfType  = type;
+  shelfExtra = extra || '';
+  shelfSort  = 'score';
 
-  let games = [], label = '';
-  if (type === 'all') {
-    label = `Tous les jeux (${all.length})`;
-    games = all;
-  } else if (type === 'finished') {
-    games = all.filter(g => isDone(g.status));
-    label = `Jeux finis (${games.length})`;
-  } else if (type === 'playing') {
-    games = all.filter(g => isPlaying(g.status));
-    label = `En cours (${games.length})`;
-  } else if (type === 'genre') {
-    games = all.filter(g => g.genre === extra);
-    label = `${extra} (${games.length})`;
-  }
+  const SHELF_TITLES = {
+    all:      'Tous les jeux',
+    playing:  'En cours',
+    finished: 'Jeux finis',
+    platine:  '100% / Platine',
+    backlog:  'Backlog',
+    abandoned:'Abandonné',
+  };
 
-  title.textContent = label;
-  content.innerHTML = games.length
-    ? games.map(g => profileGameRow(g)).join('')
-    : `<div style="font-size:13px;color:var(--muted);padding:12px 0">Aucun jeu ici pour l'instant.</div>`;
+  if (type === 'all')       shelfGames = all;
+  else if (type === 'playing')   shelfGames = all.filter(g => isPlaying(g.status));
+  else if (type === 'finished')  shelfGames = all.filter(g => g.status === 'finished');
+  else if (type === 'platine')   shelfGames = all.filter(g => g.status === 'platine');
+  else if (type === 'backlog')   shelfGames = all.filter(g => g.status === 'backlog');
+  else if (type === 'abandoned') shelfGames = all.filter(g => g.status === 'abandoned');
+  else if (type === 'genre')     shelfGames = all.filter(g => g.genre === extra);
 
-  panel.style.display = 'flex';
-  // Animate in
-  panel.firstElementChild.style.transform = 'translateY(100%)';
+  const label = type === 'genre' ? extra : (SHELF_TITLES[type] || type);
+  document.getElementById('shelf-title').textContent = `${label} (${shelfGames.length})`;
+  document.getElementById('shelf-sort-btn').textContent = SHELF_SORT_LABELS[shelfSort];
+
+  renderShelfGrid();
+
+  const backdrop = document.getElementById('shelf-backdrop');
+  const drawer   = document.getElementById('shelf-drawer');
+  backdrop.style.display = 'block';
   requestAnimationFrame(() => {
-    panel.firstElementChild.style.transition = 'transform 0.3s cubic-bezier(0.22,1,0.36,1)';
-    panel.firstElementChild.style.transform = 'translateY(0)';
+    backdrop.style.opacity = '1';
+    drawer.classList.add('open');
   });
 }
 
-function closeProfilePanel() {
-  const panel = document.getElementById('profile-panel');
-  panel.firstElementChild.style.transform = 'translateY(100%)';
-  setTimeout(() => { panel.style.display = 'none'; }, 300);
+function closeShelf() {
+  const backdrop = document.getElementById('shelf-backdrop');
+  const drawer   = document.getElementById('shelf-drawer');
+  drawer.classList.remove('open');
+  backdrop.style.opacity = '0';
+  setTimeout(() => { backdrop.style.display = 'none'; }, 350);
+}
+
+function cycleShelfSort() {
+  const idx = SHELF_SORT_CYCLE.indexOf(shelfSort);
+  shelfSort = SHELF_SORT_CYCLE[(idx + 1) % SHELF_SORT_CYCLE.length];
+  document.getElementById('shelf-sort-btn').textContent = SHELF_SORT_LABELS[shelfSort];
+  renderShelfGrid();
+}
+
+function renderShelfGrid() {
+  const sorted = [...shelfGames].sort((a, b) => {
+    if (shelfSort === 'score') return (b.score || b.meta || 0) - (a.score || a.meta || 0);
+    if (shelfSort === 'year')  return (b.year || 0) - (a.year || 0);
+    return a.title.localeCompare(b.title);
+  });
+
+  const grid = document.getElementById('shelf-grid');
+  if (!sorted.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:40px 0;font-size:13px">Aucun jeu ici pour l'instant.</div>`;
+    return;
+  }
+
+  grid.innerHTML = sorted.map((g, i) => {
+    const src  = coverUrl(g);
+    const ug   = userGames[g.id] || g;
+    const dot  = STATUS_DOT_COLORS[ug.status] || '';
+    const delay = Math.min(i * 35, 420);
+    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    return `<div class="shelf-item" onclick="openDetail('${g.id}');closeShelf()" style="animation-delay:${delay}ms">
+      <div class="shelf-cover">
+        ${src
+          ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+          : `<div class="shelf-cover-initials">${initials}</div>`}
+        ${dot ? `<div class="shelf-status-dot" style="background:${dot}"></div>` : ''}
+      </div>
+      <div class="shelf-name">${g.title}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderHomeRecos() {
