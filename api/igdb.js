@@ -55,12 +55,15 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { action, query, ids, limit = 12 } = req.body || {};
+    const { action, query, ids, limit = 12, mode } = req.body || {};
 
     if (action === 'search') {
       if (!query) return res.status(400).json({ error: 'query required' });
+      const modeFilter = mode === 'solo'  ? ' & (game_modes = null | game_modes = (1,3))'
+                       : mode === 'multi' ? ' & (game_modes = null | game_modes = (2,3,4,5,6))'
+                       : '';
       const data = await igdbQuery('games',
-        `search "${query}"; fields ${COMMON_FIELDS}; where platforms = ${MODERN_PLATFORMS} & version_parent = null; limit ${limit};`);
+        `search "${query}"; fields ${COMMON_FIELDS}; where platforms = ${MODERN_PLATFORMS} & version_parent = null${modeFilter}; limit ${limit};`);
       return res.json(data);
     }
 
