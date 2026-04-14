@@ -185,6 +185,26 @@ html, body {
 .ob-pick-btn { font-size:10px;padding:3px 9px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s3);color:var(--text);cursor:pointer;transition:all 0.12s; }
 .ob-pick-btn:active { transform:scale(0.93); }
 
+/* ── Discover / Construis ton profil ── */
+.genre-chips-row { display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:4px 0 }
+.genre-chips-row::-webkit-scrollbar { display:none }
+.g-chip { flex-shrink:0;padding:5px 13px;border-radius:20px;background:var(--s2);border:0.5px solid var(--border);font-size:12px;font-weight:600;cursor:pointer;color:var(--muted2);white-space:nowrap;transition:all 0.15s }
+.g-chip.active { background:var(--a);color:#fff;border-color:var(--a) }
+.discover-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 0 }
+.disc-card { background:var(--s2);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column }
+.disc-cover { width:100%;aspect-ratio:3/4;background:var(--s3);position:relative;overflow:hidden }
+.disc-cover img { width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1 }
+.disc-fallback { position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:rgba(255,255,255,0.12);pointer-events:none }
+.disc-body { padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;flex:1 }
+.disc-title { font-size:12px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden }
+.disc-meta { font-size:10px;color:var(--muted2) }
+.disc-add { width:100%;padding:6px 0;border-radius:8px;background:var(--s3);border:0.5px solid var(--border2);font-size:11px;font-weight:600;color:var(--muted2);cursor:pointer;transition:all 0.15s;margin-top:auto }
+.disc-add.open { background:rgba(108,92,231,0.1);border-color:rgba(108,92,231,0.3);color:var(--a) }
+.disc-add.added { background:rgba(0,230,118,0.1);border-color:rgba(0,230,118,0.2);color:var(--green) }
+.disc-picker { display:flex;flex-direction:column;gap:3px;margin-top:5px }
+.disc-pick { width:100%;padding:5px 8px;border-radius:7px;background:var(--s3);border:0.5px solid var(--border2);font-size:11px;font-weight:500;color:var(--muted2);cursor:pointer;text-align:left;transition:all 0.1s }
+.disc-pick:active { opacity:0.7 }
+
 .added-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; min-height: 32px; }
 .added-chip  { display: flex; align-items: center; gap: 5px; background: rgba(108,92,231,0.12); border: 0.5px solid; border-radius: 20px; padding: 4px 10px; font-size: 12px; }
 .chip-remove { background: none; border: none; cursor: pointer; font-size: 14px; line-height: 1; padding: 0 0 0 2px; opacity: 0.7; }
@@ -1062,21 +1082,21 @@ html, body {
       <div class="step-tag">Étape 3 sur 5</div>
       <div class="step-title">Importe tes <span>jeux</span></div>
       <p class="step-sub">Comment veux-tu remplir ta bibliothèque ?</p>
-      <div class="import-opt sel" id="opt-steam" onclick="selectImport('steam')">
+      <div class="import-opt" id="opt-steam" style="opacity:0.42;pointer-events:none">
         <div class="import-icon" style="background:rgba(108,92,231,0.12)">🖥️</div>
         <div class="import-info"><div class="import-title">Importer depuis Steam</div><div class="import-sub">Synchronise ta bibliothèque avec ton Steam ID</div></div>
-        <span class="import-badge badge-soon">7 jours</span>
+        <span class="import-badge badge-soon">Bientôt</span>
       </div>
-      <div class="import-opt" id="opt-manual" onclick="selectImport('manual')">
-        <div class="import-icon" style="background:rgba(0,206,201,0.10)">🔍</div>
-        <div class="import-info"><div class="import-title">Recherche manuelle</div><div class="import-sub">Cherche et ajoute tes jeux depuis 500 000 titres</div></div>
+      <div class="import-opt sel" id="opt-manual" onclick="selectImport('manual')">
+        <div class="import-icon" style="background:rgba(0,206,201,0.10)">🎮</div>
+        <div class="import-info"><div class="import-title">Construis ton profil</div><div class="import-sub">Parcours les genres, découvre et ajoute tes jeux</div></div>
         <span class="import-badge badge-now">Disponible</span>
       </div>
       <div class="import-opt" id="opt-skip" onclick="selectImport('skip')">
         <div class="import-icon" style="background:rgba(255,255,255,0.04)">⏭️</div>
         <div class="import-info"><div class="import-title">Passer cette étape</div><div class="import-sub">Tu pourras ajouter des jeux plus tard</div></div>
       </div>
-      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep3()" id="import-cta">Connecter Steam →</button></div>
+      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep3()" id="import-cta">Construis ton profil →</button></div>
     </div></div>
   </div>
 
@@ -1106,25 +1126,52 @@ html, body {
     </div></div>
   </div>
 
-  <!-- STEP 3c : RECHERCHE MANUELLE -->
-  <div class="step" id="step-3c">
-    <button class="back-btn" onclick="obStep(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
-    <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 3 sur 5</div>
-      <div class="step-title">Construis ton <span>profil</span></div>
-      <p class="step-sub">Où en es-tu avec chaque jeu ? Choisis la catégorie avant d'ajouter.</p>
-      <div class="ob-status-tabs">
-        <button class="ob-tab active" data-status="playing-solo" onclick="setObTab('playing-solo',this)">🎮<br>Solo</button>
-        <button class="ob-tab" data-status="playing-multi" onclick="setObTab('playing-multi',this)">👥<br>Multi</button>
+  <!-- STEP 3c : CONSTRUIS TON PROFIL -->
+  <div class="step" id="step-3c" style="display:flex;flex-direction:column;overflow:hidden">
+    <div style="flex-shrink:0;padding:calc(var(--safe-t) + 8px) 0 0">
+      <div style="padding:0 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <button onclick="obStep(3)" style="background:var(--s2);border:0.5px solid var(--border);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        </button>
+        <div>
+          <div class="step-tag" style="margin-bottom:1px">Étape 3 sur 5</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;line-height:1.15">Construis ton <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">profil</span></div>
+        </div>
       </div>
-      <div class="search-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="game-search" placeholder="Ex: Elden Ring, Baldur's Gate 3…" oninput="searchGames(this.value)" autocomplete="off">
+      <div style="padding:0 16px;margin-bottom:8px">
+        <div class="search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="disc-search" placeholder="Rechercher un titre…" oninput="discSearch(this.value)" autocomplete="off">
+          <button id="disc-search-clear" onclick="discClearSearch()" style="display:none;background:none;border:none;color:var(--muted2);cursor:pointer;padding:0 8px;font-size:20px;line-height:1">×</button>
+        </div>
       </div>
-      <div class="added-chips" id="added-chips"></div>
-      <div class="results-list" id="results-list"><div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div></div>
-      <button class="btn-primary" onclick="obStep('3d')" id="manual-cta" style="opacity:0.5">Continuer avec <span id="added-count">0</span> jeu(x) →</button>
-    </div></div>
+      <div class="genre-chips-row" id="disc-genre-row" style="padding:0 16px 8px">
+        <div class="g-chip active" onclick="discByGenre(null,this)">Tous</div>
+        <div class="g-chip" onclick="discByGenre(12,this)">RPG</div>
+        <div class="g-chip" onclick="discByGenre(5,this)">Shooter</div>
+        <div class="g-chip" onclick="discByGenre(14,this)">Sport</div>
+        <div class="g-chip" onclick="discByGenre(15,this)">Stratégie</div>
+        <div class="g-chip" onclick="discByGenre(31,this)">Aventure</div>
+        <div class="g-chip" onclick="discByGenre(8,this)">Plateforme</div>
+        <div class="g-chip" onclick="discByGenre(32,this)">Indie</div>
+        <div class="g-chip" onclick="discByGenre(25,this)">Action</div>
+        <button onclick="discRefresh()" style="flex-shrink:0;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px">↻</button>
+      </div>
+      <div style="height:0.5px;background:var(--border)"></div>
+    </div>
+    <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px">
+      <div class="discover-grid" id="discover-grid"></div>
+      <div id="disc-loadmore-wrap" style="display:none;padding:0 0 16px;text-align:center">
+        <button onclick="discLoadMore()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;width:100%">Charger plus ↓</button>
+      </div>
+    </div>
+    <div style="flex-shrink:0;padding:10px 16px calc(var(--safe-b) + 10px);border-top:0.5px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg)">
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--text)"><span id="discover-count">0</span> jeux</div>
+        <div style="font-size:11px;color:var(--muted2)">ajoutés à ton profil</div>
+      </div>
+      <button onclick="obStep(4)" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif">Continuer →</button>
+    </div>
   </div>
 
   <!-- STEP 3d : TRENDING -->
@@ -1142,20 +1189,13 @@ html, body {
     </div></div>
   </div>
 
-  <!-- STEP 4 : SUCCESS + RECOMMENDATIONS -->
+  <!-- STEP 4 : SUCCESS -->
   <div class="step" id="step-4">
     <div class="step-scroll"><div style="padding:calc(var(--safe-t) + 40px) 20px calc(var(--safe-b) + 24px);display:flex;flex-direction:column;align-items:center;min-height:100%">
       <div class="success-ring">🎮</div>
       <div class="success-title" style="text-align:center">Tu es prêt !</div>
-      <p class="success-sub" style="text-align:center">Ta bibliothèque est créée.</p>
-      <div class="games-preview" id="success-preview" style="margin-bottom:8px"></div>
-
-      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:340px;margin:12px 0 10px">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em">Jeux qui m'intéressent</div>
-        <button onclick="loadObRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px">↻</button>
-      </div>
-      <div id="ob-recos-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:340px;margin-bottom:20px"></div>
-
+      <p class="success-sub" style="text-align:center">Ta bibliothèque est créée.<br>Note tes jeux et retrouve-les ici.</p>
+      <div class="games-preview" id="success-preview"></div>
       <button class="btn-primary" style="max-width:320px;width:100%" onclick="launchApp()">Entrer dans GameShelf →</button>
     </div></div>
   </div>
@@ -1636,6 +1676,44 @@ html, body {
   </div>
 </div>
 
+<!-- ████████████████ LIBRARY DISCOVER MODAL ████████████████ -->
+<div id="ldisc-modal" style="display:none;position:fixed;inset:0;z-index:900;background:var(--bg);flex-direction:column;overflow:hidden">
+  <div style="flex-shrink:0;padding:calc(var(--safe-t) + 8px) 0 0">
+    <div style="padding:0 16px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <button onclick="closeLdisc()" style="background:var(--s2);border:0.5px solid var(--border);border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800">Ajouter un <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">jeu</span></div>
+    </div>
+    <div style="padding:0 16px;margin-bottom:8px">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="ldisc-search" placeholder="Rechercher un titre…" oninput="ldiscSearch(this.value)" autocomplete="off">
+        <button id="ldisc-search-clear" onclick="ldiscClearSearch()" style="display:none;background:none;border:none;color:var(--muted2);cursor:pointer;padding:0 8px;font-size:20px;line-height:1">×</button>
+      </div>
+    </div>
+    <div class="genre-chips-row" id="ldisc-genre-row" style="padding:0 16px 8px">
+      <div class="g-chip active" onclick="ldiscByGenre(null,this)">Tous</div>
+      <div class="g-chip" onclick="ldiscByGenre(12,this)">RPG</div>
+      <div class="g-chip" onclick="ldiscByGenre(5,this)">Shooter</div>
+      <div class="g-chip" onclick="ldiscByGenre(14,this)">Sport</div>
+      <div class="g-chip" onclick="ldiscByGenre(15,this)">Stratégie</div>
+      <div class="g-chip" onclick="ldiscByGenre(31,this)">Aventure</div>
+      <div class="g-chip" onclick="ldiscByGenre(8,this)">Plateforme</div>
+      <div class="g-chip" onclick="ldiscByGenre(32,this)">Indie</div>
+      <div class="g-chip" onclick="ldiscByGenre(25,this)">Action</div>
+      <button onclick="ldiscRefresh()" style="flex-shrink:0;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px">↻</button>
+    </div>
+    <div style="height:0.5px;background:var(--border)"></div>
+  </div>
+  <div style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px">
+    <div class="discover-grid" id="ldisc-grid"></div>
+    <div id="ldisc-loadmore-wrap" style="display:none;padding:0 0 16px;text-align:center">
+      <button onclick="ldiscLoadMore()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 20px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;width:100%">Charger plus ↓</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════
 // IGDB CONFIG
@@ -1747,57 +1825,288 @@ async function igdbPopular() {
   return data.map(g => ({ ...mapIgdbGame(g), reason: `${g.aggregated_rating ? 'Score '+Math.round(g.aggregated_rating)+' · ' : ''}${g.genres?.[0]?.name||''}` }));
 }
 
-// ── Onboarding step-4 recommendations ──
-let _obRecosPool = [];
-async function loadObRecos(refresh = false) {
-  const grid = document.getElementById('ob-recos-grid');
-  if (!grid) return;
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px">Chargement…</div>';
-  if (refresh || _obRecosPool.length === 0) {
-    try {
-      const games = await igdbPopular();
-      _obRecosPool = (games || []).sort(() => Math.random() - 0.5);
-    } catch(e) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:16px">Impossible de charger</div>';
-      return;
-    }
-  }
-  if (!_obRecosPool.length) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:16px">Aucune recommandation disponible</div>';
-    return;
-  }
-  const recs = _obRecosPool.slice(0, 4);
-  grid.innerHTML = recs.map(g => {
-    const src = coverUrl(g);
-    const alreadyAdded = addedGames.some(a => a.id === g.id) || !!GAMES.find(x => x.id === g.id);
-    const wished = addedGames.some(a => a.id === g.id && a.status === 'wish');
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    return `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
-      <div style="width:100%;aspect-ratio:3/4;background:var(--s3);position:relative;overflow:hidden">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1" onerror="this.style.display='none'">` : ''}
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:rgba(255,255,255,0.15);font-family:'Space Grotesk',sans-serif">${initials}</div>
+// ══════════════════════════════════════
+// DISCOVER SCREEN — shared helpers
+// ══════════════════════════════════════
+const DISC_STATUSES = [
+  ['backlog',       '📋 Backlog'],
+  ['wish',          '✦ Souhait'],
+  ['playing-solo',  '▶ En cours'],
+  ['finished',      '✅ Fini'],
+];
+const DISC_STATUS_LABELS = { backlog:'Backlog', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'Multi', finished:'Fini', platine:'100%', abandoned:'Abandonné' };
+
+function discCardHtml(g, ctx) {
+  const src = coverUrl(g);
+  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const meta = [g.genre, g.year||''].filter(Boolean).join(' · ');
+  const inOb  = addedGames.some(a => a.id === g.id);
+  const inLib = !!GAMES.find(x => x.id === g.id);
+  const added = ctx === 'ob' ? inOb : inLib;
+  const addedStatus = ctx === 'ob'
+    ? addedGames.find(a => a.id === g.id)?.status
+    : (userGames[g.id]?.status || GAMES.find(x=>x.id===g.id)?.status);
+  const btnLabel = added ? `✓ ${DISC_STATUS_LABELS[addedStatus]||'Ajouté'}` : '+ Ajouter';
+  return `<div class="disc-card" id="disc-card-${ctx}-${g.id}">
+    <div class="disc-cover">
+      ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">` : ''}
+      <div class="disc-fallback">${initials}</div>
+    </div>
+    <div class="disc-body">
+      <div class="disc-title">${g.title}</div>
+      <div class="disc-meta">${meta}</div>
+      <button class="disc-add${added?' added':''}" id="disc-btn-${ctx}-${g.id}" onclick="discTogglePicker('${g.id}','${ctx}')">${btnLabel}</button>
+      <div class="disc-picker" id="disc-picker-${ctx}-${g.id}" style="display:none">
+        ${DISC_STATUSES.map(([s,l]) => `<button class="disc-pick" onclick="discPick('${g.id}','${s}','${ctx}')">${l}</button>`).join('')}
       </div>
-      <div style="padding:8px 10px 10px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
-        <div style="font-size:12px;font-weight:700;line-height:1.3;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.title}</div>
-        <button onclick="obWishToggle('${g.id}')" id="ob-wish-${g.id}" style="width:100%;background:${wished||alreadyAdded?'rgba(0,206,201,0.18)':'rgba(0,206,201,0.06)'};border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--a3);cursor:pointer;font-weight:600;transition:background 0.15s">
-          ${alreadyAdded ? '✓ Ajouté' : wished ? '✓ Souhait' : '✦ Souhait'}
-        </button>
-      </div>
-    </div>`;
-  }).join('');
+    </div>
+  </div>`;
 }
 
-function obWishToggle(id) {
-  const g = _obRecosPool.find(x => x.id === id);
-  if (!g) return;
-  const idx = addedGames.findIndex(a => a.id === id);
-  if (idx >= 0) {
-    addedGames.splice(idx, 1);
-  } else {
-    addedGames.push({...g, status:'wish'});
+function discTogglePicker(id, ctx) {
+  const btn    = document.getElementById(`disc-btn-${ctx}-${id}`);
+  const picker = document.getElementById(`disc-picker-${ctx}-${id}`);
+  if (!btn || !picker) return;
+  const added = btn.classList.contains('added');
+  if (added) {
+    // Remove
+    if (ctx === 'ob') {
+      addedGames = addedGames.filter(a => a.id !== id);
+      updateAddedChips();
+    } else {
+      const idx = GAMES.findIndex(x => x.id === id);
+      if (idx >= 0) GAMES.splice(idx, 1);
+      delete userGames[id];
+      saveToStorage(); renderGameGrid(); renderFeed();
+    }
+    btn.textContent = '+ Ajouter';
+    btn.className = 'disc-add';
+    picker.style.display = 'none';
+    return;
   }
-  updateAddedChips();
-  loadObRecos();
+  // Toggle picker
+  const isOpen = picker.style.display !== 'none';
+  picker.style.display = isOpen ? 'none' : 'flex';
+  btn.textContent = isOpen ? '+ Ajouter' : '✕ Annuler';
+  btn.className = isOpen ? 'disc-add' : 'disc-add open';
+}
+
+function discPick(id, status, ctx) {
+  // Find game object from pool
+  const pool = ctx === 'ob' ? _discPool : _ldiscPool;
+  const g = pool.find(x => x.id === id);
+  if (!g) return;
+  if (ctx === 'ob') {
+    addedGames = addedGames.filter(a => a.id !== id);
+    addedGames.push({...g, status});
+    updateAddedChips();
+  } else {
+    const existing = GAMES.find(x => x.id === id);
+    if (existing) {
+      userGames[id] = {...(userGames[id]||{}), status};
+    } else {
+      GAMES.push({...g, status, score:0, notes:'', hours:0});
+      userGames[id] = {status, score:0, notes:'', hours:0};
+    }
+    saveToStorage(); renderGameGrid(); renderFeed();
+    showToast(`${g.title} → ${DISC_STATUS_LABELS[status]||status}`);
+  }
+  const btn    = document.getElementById(`disc-btn-${ctx}-${id}`);
+  const picker = document.getElementById(`disc-picker-${ctx}-${id}`);
+  if (btn) { btn.textContent = `✓ ${DISC_STATUS_LABELS[status]||status}`; btn.className = 'disc-add added'; }
+  if (picker) picker.style.display = 'none';
+}
+
+// ──────────────────────────────────────
+// DISCOVER — onboarding context
+// ──────────────────────────────────────
+let _discGenre  = null;
+let _discOffset = 0;
+let _discPool   = [];
+let _discSearchMode = false;
+let _discSearchTimer;
+
+function initDiscoverScreen() {
+  _discGenre = null; _discOffset = 0; _discPool = []; _discSearchMode = false;
+  const searchEl = document.getElementById('disc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('disc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  document.querySelectorAll('#disc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  discLoadBrowse();
+}
+
+async function discByGenre(genreId, chipEl) {
+  _discGenre = genreId; _discOffset = 0; _discPool = []; _discSearchMode = false;
+  const searchEl = document.getElementById('disc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('disc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  document.querySelectorAll('#disc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  discLoadBrowse();
+}
+
+async function discLoadBrowse(append = false) {
+  const grid = document.getElementById('discover-grid');
+  const lmWrap = document.getElementById('disc-loadmore-wrap');
+  if (!grid) return;
+  if (!append) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+    if (lmWrap) lmWrap.style.display = 'none';
+  }
+  let data;
+  if (_discGenre) {
+    data = await igdbFetch('genre', { genreId: _discGenre, limit: 15, offset: _discOffset });
+  } else {
+    data = await igdbFetch('trending', { limit: 15 + _discOffset });
+    if (data && _discOffset > 0) data = data.slice(_discOffset);
+  }
+  const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+  if (!append) { _discPool = games; _discOffset = games.length; }
+  else { _discPool = [..._discPool, ...games]; _discOffset = _discPool.length; }
+  if (!append) {
+    grid.innerHTML = _discPool.length ? _discPool.map(g => discCardHtml(g,'ob')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun jeu trouvé</div>';
+  } else {
+    const frag = document.createDocumentFragment();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = games.map(g => discCardHtml(g,'ob')).join('');
+    while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+    grid.appendChild(frag);
+  }
+  if (lmWrap) lmWrap.style.display = games.length >= 14 ? 'block' : 'none';
+}
+
+function discRefresh() { _discOffset = 0; _discPool = []; discLoadBrowse(); }
+
+function discLoadMore() { discLoadBrowse(true); }
+
+function discSearch(q) {
+  const clearBtn = document.getElementById('disc-search-clear');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+  clearTimeout(_discSearchTimer);
+  if (!q.trim()) { _discSearchMode = false; discLoadBrowse(); return; }
+  _discSearchMode = true;
+  const grid = document.getElementById('discover-grid');
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  _discSearchTimer = setTimeout(async () => {
+    const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
+    const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+    _discPool = games;
+    const lmWrap = document.getElementById('disc-loadmore-wrap');
+    if (lmWrap) lmWrap.style.display = 'none';
+    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'ob')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun résultat</div>';
+  }, 350);
+}
+
+function discClearSearch() {
+  const searchEl = document.getElementById('disc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('disc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  _discSearchMode = false;
+  _discOffset = 0; _discPool = [];
+  discLoadBrowse();
+}
+
+// ──────────────────────────────────────
+// DISCOVER — library context
+// ──────────────────────────────────────
+let _ldiscGenre  = null;
+let _ldiscOffset = 0;
+let _ldiscPool   = [];
+let _ldiscSearchMode = false;
+let _ldiscSearchTimer;
+
+function openLdisc() {
+  const modal = document.getElementById('ldisc-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  _ldiscGenre = null; _ldiscOffset = 0; _ldiscPool = []; _ldiscSearchMode = false;
+  const searchEl = document.getElementById('ldisc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('ldisc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  document.querySelectorAll('#ldisc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  ldiscLoadBrowse();
+}
+
+function closeLdisc() {
+  const modal = document.getElementById('ldisc-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function ldiscByGenre(genreId, chipEl) {
+  _ldiscGenre = genreId; _ldiscOffset = 0; _ldiscPool = []; _ldiscSearchMode = false;
+  const searchEl = document.getElementById('ldisc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('ldisc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  document.querySelectorAll('#ldisc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  ldiscLoadBrowse();
+}
+
+async function ldiscLoadBrowse(append = false) {
+  const grid = document.getElementById('ldisc-grid');
+  const lmWrap = document.getElementById('ldisc-loadmore-wrap');
+  if (!grid) return;
+  if (!append) {
+    grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+    if (lmWrap) lmWrap.style.display = 'none';
+  }
+  let data;
+  if (_ldiscGenre) {
+    data = await igdbFetch('genre', { genreId: _ldiscGenre, limit: 15, offset: _ldiscOffset });
+  } else {
+    data = await igdbFetch('trending', { limit: 15 + _ldiscOffset });
+    if (data && _ldiscOffset > 0) data = data.slice(_ldiscOffset);
+  }
+  const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+  if (!append) { _ldiscPool = games; _ldiscOffset = games.length; }
+  else { _ldiscPool = [..._ldiscPool, ...games]; _ldiscOffset = _ldiscPool.length; }
+  if (!append) {
+    grid.innerHTML = _ldiscPool.length ? _ldiscPool.map(g => discCardHtml(g,'lib')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun jeu trouvé</div>';
+  } else {
+    const frag = document.createDocumentFragment();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = games.map(g => discCardHtml(g,'lib')).join('');
+    while (tmp.firstChild) frag.appendChild(tmp.firstChild);
+    grid.appendChild(frag);
+  }
+  if (lmWrap) lmWrap.style.display = games.length >= 14 ? 'block' : 'none';
+}
+
+function ldiscRefresh() { _ldiscOffset = 0; _ldiscPool = []; ldiscLoadBrowse(); }
+
+function ldiscLoadMore() { ldiscLoadBrowse(true); }
+
+function ldiscSearch(q) {
+  const clearBtn = document.getElementById('ldisc-search-clear');
+  if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+  clearTimeout(_ldiscSearchTimer);
+  if (!q.trim()) { _ldiscSearchMode = false; ldiscLoadBrowse(); return; }
+  _ldiscSearchMode = true;
+  const grid = document.getElementById('ldisc-grid');
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
+  _ldiscSearchTimer = setTimeout(async () => {
+    const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
+    const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+    _ldiscPool = games;
+    const lmWrap = document.getElementById('ldisc-loadmore-wrap');
+    if (lmWrap) lmWrap.style.display = 'none';
+    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'lib')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun résultat</div>';
+  }, 350);
+}
+
+function ldiscClearSearch() {
+  const searchEl = document.getElementById('ldisc-search');
+  if (searchEl) searchEl.value = '';
+  const clearBtn = document.getElementById('ldisc-search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  _ldiscSearchMode = false;
+  _ldiscOffset = 0; _ldiscPool = [];
+  ldiscLoadBrowse();
 }
 
 function mockSearch(query) {
@@ -1898,7 +2207,7 @@ function stopProfileParticles() {
 // ══════════════════════════════════════
 // ONBOARDING STATE
 // ══════════════════════════════════════
-let selectedImport = 'steam';
+let selectedImport = 'manual';
 let addedGames = [];
 let obPickerGames = {};
 let trendingAdded = new Set();
@@ -1927,7 +2236,7 @@ function setObTab(status, btn) {
   // Clear search & results to avoid confusion
   if (input && input.value) { input.value = ''; searchGames(''); }
 }
-const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':62,'3d':80,'4':100 };
+const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':75,'3d':80,'4':100 };
 
 function obStep(target) {
   const ids = ['0','1','2','3','3b','3c','3d','4'];
@@ -1946,7 +2255,8 @@ function obStep(target) {
   setTimeout(()=>nxtEl.classList.remove('entering-fwd','entering-back'),350);
   document.getElementById('progress-fill').style.width = (OB_PROGRESS[String(target)]??0)+'%';
   nxtEl.querySelector('.step-scroll')?.scrollTo(0,0);
-  if (target===4)    { buildSuccessPreview(); loadObRecos(); }
+  if (target===4)    { buildSuccessPreview(); }
+  if (target==='3c') { initDiscoverScreen(); }
   if (target==='3d') renderTrending();
 }
 
@@ -1966,7 +2276,7 @@ function validateStep2() {
 function validateStep3() {
   if (selectedImport==='steam')  { obStep('3b'); return; }
   if (selectedImport==='manual') { obStep('3c'); return; }
-  obStep('3d');
+  obStep(4); // skip — go directly to success
 }
 function validateSteam() {
   const id = document.getElementById('steamid-input').value.trim();
@@ -1994,7 +2304,7 @@ function selectImport(type) {
   selectedImport = type;
   document.querySelectorAll('#step-3 .import-opt').forEach(o=>o.classList.remove('sel'));
   document.getElementById('opt-'+type).classList.add('sel');
-  const labels = { steam:'Connecter Steam →', manual:'Rechercher des jeux →', skip:'Passer →' };
+  const labels = { steam:'Connecter Steam →', manual:'Construis ton profil →', skip:'Passer →' };
   document.getElementById('import-cta').textContent = labels[type];
 }
 
@@ -2072,8 +2382,9 @@ function toggleGame(g) {
   }
 }
 function updateAddedChips() {
-  const OB_STATUS_ICONS = { 'playing-solo': '🎮', 'playing-multi': '👥', 'backlog': '📋', 'finished': '✅', 'platine': '⭐', 'abandoned': '❌' };
-  document.getElementById('added-chips').innerHTML = addedGames.map(g => {
+  const OB_STATUS_ICONS = { 'playing-solo': '🎮', 'playing-multi': '👥', 'backlog': '📋', 'finished': '✅', 'platine': '⭐', 'abandoned': '❌', 'wish': '✦' };
+  const chipsEl = document.getElementById('added-chips');
+  if (chipsEl) chipsEl.innerHTML = addedGames.map(g => {
     const s = g.status || 'backlog';
     const c = OB_STATUS_COLORS[s] || OB_STATUS_COLORS['backlog'];
     const icon = OB_STATUS_ICONS[s] || '📋';
@@ -2081,8 +2392,12 @@ function updateAddedChips() {
     return `<div class="added-chip" style="background:${c.bg};border-color:${c.border};color:${c.color}">${icon} ${g.title}<button class="chip-remove" style="color:${c.color}" onclick="toggleGame(${safeG})">×</button></div>`;
   }).join('');
   const n = addedGames.length;
-  document.getElementById('added-count').textContent = n;
-  document.getElementById('manual-cta').style.opacity = n > 0 ? '1' : '0.5';
+  const addedCountEl = document.getElementById('added-count');
+  if (addedCountEl) addedCountEl.textContent = n;
+  const manualCtaEl = document.getElementById('manual-cta');
+  if (manualCtaEl) manualCtaEl.style.opacity = n > 0 ? '1' : '0.5';
+  const discCountEl = document.getElementById('discover-count');
+  if (discCountEl) discCountEl.textContent = n;
 }
 function showObStatusPicker(id) {
   const item = document.getElementById('ri-' + id);
@@ -2819,39 +3134,76 @@ function renderShelfGrid() {
 }
 
 let _recoPool = [];
-function renderHomeRecos(refresh = false) {
+async function renderHomeRecos(refresh = false) {
   const container = document.getElementById('home-recos');
   if (!container) return;
 
-  const wishGames   = GAMES.filter(g => (userGames[g.id]||g).status === 'wish');
-  const backlogGames= GAMES.filter(g => (userGames[g.id]||g).status === 'backlog');
-  const pool = wishGames.length > 0 ? wishGames : backlogGames;
+  if (refresh || _recoPool.length === 0) {
+    container.innerHTML = '<div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>';
+    try {
+      const data = await igdbFetch('trending', { limit: 20 });
+      if (data?.length) {
+        const mapped = data.map(mapIgdbGame);
+        _recoPool = mapped.filter(g => !GAMES.find(x => x.id === g.id)).sort(() => Math.random() - 0.5);
+      }
+    } catch(e) { /* silent */ }
+  }
 
-  if (pool.length === 0) {
-    container.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:4px 0">Ajoute des jeux à ta liste de souhaits pour les retrouver ici.</div>`;
+  if (!_recoPool.length) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:4px 0">Aucune recommandation disponible.</div>';
     return;
   }
 
-  // Shuffle pool on refresh or first render
-  if (refresh || _recoPool.length === 0) {
-    _recoPool = [...pool].sort(() => Math.random() - 0.5);
-  }
-  const recs = _recoPool.slice(0, 4);
-
+  const recs = _recoPool.slice(0, 6);
   container.innerHTML = recs.map(g => {
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const sub = g.genre || (wishGames.includes(g) ? '✦ Souhait' : 'Backlog');
-    return `<div class="now-card anim" onclick="openDetail('${g.id}')">
+    const inLib = !!GAMES.find(x => x.id === g.id);
+    const isWish = inLib && (userGames[g.id]?.status === 'wish');
+    const btnBg = inLib ? 'rgba(0,230,118,0.1)' : 'rgba(0,206,201,0.08)';
+    const btnBorder = inLib ? 'rgba(0,230,118,0.25)' : 'rgba(0,206,201,0.3)';
+    const btnColor = inLib ? 'var(--green)' : 'var(--a3)';
+    const btnLabel = inLib ? (isWish ? '✓ Souhait' : '✓ Ajouté') : '✦ Souhait';
+    return `<div class="now-card anim" style="cursor:default">
       <div class="now-cover" style="background:var(--s3)">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
       </div>
-      <div class="now-info">
+      <div class="now-info" style="flex:1;min-width:0">
         <div class="now-title">${g.title}</div>
-        <div class="now-sub" style="color:var(--a3)">${sub}</div>
+        <div class="now-sub">${g.genre}${g.year?' · '+g.year:''}</div>
+        <button id="reco-btn-${g.id}" onclick="recoWishToggle('${g.id}')" style="margin-top:6px;width:100%;background:${btnBg};border:0.5px solid ${btnBorder};border-radius:8px;padding:4px 8px;font-size:11px;font-weight:600;color:${btnColor};cursor:pointer">${btnLabel}</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function recoWishToggle(id) {
+  const g = _recoPool.find(x => x.id === id);
+  if (!g) return;
+  const existing = GAMES.find(x => x.id === id);
+  if (existing) {
+    // remove
+    const idx = GAMES.indexOf(existing);
+    GAMES.splice(idx, 1);
+    delete userGames[id];
+    saveToStorage();
+    renderGameGrid(); renderFeed();
+    renderHomeRecos();
+    return;
+  }
+  GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+  userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+  saveToStorage();
+  renderGameGrid(); renderFeed();
+  // update button in-place
+  const btn = document.getElementById('reco-btn-'+id);
+  if (btn) {
+    btn.textContent = '✓ Souhait';
+    btn.style.background = 'rgba(0,230,118,0.1)';
+    btn.style.borderColor = 'rgba(0,230,118,0.25)';
+    btn.style.color = 'var(--green)';
+  }
+  showToast(`${g.title} ajouté aux souhaits`);
 }
 function renderGameGrid(games=GAMES){
   const grid=document.getElementById('game-grid'); grid.innerHTML='';
@@ -3616,13 +3968,7 @@ let addModalStatus = 'backlog';
 let addModalTimer;
 
 function openAddModal() {
-  const modal = document.getElementById('add-modal');
-  modal.classList.add('open');
-  // Reset
-  document.getElementById('add-modal-input').value = '';
-  document.getElementById('add-modal-results').innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted);font-size:13px">Commence à taper pour chercher…</div>';
-  setAddStatus('backlog', document.getElementById('add-status-backlog'));
-  setTimeout(() => document.getElementById('add-modal-input').focus(), 350);
+  openLdisc();
 }
 
 function closeAddModal() {
