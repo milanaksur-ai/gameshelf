@@ -1142,15 +1142,22 @@ html, body {
     </div></div>
   </div>
 
-  <!-- STEP 4 : SUCCESS -->
+  <!-- STEP 4 : SUCCESS + RECOMMENDATIONS -->
   <div class="step" id="step-4">
-    <div class="success-wrap">
+    <div class="step-scroll"><div style="padding:calc(var(--safe-t) + 40px) 20px calc(var(--safe-b) + 24px);display:flex;flex-direction:column;align-items:center;min-height:100%">
       <div class="success-ring">🎮</div>
-      <div class="success-title">Tu es prêt !</div>
-      <p class="success-sub">Ta bibliothèque est créée.<br>Note tes jeux et invite tes amis.</p>
-      <div class="games-preview" id="success-preview"></div>
-      <button class="btn-primary" style="max-width:320px" onclick="launchApp()">Entrer dans GameShelf →</button>
-    </div>
+      <div class="success-title" style="text-align:center">Tu es prêt !</div>
+      <p class="success-sub" style="text-align:center">Ta bibliothèque est créée.</p>
+      <div class="games-preview" id="success-preview" style="margin-bottom:8px"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:340px;margin:12px 0 10px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:0.1em">Jeux qui m'intéressent</div>
+        <button onclick="loadObRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px">↻</button>
+      </div>
+      <div id="ob-recos-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;width:100%;max-width:340px;margin-bottom:20px"></div>
+
+      <button class="btn-primary" style="max-width:320px;width:100%" onclick="launchApp()">Entrer dans GameShelf →</button>
+    </div></div>
   </div>
 
 </div><!-- /ob-shell -->
@@ -1202,7 +1209,7 @@ html, body {
 
       <!-- JEUX QUI M'INTÉRESSENT -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px">
-        <div class="sec-label" style="padding:0">Jeux qui m'intéressent</div>
+        <div class="sec-label" style="padding:0">Recommandations</div>
         <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px;transition:color 0.15s" title="Rafraîchir">↻</button>
       </div>
       <div id="home-recos" style="padding:0 16px 24px;display:flex;flex-direction:column;gap:8px"></div>
@@ -1408,6 +1415,12 @@ html, body {
           </div>
         </div>
       </div>
+
+      <!-- RESET -->
+      <div style="padding:24px 16px 44px;text-align:center">
+        <button onclick="disconnectApp()" style="background:none;border:0.5px solid rgba(255,82,82,0.3);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7">Réinitialiser GameShelf</button>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">Efface toutes tes données et recommence l'onboarding</div>
+      </div>
     </div>
   </div>
 
@@ -1452,7 +1465,6 @@ html, body {
             <button class="status-btn" data-s="platine"       onclick="setStatus('platine')">★ Platine</button>
             <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">Backlog</button>
             <button class="status-btn" data-s="abandoned"     onclick="setStatus('abandoned')">Abandonné</button>
-            <button class="status-btn" data-s="wish"          onclick="setStatus('wish')" style="color:var(--a3)">✦ Souhait</button>
           </div>
         </div>
         <div class="notes-section"><div class="rating-label">Mes notes</div><textarea class="notes-input" id="notes-input" rows="3" placeholder="Tes impressions sur ce jeu…"></textarea></div>
@@ -1615,6 +1627,7 @@ html, body {
         <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
         <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
         <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
+        <div class="chip"       id="add-status-wish"      onclick="setAddStatus('wish',this)" style="color:var(--a3)">✦ Souhait</div>
       </div>
     </div>
     <div id="add-modal-results" style="padding:0 16px 8px">
@@ -1732,6 +1745,59 @@ async function igdbPopular() {
   const data = await igdbFetch('popular', { limit: 12 });
   if (!data?.length) return null;
   return data.map(g => ({ ...mapIgdbGame(g), reason: `${g.aggregated_rating ? 'Score '+Math.round(g.aggregated_rating)+' · ' : ''}${g.genres?.[0]?.name||''}` }));
+}
+
+// ── Onboarding step-4 recommendations ──
+let _obRecosPool = [];
+async function loadObRecos(refresh = false) {
+  const grid = document.getElementById('ob-recos-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px">Chargement…</div>';
+  if (refresh || _obRecosPool.length === 0) {
+    try {
+      const games = await igdbPopular();
+      _obRecosPool = (games || []).sort(() => Math.random() - 0.5);
+    } catch(e) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:16px">Impossible de charger</div>';
+      return;
+    }
+  }
+  if (!_obRecosPool.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;padding:16px">Aucune recommandation disponible</div>';
+    return;
+  }
+  const recs = _obRecosPool.slice(0, 4);
+  grid.innerHTML = recs.map(g => {
+    const src = coverUrl(g);
+    const alreadyAdded = addedGames.some(a => a.id === g.id) || !!GAMES.find(x => x.id === g.id);
+    const wished = addedGames.some(a => a.id === g.id && a.status === 'wish');
+    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    return `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column">
+      <div style="width:100%;aspect-ratio:3/4;background:var(--s3);position:relative;overflow:hidden">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1" onerror="this.style.display='none'">` : ''}
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:rgba(255,255,255,0.15);font-family:'Space Grotesk',sans-serif">${initials}</div>
+      </div>
+      <div style="padding:8px 10px 10px;flex:1;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:12px;font-weight:700;line-height:1.3;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${g.title}</div>
+        <button onclick="obWishToggle('${g.id}')" id="ob-wish-${g.id}" style="width:100%;background:${wished||alreadyAdded?'rgba(0,206,201,0.18)':'rgba(0,206,201,0.06)'};border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:11px;color:var(--a3);cursor:pointer;font-weight:600;transition:background 0.15s">
+          ${alreadyAdded ? '✓ Ajouté' : wished ? '✓ Souhait' : '✦ Souhait'}
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function obWishToggle(id) {
+  const g = _obRecosPool.find(x => x.id === id);
+  if (!g) return;
+  const idx = addedGames.findIndex(a => a.id === id);
+  if (idx >= 0) {
+    addedGames.splice(idx, 1);
+  } else {
+    addedGames.push({...g, status:'wish'});
+  }
+  updateAddedChips();
+  loadObRecos();
 }
 
 function mockSearch(query) {
@@ -1880,7 +1946,7 @@ function obStep(target) {
   setTimeout(()=>nxtEl.classList.remove('entering-fwd','entering-back'),350);
   document.getElementById('progress-fill').style.width = (OB_PROGRESS[String(target)]??0)+'%';
   nxtEl.querySelector('.step-scroll')?.scrollTo(0,0);
-  if (target===4)    buildSuccessPreview();
+  if (target===4)    { buildSuccessPreview(); loadObRecos(); }
   if (target==='3d') renderTrending();
 }
 
@@ -2211,6 +2277,11 @@ function loadFromStorage() {
     if (ug) { Object.keys(userGames).forEach(k => delete userGames[k]); Object.assign(userGames, JSON.parse(ug)); }
     return true;
   } catch(e) { console.warn('GameShelf: storage load failed', e); return false; }
+}
+function disconnectApp() {
+  if (!confirm('Réinitialiser GameShelf ? Toutes tes données seront effacées.')) return;
+  ['gs_games','gs_userGames'].forEach(k => localStorage.removeItem(k));
+  location.reload();
 }
 
 // ══════════════════════════════════════
@@ -3382,14 +3453,18 @@ function fillBracketSide(idx, g) {
 
   const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   fallbackEl.textContent = initials;
+  fallbackEl.style.display = 'none'; // hide until we know image won't load
 
   const src = coverUrl(g);
   if (src) {
     const img = document.createElement('img');
     img.src = src; img.referrerPolicy = 'no-referrer';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top;display:block';
-    img.onerror = () => img.remove();
+    img.onload  = () => { fallbackEl.style.display = 'none'; };
+    img.onerror = () => { img.remove(); fallbackEl.style.display = 'flex'; };
     coverEl.insertBefore(img, coverEl.firstChild);
+  } else {
+    fallbackEl.style.display = 'flex';
   }
 
   // Metacritic pill
@@ -3627,7 +3702,7 @@ function addGameFromModal(g, btn) {
   if (item) item.classList.add('added');
   if (btn) btn.textContent = '✓';
 
-  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini'};
+  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
   showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
 }
 
