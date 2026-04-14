@@ -157,7 +157,8 @@ html, body {
 .search-wrap input:focus { border-color: var(--a); }
 .search-wrap input::placeholder { color: var(--muted); }
 
-.results-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; min-height: 200px; }
+.results-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; max-height: 52dvh; overflow-y: auto; scrollbar-width: none; }
+.results-list::-webkit-scrollbar { display: none; }
 .result-item { display: flex; align-items: center; gap: 12px; background: var(--s2); border: 0.5px solid var(--border); border-radius: 12px; padding: 10px 12px; cursor: pointer; transition: border-color 0.15s, background 0.15s; }
 .result-item:active { border-color: var(--a); background: var(--s3); }
 .result-item.added { border-color: var(--green); }
@@ -283,6 +284,9 @@ html, body {
 .game-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; }
 .game-cell   { background: var(--s2); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform 0.15s, opacity 0.15s; border: 0.5px solid var(--border); }
 .game-cell:active { transform: scale(0.97); opacity: 0.85; }
+.game-cell:hover .remove-game-btn { opacity: 1 !important; }
+/* On touch devices, show remove btn on long-press via active state */
+.game-cover:active .remove-game-btn { opacity: 1 !important; }
 .game-cover  { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; position: relative; overflow: hidden; }
 .game-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .game-info   { padding: 8px 10px 10px; }
@@ -294,6 +298,7 @@ html, body {
 .status-platine  { color: var(--amber); background: rgba(255,202,40,0.15); }
 .status-backlog  { color: var(--muted2); background: rgba(255,255,255,0.06); }
 .status-abandoned{ color: var(--red); background: rgba(255,82,82,0.12); }
+.status-wish     { color: var(--a3); background: rgba(0,206,201,0.12); }
 .score-mini { font-size: 11px; color: var(--amber); }
 
 /* detail */
@@ -477,36 +482,37 @@ html, body {
   cursor: pointer; overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.15s;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 20px 12px;
 }
 .b-side:active { transform: scale(0.985); }
 
-/* Full-bleed cover */
+/* Portrait cover card */
 .b-cover-full {
-  position: absolute; inset: 0;
-  background: #0a0a14;
+  width: 120px; height: 160px;
+  border-radius: 14px; overflow: hidden;
+  margin: 0 auto 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  background: var(--s3); position: relative;
+  flex-shrink: 0;
 }
 .b-cover-full img {
   width: 100%; height: 100%;
   object-fit: cover; object-position: center top;
   display: block;
 }
-/* Dark gradient over the cover */
+/* Subtle shimmer on cover */
 .b-cover-full::after {
   content: ''; position: absolute; inset: 0;
   background: linear-gradient(to top,
-    rgba(3,3,6,0.95) 0%,
+    rgba(3,3,6,0.5) 0%,
     rgba(3,3,6,0.35) 45%,
     rgba(3,3,6,0.12) 100%);
 }
-/* Coloured side tint */
-#b-side-0 .b-cover-full::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to right, rgba(108,92,231,0.22) 0%, transparent 65%);
-}
-#b-side-1 .b-cover-full::before {
-  content: ''; position: absolute; inset: 0; z-index: 1;
-  background: linear-gradient(to left, rgba(253,121,168,0.18) 0%, transparent 65%);
-}
+/* Coloured side tint on .b-side backgrounds */
+#b-side-0 { background: radial-gradient(ellipse at left center, rgba(108,92,231,0.12) 0%, transparent 65%); }
+#b-side-1 { background: radial-gradient(ellipse at right center, rgba(253,121,168,0.1) 0%, transparent 65%); }
 .b-cover-fallback-full {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
@@ -515,20 +521,20 @@ html, body {
   background: linear-gradient(135deg, #0a0a18, #12121e);
 }
 
-/* Title / genre — bottom overlay */
+/* Title / genre — below portrait card */
 .b-game-info {
-  position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
-  padding: 48px 14px calc(var(--safe-b) + 60px);
+  z-index: 3; text-align: center;
+  padding: 0 8px; max-width: 140px;
 }
-#b-side-1 .b-game-info { text-align: right; }
+#b-side-1 .b-game-info { text-align: center; }
 .b-game-title {
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 14px; font-weight: 700; color: #fff; line-height: 1.25;
-  margin-bottom: 3px; text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+  font-size: 13px; font-weight: 700; color: #fff; line-height: 1.25;
+  margin-bottom: 3px;
   display: -webkit-box; -webkit-line-clamp: 2;
   -webkit-box-orient: vertical; overflow: hidden;
 }
-.b-game-genre { font-size: 10px; color: rgba(255,255,255,0.45); text-shadow: 0 1px 4px rgba(0,0,0,0.9); }
+.b-game-genre { font-size: 10px; color: rgba(255,255,255,0.45); }
 .b-meta-pill {
   display: inline-block; background: rgba(0,0,0,0.55);
   border-radius: 4px; padding: 1px 6px;
@@ -612,12 +618,9 @@ html, body {
 .b-side.b-enter-left  { animation: bEnterLeft  0.42s cubic-bezier(0.22,1,0.36,1) both; }
 .b-side.b-enter-right { animation: bEnterRight 0.42s cubic-bezier(0.22,1,0.36,1) both; }
 .b-side.b-winner      { animation: bWinFlash 0.45s ease-out, bWinPush 0.45s ease-out; }
-.b-side.b-winner .b-cover-full::after {
-  background: linear-gradient(to top, rgba(0,200,90,0.6) 0%, rgba(0,0,0,0.05) 55%) !important;
-  transition: background 0.3s;
-}
+.b-side.b-winner .b-cover-full { box-shadow: 0 0 28px rgba(0,200,90,0.55), 0 8px 32px rgba(0,0,0,0.7); }
 .b-side.b-loser { transition: transform 0.45s, opacity 0.45s; transform: scale(0.96); opacity: 0.6; }
-.b-side.b-loser .b-cover-full { filter: grayscale(1) brightness(0.2); transition: filter 0.45s; }
+.b-side.b-loser .b-cover-full { filter: grayscale(1) brightness(0.3); transition: filter 0.45s; }
 .b-side.b-loser .b-game-info  { opacity: 0; transition: opacity 0.3s; }
 .vs-badge-outer { animation: vsPulse 2.2s ease-in-out infinite; }
 .b-side-ripple {
@@ -823,11 +826,12 @@ html, body {
   z-index: 301;
   display: flex;
   flex-direction: column;
-  transform: translateX(100%);
-  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+  transform: translateX(110%);
+  filter: blur(8px);
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), filter 0.35s ease;
   padding-bottom: var(--safe-b);
 }
-#shelf-drawer.open { transform: translateX(0); }
+#shelf-drawer.open { transform: translateX(0); filter: blur(0); }
 .shelf-header {
   display: flex;
   align-items: center;
@@ -868,9 +872,9 @@ html, body {
 }
 .shelf-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  padding: 14px;
   overflow-y: auto;
   flex: 1;
 }
@@ -878,58 +882,73 @@ html, body {
   cursor: pointer;
   position: relative;
   opacity: 0;
-  animation: shelfFadeIn 0.35s ease forwards;
+  animation: shelfFadeIn 0.4s ease forwards;
 }
 .shelf-cover {
-  aspect-ratio: 2/3;
-  border-radius: 9px;
+  aspect-ratio: 3/4;
+  border-radius: 12px;
   overflow: hidden;
   background: var(--s3);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.45);
-  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  transition: transform 0.18s, box-shadow 0.18s;
   position: relative;
 }
 .shelf-item:active .shelf-cover {
-  transform: scale(0.94);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+.shelf-cover-blur {
+  position: absolute;
+  inset: -12px;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) brightness(0.4) saturate(1.4);
+  transform: scale(1.1);
 }
 .shelf-cover img {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: transparent;
 }
 .shelf-cover-initials {
-  font-size: 11px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--muted2);
   text-align: center;
   padding: 4px;
+  position: relative;
+  z-index: 1;
 }
 .shelf-status-dot {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 9px;
-  height: 9px;
+  top: 7px;
+  right: 7px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   border: 2px solid var(--s1);
+  z-index: 2;
 }
 .shelf-name {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--muted2);
   text-align: center;
-  margin-top: 5px;
-  line-height: 1.3;
+  margin-top: 6px;
+  line-height: 1.35;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
 @keyframes shelfFadeIn {
-  from { opacity: 0; transform: translateY(10px) scale(0.94); }
+  from { opacity: 0; transform: translateY(14px) scale(0.93); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style>
@@ -1153,7 +1172,7 @@ html, body {
 
       <!-- BOUTON AJOUTER EN HAUT -->
       <div style="padding:10px 16px 4px;display:flex;gap:8px">
-        <button onclick="appGoTo('library')" style="flex:1;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <button onclick="openAddModal()" style="flex:1;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;padding:12px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--muted2);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Ajouter un jeu
         </button>
@@ -1181,8 +1200,11 @@ html, body {
       </div>
       <div id="playing-multi-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
 
-      <!-- RECOMMANDATIONS -->
-      <div class="sec-label" style="padding-top:20px">Recommandé pour toi</div>
+      <!-- JEUX QUI M'INTÉRESSENT -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px">
+        <div class="sec-label" style="padding:0">Jeux qui m'intéressent</div>
+        <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px;transition:color 0.15s" title="Rafraîchir">↻</button>
+      </div>
       <div id="home-recos" style="padding:0 16px 24px;display:flex;flex-direction:column;gap:8px"></div>
 
     </div>
@@ -1212,6 +1234,7 @@ html, body {
         <div class="chip" onclick="setFilter('platine',this)">★ Platine</div>
         <div class="chip" onclick="setFilter('backlog',this)">Backlog</div>
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
+        <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
       </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
@@ -1278,20 +1301,15 @@ html, body {
   </div>
 
   <!-- PROFILE -->
-  <div class="screen" id="screen-profile">
-    <div class="scroll-area">
+  <div class="screen" id="screen-profile" style="position:relative;overflow:hidden">
+    <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.7"></canvas>
+    <div class="scroll-area" style="position:relative;z-index:1">
       <div class="profile-header anim">
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
         <div class="profile-name" id="app-profile-name">Gamer</div>
         <div class="profile-handle" id="app-profile-handle">@gamer</div>
-        <div class="steam-badge" onclick="showToast('Steam Guard actif dans 7 jours ⏳')">
-          <div class="dot"></div>
-          <span>Connecter Steam</span>
-        </div>
-        <div class="steam-badge" id="xbox-badge" onclick="connectXbox()" style="margin-left:6px;border-color:rgba(16,124,16,0.4)">
-          <div class="dot" id="xbox-dot"></div>
-          <span id="xbox-badge-text">Connecter Xbox</span>
-        </div>
+        <!-- Steam/Xbox badges hidden for now -->
+        <span id="xbox-badge" style="display:none"><span id="xbox-dot"></span><span id="xbox-badge-text"></span></span>
       </div>
 
       <!-- STATS: Completion Ring -->
@@ -1342,6 +1360,10 @@ html, body {
           <div class="pill-val" style="color:var(--red)" id="stat-abandoned">0</div>
           <div class="pill-label">Abandonné</div>
         </div>
+        <div class="stat-pill" onclick="openShelf('wish')" style="border-color:rgba(0,206,201,0.3)">
+          <div class="pill-val" style="color:var(--a3)" id="stat-wish">0</div>
+          <div class="pill-label">Souhaits</div>
+        </div>
       </div>
 
       <!-- GENRES -->
@@ -1364,8 +1386,8 @@ html, body {
       <div class="sec-label">Fil d'activité</div>
       <div id="profile-activity" style="padding:0 16px;display:flex;flex-direction:column;gap:0;margin-bottom:16px"></div>
 
-      <!-- CONNECTER STEAM -->
-      <div class="connect-section anim" style="animation-delay:0.2s">
+      <!-- CONNECTER STEAM (hidden) -->
+      <div class="connect-section anim" style="animation-delay:0.2s;display:none">
         <div class="connect-card">
           <div class="connect-title">Connecter Steam</div>
           <div class="connect-sub">Active Steam Guard sur l'app mobile Steam, puis reviens dans 7 jours pour importer ta vraie bibliothèque automatiquement.</div>
@@ -1373,8 +1395,8 @@ html, body {
         </div>
       </div>
 
-      <!-- CONNECTER XBOX -->
-      <div class="connect-section" id="xbox-connect-section">
+      <!-- CONNECTER XBOX (hidden) -->
+      <div class="connect-section" id="xbox-connect-section" style="display:none">
         <div class="connect-card" style="background:linear-gradient(135deg,rgba(16,124,16,0.12),rgba(0,0,0,0));border-color:rgba(16,124,16,0.25)">
           <div class="connect-title" style="display:flex;align-items:center;gap:8px">
             <span style="color:#107c10">🟩</span> Connecter Xbox
@@ -1430,6 +1452,7 @@ html, body {
             <button class="status-btn" data-s="platine"       onclick="setStatus('platine')">★ Platine</button>
             <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">Backlog</button>
             <button class="status-btn" data-s="abandoned"     onclick="setStatus('abandoned')">Abandonné</button>
+            <button class="status-btn" data-s="wish"          onclick="setStatus('wish')" style="color:var(--a3)">✦ Souhait</button>
           </div>
         </div>
         <div class="notes-section"><div class="rating-label">Mes notes</div><textarea class="notes-input" id="notes-input" rows="3" placeholder="Tes impressions sur ce jeu…"></textarea></div>
@@ -1489,6 +1512,19 @@ html, body {
       </div>
     </div>
     <div class="shelf-grid" id="shelf-grid"></div>
+  </div>
+
+  <!-- CONFIRM REMOVE MODAL -->
+  <div id="confirm-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:600;align-items:center;justify-content:center;padding:24px" onclick="if(event.target===this)closeConfirmModal()">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:22px;padding:28px 24px;max-width:320px;width:100%;text-align:center;animation:popIn 0.25s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-size:36px;margin-bottom:12px">🗑️</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">Retirer ce jeu ?</div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:22px" id="confirm-game-label"></div>
+      <div style="display:flex;gap:10px">
+        <button onclick="closeConfirmModal()" style="flex:1;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:11px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;">Annuler</button>
+        <button onclick="confirmRemoveGame()" style="flex:1;background:var(--red);border:none;border-radius:12px;padding:11px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">Supprimer</button>
+      </div>
+    </div>
   </div>
 
 </div><!-- /app-shell -->
@@ -1620,6 +1656,7 @@ function mapIgdbGame(g) {
     meta: Math.round(g.aggregated_rating || g.rating || 0) || 0,
     platforms,
     gameModes: g.game_modes || [],
+    hasMulti:  !!(g.multiplayer_modes?.length),
   };
 }
 
@@ -1654,20 +1691,35 @@ const DLC_RE = /\b(dlc|bundle|pack|season pass|expansion pass|artbook|soundtrack
 // game_modes: 1=Solo 2=Multi 3=Coop 4=Split 5=MMO 6=BattleRoyale
 function filterByTab(games) {
   if (obCurrentStatus === 'playing-solo') {
-    // Hide pure-multi: has modes but none are solo(1) or coop(3)
-    return games.filter(g => !g.gameModes.length || g.gameModes.some(m => m === 1 || m === 3));
+    // Exclude games confirmed multiplayer-only (has multiplayer_modes but no solo game_mode)
+    return games.filter(g => {
+      if (g.hasMulti && !g.gameModes.some(m => m === 1 || m === 3)) return false;
+      if (!g.hasMulti && g.gameModes.length && !g.gameModes.some(m => m === 1 || m === 3)) return false;
+      return true;
+    });
   }
   if (obCurrentStatus === 'playing-multi') {
-    // Hide pure-solo: has modes and all modes are solo(1)
-    return games.filter(g => !g.gameModes.length || g.gameModes.some(m => m === 2 || m === 3 || m === 4 || m === 5 || m === 6));
+    // Keep confirmed multi OR games with multi modes OR unknowns (no data at all)
+    return games.filter(g =>
+      g.hasMulti ||
+      g.gameModes.some(m => m === 2 || m === 3 || m === 4 || m === 5 || m === 6) ||
+      (!g.hasMulti && !g.gameModes.length)
+    );
   }
   return games;
 }
-async function igdbSearch(query, limit = 12) {
-  const data = await igdbFetch('search', { query, limit });
+async function igdbSearch(query, limit = 20) {
+  const mode = obCurrentStatus === 'playing-multi' ? 'multi'
+             : obCurrentStatus === 'playing-solo'  ? 'solo'
+             : null;
+  let data = await igdbFetch('search', { query, limit, mode });
+  // Safety: if backend mode filter returned too few results, retry without it
+  if (mode && (!data || data.length < 3)) {
+    data = await igdbFetch('search', { query, limit });
+  }
   if (!data?.length) return mockSearch(query);
   const mapped = data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
-  return filterByTab(mapped);
+  return mode ? filterByTab(mapped) : mapped;
 }
 
 async function igdbTrending() {
@@ -1721,6 +1773,61 @@ function drawParticles() {
 }
 initParticles(); drawParticles();
 window.addEventListener('resize', initParticles);
+
+// ══════════════════════════════════════
+// PROFILE PARTICLES
+// ══════════════════════════════════════
+const pCanvas = document.getElementById('profile-particles');
+const pCtx = pCanvas ? pCanvas.getContext('2d') : null;
+let profileParts = [];
+let profilePartRAF = null;
+let profilePartActive = false;
+
+function initProfileParticles() {
+  if (!pCanvas || !pCtx) return;
+  pCanvas.width = pCanvas.offsetWidth || window.innerWidth;
+  pCanvas.height = pCanvas.offsetHeight || window.innerHeight;
+  profileParts = [];
+  for (let i = 0; i < 18; i++) {
+    profileParts.push({
+      x: Math.random() * pCanvas.width,
+      y: Math.random() * pCanvas.height,
+      r: Math.random() * 1.8 + 0.4,
+      vx: (Math.random() - 0.5) * 0.18,
+      vy: -(Math.random() * 0.3 + 0.1),
+      o: Math.random() * 0.25 + 0.06,
+      c: Math.random() > 0.45 ? '#00cec9' : Math.random() > 0.5 ? '#6c5ce7' : '#a29bfe'
+    });
+  }
+}
+
+function drawProfileParticles() {
+  if (!profilePartActive || !pCtx) return;
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  profileParts.forEach(p => {
+    pCtx.beginPath(); pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    pCtx.fillStyle = p.c + Math.round(p.o * 255).toString(16).padStart(2, '0');
+    pCtx.fill();
+    p.x += p.vx; p.y += p.vy;
+    if (p.y < -2) p.y = pCanvas.height + 2;
+    if (p.x < 0) p.x = pCanvas.width; if (p.x > pCanvas.width) p.x = 0;
+  });
+  profilePartRAF = requestAnimationFrame(drawProfileParticles);
+}
+
+function startProfileParticles() {
+  if (!pCanvas) return;
+  profilePartActive = true;
+  if (profileParts.length === 0) initProfileParticles();
+  else { pCanvas.width = pCanvas.offsetWidth || window.innerWidth; pCanvas.height = pCanvas.offsetHeight || window.innerHeight; }
+  if (!profilePartRAF) drawProfileParticles();
+}
+
+function stopProfileParticles() {
+  profilePartActive = false;
+  if (profilePartRAF) { cancelAnimationFrame(profilePartRAF); profilePartRAF = null; }
+  if (pCtx) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+}
 
 // ══════════════════════════════════════
 // ONBOARDING STATE
@@ -2018,6 +2125,7 @@ function launchApp() {
 
   renderGameGrid();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
+  saveToStorage();
 
   // Switch view
   document.getElementById('view-onboarding').style.display = 'none';
@@ -2028,7 +2136,7 @@ function launchApp() {
 // ══════════════════════════════════════
 // APP DATA
 // ══════════════════════════════════════
-// status: 'playing-solo' | 'playing-multi' | 'finished' | 'backlog' | 'abandoned'
+// status: 'playing-solo' | 'playing-multi' | 'finished' | 'backlog' | 'abandoned' | 'wish'
 const GAMES = [
   // En cours
   {id:'elden-ring',title:'Elden Ring',steamId:1245620,meta:96,status:'playing-solo',score:9,hours:248,year:2022,genre:'Action RPG',notes:''},
@@ -2087,6 +2195,24 @@ const RECOS = [
 let userGames = {};
 GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
+// ── localStorage persistence ──────────────────────────────
+function saveToStorage() {
+  try {
+    localStorage.setItem('gs_games', JSON.stringify(GAMES));
+    localStorage.setItem('gs_userGames', JSON.stringify(userGames));
+  } catch(e) { console.warn('GameShelf: storage save failed', e); }
+}
+function loadFromStorage() {
+  try {
+    const g  = localStorage.getItem('gs_games');
+    const ug = localStorage.getItem('gs_userGames');
+    if (!g && !ug) return false;
+    if (g)  { const p = JSON.parse(g);  GAMES.length = 0; GAMES.push(...p); }
+    if (ug) { Object.keys(userGames).forEach(k => delete userGames[k]); Object.assign(userGames, JSON.parse(ug)); }
+    return true;
+  } catch(e) { console.warn('GameShelf: storage load failed', e); return false; }
+}
+
 // ══════════════════════════════════════
 // APP NAVIGATION
 // ══════════════════════════════════════
@@ -2118,7 +2244,8 @@ function appGoTo(screen) {
   appCurrentScreen = screen;
 
   // Side effects per screen
-  if (screen === 'profile') renderProfileStats();
+  if (screen === 'profile') { renderProfileStats(); startProfileParticles(); }
+  else stopProfileParticles();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
 }
 
@@ -2271,7 +2398,7 @@ function setStatus(s) {
   renderStars(ug.score, s);
   updateScoreDisplay(ug.score, s);
   renderFeed();
-  // Flag for future notification system
+  saveToStorage();
   if ((s === 'finished' || s === 'platine') && prev !== 'finished' && prev !== 'platine') {
     ug._justFinished = true;
   }
@@ -2282,8 +2409,8 @@ function saveGame() {
   userGames[currentGame.id].notes = document.getElementById('notes-input').value;
   renderGameGrid();
   renderFeed();
+  saveToStorage();
   showToast('✓ Sauvegardé');
-  // Retour à l'accueil
   setTimeout(() => appGoTo('feed'), 600);
 }
 
@@ -2302,6 +2429,34 @@ function filterGames(){
   });
   renderGameGrid(filtered);
   document.getElementById('lib-count').textContent=filtered.length+' jeux';
+}
+
+let _pendingRemoveId = null;
+function removeGame(id) {
+  const g = GAMES.find(x => x.id === id);
+  if (!g) return;
+  _pendingRemoveId = id;
+  document.getElementById('confirm-game-label').textContent = g.title;
+  const modal = document.getElementById('confirm-modal');
+  modal.style.display = 'flex';
+}
+function confirmRemoveGame() {
+  const id = _pendingRemoveId;
+  if (!id) return;
+  closeConfirmModal();
+  const idx = GAMES.findIndex(g => g.id === id);
+  if (idx < 0) return;
+  const title = GAMES[idx].title;
+  GAMES.splice(idx, 1);
+  delete userGames[id];
+  renderGameGrid(); renderFeed(); renderProfileStats();
+  document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
+  saveToStorage();
+  showToast(`${title} retiré`);
+}
+function closeConfirmModal() {
+  document.getElementById('confirm-modal').style.display = 'none';
+  _pendingRemoveId = null;
 }
 
 // Media store: gameId → array of {type, url, name}
@@ -2378,6 +2533,8 @@ function renderProfileStats() {
   document.getElementById('stat-platine').textContent  = platine;
   document.getElementById('stat-backlog').textContent  = backlog;
   document.getElementById('stat-abandoned').textContent= abandoned;
+  const wish = all.filter(g => g.status === 'wish').length;
+  document.getElementById('stat-wish').textContent = wish;
 
   // Animate SVG ring
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
@@ -2500,6 +2657,7 @@ const STATUS_DOT_COLORS = {
   'platine':       '#ffca28',
   'backlog':       '#64647a',
   'abandoned':     '#ff5252',
+  'wish':          '#00cec9',
 };
 
 function openShelf(type, extra) {
@@ -2514,6 +2672,7 @@ function openShelf(type, extra) {
     finished: 'Jeux finis',
     platine:  '100% / Platine',
     backlog:  'Backlog',
+    wish:     'Souhaits',
     abandoned:'Abandonné',
   };
 
@@ -2523,6 +2682,7 @@ function openShelf(type, extra) {
   else if (type === 'platine')   shelfGames = all.filter(g => g.status === 'platine');
   else if (type === 'backlog')   shelfGames = all.filter(g => g.status === 'backlog');
   else if (type === 'abandoned') shelfGames = all.filter(g => g.status === 'abandoned');
+  else if (type === 'wish')      shelfGames = all.filter(g => g.status === 'wish');
   else if (type === 'genre')     shelfGames = all.filter(g => g.genre === extra);
 
   const label = type === 'genre' ? extra : (SHELF_TITLES[type] || type);
@@ -2572,12 +2732,13 @@ function renderShelfGrid() {
     const src  = coverUrl(g);
     const ug   = userGames[g.id] || g;
     const dot  = STATUS_DOT_COLORS[ug.status] || '';
-    const delay = Math.min(i * 35, 420);
+    const delay = Math.min(i * 45, 500);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
     return `<div class="shelf-item" onclick="openDetail('${g.id}');closeShelf()" style="animation-delay:${delay}ms">
       <div class="shelf-cover">
+        ${src ? `<div class="shelf-cover-blur" style="background-image:url('${src}')"></div>` : ''}
         ${src
-          ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">`
+          ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy">`
           : `<div class="shelf-cover-initials">${initials}</div>`}
         ${dot ? `<div class="shelf-status-dot" style="background:${dot}"></div>` : ''}
       </div>
@@ -2586,54 +2747,37 @@ function renderShelfGrid() {
   }).join('');
 }
 
-function renderHomeRecos() {
+let _recoPool = [];
+function renderHomeRecos(refresh = false) {
   const container = document.getElementById('home-recos');
   if (!container) return;
 
-  // Build genre preference from finished games (weighted)
-  const genreScore = {};
-  GAMES.forEach(g => {
-    const ug = userGames[g.id]||g;
-    if (!g.genre) return;
-    if (ug.status === 'finished') genreScore[g.genre] = (genreScore[g.genre]||0) + (ug.score||5);
-    else if (isPlaying(ug.status)) genreScore[g.genre] = (genreScore[g.genre]||0) + 2;
-  });
-  const topGenres = Object.entries(genreScore).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]);
+  const wishGames   = GAMES.filter(g => (userGames[g.id]||g).status === 'wish');
+  const backlogGames= GAMES.filter(g => (userGames[g.id]||g).status === 'backlog');
+  const pool = wishGames.length > 0 ? wishGames : backlogGames;
 
-  // Find backlog games matching top genres, not already playing
-  const myIds = new Set(GAMES.map(g=>g.id));
-  const recs = GAMES
-    .filter(g => {
-      const ug = userGames[g.id]||g;
-      return ug.status === 'backlog' && topGenres.includes(g.genre);
-    })
-    .sort((a,b) => (b.meta||0) - (a.meta||0))
-    .slice(0, 4);
-
-  // If not enough, fill with high-rated backlog
-  if (recs.length < 3) {
-    GAMES.filter(g => (userGames[g.id]||g).status === 'backlog' && !recs.includes(g))
-      .sort((a,b)=>(b.meta||0)-(a.meta||0))
-      .slice(0, 4 - recs.length)
-      .forEach(g => recs.push(g));
-  }
-
-  if (recs.length === 0) {
-    container.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:4px 0">Ajoute des jeux à ton backlog pour recevoir des recommandations.</div>`;
+  if (pool.length === 0) {
+    container.innerHTML = `<div style="font-size:13px;color:var(--muted);padding:4px 0">Ajoute des jeux à ta liste de souhaits pour les retrouver ici.</div>`;
     return;
   }
+
+  // Shuffle pool on refresh or first render
+  if (refresh || _recoPool.length === 0) {
+    _recoPool = [...pool].sort(() => Math.random() - 0.5);
+  }
+  const recs = _recoPool.slice(0, 4);
 
   container.innerHTML = recs.map(g => {
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const reason = topGenres.includes(g.genre) ? `Basé sur tes ${g.genre}` : `Très bien noté`;
+    const sub = g.genre || (wishGames.includes(g) ? '✦ Souhait' : 'Backlog');
     return `<div class="now-card anim" onclick="openDetail('${g.id}')">
       <div class="now-cover" style="background:var(--s3)">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
       </div>
       <div class="now-info">
         <div class="now-title">${g.title}</div>
-        <div class="now-sub" style="color:var(--a)">${reason}</div>
+        <div class="now-sub" style="color:var(--a3)">${sub}</div>
       </div>
     </div>`;
   }).join('');
@@ -2642,21 +2786,51 @@ function renderGameGrid(games=GAMES){
   const grid=document.getElementById('game-grid'); grid.innerHTML='';
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
-    const statusMap = {'playing-solo':'Solo','playing-multi':'Multi','finished':'Fini','platine':'★ Platine','backlog':'Backlog','abandoned':'Abandonné'};
-    const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned'};
+    const statusMap = {'playing-solo':'Solo','playing-multi':'Multi','finished':'Fini','platine':'★ Platine','backlog':'Backlog','abandoned':'Abandonné','wish':'✦ Souhait'};
+    const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish'};
     const label = statusMap[ug.status] || 'Backlog';
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const cell=document.createElement('div'); cell.className='game-cell anim'; cell.style.animationDelay=(i*0.04)+'s'; cell.onclick=()=>openDetail(g.id);
-    cell.innerHTML=`<div class="game-cover" style="background:var(--s3)">
+    cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
         : `<span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</span>`}
+      <button onclick="event.stopPropagation();removeGame('${g.id}')" data-remove="${g.id}" title="Retirer"
+        style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.65);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;"
+        class="remove-game-btn">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
     </div>
-    <div class="game-info"><div class="game-title">${g.title}</div><div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div></div>`;
+    <div class="game-info">
+      <div class="game-title">${g.title}</div>
+      <div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div>
+      ${quickActionBtn(g.id, ug.status)}
+    </div>`;
     grid.appendChild(cell);
   });
+}
+
+function quickActionBtn(id, status) {
+  if (status === 'wish')
+    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
+      style="margin-top:6px;width:100%;background:rgba(0,206,201,0.12);border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a3);cursor:pointer;">🛒 Je l'ai acheté</button>`;
+  if (status === 'backlog')
+    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
+      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">▶ J'y joue</button>`;
+  if (status === 'playing-solo' || status === 'playing-multi')
+    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','finished')"
+      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.1);border:0.5px solid rgba(0,230,118,0.25);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">✓ Terminé</button>`;
+  return '';
+}
+
+function quickStatusChange(id, status) {
+  if (!userGames[id]) return;
+  userGames[id].status = status;
+  renderGameGrid(); renderFeed(); renderProfileStats();
+  saveToStorage();
+  showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
 }
 
 // ══════════════════════════════════════
@@ -2808,11 +2982,9 @@ async function importXboxLibrary(key) {
   }
 })();
 // ══════════════════════════════════════
-const GEMINI_KEY = localStorage.getItem('gemini_key') || 'AIzaSyD44HfgBprjXFgWNz-ICaGCzhBOnTsNoZs';
+const GEMINI_KEY = localStorage.getItem('gemini_key') || null;
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-latest'];
-// Keep backward compat
-const GEMINI_URL = `${GEMINI_BASE}/gemini-1.5-flash:generateContent`;
+const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
 
 // Voice recognition setup
 let recognition = null;
@@ -2931,7 +3103,7 @@ function buildProfileContext() {
 
 async function callGemini(userMsg, systemCtx) {
   if (!GEMINI_KEY) {
-    return `⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé Gemini</button>`;
+    return `⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé →</button>`;
   }
   const prompt = `${systemCtx}\n\nUtilisateur : ${userMsg}\n\nRéponds en français, de façon concise et naturelle.`;
   const body = JSON.stringify({
@@ -2940,23 +3112,22 @@ async function callGemini(userMsg, systemCtx) {
   });
   for (const model of GEMINI_MODELS) {
     try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 20000);
       const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body
+        method: 'POST', headers: {'Content-Type':'application/json'}, body, signal: ctrl.signal
       });
-      if (res.status === 403) {
-        // Try next model; if all fail, show helpful message
-        continue;
-      }
-      if (!res.ok) throw new Error('HTTP ' + res.status);
+      clearTimeout(tid);
+      if (res.status === 429) { await new Promise(r => setTimeout(r, 1000)); continue; }
+      if (!res.ok) continue;
       const data = await res.json();
       return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Pas de réponse.';
     } catch(e) {
-      if (e.message?.includes('403')) continue;
+      if (e.name === 'AbortError') { console.warn('Gemini timeout:', model); continue; }
       console.warn('Gemini error:', model, e);
     }
   }
-  // All models failed — likely regional restriction
-  return `⚠️ <strong>Accès Gemini bloqué</strong> (erreur 403).<br><br>Si tu es en France/UK/UE, le tier gratuit est restreint géographiquement. Solutions :<br>• Active la facturation sur <a href="https://console.cloud.google.com" target="_blank" style="color:var(--a)">Google Cloud Console</a> (gratuit sous les limites)<br>• Ou génère une nouvelle clé sur <a href="https://aistudio.google.com" target="_blank" style="color:var(--a)">aistudio.google.com</a>`;
+  return `⚠️ <strong>Assistant indisponible.</strong><br>Vérifie ta clé ou réessaie.<br><button onclick="promptGeminiKey()" style="margin-top:8px;background:var(--s3);border:0.5px solid var(--border2);border-radius:10px;padding:6px 14px;font-size:12px;color:var(--text);cursor:pointer">Changer la clé →</button>`;
 }
 
 // Parse intent via Gemini — returns JSON {action, games[], mood, question}
@@ -2975,11 +3146,14 @@ Réponds avec ce format JSON exact :
 - games : liste des titres de jeux mentionnés (vides si pas de titre spécifique)
 - Pour "add" avec statut en cours, note aussi le statut voulu dans games comme "Titre|playing-solo" ou "Titre|playing-multi"`;
 
-    const res = await fetch(`${GEMINI_BASE}/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`, {
-      method: 'POST',
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 20000);
+    const res = await fetch(`${GEMINI_BASE}/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
+      method: 'POST', signal: ctrl.signal,
       headers: {'Content-Type':'application/json'},
       body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0}})
     });
+    clearTimeout(tid);
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
@@ -3345,10 +3519,20 @@ function closeBracket() {
 function renderFriendsList(){ /* masqué — fonctionnalité sociale désactivée */ }
 function initApp(){
   renderFeed(); renderGameGrid(); renderProfileStats();
-  // Init nav indicator on first active btn
+  document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   const firstActive = document.querySelector('#app-nav .nav-btn.active');
   if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
 }
+
+// On page load: restore saved data and skip onboarding if present
+(function bootApp() {
+  const hasData = loadFromStorage();
+  if (hasData) {
+    document.getElementById('view-onboarding').style.display = 'none';
+    document.getElementById('view-app').style.display = 'flex';
+    initApp();
+  }
+})();
 
 // ══════════════════════════════════════
 // ADD-GAME MODAL
@@ -3434,7 +3618,8 @@ function addGameFromModal(g, btn) {
   }
   GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours:0});
   userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours:0};
-  renderGameGrid(); renderFeed();
+  renderGameGrid(); renderFeed(); renderProfileStats();
+  saveToStorage();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
 
   // Update button
