@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>GameShelf</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 /* ══════════════════════════════════════
    SHARED TOKENS
@@ -1000,29 +1001,40 @@ html, body {
     </div>
   </div>
 
-  <!-- STEP 1 : INSCRIPTION -->
+  <!-- STEP 1 : AUTH (email / Google) -->
   <div class="step" id="step-1">
     <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 1 sur 5</div>
-      <div class="step-title">Crée ton <span>compte</span></div>
-      <p class="step-sub">Gratuit. Pas de spam. Juste tes jeux.</p>
+      <div style="margin-bottom:28px">
+        <div id="auth-mode-label" class="step-title" style="margin-bottom:6px">Crée ton <span>compte</span></div>
+        <p class="step-sub" id="auth-mode-sub">Gratuit. Pas de spam. Juste tes jeux.</p>
+      </div>
       <div class="field">
         <div class="field-label">Email</div>
-        <input class="field-input" type="email" id="email-input" placeholder="toi@exemple.com" autocomplete="email">
+        <input class="field-input" type="email" id="auth-email" placeholder="toi@exemple.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')document.getElementById('auth-pwd').focus()">
       </div>
       <div class="field">
         <div class="field-label">Mot de passe</div>
         <div class="pwd-wrap">
-          <input class="field-input" type="password" id="pwd-input" placeholder="8 caractères minimum" autocomplete="new-password">
-          <button class="pwd-toggle" type="button" onclick="togglePwd('pwd-input',this)" aria-label="Afficher le mot de passe">
+          <input class="field-input" type="password" id="auth-pwd" placeholder="8 caractères minimum" autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter')authSubmit()">
+          <button class="pwd-toggle" type="button" onclick="togglePwd('auth-pwd',this)" aria-label="Afficher">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
       </div>
-      <div class="divider">ou</div>
-      <button class="btn-secondary" onclick="showToast('Google Sign-In — bientôt disponible')">🔵&nbsp;&nbsp;Continuer avec Google</button>
-      <div style="margin-top:28px"><button class="btn-primary" onclick="validateStep1()">Créer mon compte →</button></div>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:16px;line-height:1.5">En continuant, tu acceptes les <span style="color:var(--muted2)">CGU</span> et la <span style="color:var(--muted2)">Politique de confidentialité</span>.</p>
+      <div style="margin-top:24px">
+        <button id="auth-cta" class="btn-primary" onclick="authSubmit()">Créer mon compte →</button>
+      </div>
+      <div id="auth-switch" style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted2)">
+        Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode('login')">Se connecter</span>
+      </div>
+      <div class="divider" style="margin:22px 0">ou</div>
+      <button class="btn-secondary" onclick="authWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+        Continuer avec Google
+      </button>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.5">En continuant, tu acceptes les <span style="color:var(--muted2)">CGU</span> et la <span style="color:var(--muted2)">Politique de confidentialité</span>.</p>
     </div></div>
   </div>
 
@@ -1463,8 +1475,14 @@ html, body {
 
       <!-- RESET -->
       <div style="padding:24px 16px 44px;text-align:center">
-        <button onclick="clearLibrary()" style="background:none;border:0.5px solid rgba(255,82,82,0.2);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.6">Vider la bibliothèque</button>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Supprime tous les jeux mais garde ton profil</div>
+        <button onclick="logoutUser()" style="background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--muted2);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Se déconnecter
+        </button>
+        <div style="margin-top:20px">
+          <button onclick="clearLibrary()" style="background:none;border:0.5px solid rgba(255,82,82,0.2);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.6">Vider la bibliothèque</button>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Supprime tous les jeux mais garde ton profil</div>
+        </div>
         <div style="margin-top:16px">
           <button onclick="disconnectApp()" style="background:none;border:0.5px solid rgba(255,82,82,0.3);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7">Réinitialiser GameShelf</button>
           <div style="font-size:11px;color:var(--muted);margin-top:6px">Efface toutes tes données et recommence l'onboarding</div>
@@ -1765,6 +1783,13 @@ html, body {
 // IGDB CONFIG
 // ══════════════════════════════════════
 const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
+
+// ══════════════════════════════════════
+// SUPABASE CLIENT
+// ══════════════════════════════════════
+const SUPABASE_URL = 'https://tphspftxnfhqhhykavbw.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Ck44c4Aq-B-rd8hHHWuJlg_6ekKbiAk';
+const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Platform abbreviation colours
 const PLAT_COLORS = {
@@ -2310,13 +2335,110 @@ function obStep(target) {
   if (target==='3d') renderTrending();
 }
 
-function validateStep1() {
-  const email = document.getElementById('email-input').value.trim();
-  const pwd   = document.getElementById('pwd-input').value;
-  if (!email||!email.includes('@')) { showToast('Entre une adresse email valide'); return; }
-  if (pwd.length<6) { showToast('Mot de passe trop court (6 min)'); return; }
-  obStep(2);
+// ══════════════════════════════════════
+// SUPABASE AUTH
+// ══════════════════════════════════════
+let _authMode = 'signup'; // 'signup' | 'login'
+
+function setAuthMode(mode) {
+  _authMode = mode;
+  const label = document.getElementById('auth-mode-label');
+  const sub   = document.getElementById('auth-mode-sub');
+  const cta   = document.getElementById('auth-cta');
+  const sw    = document.getElementById('auth-switch');
+  const pwdIn = document.getElementById('auth-pwd');
+  if (mode === 'login') {
+    if (label) label.innerHTML = 'Bon retour <span>!</span>';
+    if (sub)   sub.textContent = 'Connecte-toi à ton compte GameShelf.';
+    if (cta)   cta.textContent = 'Se connecter →';
+    if (sw)    sw.innerHTML = 'Pas encore de compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'signup\')">Créer un compte</span>';
+    if (pwdIn) pwdIn.autocomplete = 'current-password';
+  } else {
+    if (label) label.innerHTML = 'Crée ton <span>compte</span>';
+    if (sub)   sub.textContent = 'Gratuit. Pas de spam. Juste tes jeux.';
+    if (cta)   cta.textContent = 'Créer mon compte →';
+    if (sw)    sw.innerHTML = 'Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Se connecter</span>';
+    if (pwdIn) pwdIn.autocomplete = 'new-password';
+  }
 }
+
+async function authSubmit() {
+  const email = (document.getElementById('auth-email')?.value||'').trim();
+  const pwd   = document.getElementById('auth-pwd')?.value||'';
+  if (!email || !email.includes('@')) { showToast('Entre une adresse email valide'); return; }
+  if (pwd.length < 6) { showToast('Mot de passe trop court (6 min)'); return; }
+  const cta = document.getElementById('auth-cta');
+  if (cta) { cta.disabled = true; cta.textContent = '…'; }
+  if (_authMode === 'signup') {
+    const { data, error } = await _sb.auth.signUp({ email, password: pwd });
+    if (error) {
+      showToast(error.message);
+      if (cta) { cta.disabled = false; cta.textContent = 'Créer mon compte →'; }
+      return;
+    }
+    // Auto sign-in after signup (no email verification required in this flow)
+    if (data?.session) {
+      await onAuthSuccess(data.session.user);
+    } else {
+      showToast('Vérifie tes emails pour confirmer ton compte ✓');
+      if (cta) { cta.disabled = false; cta.textContent = 'Créer mon compte →'; }
+    }
+  } else {
+    const { data, error } = await _sb.auth.signInWithPassword({ email, password: pwd });
+    if (error) {
+      showToast('Email ou mot de passe incorrect');
+      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+      return;
+    }
+    await onAuthSuccess(data.user);
+  }
+}
+
+async function authWithGoogle() {
+  await _sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+}
+
+async function onAuthSuccess(user) {
+  // Try to pull existing data from Supabase
+  const { data: games } = await _sb.from('user_games').select('*').eq('user_id', user.id);
+  if (games && games.length > 0) {
+    // Returning user — restore library from Supabase
+    GAMES.length = 0;
+    Object.keys(userGames).forEach(k => delete userGames[k]);
+    games.forEach(g => {
+      GAMES.push({
+        id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
+        notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
+        cover: g.cover || null, imageId: g.image_id || null,
+        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null
+      });
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '' };
+    });
+    // Pull profile
+    const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
+    if (profile) {
+      obProfile = {
+        username: profile.username || 'Gamer',
+        avatar: profile.avatar || '🎮',
+        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+        bio: profile.bio || '',
+        platforms: profile.platforms || []
+      };
+      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+    }
+    saveToStorage();
+    launchApp();
+  } else {
+    // New user — go through profile onboarding
+    obStep(2);
+  }
+}
+
+// Keep old name for any legacy call-sites
+function validateStep1() { authSubmit(); }
 function validateStep2() {
   const u = document.getElementById('username-input').value.trim();
   if (!u||u.length<3) { showToast('Choisis un pseudo (3 min)'); return; }
@@ -2628,11 +2750,91 @@ let userGames = {};
 GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
 // ── localStorage persistence ──────────────────────────────
+let _syncTimer;
 function saveToStorage() {
   try {
     localStorage.setItem('gs_games', JSON.stringify(GAMES));
     localStorage.setItem('gs_userGames', JSON.stringify(userGames));
   } catch(e) { console.warn('GameShelf: storage save failed', e); }
+  // Debounced Supabase sync (2 s delay to batch rapid changes)
+  clearTimeout(_syncTimer);
+  _syncTimer = setTimeout(syncToSupabase, 2000);
+}
+
+async function syncToSupabase() {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    const uid = session.user.id;
+    const rows = GAMES.map(g => {
+      const ug = userGames[g.id] || {};
+      return {
+        user_id: uid, game_id: String(g.id), title: g.title,
+        status: ug.status || g.status || 'backlog',
+        score: ug.score ?? g.score ?? 0,
+        notes: ug.notes || g.notes || '',
+        year: g.year || 0, genre: g.genre || '',
+        cover: g.cover || null, image_id: g.imageId || null,
+        meta: g.meta || 0, platforms: g.platforms || [],
+        steam_id: g.steamId || null,
+        updated_at: new Date().toISOString()
+      };
+    });
+    if (rows.length) {
+      await _sb.from('user_games').upsert(rows, { onConflict: 'user_id,game_id' });
+    }
+  } catch(e) { console.warn('GameShelf: Supabase sync failed', e); }
+}
+
+async function syncFromSupabase(user) {
+  try {
+    const { data: games } = await _sb.from('user_games').select('*').eq('user_id', user.id);
+    if (!games || games.length === 0) return;
+    GAMES.length = 0;
+    Object.keys(userGames).forEach(k => delete userGames[k]);
+    games.forEach(g => {
+      GAMES.push({
+        id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
+        notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
+        cover: g.cover || null, imageId: g.image_id || null,
+        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null
+      });
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '' };
+    });
+    const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
+    if (profile) {
+      obProfile = {
+        username: profile.username || 'Gamer',
+        avatar: profile.avatar || '🎮',
+        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+        bio: profile.bio || '',
+        platforms: profile.platforms || []
+      };
+      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+      applyProfileToUI();
+    }
+    try {
+      localStorage.setItem('gs_games', JSON.stringify(GAMES));
+      localStorage.setItem('gs_userGames', JSON.stringify(userGames));
+    } catch(e) {}
+    renderFeed(); renderGameGrid(); renderProfileStats();
+  } catch(e) { console.warn('GameShelf: syncFromSupabase failed', e); }
+}
+
+async function syncProfileToSupabase() {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    await _sb.from('profiles').upsert({
+      id: session.user.id,
+      username: obProfile.username || 'Gamer',
+      avatar: obProfile.avatar || '🎮',
+      avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+      bio: obProfile.bio || '',
+      platforms: obProfile.platforms || [],
+      updated_at: new Date().toISOString()
+    });
+  } catch(e) { console.warn('GameShelf: profile sync failed', e); }
 }
 function loadFromStorage() {
   try {
@@ -2646,7 +2848,14 @@ function loadFromStorage() {
 }
 function disconnectApp() {
   if (!confirm('Réinitialiser GameShelf ? Toutes tes données seront effacées.')) return;
-  ['gs_games','gs_userGames'].forEach(k => localStorage.removeItem(k));
+  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
+  _sb.auth.signOut().finally(() => location.reload());
+}
+
+async function logoutUser() {
+  if (!confirm('Se déconnecter de GameShelf ?')) return;
+  await _sb.auth.signOut();
+  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
   location.reload();
 }
 
@@ -4011,33 +4220,63 @@ function initApp(){
   if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
 }
 
-// On page load: restore saved data and skip onboarding if present
-(function bootApp() {
-  const hasData = loadFromStorage();
-  // Restore profile if saved
+// ══════════════════════════════════════
+// BOOT — check Supabase session first
+// ══════════════════════════════════════
+function applyProfileToUI() {
+  const av = obProfile.avatar || '🎮';
+  const nm = obProfile.username || 'Gamer';
+  const avBtn = document.getElementById('app-avatar-btn');
+  const avEl  = document.getElementById('app-profile-av');
+  const nameEl= document.getElementById('app-profile-name');
+  const hdlEl = document.getElementById('app-profile-handle');
+  if (avBtn)  { avBtn.textContent = av; if(obProfile.avatarGrad) avBtn.style.background = obProfile.avatarGrad; }
+  if (avEl)   { avEl.textContent = av; if(obProfile.avatarGrad) avEl.style.background = obProfile.avatarGrad; }
+  if (nameEl) nameEl.textContent = nm;
+  if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
+}
+
+(async function bootApp() {
+  // Restore local profile regardless of auth state
   const savedProfile = localStorage.getItem('gs_profile');
   if (savedProfile) {
-    try {
-      const p = JSON.parse(savedProfile);
-      obProfile = {...obProfile, ...p};
-    } catch(e) {}
+    try { const p = JSON.parse(savedProfile); obProfile = {...obProfile, ...p}; } catch(e) {}
   }
-  if (hasData) {
-    document.getElementById('view-onboarding').style.display = 'none';
-    document.getElementById('view-app').style.display = 'flex';
-    // Apply saved profile to app UI
-    const av = obProfile.avatar || '🎮';
-    const nm = obProfile.username || 'Gamer';
-    const avBtn = document.getElementById('app-avatar-btn');
-    const avEl  = document.getElementById('app-profile-av');
-    const nameEl= document.getElementById('app-profile-name');
-    const hdlEl = document.getElementById('app-profile-handle');
-    if (avBtn)  { avBtn.textContent = av; if(obProfile.avatarGrad) avBtn.style.background = obProfile.avatarGrad; }
-    if (avEl)   { avEl.textContent = av; if(obProfile.avatarGrad) avEl.style.background = obProfile.avatarGrad; }
-    if (nameEl) nameEl.textContent = nm;
-    if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
-    initApp();
+
+  const { data: { session } } = await _sb.auth.getSession();
+
+  if (session) {
+    const hasLocal = loadFromStorage();
+    if (hasLocal) {
+      // Fast path: local data → launch immediately, then sync in background
+      applyProfileToUI();
+      document.getElementById('view-onboarding').style.display = 'none';
+      document.getElementById('view-app').style.display = 'flex';
+      initApp();
+      syncFromSupabase(session.user); // background refresh
+    } else {
+      // No local data → fetch from Supabase
+      await onAuthSuccess(session.user);
+    }
+  } else {
+    // Handle OAuth redirect (hash or query contains access_token)
+    const hash = window.location.hash;
+    if (hash && hash.includes('access_token')) {
+      // Supabase handles this via onAuthStateChange
+      const { data: { session: s2 } } = await _sb.auth.getSession();
+      if (s2) { await onAuthSuccess(s2.user); return; }
+    }
+    // No session → show splash (step-0 is already active)
+    document.getElementById('progress-fill').style.width = '0%';
   }
+
+  // Listen for auth state changes (OAuth redirect, email confirm)
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+      const appVisible = document.getElementById('view-app').style.display === 'flex';
+      if (!appVisible) await onAuthSuccess(session.user);
+    }
+  });
 })();
 
 // ══════════════════════════════════════
@@ -4242,6 +4481,7 @@ function saveEditProfile() {
   if (avBtn) avBtn.textContent = avatar;
   closeEditProfile();
   showToast('Profil mis à jour ✓');
+  syncProfileToSupabase();
 }
 
 // ══════════════════════════════════════
@@ -4289,5 +4529,10 @@ function closeTirageIntro() {
     <button onclick="closeTirageIntro()" class="btn-primary">C'est parti !</button>
   </div>
 </div>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+}
+</script>
 </body>
 </html>
