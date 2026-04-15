@@ -1226,7 +1226,7 @@ html, body {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Ajouter un jeu
         </button>
-        <button class="bracket-launch-btn" onclick="initBracket()">
+        <button class="bracket-launch-btn" onclick="showTirageIntroIfNeeded()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
           ⚡ Le Tirage
         </button>
@@ -1363,16 +1363,20 @@ html, body {
       <!-- STATS: Completion Ring -->
       <div class="comp-card anim" style="animation-delay:0.1s" onclick="openShelf('all')">
         <div class="ring-wrap">
-          <svg class="ring-svg" viewBox="0 0 88 88">
-            <defs>
-              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#a29bfe"/>
-                <stop offset="100%" style="stop-color:#fd79a8"/>
-              </linearGradient>
-            </defs>
+          <svg class="ring-svg" viewBox="0 0 88 88" style="transform:rotate(-90deg)">
             <circle class="ring-bg" cx="44" cy="44" r="37"/>
-            <circle class="ring-fill" id="ring-fill-circle" cx="44" cy="44" r="37"
-              stroke-dasharray="232.48" stroke-dashoffset="232.48"/>
+            <!-- segment: fini+platine (green) -->
+            <circle id="ring-seg-done" cx="44" cy="44" r="37"
+              fill="none" stroke="#00e676" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="0 232.48" stroke-dashoffset="0" style="transition:stroke-dasharray 0.6s ease"/>
+            <!-- segment: playing+paused (purple) -->
+            <circle id="ring-seg-playing" cx="44" cy="44" r="37"
+              fill="none" stroke="#a29bfe" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="0 232.48" stroke-dashoffset="0" style="transition:stroke-dasharray 0.6s ease,stroke-dashoffset 0.6s ease"/>
+            <!-- segment: rest (gray) -->
+            <circle id="ring-seg-rest" cx="44" cy="44" r="37"
+              fill="none" stroke="rgba(152,152,176,0.25)" stroke-width="6" stroke-linecap="round"
+              stroke-dasharray="0 232.48" stroke-dashoffset="0" style="transition:stroke-dasharray 0.6s ease,stroke-dashoffset 0.6s ease"/>
           </svg>
           <div class="ring-center">
             <div class="ring-pct" id="ring-pct">0%</div>
@@ -1400,8 +1404,8 @@ html, body {
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--green)" id="stat-finished">0</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:2px">Finis</div>
         </div>
-        <div onclick="openShelf('platine')" style="background:rgba(255,215,0,0.08);border:0.5px solid rgba(255,215,0,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(255,215,0,0.4)'" onmouseleave="this.style.borderColor='rgba(255,215,0,0.2)'">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#ffd700" id="stat-platine">0</div>
+        <div onclick="openShelf('platine')" style="background:rgba(0,206,201,0.08);border:0.5px solid rgba(0,206,201,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(0,206,201,0.45)'" onmouseleave="this.style.borderColor='rgba(0,206,201,0.2)'">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#00cec9" id="stat-platine">0</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:2px">100%</div>
         </div>
         <div onclick="openShelf('backlog')" style="background:rgba(152,152,176,0.08);border:0.5px solid rgba(152,152,176,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(152,152,176,0.4)'" onmouseleave="this.style.borderColor='rgba(152,152,176,0.2)'">
@@ -1412,8 +1416,8 @@ html, body {
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--red)" id="stat-abandoned">0</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:2px">Abandonné</div>
         </div>
-        <div onclick="openShelf('wish')" style="background:rgba(0,206,201,0.08);border:0.5px solid rgba(0,206,201,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s;grid-column:1/-1" onmouseenter="this.style.borderColor='rgba(0,206,201,0.4)'" onmouseleave="this.style.borderColor='rgba(0,206,201,0.2)'">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--a3)" id="stat-wish">0</div>
+        <div onclick="openShelf('wish')" style="background:rgba(196,181,253,0.08);border:0.5px solid rgba(196,181,253,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s;grid-column:1/-1" onmouseenter="this.style.borderColor='rgba(196,181,253,0.45)'" onmouseleave="this.style.borderColor='rgba(196,181,253,0.2)'">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#c4b5fd" id="stat-wish">0</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:2px">Souhaits</div>
         </div>
       </div>
@@ -1422,8 +1426,8 @@ html, body {
       <div class="sec-label">Genres favoris</div>
       <div style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="genre-stats"></div>
 
-      <!-- MEILLEURS JEUX -->
-      <div class="sec-label">Meilleurs jeux</div>
+      <!-- TOP JEUX -->
+      <div class="sec-label">Ton top</div>
       <div id="top-games" style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
 
       <!-- CAPTURES D'ÉCRAN -->
@@ -2933,14 +2937,31 @@ function renderProfileStats() {
   document.getElementById('stat-abandoned').textContent= abandoned;
   document.getElementById('stat-wish').textContent = wish;
 
-  // Animate SVG ring
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  // Multi-color ring animation
   const circumference = 232.48;
-  const offset = circumference - (pct / 100) * circumference;
+  const nonWish = all.filter(g => g.status !== 'wish').length;
+  const ringTotal = nonWish || 1;
+  const segDone    = (done / ringTotal) * circumference;
+  const segPlaying = (all.filter(g => isPlaying(g.status) || g.status === 'paused').length / ringTotal) * circumference;
+  const segRest    = Math.max(0, circumference - segDone - segPlaying);
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   document.getElementById('ring-pct').textContent = pct + '%';
   requestAnimationFrame(() => {
-    const fill = document.getElementById('ring-fill-circle');
-    if (fill) fill.style.strokeDashoffset = offset;
+    const segDoneEl    = document.getElementById('ring-seg-done');
+    const segPlayingEl = document.getElementById('ring-seg-playing');
+    const segRestEl    = document.getElementById('ring-seg-rest');
+    if (segDoneEl) {
+      segDoneEl.style.strokeDasharray    = `${segDone} ${circumference - segDone}`;
+      segDoneEl.style.strokeDashoffset   = '0';
+    }
+    if (segPlayingEl) {
+      segPlayingEl.style.strokeDasharray  = `${segPlaying} ${circumference - segPlaying}`;
+      segPlayingEl.style.strokeDashoffset = `${-segDone}`;
+    }
+    if (segRestEl) {
+      segRestEl.style.strokeDasharray  = `${segRest} ${circumference - segRest}`;
+      segRestEl.style.strokeDashoffset = `${-(segDone + segPlaying)}`;
+    }
   });
 
   // Genre breakdown — weight finished games more
@@ -3279,6 +3300,13 @@ function quickActionBtn(id, status) {
   if (status === 'playing-solo' || status === 'playing-multi')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','finished')"
       style="margin-top:6px;width:100%;background:rgba(0,230,118,0.08);border:0.5px dashed rgba(0,230,118,0.35);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">Je l'ai fini !</button>`;
+  if (status === 'paused')
+    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
+      style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">▶ Reprendre</button>`;
+  if (status === 'finished')
+    return `<div style="margin-top:6px;width:100%;background:rgba(0,230,118,0.06);border:0.5px solid rgba(0,230,118,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,230,118,0.6);text-align:center">✓ Terminé</div>`;
+  if (status === 'platine')
+    return `<div style="margin-top:6px;width:100%;background:rgba(0,206,201,0.06);border:0.5px solid rgba(0,206,201,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,206,201,0.7);text-align:center">⭐ 100%</div>`;
   return '';
 }
 
@@ -3310,10 +3338,7 @@ function renderFeed(){
         ${hasMedia ? `<div style="position:absolute;bottom:3px;right:3px;width:16px;height:16px;border-radius:4px;background:var(--a);display:flex;align-items:center;justify-content:center"><svg width="9" height="9" viewBox="0 0 24 24" fill="white"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="21 15 16 10 5 21" stroke="white" stroke-width="2" fill="none"/></svg></div>` : ''}
       </div>
       <div class="now-info">
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="now-title">${g.title}</div>
-          <span style="font-size:11px;font-weight:700;color:var(--muted);font-family:'Space Grotesk',sans-serif;flex-shrink:0">${idx + 1}.</span>
-        </div>
+        <div class="now-title">${g.title}</div>
         <div class="now-sub">${g.genre}${ug.score > 0 ? ' · ★ '+ug.score+'/10'+(isPlaying(ug.status)?' <span style="color:var(--green);font-size:10px">provisoire</span>':'') : ''}${ug.endless ? ' · <span style="color:var(--a2)">∞</span>' : ''}</div>
       </div>
     </div>`;
@@ -4230,6 +4255,22 @@ function clearLibrary() {
   renderFeed(); renderGameGrid(); renderProfileStats();
   showToast('Bibliothèque vidée');
 }
+
+// ══════════════════════════════════════
+// LE TIRAGE — intro popup (one-time)
+// ══════════════════════════════════════
+function showTirageIntroIfNeeded() {
+  if (localStorage.getItem('gs_tirage_seen')) { initBracket(); return; }
+  const el = document.getElementById('tirage-intro');
+  if (el) { el.style.display = 'flex'; }
+}
+function closeTirageIntro() {
+  localStorage.setItem('gs_tirage_seen', '1');
+  const el = document.getElementById('tirage-intro');
+  if (el) el.style.display = 'none';
+  // Then launch bracket
+  initBracket();
+}
 </script>
 
 <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.95);flex-direction:column;align-items:center;justify-content:center" onclick="if(event.target===this)closeLightbox()">
@@ -4238,6 +4279,15 @@ function clearLibrary() {
   <img id="lb-img" src="" style="max-width:calc(100% - 40px);max-height:85dvh;object-fit:contain;border-radius:8px">
   <button id="lb-next" onclick="lightboxNav(1)" style="position:absolute;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">›</button>
   <div id="lb-counter" style="position:absolute;bottom:20px;color:rgba(255,255,255,0.45);font-size:12px"></div>
+</div>
+
+<div id="tirage-intro" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:0">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:28px 24px calc(32px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1)">
+    <div style="text-align:center;font-size:36px;margin-bottom:14px">⚡</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:8px">Le Tirage</div>
+    <div style="font-size:14px;color:var(--muted2);text-align:center;line-height:1.6;margin-bottom:24px">Tu ne sais pas quoi jouer dans ton backlog ?<br>Deux jeux s'affrontent — tu choisis le gagnant.<br>Le dernier debout, c'est ton prochain jeu.</div>
+    <button onclick="closeTirageIntro()" class="btn-primary">C'est parti !</button>
+  </div>
 </div>
 </body>
 </html>
