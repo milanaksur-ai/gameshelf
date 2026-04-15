@@ -3278,7 +3278,7 @@ function quickActionBtn(id, status) {
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">▶ J'y joue</button>`;
   if (status === 'playing-solo' || status === 'playing-multi')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','finished')"
-      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.1);border:0.5px solid rgba(0,230,118,0.25);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">✓ Terminé</button>`;
+      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.08);border:0.5px dashed rgba(0,230,118,0.35);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">Je l'ai fini !</button>`;
   return '';
 }
 
