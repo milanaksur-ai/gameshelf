@@ -1497,6 +1497,14 @@ html, body {
           <button onclick="disconnectApp()" style="background:none;border:0.5px solid rgba(255,82,82,0.3);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7">Réinitialiser GameShelf</button>
           <div style="font-size:11px;color:var(--muted);margin-top:6px">Efface toutes tes données et recommence l'onboarding</div>
         </div>
+        <div style="margin-top:24px;padding-top:16px;border-top:0.5px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Debug</div>
+          <button onclick="forceRefresh()" style="background:none;border:0.5px solid rgba(255,82,82,0.4);border-radius:12px;padding:8px 16px;font-size:12px;color:var(--red);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Vider le cache et recharger
+          </button>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px">Force le rechargement de la dernière version</div>
+        </div>
       </div>
     </div>
   </div>
@@ -2971,6 +2979,16 @@ function disconnectApp() {
   if (!confirm('Réinitialiser GameShelf ? Toutes tes données seront effacées.')) return;
   ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
   _sb.auth.signOut().finally(() => location.reload());
+}
+
+async function forceRefresh() {
+  if ('serviceWorker' in navigator) {
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map(r => r.unregister()));
+  }
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+  location.reload(true);
 }
 
 async function logoutUser() {
