@@ -1407,7 +1407,8 @@ html, body {
         <div class="comp-stats">
           <div class="comp-total" id="stat-total">0</div>
           <div class="comp-total-label">jeux au total</div>
-          <div style="font-size:11px;color:var(--muted2)">Voir tous mes jeux →</div>
+          <div style="font-size:11px;color:var(--amber);margin-top:4px;font-weight:600" id="stat-hours-total"></div>
+          <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em">✦ Mon récap</button>
         </div>
       </div>
 
@@ -1543,15 +1544,27 @@ html, body {
             <button class="status-btn" data-s="abandoned"     onclick="setStatus('abandoned')">Abandonné</button>
           </div>
         </div>
+        <!-- PLATFORMS -->
+        <div id="detail-platforms" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
+
         <div class="notes-section"><div class="rating-label">Mes notes</div><textarea class="notes-input" id="notes-input" rows="3" placeholder="Tes impressions sur ce jeu…"></textarea></div>
 
+        <!-- HEURES JOUÉES -->
+        <div style="margin-bottom:20px">
+          <div class="rating-label" style="margin-bottom:8px">Heures jouées</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="number" id="hours-input" min="0" max="9999" placeholder="0"
+              style="width:90px;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:16px;font-weight:700;color:var(--text);outline:none;text-align:center">
+            <span style="font-size:13px;color:var(--muted2)">h jouées</span>
+          </div>
+        </div>
 
         <!-- MEDIA UPLOAD -->
         <div style="margin-bottom:20px">
           <div class="rating-label" style="margin-bottom:8px">Captures d'écran</div>
           <div id="media-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px"></div>
-          <label style="display:block;background:var(--s2);border:0.5px dashed var(--border2);border-radius:12px;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:var(--muted2);transition:border-color 0.2s">
-            <input type="file" accept="image/*" multiple style="display:none" onchange="handleMedia(this,'image')">
+          <label id="media-upload-label" style="display:block;background:var(--s2);border:0.5px dashed var(--border2);border-radius:12px;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:var(--muted2);transition:border-color 0.2s">
+            <input type="file" accept="image/*" multiple style="display:none" onchange="handleMedia(this)">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             Ajouter des captures d'écran
           </label>
@@ -2494,9 +2507,13 @@ async function onAuthSuccess(user) {
         id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
         notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
         cover: g.cover || null, imageId: g.image_id || null,
-        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null
+        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
+        hours: g.hours || 0
       });
-      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '' };
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0 };
+      if (g.screenshots?.length) {
+        gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
+      }
     });
     // Pull profile
     const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
@@ -2859,6 +2876,8 @@ async function syncToSupabase() {
         cover: g.cover || null, image_id: g.imageId || null,
         meta: g.meta || 0, platforms: g.platforms || [],
         steam_id: g.steamId || null,
+        hours: ug.hours ?? g.hours ?? 0,
+        screenshots: (gameMedia[String(g.id)] || []).map(m => m.url),
         updated_at: new Date().toISOString()
       };
     });
@@ -2879,9 +2898,13 @@ async function syncFromSupabase(user) {
         id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
         notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
         cover: g.cover || null, imageId: g.image_id || null,
-        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null
+        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
+        hours: g.hours || 0
       });
-      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '' };
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0 };
+      if (g.screenshots?.length) {
+        gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
+      }
     });
     const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
     if (profile) {
@@ -3069,6 +3092,11 @@ function openDetail(gameId) {
   renderStatus(ug.status);
   updateSlotLabels();
   document.getElementById('notes-input').value = ug.notes||'';
+  document.getElementById('hours-input').value = ug.hours || g.hours || '';
+  // Platform badges
+  const platsEl = document.getElementById('detail-platforms');
+  const plats = g.platforms || [];
+  if (platsEl) platsEl.innerHTML = plats.map(p => `<span style="background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--a)">${p}</span>`).join('');
   appGoTo('detail');
 }
 
@@ -3127,7 +3155,11 @@ function setStatus(s) {
 
 
 function saveGame() {
-  userGames[currentGame.id].notes = document.getElementById('notes-input').value;
+  const ug = userGames[currentGame.id];
+  ug.notes = document.getElementById('notes-input').value;
+  const h = parseInt(document.getElementById('hours-input').value) || 0;
+  ug.hours = h;
+  currentGame.hours = h;
   renderGameGrid();
   renderFeed();
   saveToStorage();
@@ -3183,24 +3215,51 @@ function closeConfirmModal() {
   _pendingRemoveId = null;
 }
 
-// Media store: gameId → array of {type, url, name}
+// Media store: gameId → array of {type, url, name, storagePath?}
 const gameMedia = {};
 
-function handleMedia(input) {
+async function handleMedia(input) {
   if (!currentGame) return;
   const files = Array.from(input.files);
-  files.forEach(file => {
-    const url = URL.createObjectURL(file);
-    addMedia(currentGame.id, {type:'image', url, name:file.name});
-  });
   input.value = '';
+  const label = document.getElementById('media-upload-label');
+
+  const { data: { session } } = await _sb.auth.getSession();
+
+  for (const file of files) {
+    if (label) label.textContent = 'Envoi…';
+    if (session) {
+      // Upload to Supabase Storage: {userId}/{gameId}/{timestamp}_{name}
+      const path = `${session.user.id}/${currentGame.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { data, error } = await _sb.storage.from('game-screenshots').upload(path, file, { upsert: false });
+      if (!error) {
+        const { data: { publicUrl } } = _sb.storage.from('game-screenshots').getPublicUrl(path);
+        addMedia(currentGame.id, { type: 'image', url: publicUrl, name: file.name, storagePath: path });
+        persistScreenshots(currentGame.id);
+      } else {
+        // Fallback: local blob
+        addMedia(currentGame.id, { type: 'image', url: URL.createObjectURL(file), name: file.name });
+        showToast('Stockage indisponible — photo locale');
+      }
+    } else {
+      addMedia(currentGame.id, { type: 'image', url: URL.createObjectURL(file), name: file.name });
+    }
+  }
+  if (label) label.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>Ajouter des captures d\'écran';
+}
+
+async function persistScreenshots(gameId) {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) return;
+  const urls = (gameMedia[gameId] || []).map(m => m.url);
+  await _sb.from('user_games').update({ screenshots: urls }).eq('user_id', session.user.id).eq('game_id', String(gameId));
 }
 
 function addMedia(gameId, item) {
   if (!gameMedia[gameId]) gameMedia[gameId] = [];
   gameMedia[gameId].push(item);
   renderMediaGrid(gameId);
-  renderFeed(); // refresh thumbnail indicator
+  renderFeed();
 }
 
 function renderMediaGrid(gameId) {
@@ -3214,13 +3273,19 @@ function renderMediaGrid(gameId) {
     </div>`).join('');
 }
 
-function removeMedia(gameId, idx) {
-  if (gameMedia[gameId]) {
-    URL.revokeObjectURL(gameMedia[gameId][idx].url);
-    gameMedia[gameId].splice(idx, 1);
-    renderMediaGrid(gameId);
-    renderFeed();
+async function removeMedia(gameId, idx) {
+  const item = gameMedia[gameId]?.[idx];
+  if (!item) return;
+  // Delete from Supabase Storage if uploaded
+  if (item.storagePath) {
+    await _sb.storage.from('game-screenshots').remove([item.storagePath]);
+  } else {
+    URL.revokeObjectURL(item.url);
   }
+  gameMedia[gameId].splice(idx, 1);
+  renderMediaGrid(gameId);
+  persistScreenshots(gameId);
+  renderFeed();
 }
 
 function renderProfileStats() {
@@ -3236,6 +3301,9 @@ function renderProfileStats() {
   const total    = all.filter(g => g.status !== 'wish').length;
 
   document.getElementById('stat-total').textContent    = total + wish;
+  const totalHours = all.reduce((s, g) => s + (userGames[g.id]?.hours || g.hours || 0), 0);
+  const hoursEl = document.getElementById('stat-hours-total');
+  if (hoursEl) hoursEl.textContent = totalHours > 0 ? `⏱ ${totalHours}h jouées` : '';
   document.getElementById('stat-playing').textContent  = playing;
   const pausedEl = document.getElementById('stat-paused');
   if (pausedEl) pausedEl.textContent = paused;
@@ -3570,6 +3638,15 @@ function recoWishToggle(id) {
 }
 function renderGameGrid(games=GAMES){
   const grid=document.getElementById('game-grid'); grid.innerHTML='';
+  if (games.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;color:var(--muted2)">
+      <div style="font-size:48px;margin-bottom:12px">🎮</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">Bibliothèque vide</div>
+      <div style="font-size:13px;margin-bottom:20px">Ajoute ton premier jeu pour commencer</div>
+      <button onclick="openAddModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">+ Ajouter un jeu</button>
+    </div>`;
+    return;
+  }
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
     const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'Backlog','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
@@ -3592,6 +3669,7 @@ function renderGameGrid(games=GAMES){
     <div class="game-info">
       <div class="game-title">${g.title}</div>
       <div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div>
+      ${(ug.hours||g.hours)>0?`<div style="font-size:10px;color:var(--muted);margin-top:2px">⏱ ${ug.hours||g.hours}h</div>`:''}
       ${quickActionBtn(g.id, ug.status)}
     </div>`;
     grid.appendChild(cell);
@@ -4614,6 +4692,53 @@ function timeAgo(iso) {
 }
 
 // ══════════════════════════════════════
+// WRAPPED — récap mensuel
+// ══════════════════════════════════════
+function openWrapped() {
+  const now   = new Date();
+  const month = now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const all   = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
+
+  // This month = approximation via updated_at in localStorage (or just all-time for now)
+  const finished  = all.filter(g => isDone(g.status));
+  const playing   = all.filter(g => isPlaying(g.status) || g.status === 'paused');
+  const totalHours= all.reduce((s, g) => s + (g.hours || 0), 0);
+  const avgScore  = (() => { const rated = finished.filter(g => g.score > 0); return rated.length ? (rated.reduce((s,g)=>s+g.score,0)/rated.length).toFixed(1) : null; })();
+  const topGame   = [...finished].sort((a,b) => (b.score||0) - (a.score||0))[0];
+  const genreScore= {};
+  all.forEach(g => { if (g.genre) genreScore[g.genre] = (genreScore[g.genre]||0) + 1; });
+  const topGenre  = Object.entries(genreScore).sort((a,b)=>b[1]-a[1])[0]?.[0];
+
+  document.getElementById('wrapped-title').textContent = `Ton récap — ${month.charAt(0).toUpperCase()+month.slice(1)}`;
+  document.getElementById('wrapped-subtitle').textContent = `Tout ce que tu as accompli jusqu\'ici`;
+
+  const cards = [
+    { emoji: '🎮', label: 'Jeux dans ta bibliothèque', value: all.length },
+    { emoji: '✅', label: 'Jeux terminés (finis + 100%)', value: finished.length },
+    { emoji: '▶', label: 'En cours ou en pause', value: playing.length },
+    totalHours > 0 ? { emoji: '⏱', label: 'Heures jouées au total', value: `${totalHours}h` } : null,
+    avgScore ? { emoji: '⭐', label: 'Note moyenne sur tes jeux finis', value: `${avgScore}/10` } : null,
+    topGenre ? { emoji: '🏆', label: 'Genre le plus joué', value: topGenre } : null,
+    topGame ? { emoji: '👑', label: 'Ton jeu #1', value: topGame.title + (topGame.score ? ` — ★${topGame.score}` : '') } : null,
+  ].filter(Boolean);
+
+  document.getElementById('wrapped-content').innerHTML = cards.map(c => `
+    <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:28px;flex-shrink:0">${c.emoji}</div>
+      <div>
+        <div style="font-size:12px;color:var(--muted2);margin-bottom:2px">${c.label}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">${c.value}</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('wrapped-modal').style.display = 'flex';
+}
+function closeWrapped() {
+  document.getElementById('wrapped-modal').style.display = 'none';
+}
+
+// ══════════════════════════════════════
 // BOOT — check Supabase session first
 // ══════════════════════════════════════
 function applyProfileToUI() {
@@ -4922,6 +5047,19 @@ function closeTirageIntro() {
     <button onclick="closeTirageIntro()" class="btn-primary">C'est parti !</button>
   </div>
 </div>
+<!-- WRAPPED MODAL -->
+<div id="wrapped-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:flex-end" onclick="if(event.target===this)closeWrapped()">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:28px 28px 0 0;padding:28px 24px calc(36px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1);max-height:88dvh;overflow-y:auto">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:28px;margin-bottom:6px">✦</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="wrapped-title">Ton récap</div>
+      <div style="font-size:13px;color:var(--muted2);margin-top:4px" id="wrapped-subtitle"></div>
+    </div>
+    <div id="wrapped-content" style="display:flex;flex-direction:column;gap:12px"></div>
+    <button onclick="closeWrapped()" class="btn-primary" style="margin-top:20px">Fermer</button>
+  </div>
+</div>
+
 <script>
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
