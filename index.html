@@ -1652,25 +1652,44 @@ html, body {
       </button>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700" id="fp-title">Profil</div>
     </div>
-    <div class="scroll-area" style="padding:0 16px 32px">
-      <!-- Header card -->
+    <div class="scroll-area" style="padding:0 16px 40px">
+      <!-- Hero card -->
       <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
-        <div id="fp-avatar" style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"></div>
-        <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:2px"></div>
-        <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:10px"></div>
-        <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:14px"></div>
+        <div id="fp-avatar" style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:30px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"></div>
+        <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
+        <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:8px"></div>
+        <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:12px"></div>
+        <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
         <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
       </div>
-      <!-- Top games -->
-      <div id="fp-top-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Meilleurs jeux</div>
-        <div id="fp-top-games" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px"></div>
+      <!-- En ce moment -->
+      <div id="fp-now-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">EN CE MOMENT</div>
+        <div id="fp-now-list"></div>
       </div>
-      <!-- Games in common -->
-      <div id="fp-common-section" style="display:none">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Jeux en commun</div>
+      <!-- Jeux en commun -->
+      <div id="fp-common-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">JEUX EN COMMUN</div>
         <div id="fp-common-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
+      <!-- Il/Elle recommande -->
+      <div id="fp-reco-section" style="display:none;margin-bottom:16px">
+        <div id="fp-reco-title" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">IL RECOMMANDE</div>
+        <div id="fp-reco-list" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px"></div>
+      </div>
+      <!-- Sa bibliothèque -->
+      <div id="fp-lib-section" style="display:none">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SA BIBLIOTHÈQUE</div>
+        <div id="fp-lib-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px"></div>
+        <div id="fp-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Friend game popup overlay -->
+  <div id="fp-game-overlay" onclick="closeFriendGamePopup()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding-bottom:max(env(safe-area-inset-bottom),20px)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0"></div>
+      <div id="fp-game-card-content" style="padding:20px 20px 4px"></div>
     </div>
   </div>
 
@@ -4554,12 +4573,42 @@ let _socialPending    = []; // incoming pending requests
 let _friendProfileData = null;
 
 const DUMMY_FRIENDS_DATA = [
-  { id:'__dummy_alex', username:'Alex', avatar:'🏆', avatar_grad:'linear-gradient(135deg,#fd79a8,#e84393)', bio:'Platinum hunter. 47 jeux à 100%. Ne dort plus.', platforms:['PS5','PC'],
-    games:[{title:'God of War Ragnarök',status:'platine',score:10},{title:'Elden Ring',status:'finished',score:9},{title:'Celeste',status:'platine',score:10},{title:'Hollow Knight',status:'finished',score:9}]},
-  { id:'__dummy_jul', username:'Julien', avatar:'⚔️', avatar_grad:'linear-gradient(135deg,#43d8c9,#4396d8)', bio:'RPG & stratégie. BG3 c\'est la vie.', platforms:['PC','Switch'],
-    games:[{title:"Baldur's Gate 3",status:'playing-solo',score:0},{title:'Hades II',status:'finished',score:9},{title:'Disco Elysium',status:'finished',score:10},{title:'Into the Breach',status:'platine',score:9}]},
-  { id:'__dummy_sara', username:'Sara', avatar:'🌙', avatar_grad:'linear-gradient(135deg,#a843d8,#d843a8)', bio:'Indie & narratif. Pleure à tous les Telltale.', platforms:['Switch','PC'],
-    games:[{title:'Hollow Knight',status:'backlog',score:0},{title:'Celeste',status:'finished',score:10},{title:'Stardew Valley',status:'playing-solo',score:0},{title:'Spiritfarer',status:'finished',score:9}]},
+  { id:'__dummy_alex', username:'Alex', avatar:'🏆', avatar_grad:'linear-gradient(135deg,#fd79a8,#e84393)',
+    bio:'Platinum hunter. 47 jeux à 100%. Ne dort plus.', platforms:['PS5','PC'],
+    games:[
+      {id:'gow-ragna',    title:'God of War Ragnarök',    status:'playing-solo', score:0,  steamId:2322010},
+      {id:'elden-ring',   title:'Elden Ring',              status:'finished',     score:9,  steamId:1245620},
+      {id:'celeste',      title:'Celeste',                 status:'platine',      score:10, steamId:504230},
+      {id:'hollow-knight',title:'Hollow Knight',           status:'platine',      score:9,  steamId:367520},
+      {id:'returnal',     title:'Returnal',                status:'finished',     score:8,  steamId:1649240},
+      {id:'tlou2',        title:'The Last of Us Part II',  status:'finished',     score:10, steamId:0},
+      {id:'astro-bot',    title:'Astro Bot',               status:'finished',     score:10, steamId:0},
+      {id:'bg3',          title:"Baldur's Gate 3",         status:'backlog',      score:0,  steamId:1086940},
+    ]},
+  { id:'__dummy_jul', username:'Julien', avatar:'⚔️', avatar_grad:'linear-gradient(135deg,#43d8c9,#4396d8)',
+    bio:"RPG & stratégie. BG3 c'est la vie.", platforms:['PC','Switch'],
+    games:[
+      {id:'bg3',          title:"Baldur's Gate 3",         status:'playing-solo', score:0,  steamId:1086940},
+      {id:'disco',        title:'Disco Elysium',           status:'finished',     score:10, steamId:632470},
+      {id:'witcher3',     title:'The Witcher 3',           status:'finished',     score:10, steamId:292030},
+      {id:'mass-effect2', title:'Mass Effect 2',           status:'finished',     score:9,  steamId:24980},
+      {id:'hades2',       title:'Hades II',                status:'finished',     score:9,  steamId:1812620},
+      {id:'into-breach',  title:'Into the Breach',         status:'platine',      score:9,  steamId:590380},
+      {id:'elden-ring',   title:'Elden Ring',              status:'backlog',      score:0,  steamId:1245620},
+      {id:'metaphor',     title:'Metaphor: ReFantazio',    status:'abandoned',    score:5,  steamId:2679460},
+    ]},
+  { id:'__dummy_sara', username:'Sara', avatar:'🌙', avatar_grad:'linear-gradient(135deg,#a843d8,#d843a8)',
+    bio:'Indie & narratif. Pleure à tous les Telltale.', platforms:['Switch','PC'],
+    games:[
+      {id:'stardew',      title:'Stardew Valley',          status:'playing-solo', score:0,  steamId:413150},
+      {id:'celeste',      title:'Celeste',                 status:'finished',     score:10, steamId:504230},
+      {id:'hades',        title:'Hades',                  status:'finished',     score:9,  steamId:1145360},
+      {id:'spiritfarer',  title:'Spiritfarer',             status:'finished',     score:9,  steamId:1155980},
+      {id:'ori',          title:'Ori and the Will of the Wisps', status:'finished', score:9, steamId:1057090},
+      {id:'night-woods',  title:'Night in the Woods',      status:'finished',     score:8,  steamId:481510},
+      {id:'hollow-knight',title:'Hollow Knight',           status:'backlog',      score:0,  steamId:367520},
+      {id:'disco',        title:'Disco Elysium',           status:'backlog',      score:0,  steamId:632470},
+    ]},
 ];
 const DUMMY_ACTIVITY = [
   {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, ago:'il y a 1h'},
@@ -4742,141 +4791,169 @@ function renderDummyActivity() {
     </div>`).join('');
 }
 
+// ── Friend Profile ─────────────────────────────────────────
+let _fpProfile = null;
+let _fpAllGames = [];
+let _fpMyGames = {};
+let _fpActiveTab = '';
+
+const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné'};
+
+function fpCoverSrc(g) {
+  if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
+  if (g.steamId) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+  return null;
+}
+function fpCover(g, w, h, r) {
+  const src = fpCoverSrc(g);
+  const fs = Math.round(w * 0.36);
+  const st = `width:${w}px;height:${h}px;border-radius:${r||10}px;background:var(--s2);overflow:hidden;flex-shrink:0`;
+  if (src) return `<div style="${st}"><img src="${src}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="width:100%;height:100%;display:none;align-items:center;justify-content:center;font-size:${fs}px">🎮</div></div>`;
+  return `<div style="${st};display:flex;align-items:center;justify-content:center;font-size:${fs}px">🎮</div>`;
+}
+
+function fpGameRow(idx) {
+  const g = _fpAllGames[idx];
+  const gid = g.id || String(g.game_id || '');
+  const mine = gid ? (_fpMyGames[gid] || null) : null;
+  return `<div onclick="openFriendGamePopup(${idx})" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;margin-bottom:8px;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+    ${fpCover(g,44,56,8)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:2px">${FP_SL[g.status]||g.status}${g.score?` · <span style="color:var(--amber);font-weight:700">★${g.score}</span>`:''}</div>
+      ${mine ? `<div style="font-size:11px;color:var(--muted2);margin-top:1px">Toi : ${FP_SL[mine.status]||''}${mine.score?` · <span style="color:var(--amber)">★${mine.score}</span>`:''}</div>` : ''}
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><path d="m9 18 6-6-6-6"/></svg>
+  </div>`;
+}
+
+function fpCommonRow(idx) {
+  const g = _fpAllGames[idx];
+  const gid = g.id || String(g.game_id || '');
+  const mine = _fpMyGames[gid] || {};
+  return `<div onclick="openFriendGamePopup(${idx})" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+    ${fpCover(g,44,56,8)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px">${g.title}</div>
+      <div style="display:flex;gap:16px">
+        <div style="font-size:11px"><span style="color:var(--muted2)">${_fpProfile.username} </span>${g.score?`<span style="color:var(--amber);font-weight:700">★${g.score}</span>`:`<span style="color:var(--muted2)">${FP_SL[g.status]||''}</span>`}</div>
+        <div style="font-size:11px"><span style="color:var(--muted2)">Toi </span>${mine.score?`<span style="color:var(--amber);font-weight:700">★${mine.score}</span>`:`<span style="color:var(--muted2)">${FP_SL[mine.status]||'—'}</span>`}</div>
+      </div>
+    </div>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><path d="m9 18 6-6-6-6"/></svg>
+  </div>`;
+}
+
+function fpRecoCard(idx) {
+  const g = _fpAllGames[idx];
+  return `<div onclick="openFriendGamePopup(${idx})" style="flex-shrink:0;width:100px;cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+    ${fpCover(g,100,133,12)}
+    <div style="margin-top:6px;font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    <div style="font-size:11px;color:var(--amber);font-weight:700;margin-top:1px">★${g.score}</div>
+  </div>`;
+}
+
+function fpRenderLibTab(tab) {
+  _fpActiveTab = tab;
+  const tabDefs = [
+    {key:'playing-solo', label:'En cours', match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
+    {key:'finished',     label:'Finis',    match:g=>g.status==='finished'},
+    {key:'platine',      label:'100%',     match:g=>g.status==='platine'},
+    {key:'backlog',      label:'Backlog',  match:g=>g.status==='backlog'},
+    {key:'abandoned',    label:'Abandonné',match:g=>g.status==='abandoned'},
+  ].filter(t => _fpAllGames.some(t.match));
+  document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;white-space:nowrap;${tab===t.key?'background:var(--a);color:#fff;border-color:var(--a)':'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`).join('');
+  const def = tabDefs.find(t=>t.key===tab);
+  const idxs = def ? _fpAllGames.map((g,i)=>def.match(g)?i:-1).filter(i=>i>=0) : [];
+  document.getElementById('fp-lib-list').innerHTML = idxs.map(i=>fpGameRow(i)).join('');
+}
+
+function renderFriendProfile(friend) {
+  _fpProfile = friend;
+  _fpAllGames = friend.games || [];
+  _fpMyGames = userGames;
+  document.getElementById('fp-title').textContent = friend.username;
+  const av = document.getElementById('fp-avatar');
+  av.textContent = friend.avatar || '🎮';
+  av.style.background = friend.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  document.getElementById('fp-name').textContent = friend.username || '';
+  document.getElementById('fp-handle').textContent = '@' + (friend.username||'').toLowerCase().replace(/\s+/g,'');
+  document.getElementById('fp-bio').textContent = friend.bio || '';
+  const platEl = document.getElementById('fp-platforms');
+  if (friend.platforms?.length) {
+    platEl.innerHTML = friend.platforms.map(p => { const c=(typeof PLAT_COLORS!=='undefined'&&PLAT_COLORS[p])||'#6b7280'; return `<span style="background:${c}22;border:1px solid ${c}55;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:600;color:${c}">${p}</span>`; }).join('');
+    platEl.style.display = 'flex';
+  } else platEl.style.display = 'none';
+  const games = friend.games || [];
+  const done  = games.filter(g=>g.status==='finished'||g.status==='platine').length;
+  const rated = games.filter(g=>g.score>0);
+  const avg   = rated.length ? (rated.reduce((s,g)=>s+g.score,0)/rated.length).toFixed(1) : '—';
+  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['⭐',avg,'moy.']].map(([ic,n,lb])=>`<div style="background:var(--s2);border-radius:12px;padding:10px 6px;text-align:center"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
+  const myIds = new Set(Object.keys(userGames));
+  // EN CE MOMENT
+  const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
+  const nowSec = document.getElementById('fp-now-section');
+  if (nowIdx.length) { nowSec.style.display='block'; document.getElementById('fp-now-list').innerHTML=nowIdx.map(i=>fpGameRow(i)).join(''); } else nowSec.style.display='none';
+  // JEUX EN COMMUN
+  const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (gid&&myIds.has(gid))?i:-1; }).filter(i=>i>=0);
+  const commonSec = document.getElementById('fp-common-section');
+  if (commonIdx.length) { commonSec.style.display='block'; document.getElementById('fp-common-list').innerHTML=commonIdx.map(i=>fpCommonRow(i)).join(''); } else commonSec.style.display='none';
+  // IL/ELLE RECOMMANDE
+  const recoIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (g.score>=8&&(!gid||!myIds.has(gid)))?i:-1; }).filter(i=>i>=0);
+  const recoSec = document.getElementById('fp-reco-section');
+  if (recoIdx.length) { recoSec.style.display='block'; document.getElementById('fp-reco-list').innerHTML=recoIdx.map(i=>fpRecoCard(i)).join(''); } else recoSec.style.display='none';
+  // SA BIBLIOTHÈQUE
+  const libSec = document.getElementById('fp-lib-section');
+  if (games.length) {
+    libSec.style.display='block';
+    const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'finished';
+    fpRenderLibTab(firstTab);
+  } else libSec.style.display='none';
+}
+
+function openFriendGamePopup(idx) {
+  const g = _fpAllGames[idx];
+  const gid = g.id || String(g.game_id || '');
+  const mine = gid ? (_fpMyGames[gid] || null) : null;
+  document.getElementById('fp-game-card-content').innerHTML = `
+    <div style="display:flex;gap:16px;margin-bottom:20px">
+      ${fpCover(g,72,96,12)}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:17px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2;margin-bottom:10px">${g.title}</div>
+        <div style="font-size:13px;margin-bottom:6px"><span style="color:var(--muted2)">${_fpProfile?.username||'Ami'} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score?`<span style="color:var(--amber);font-weight:700"> · ★${g.score}</span>`:''}</div>
+        ${mine?`<div style="font-size:13px;padding:8px 10px;background:var(--s2);border-radius:10px"><span style="color:var(--muted2)">Toi : </span><span style="font-weight:600">${FP_SL[mine.status]||mine.status}</span>${mine.score?`<span style="color:var(--amber);font-weight:700"> · ★${mine.score}</span>`:''}</div>`:`<div style="font-size:12px;color:var(--muted2);font-style:italic;margin-top:4px">Pas dans ta bibliothèque</div>`}
+      </div>
+    </div>
+    <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text)">Fermer</button>`;
+  document.getElementById('fp-game-overlay').style.display = 'flex';
+}
+function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
+
 async function openFriendProfile(userId) {
-  // Handle dummy friends
+  document.getElementById('screen-friend-profile').style.display = 'flex';
+  ['fp-now-section','fp-common-section','fp-reco-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  document.getElementById('fp-title').textContent = '…';
+  document.getElementById('fp-stats').innerHTML = '';
+  document.getElementById('fp-platforms').style.display = 'none';
   if (userId.startsWith('__dummy_')) {
     const dummy = DUMMY_FRIENDS_DATA.find(d => d.id === userId);
-    if (!dummy) return;
-    document.getElementById('screen-friend-profile').style.display = 'flex';
-    const av = document.getElementById('fp-avatar');
-    av.textContent = dummy.avatar; av.style.background = dummy.avatar_grad;
-    document.getElementById('fp-title').textContent = dummy.username;
-    document.getElementById('fp-name').textContent = dummy.username;
-    document.getElementById('fp-handle').textContent = '@' + dummy.username.toLowerCase();
-    document.getElementById('fp-bio').textContent = dummy.bio;
-
-    const done    = dummy.games.filter(g => g.status==='finished' || g.status==='platine').length;
-    const playing = dummy.games.filter(g => g.status==='playing-solo' || g.status==='playing-multi').length;
-    document.getElementById('fp-stats').innerHTML = [
-      ['🎮', dummy.games.length, 'jeux'],
-      ['✅', done, 'finis'],
-      ['▶', playing, 'en cours']
-    ].map(([ic, n, lb]) => `
-      <div style="background:var(--s2);border-radius:12px;padding:10px 8px;text-align:center">
-        <div style="font-size:18px">${ic}</div>
-        <div style="font-size:16px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div>
-        <div style="font-size:10px;color:var(--muted2)">${lb}</div>
-      </div>`).join('');
-
-    const ACTION = {'finished':'Fini','platine':'100%','playing-solo':'En cours','playing-multi':'En cours','backlog':'Backlog','abandoned':'Abandonné'};
-    document.getElementById('fp-top-section').style.display = 'block';
-    document.getElementById('fp-top-games').innerHTML = dummy.games.map((g, i) => `
-      <div style="flex-shrink:0;width:70px;text-align:center">
-        <div id="dummy-cover-${i}" style="width:70px;height:90px;border-radius:10px;background:var(--s2);overflow:hidden;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:22px">
-          ${g.image_id ? `<img src="https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer">` : '⏳'}
-        </div>
-        <div style="font-size:9px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
-        <div style="font-size:11px;font-weight:700;color:${g.score?'var(--amber)':'var(--muted2)'}">${g.score ? '★'+g.score : ACTION[g.status]||g.status}</div>
-      </div>`).join('');
-
-    document.getElementById('fp-common-section').style.display = 'none';
-
-    // Fetch missing covers from IGDB (cached on the game object for next time)
-    dummy.games.forEach(async (g, i) => {
-      if (g.image_id) return;
-      try {
-        const results = await igdbFetch('search', { query: g.title, limit: 1 });
-        const imageId = results?.[0]?.image_id;
-        g.image_id = imageId || null;
-        const el = document.getElementById(`dummy-cover-${i}`);
-        if (!el) return;
-        if (imageId) {
-          el.innerHTML = `<img src="https://images.igdb.com/igdb/image/upload/t_cover_big/${imageId}.jpg" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer">`;
-        } else {
-          el.innerHTML = '🎮';
-        }
-      } catch(e) {
-        const el = document.getElementById(`dummy-cover-${i}`);
-        if (el) el.innerHTML = '🎮';
-      }
-    });
+    if (dummy) renderFriendProfile(dummy);
     return;
   }
-  document.getElementById('screen-friend-profile').style.display = 'flex';
-  document.getElementById('fp-title').textContent = '…';
-  document.getElementById('fp-avatar').textContent = '…';
-  document.getElementById('fp-name').textContent = '';
-  document.getElementById('fp-handle').textContent = '';
-  document.getElementById('fp-bio').textContent = '';
-  document.getElementById('fp-stats').innerHTML = '';
-  document.getElementById('fp-top-section').style.display = 'none';
-  document.getElementById('fp-common-section').style.display = 'none';
-
   const [{ data: profile }, { data: games }] = await Promise.all([
     _sb.from('profiles').select('*').eq('id', userId).single(),
     _sb.from('user_games').select('*').eq('user_id', userId)
   ]);
-
   if (!profile) return;
   _friendProfileData = { profile, games: games || [] };
-
-  const av = document.getElementById('fp-avatar');
-  av.textContent = profile.avatar || '🎮';
-  av.style.background = profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-  document.getElementById('fp-title').textContent = profile.username || 'Profil';
-  document.getElementById('fp-name').textContent = profile.username || 'Gamer';
-  document.getElementById('fp-handle').textContent = '@' + (profile.username||'gamer').toLowerCase().replace(/\s+/g,'');
-  document.getElementById('fp-bio').textContent = profile.bio || '';
-
-  const g = games || [];
-  const done  = g.filter(x => x.status === 'finished' || x.status === 'platine').length;
-  const playing = g.filter(x => x.status === 'playing-solo' || x.status === 'playing-multi' || x.status === 'paused').length;
-  const statsEl = document.getElementById('fp-stats');
-  statsEl.innerHTML = [
-    ['🎮', g.length, 'jeux'],
-    ['✅', done, 'finis'],
-    ['▶', playing, 'en cours']
-  ].map(([ic, n, lb]) => `
-    <div style="background:var(--s2);border-radius:12px;padding:10px 8px;text-align:center">
-      <div style="font-size:18px">${ic}</div>
-      <div style="font-size:16px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div>
-      <div style="font-size:10px;color:var(--muted2)">${lb}</div>
-    </div>`).join('');
-
-  // Top games (rated)
-  const topGames = [...g].filter(x => x.score > 0).sort((a,b) => b.score - a.score).slice(0, 5);
-  if (topGames.length) {
-    document.getElementById('fp-top-section').style.display = 'block';
-    document.getElementById('fp-top-games').innerHTML = topGames.map(g => {
-      const src = g.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg` : null;
-      return `<div style="flex-shrink:0;width:70px;text-align:center">
-        <div style="width:70px;height:90px;border-radius:10px;background:var(--s2);overflow:hidden;margin-bottom:4px">
-          ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : `<div style="height:100%;display:flex;align-items:center;justify-content:center;font-size:22px">🎮</div>`}
-        </div>
-        <div style="font-size:9px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
-        <div style="font-size:11px;font-weight:700;color:var(--amber)">★${g.score}</div>
-      </div>`;
-    }).join('');
-  }
-
-  // Games in common
-  const myIds = new Set(GAMES.map(x => x.id));
-  const common = g.filter(x => myIds.has(x.game_id));
-  if (common.length) {
-    document.getElementById('fp-common-section').style.display = 'block';
-    document.getElementById('fp-common-list').innerHTML = common.slice(0,8).map(x => {
-      const myGame = GAMES.find(g => g.id === x.game_id);
-      const src = x.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${x.image_id}.jpg` : null;
-      return `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:12px;padding:10px 12px;display:flex;align-items:center;gap:10px">
-        ${src ? `<img src="${src}" style="width:36px;height:46px;border-radius:6px;object-fit:cover;flex-shrink:0">` : `<div style="width:36px;height:46px;border-radius:6px;background:var(--s2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px">🎮</div>`}
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.title}</div>
-          <div style="font-size:11px;color:var(--muted2);margin-top:2px">Eux: <span style="color:var(--text)">${statusLabel(x.status)}</span> · Toi: <span style="color:var(--text)">${statusLabel(myGame?.status||'backlog')}</span></div>
-        </div>
-        ${x.score ? `<div style="font-size:12px;font-weight:700;color:var(--amber)">★${x.score}</div>` : ''}
-      </div>`;
-    }).join('');
-  }
+  renderFriendProfile({
+    username: profile.username || 'Gamer',
+    avatar: profile.avatar || '🎮',
+    avatar_grad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+    bio: profile.bio || '',
+    platforms: profile.platforms || [],
+    games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') }))
+  });
 }
 
 function statusLabel(s) {
