@@ -1316,12 +1316,6 @@ html, body {
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
         <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
       </div>
-      <div id="plat-filter-bar" style="display:none;padding:4px 0 0 0">
-        <span id="plat-filter-chip" style="display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;border:0.5px solid;cursor:default">
-          <span id="plat-filter-label"></span>
-          <button onclick="clearPlatformFilter()" style="background:none;border:none;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 2px;opacity:0.7;color:inherit">×</button>
-        </span>
-      </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
   </div>
@@ -3141,14 +3135,38 @@ function openDetail(gameId) {
   // Platform badges
   const platsEl = document.getElementById('detail-platforms');
   const plats = g.platforms || [];
-  if (platsEl) platsEl.innerHTML = plats.map(p => {
-    const color = PLAT_COLORS[p] || 'rgba(108,92,231,0.15)';
-    const borderColor = PLAT_COLORS[p] ? PLAT_COLORS[p].replace(')', ',0.4)').replace('rgb','rgba') : 'rgba(108,92,231,0.3)';
-    return `<span onclick="filterByPlatform('${p}')" style="background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--a);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">${p} <span style="font-size:9px;opacity:0.55">↗</span></span>`;
-  }).join('');
+  renderDetailPlatforms(g);
   appGoTo('detail');
   // Load similar games async
   loadSimilarGames(g);
+}
+
+function renderDetailPlatforms(g) {
+  const platsEl = document.getElementById('detail-platforms');
+  if (!platsEl) return;
+  const plats = g.platforms || [];
+  if (!plats.length) { platsEl.innerHTML = ''; return; }
+  const ug = userGames[g.id] || {};
+  platsEl.innerHTML = plats.map(p => {
+    const active = ug.platform === p;
+    const bg = active ? (PLAT_COLORS[p] || 'var(--a)') : 'var(--s2)';
+    const border = active ? (PLAT_COLORS[p] || 'var(--a)') : 'var(--border2)';
+    const textColor = active ? '#fff' : 'var(--muted2)';
+    return `<span onclick="selectPlayedPlatform('${g.id}','${p}')"
+      style="background:${bg};border:1.5px solid ${border};border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:${textColor};cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px"
+      ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      ${active ? '<span style="font-size:10px">✓</span>' : ''} ${p}
+    </span>`;
+  }).join('');
+}
+
+function selectPlayedPlatform(gameId, p) {
+  const ug = userGames[gameId];
+  if (!ug) return;
+  ug.platform = (ug.platform === p) ? null : p;
+  saveToStorage();
+  renderDetailPlatforms(GAMES.find(x => x.id === gameId));
+  renderGameGrid();
 }
 
 function renderStars(cur, status) {
@@ -3222,36 +3240,7 @@ function saveGame() {
 // LIBRARY
 // ══════════════════════════════════════
 let currentFilter = 'all';
-let currentPlatformFilter = null;
-
 function setFilter(f,el){ currentFilter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); filterGames(); }
-
-function filterByPlatform(p) {
-  currentPlatformFilter = p;
-  appGoTo('library');
-  updatePlatformFilterUI();
-  filterGames();
-}
-function clearPlatformFilter() {
-  currentPlatformFilter = null;
-  updatePlatformFilterUI();
-  filterGames();
-}
-function updatePlatformFilterUI() {
-  const bar   = document.getElementById('plat-filter-bar');
-  const label = document.getElementById('plat-filter-label');
-  const chip  = document.getElementById('plat-filter-chip');
-  if (!bar) return;
-  if (currentPlatformFilter) {
-    const bg = PLAT_COLORS[currentPlatformFilter] || 'rgba(108,92,231,0.2)';
-    bar.style.display = 'block';
-    if (label) label.textContent = currentPlatformFilter;
-    if (chip) { chip.style.background = bg + '33'; chip.style.borderColor = bg; chip.style.color = '#fff'; }
-  } else {
-    bar.style.display = 'none';
-  }
-}
-
 function filterGames(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const filtered=GAMES.filter(g=>{
@@ -3261,8 +3250,7 @@ function filterGames(){
     else if (currentFilter === 'playing') matchFilter = isPlaying(ug.status);
     else matchFilter = ug.status === currentFilter;
     const matchSearch = !q||g.title.toLowerCase().includes(q);
-    const matchPlat = !currentPlatformFilter || (g.platforms||[]).includes(currentPlatformFilter);
-    return matchFilter && matchSearch && matchPlat;
+    return matchFilter && matchSearch;
   });
   renderGameGrid(filtered);
   document.getElementById('lib-count').textContent=filtered.length+' jeux';
@@ -3750,7 +3738,10 @@ function renderGameGrid(games=GAMES){
     <div class="game-info">
       <div class="game-title">${g.title}</div>
       <div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div>
-      ${(ug.hours||g.hours)>0?`<div style="font-size:10px;color:var(--muted);margin-top:2px">⏱ ${ug.hours||g.hours}h</div>`:''}
+      <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">
+        ${ug.platform?`<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[ug.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 6px">${ug.platform}</span>`:''}
+        ${(ug.hours||g.hours)>0?`<span style="font-size:10px;color:var(--muted)">⏱ ${ug.hours||g.hours}h</span>`:''}
+      </div>
       ${quickActionBtn(g.id, ug.status)}
     </div>`;
     grid.appendChild(cell);
