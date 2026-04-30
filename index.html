@@ -1265,10 +1265,25 @@ html, body {
         <div id="home-activity-list" style="padding:0 16px 4px"></div>
       </div>
 
-      <!-- JEUX QUI M'INTÉRESSENT -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px">
-        <div class="sec-label" style="padding:0">Recommandations</div>
-        <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;padding:4px 6px;border-radius:8px;transition:color 0.15s" title="Rafraîchir">↻</button>
+      <!-- 🔥 TENDANCES DU MOMENT -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
+        <div class="sec-label" style="padding:0">🔥 Tendances du moment</div>
+        <button onclick="renderHomeTrending(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px" title="Rafraîchir">↻</button>
+      </div>
+      <div id="home-trending-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+        <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
+      </div>
+
+      <!-- 📚 COLLECTIONS -->
+      <div style="padding:24px 16px 10px;display:flex;align-items:center;justify-content:space-between">
+        <div class="sec-label" style="padding:0">📚 Collections</div>
+      </div>
+      <div id="home-collections" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+
+      <!-- RECOMMANDATIONS PERSONNALISÉES -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 8px">
+        <div class="sec-label" style="padding:0">Pour toi</div>
+        <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px" title="Rafraîchir">↻</button>
       </div>
       <div id="home-recos" style="padding:0 16px 24px;display:flex;flex-direction:column;gap:8px"></div>
 
@@ -1576,6 +1591,12 @@ html, body {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
             Ajouter des captures d'écran
           </label>
+        </div>
+
+        <!-- TU AIMERAS AUSSI -->
+        <div id="similar-section" style="margin-bottom:20px;display:none">
+          <div class="rating-label" style="margin-bottom:10px">Tu aimeras aussi</div>
+          <div id="similar-list" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
         </div>
 
         <button class="save-btn" onclick="saveGame()">Sauvegarder</button>
@@ -3116,6 +3137,8 @@ function openDetail(gameId) {
   const plats = g.platforms || [];
   if (platsEl) platsEl.innerHTML = plats.map(p => `<span style="background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--a)">${p}</span>`).join('');
   appGoTo('detail');
+  // Load similar games async
+  loadSimilarGames(g);
 }
 
 function renderStars(cur, status) {
@@ -4413,6 +4436,12 @@ function initApp(){
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   const firstActive = document.querySelector('#app-nav .nav-btn.active');
   if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
+  // Load home feed async sections
+  setTimeout(() => {
+    renderHomeTrending();
+    renderHomeCollections();
+    renderHomeRecos();
+  }, 200);
 }
 
 // ══════════════════════════════════════
@@ -4707,6 +4736,201 @@ function timeAgo(iso) {
   if (h > 0) return `il y a ${h}h`;
   if (m > 0) return `il y a ${m}min`;
   return 'à l\'instant';
+}
+
+// ══════════════════════════════════════
+// TENDANCES CAROUSEL
+// ══════════════════════════════════════
+let _trendingCache = null;
+
+async function renderHomeTrending(refresh = false) {
+  const row = document.getElementById('home-trending-row');
+  if (!row) return;
+  if (refresh || !_trendingCache) {
+    row.innerHTML = '<div class="loading-dots" style="padding:20px 0"><span></span><span></span><span></span></div>';
+    const data = await igdbFetch('trending', { limit: 18 });
+    _trendingCache = data ? data.map(mapIgdbGame).filter(g => g.cover || g.steamId) : [];
+  }
+  if (!_trendingCache.length) { row.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0">Aucun résultat</div>'; return; }
+  row.innerHTML = _trendingCache.map(g => {
+    const src = coverUrl(g);
+    const inLib = !!GAMES.find(x => x.id === g.id);
+    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `<div onclick="trendingOpenDetail('${g.id}')" style="flex-shrink:0;width:110px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="width:110px;height:145px;border-radius:12px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:6px">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+      </div>
+      <div style="font-size:11px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+      <div style="font-size:10px;color:var(--muted2);margin-top:1px">${g.genre||''}</div>
+    </div>`;
+  }).join('');
+}
+
+function trendingOpenDetail(id) {
+  const cached = _trendingCache?.find(x => x.id === id);
+  if (!cached) return;
+  if (!GAMES.find(x => x.id === id)) {
+    GAMES.push({...cached, status:'wish', score:0, notes:'', hours:0});
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+  }
+  openDetail(id);
+}
+
+// ══════════════════════════════════════
+// COLLECTIONS THÉMATIQUES
+// ══════════════════════════════════════
+const COLLECTIONS = [
+  { id:'goty2024', emoji:'🏆', title:'Jeux de l\'année 2024', sub:'Les meilleurs de 2024', query:'goty 2024', genres:[], years:[2024] },
+  { id:'rpg',      emoji:'⚔️',  title:'Incontournables RPG', sub:'Les classiques du genre', query:'rpg classic', genres:['Role-playing (RPG)','Action RPG','JRPG'] },
+  { id:'indie',    emoji:'🌙',  title:'Indés à ne pas manquer', sub:'Jeux indépendants cultes', query:'indie cult', genres:['Indie','Platform','Adventure'] },
+  { id:'short',    emoji:'⚡',  title:'Moins de 10 heures', sub:'Courts mais intenses', query:'short game', genres:[] },
+  { id:'multi',    emoji:'👾',  title:'Soirée multijoueur', sub:'Pour jouer entre amis', query:'multiplayer co-op', genres:[] },
+  { id:'horror',   emoji:'😱',  title:'Survival Horror', sub:'Pour les amateurs de frissons', query:'horror survival', genres:['Horror'] },
+];
+let _colCache = {};
+let _activeCollection = null;
+
+async function renderHomeCollections() {
+  const el = document.getElementById('home-collections');
+  if (!el) return;
+  el.innerHTML = COLLECTIONS.map(c => `
+    <div onclick="openCollection('${c.id}')" style="flex-shrink:0;width:160px;height:90px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:flex-end" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div id="col-covers-${c.id}" style="position:absolute;inset:0;display:flex">
+        <div style="flex:1;background:var(--s3)"></div><div style="flex:1;background:var(--s2);opacity:0.7"></div><div style="flex:1;background:var(--s1);opacity:0.4"></div>
+      </div>
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
+      <div style="position:relative;padding:8px 10px;z-index:1">
+        <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2">${c.emoji} ${c.title}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:1px">${c.sub}</div>
+      </div>
+    </div>`).join('');
+  // Preload covers for the first 3 collections in background
+  COLLECTIONS.slice(0, 3).forEach(c => loadCollectionCovers(c));
+}
+
+async function loadCollectionCovers(c) {
+  if (_colCache[c.id]) { renderCollectionThumbnail(c.id, _colCache[c.id]); return; }
+  const data = await igdbFetch('search', { query: c.query, limit: 6, genres: c.genres, years: c.years });
+  if (!data?.length) return;
+  const games = data.map(mapIgdbGame).filter(g => g.cover || g.steamId).slice(0, 3);
+  _colCache[c.id] = _colCache[c.id] || [];
+  if (!_colCache[c.id].length) _colCache[c.id] = games;
+  renderCollectionThumbnail(c.id, games);
+}
+
+function renderCollectionThumbnail(id, games) {
+  const el = document.getElementById(`col-covers-${id}`);
+  if (!el || !games.length) return;
+  el.innerHTML = games.slice(0, 3).map(g => {
+    const src = coverUrl(g);
+    return src ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
+  }).join('');
+}
+
+async function openCollection(id) {
+  const c = COLLECTIONS.find(x => x.id === id);
+  if (!c) return;
+  _activeCollection = id;
+  const modal = document.getElementById('collection-modal');
+  const grid  = document.getElementById('col-modal-grid');
+  document.getElementById('col-modal-title').textContent = `${c.emoji} ${c.title}`;
+  document.getElementById('col-modal-sub').textContent = c.sub;
+  grid.innerHTML = '<div class="loading-dots" style="grid-column:1/-1;padding:32px 0"><span></span><span></span><span></span></div>';
+  modal.style.display = 'flex';
+
+  if (!_colCache[id] || _colCache[id].length < 4) {
+    const data = await igdbFetch('search', { query: c.query, limit: 18, genres: c.genres, years: c.years });
+    if (data?.length) _colCache[id] = data.map(mapIgdbGame).filter(g => g.cover || g.steamId);
+  }
+  const games = _colCache[id] || [];
+  if (!games.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted)">Aucun jeu trouvé</div>'; return; }
+
+  grid.innerHTML = games.map(g => {
+    const src = coverUrl(g);
+    const inLib = !!GAMES.find(x => x.id === g.id);
+    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `<div onclick="colOpenDetail('${g.id}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="border-radius:12px;background:var(--s2);overflow:hidden;position:relative;aspect-ratio:3/4;margin-bottom:6px">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 45%)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:8px">
+          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+          ${g.meta ? `<div style="font-size:9px;color:rgba(255,255,255,0.65);margin-top:1px">MC ${g.meta}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function colOpenDetail(id) {
+  const g = (_colCache[_activeCollection] || []).find(x => x.id === id);
+  if (!g) return;
+  if (!GAMES.find(x => x.id === id)) {
+    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+  }
+  closeCollection();
+  openDetail(id);
+}
+
+function closeCollection() {
+  document.getElementById('collection-modal').style.display = 'none';
+  _activeCollection = null;
+}
+
+// ══════════════════════════════════════
+// SIMILAR GAMES — fiche jeu
+// ══════════════════════════════════════
+let _similarCache = {};
+
+async function loadSimilarGames(game) {
+  const section = document.getElementById('similar-section');
+  const list    = document.getElementById('similar-list');
+  if (!section || !list) return;
+  section.style.display = 'none';
+
+  const cacheKey = game.id;
+  if (!_similarCache[cacheKey]) {
+    // Search by genre + exclude current game
+    const data = await igdbFetch('similar', { gameId: String(game.id), limit: 8 });
+    // Fallback: genre search if no similar results
+    const fallback = (!data?.length) && game.genre
+      ? await igdbFetch('search', { query: game.genre, limit: 10 })
+      : null;
+    const results = (data?.length ? data : fallback) || [];
+    _similarCache[cacheKey] = results
+      .map(mapIgdbGame)
+      .filter(g => g.id !== String(game.id) && (g.cover || g.steamId))
+      .slice(0, 6);
+  }
+  const similar = _similarCache[cacheKey];
+  if (!similar.length) return;
+
+  section.style.display = 'block';
+  list.innerHTML = similar.map(g => {
+    const src = coverUrl(g);
+    const inLib = !!GAMES.find(x => x.id === g.id);
+    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return `<div onclick="simOpenDetail('${g.id}','${cacheKey}')" style="flex-shrink:0;width:90px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="width:90px;height:120px;border-radius:10px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:5px">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${inLib ? `<div style="position:absolute;top:4px;right:4px;background:rgba(0,230,118,0.9);border-radius:5px;padding:1px 5px;font-size:8px;font-weight:700;color:#000">✓</div>` : ''}
+      </div>
+      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    </div>`;
+  }).join('');
+}
+
+function simOpenDetail(id, cacheKey) {
+  const g = (_similarCache[cacheKey] || []).find(x => x.id === id);
+  if (!g) return;
+  if (!GAMES.find(x => x.id === id)) {
+    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+  }
+  openDetail(id);
 }
 
 // ══════════════════════════════════════
@@ -5065,6 +5289,22 @@ function closeTirageIntro() {
     <button onclick="closeTirageIntro()" class="btn-primary">C'est parti !</button>
   </div>
 </div>
+<!-- COLLECTION MODAL -->
+<div id="collection-modal" style="display:none;position:fixed;inset:0;z-index:800;background:var(--bg);flex-direction:column">
+  <div style="padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
+    <button onclick="closeCollection()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800" id="col-modal-title"></div>
+      <div style="font-size:11px;color:var(--muted2)" id="col-modal-sub"></div>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="col-modal-grid">
+    <div class="loading-dots" style="grid-column:1/-1;padding:32px 0"><span></span><span></span><span></span></div>
+  </div>
+</div>
+
 <!-- WRAPPED MODAL -->
 <div id="wrapped-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:flex-end" onclick="if(event.target===this)closeWrapped()">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:28px 28px 0 0;padding:28px 24px calc(36px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1);max-height:88dvh;overflow-y:auto">
