@@ -1918,11 +1918,11 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Platform abbreviation colours
 const PLAT_COLORS = {
-  'PC':      '#6b7280', 'Mac':    '#6b7280', 'Linux': '#6b7280',
-  'PS4':     '#003087', 'PS5':    '#003087',
-  'XBO':     '#107c10', 'XBSX':  '#107c10',
-  'Switch':  '#e4000f', 'NSW':   '#e4000f', 'NSW2': '#e4000f',
-  'iOS':     '#5856d6', 'Android':'#3ddc84',
+  'PC':          '#6b7280', 'Mac':      '#6b7280', 'Linux':    '#6b7280',
+  'PS4':         '#003087', 'PS5':      '#003087',
+  'XBO':         '#107c10', 'XBSX':     '#107c10', 'Series X|S': '#107c10', 'Xbox Series X': '#107c10',
+  'Switch':      '#e4000f', 'NSW':      '#e4000f', 'Switch 2': '#e4000f',   'NSW2':    '#e4000f',
+  'iOS':         '#5856d6', 'Android':  '#3ddc84',
 };
 
 function mapIgdbGame(g) {
@@ -3156,17 +3156,47 @@ function openDetail(gameId) {
   appGoTo('detail');
   // Load similar games async
   loadSimilarGames(g);
+  // Fetch videoId for library games that predate the videos feature
+  if (g.videoId === undefined) {
+    igdbFetch('game', { ids: [Number(g.id)], limit: 1 }).then(raw => {
+      const vids = raw?.[0]?.videos || [];
+      const best = vids.find(v => /gameplay/i.test(v.name || '')) || vids[0];
+      g.videoId = best?.video_id || null;
+      if (g.videoId && currentGame?.id === g.id) {
+        const hero = document.getElementById('detail-hero');
+        if (!hero.querySelector('.hero-play-btn') && !hero.querySelector('iframe')) {
+          const btn = document.createElement('button');
+          btn.className = 'hero-play-btn';
+          btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>';
+          btn.onclick = () => playHeroVideo(g.videoId);
+          hero.appendChild(btn);
+        }
+      }
+    }).catch(() => { g.videoId = null; });
+  }
 }
 
 function playHeroVideo(videoId) {
   const hero = document.getElementById('detail-hero');
   hero.querySelectorAll('img,.hero-blur-bg,.hero-play-btn').forEach(el => el.remove());
-  const iframe = document.createElement('iframe');
-  iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`;
-  iframe.allow = 'autoplay; encrypted-media; fullscreen';
-  iframe.allowFullscreen = true;
-  iframe.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:none;z-index:5';
-  hero.appendChild(iframe);
+  const ytUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  // Thumbnail as background
+  const thumb = document.createElement('img');
+  thumb.referrerPolicy = 'no-referrer';
+  thumb.src = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+  thumb.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1';
+  thumb.onerror = () => { thumb.src = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`; };
+  // Clickable overlay → open YouTube
+  const link = document.createElement('a');
+  link.href = ytUrl; link.target = '_blank'; link.rel = 'noopener';
+  link.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;background:rgba(0,0,0,0.42);text-decoration:none;color:#fff;gap:10px';
+  link.innerHTML = `
+    <div style="width:58px;height:58px;border-radius:50%;background:rgba(220,0,0,0.92);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>
+    </div>
+    <span style="font-size:12px;font-weight:700;background:rgba(0,0,0,0.5);padding:4px 10px;border-radius:20px">Voir le trailer ↗</span>`;
+  hero.appendChild(thumb);
+  hero.appendChild(link);
 }
 
 function renderDetailPlatforms(g) {
@@ -3272,7 +3302,7 @@ function saveGame() {
   renderFeed();
   saveToStorage();
   showToast('✓ Sauvegardé');
-  setTimeout(() => appGoTo('feed'), 600);
+  setTimeout(() => appGoBack(), 600);
 }
 
 // ══════════════════════════════════════
@@ -4523,6 +4553,22 @@ let _socialFriends    = []; // accepted friendships with profile data
 let _socialPending    = []; // incoming pending requests
 let _friendProfileData = null;
 
+const DUMMY_FRIENDS_DATA = [
+  { id:'__dummy_alex', username:'Alex', avatar:'🏆', avatar_grad:'linear-gradient(135deg,#fd79a8,#e84393)', bio:'Platinum hunter. 47 jeux à 100%. Ne dort plus.', platforms:['PS5','PC'],
+    games:[{title:'God of War Ragnarök',status:'platine',score:10},{title:'Elden Ring',status:'finished',score:9},{title:'Celeste',status:'platine',score:10},{title:'Hollow Knight',status:'finished',score:9}]},
+  { id:'__dummy_jul', username:'Julien', avatar:'⚔️', avatar_grad:'linear-gradient(135deg,#43d8c9,#4396d8)', bio:'RPG & stratégie. BG3 c\'est la vie.', platforms:['PC','Switch'],
+    games:[{title:"Baldur's Gate 3",status:'playing-solo',score:0},{title:'Hades II',status:'finished',score:9},{title:'Disco Elysium',status:'finished',score:10},{title:'Into the Breach',status:'platine',score:9}]},
+  { id:'__dummy_sara', username:'Sara', avatar:'🌙', avatar_grad:'linear-gradient(135deg,#a843d8,#d843a8)', bio:'Indie & narratif. Pleure à tous les Telltale.', platforms:['Switch','PC'],
+    games:[{title:'Hollow Knight',status:'backlog',score:0},{title:'Celeste',status:'finished',score:10},{title:'Stardew Valley',status:'playing-solo',score:0},{title:'Spiritfarer',status:'finished',score:9}]},
+];
+const DUMMY_ACTIVITY = [
+  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, ago:'il y a 1h'},
+  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:"Baldur's Gate 3",     status:'playing-solo', score:0,  ago:'il y a 3h'},
+  {username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', title:'Hollow Knight',        status:'backlog',      score:0,  ago:'il y a 1j'},
+  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'Celeste',              status:'finished',     score:9,  ago:'il y a 2j'},
+  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:'Disco Elysium',        status:'finished',     score:10, ago:'il y a 2j'},
+];
+
 async function loadSocialScreen() {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) return;
@@ -4549,7 +4595,7 @@ async function loadSocialScreen() {
     const { data: profiles } = await _sb.from('profiles').select('*').in('id', acceptedIds);
     friends = profiles || [];
   }
-  _socialFriends = friends;
+  _socialFriends = [...DUMMY_FRIENDS_DATA, ...friends];
 
   // Fetch profiles for pending requesters
   let pendingWithProfiles = [];
@@ -4564,6 +4610,7 @@ async function loadSocialScreen() {
   _socialPending = pendingWithProfiles;
 
   renderSocialScreen(uid);
+  renderDummyActivity();
   if (friends.length) loadFriendActivity(acceptedIds);
 }
 
@@ -4660,7 +4707,55 @@ async function declineFriend(friendshipId) {
   loadSocialScreen();
 }
 
+function renderDummyActivity() {
+  const ACTION = {'finished':'a fini','platine':'a eu le 100% sur','playing-solo':'joue à','playing-multi':'joue en multi à','backlog':'a ajouté au backlog','abandoned':'a abandonné','wish':'souhaite','paused':'a mis en pause'};
+  const html = DUMMY_ACTIVITY.map(item => `
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:36px;height:36px;border-radius:50%;background:${item.grad};font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${item.avatar}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>
+      </div>
+    </div>`).join('');
+  const actSection = document.getElementById('social-activity-section');
+  const actList = document.getElementById('social-activity-list');
+  if (actSection) actSection.style.display = 'block';
+  if (actList) actList.innerHTML = html;
+  const homeSection = document.getElementById('home-activity-section');
+  const homeList = document.getElementById('home-activity-list');
+  if (homeSection) homeSection.style.display = 'block';
+  if (homeList) homeList.innerHTML = DUMMY_ACTIVITY.slice(0,3).map(item => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:30px;height:30px;border-radius:50%;background:${item.grad};font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${item.avatar}</div>
+      <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
+    </div>`).join('');
+}
+
 async function openFriendProfile(userId) {
+  // Handle dummy friends
+  if (userId.startsWith('__dummy_')) {
+    const dummy = DUMMY_FRIENDS_DATA.find(d => d.id === userId);
+    if (!dummy) return;
+    document.getElementById('screen-friend-profile').style.display = 'flex';
+    const av = document.getElementById('fp-avatar');
+    av.textContent = dummy.avatar; av.style.background = dummy.avatar_grad;
+    document.getElementById('fp-title').textContent = dummy.username;
+    document.getElementById('fp-name').textContent = dummy.username;
+    document.getElementById('fp-handle').textContent = '@' + dummy.username.toLowerCase();
+    document.getElementById('fp-bio').textContent = dummy.bio;
+    const ACTION = {'finished':'Fini','platine':'100%','playing-solo':'En cours','backlog':'Backlog','abandoned':'Abandonné'};
+    document.getElementById('fp-stats').innerHTML = `<span>${dummy.games.length} jeux</span><span>${dummy.games.filter(g=>g.status==='finished'||g.status==='platine').length} finis</span>`;
+    const topSection = document.getElementById('fp-top-section');
+    topSection.style.display = 'block';
+    document.getElementById('fp-top-games').innerHTML = dummy.games.map(g => `
+      <div style="flex-shrink:0;width:80px">
+        <div style="width:80px;height:107px;border-radius:10px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:5px">🎮</div>
+        <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+        <div style="font-size:9px;color:var(--muted);margin-top:1px">${ACTION[g.status]||g.status}${g.score?` · ★${g.score}`:''}</div>
+      </div>`).join('');
+    document.getElementById('fp-common-section').style.display = 'none';
+    return;
+  }
   document.getElementById('screen-friend-profile').style.display = 'flex';
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-avatar').textContent = '…';
@@ -5390,7 +5485,9 @@ function closeTirageIntro() {
 
 <script>
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+  // Unregister all SWs and clear all caches immediately — always serve live version
+  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
 }
 </script>
 </body>
