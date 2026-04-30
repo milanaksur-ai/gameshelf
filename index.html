@@ -3093,7 +3093,7 @@ function updateScoreDisplay(score, status) {
   const clearBtn = document.getElementById('clear-score-btn');
   const playing  = isPlaying(status);
   if (score > 0) {
-    scoreEl.textContent = score + '/10';
+    scoreEl.textContent = (Number.isInteger(score) ? score : score.toFixed(1)) + '/10';
     scoreEl.style.color = playing ? 'var(--green)' : 'var(--amber)';
     if (tempEl)   tempEl.style.display   = playing ? 'block' : 'none';
     if (clearBtn) clearBtn.style.display = 'inline-block';
@@ -3171,17 +3171,28 @@ function selectPlayedPlatform(gameId, p) {
 
 function renderStars(cur, status) {
   const playing = isPlaying(status);
+  const color = playing ? 'var(--green)' : '#ffca28';
   const row = document.getElementById('stars-row'); row.innerHTML = '';
   for (let i = 1; i <= 10; i++) {
     const b = document.createElement('button'); b.className = 'star-btn';
-    const filled = i <= cur;
-    b.textContent = filled ? '★' : '☆';
-    b.style.color = filled ? (playing ? 'var(--green)' : '#ffca28') : '#3a3a50';
-    b.onclick = () => {
+    const filled = cur >= i;
+    const half   = !filled && cur >= i - 0.5;
+    if (filled) {
+      b.textContent = '★';
+      b.style.color = color;
+    } else if (half) {
+      b.innerHTML = `<span style="position:relative;display:inline-block;line-height:1"><span style="color:#3a3a50">★</span><span style="position:absolute;left:0;top:0;overflow:hidden;width:50%;color:${color}">★</span></span>`;
+    } else {
+      b.textContent = '☆';
+      b.style.color = '#3a3a50';
+    }
+    b.onclick = (e) => {
+      const rect = b.getBoundingClientRect();
+      const isHalf = (e.clientX - rect.left) < rect.width / 2;
       const ug = userGames[currentGame.id];
-      ug.score = i;
-      renderStars(i, ug.status);
-      updateScoreDisplay(i, ug.status);
+      ug.score = isHalf ? i - 0.5 : i;
+      renderStars(ug.score, ug.status);
+      updateScoreDisplay(ug.score, ug.status);
     };
     row.appendChild(b);
   }
