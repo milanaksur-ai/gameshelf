@@ -4754,17 +4754,52 @@ async function openFriendProfile(userId) {
     document.getElementById('fp-name').textContent = dummy.username;
     document.getElementById('fp-handle').textContent = '@' + dummy.username.toLowerCase();
     document.getElementById('fp-bio').textContent = dummy.bio;
-    const ACTION = {'finished':'Fini','platine':'100%','playing-solo':'En cours','backlog':'Backlog','abandoned':'Abandonné'};
-    document.getElementById('fp-stats').innerHTML = `<span>${dummy.games.length} jeux</span><span>${dummy.games.filter(g=>g.status==='finished'||g.status==='platine').length} finis</span>`;
-    const topSection = document.getElementById('fp-top-section');
-    topSection.style.display = 'block';
-    document.getElementById('fp-top-games').innerHTML = dummy.games.map(g => `
-      <div style="flex-shrink:0;width:80px">
-        <div style="width:80px;height:107px;border-radius:10px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:5px">🎮</div>
-        <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
-        <div style="font-size:9px;color:var(--muted);margin-top:1px">${ACTION[g.status]||g.status}${g.score?` · ★${g.score}`:''}</div>
+
+    const done    = dummy.games.filter(g => g.status==='finished' || g.status==='platine').length;
+    const playing = dummy.games.filter(g => g.status==='playing-solo' || g.status==='playing-multi').length;
+    document.getElementById('fp-stats').innerHTML = [
+      ['🎮', dummy.games.length, 'jeux'],
+      ['✅', done, 'finis'],
+      ['▶', playing, 'en cours']
+    ].map(([ic, n, lb]) => `
+      <div style="background:var(--s2);border-radius:12px;padding:10px 8px;text-align:center">
+        <div style="font-size:18px">${ic}</div>
+        <div style="font-size:16px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div>
+        <div style="font-size:10px;color:var(--muted2)">${lb}</div>
       </div>`).join('');
+
+    const ACTION = {'finished':'Fini','platine':'100%','playing-solo':'En cours','playing-multi':'En cours','backlog':'Backlog','abandoned':'Abandonné'};
+    document.getElementById('fp-top-section').style.display = 'block';
+    document.getElementById('fp-top-games').innerHTML = dummy.games.map((g, i) => `
+      <div style="flex-shrink:0;width:70px;text-align:center">
+        <div id="dummy-cover-${i}" style="width:70px;height:90px;border-radius:10px;background:var(--s2);overflow:hidden;margin-bottom:4px;display:flex;align-items:center;justify-content:center;font-size:22px">
+          ${g.image_id ? `<img src="https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer">` : '⏳'}
+        </div>
+        <div style="font-size:9px;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+        <div style="font-size:11px;font-weight:700;color:${g.score?'var(--amber)':'var(--muted2)'}">${g.score ? '★'+g.score : ACTION[g.status]||g.status}</div>
+      </div>`).join('');
+
     document.getElementById('fp-common-section').style.display = 'none';
+
+    // Fetch missing covers from IGDB (cached on the game object for next time)
+    dummy.games.forEach(async (g, i) => {
+      if (g.image_id) return;
+      try {
+        const results = await igdbFetch('search', { query: g.title, limit: 1 });
+        const imageId = results?.[0]?.image_id;
+        g.image_id = imageId || null;
+        const el = document.getElementById(`dummy-cover-${i}`);
+        if (!el) return;
+        if (imageId) {
+          el.innerHTML = `<img src="https://images.igdb.com/igdb/image/upload/t_cover_big/${imageId}.jpg" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer">`;
+        } else {
+          el.innerHTML = '🎮';
+        }
+      } catch(e) {
+        const el = document.getElementById(`dummy-cover-${i}`);
+        if (el) el.innerHTML = '🎮';
+      }
+    });
     return;
   }
   document.getElementById('screen-friend-profile').style.display = 'flex';
