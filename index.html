@@ -4570,14 +4570,25 @@ const DUMMY_ACTIVITY = [
 ];
 
 async function loadSocialScreen() {
+  // Always show dummy friends regardless of auth/network state
+  _socialFriends = [...DUMMY_FRIENDS_DATA];
+
   const { data: { session } } = await _sb.auth.getSession();
-  if (!session) return;
+  if (!session) {
+    renderSocialScreen(null);
+    renderDummyActivity();
+    return;
+  }
   const uid = session.user.id;
 
   // Fetch all friendships involving current user
   const { data: rows } = await _sb.from('friendships').select('*')
     .or(`requester_id.eq.${uid},addressee_id.eq.${uid}`);
-  if (!rows) return;
+  if (!rows) {
+    renderSocialScreen(uid);
+    renderDummyActivity();
+    return;
+  }
 
   const acceptedIds = [];
   const pendingIncoming = [];
