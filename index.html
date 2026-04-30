@@ -4781,12 +4781,12 @@ function trendingOpenDetail(id) {
 // COLLECTIONS THÉMATIQUES
 // ══════════════════════════════════════
 const COLLECTIONS = [
-  { id:'goty2024', emoji:'🏆', title:'Jeux de l\'année 2024', sub:'Les meilleurs de 2024', query:'goty 2024', genres:[], years:[2024] },
-  { id:'rpg',      emoji:'⚔️',  title:'Incontournables RPG', sub:'Les classiques du genre', query:'rpg classic', genres:['Role-playing (RPG)','Action RPG','JRPG'] },
-  { id:'indie',    emoji:'🌙',  title:'Indés à ne pas manquer', sub:'Jeux indépendants cultes', query:'indie cult', genres:['Indie','Platform','Adventure'] },
-  { id:'short',    emoji:'⚡',  title:'Moins de 10 heures', sub:'Courts mais intenses', query:'short game', genres:[] },
-  { id:'multi',    emoji:'👾',  title:'Soirée multijoueur', sub:'Pour jouer entre amis', query:'multiplayer co-op', genres:[] },
-  { id:'horror',   emoji:'😱',  title:'Survival Horror', sub:'Pour les amateurs de frissons', query:'horror survival', genres:['Horror'] },
+  { id:'goty2024', emoji:'🏆', title:'Jeux de l\'année 2024', sub:'Les meilleurs de 2024',     filter:{ yearFrom:2024, yearTo:2024 } },
+  { id:'rpg',      emoji:'⚔️',  title:'Incontournables RPG',     sub:'Les classiques du genre',  filter:{ genreIds:[12] } },
+  { id:'indie',    emoji:'🌙',  title:'Indés à ne pas manquer',  sub:'Jeux indépendants cultes', filter:{ genreIds:[32] } },
+  { id:'short',    emoji:'⚡',  title:'Moins de 10 heures',      sub:'Courts mais intenses',     filter:{ genreIds:[8,9] } },
+  { id:'multi',    emoji:'👾',  title:'Soirée multijoueur',      sub:'Pour jouer entre amis',    filter:{ mode:'multi' } },
+  { id:'horror',   emoji:'😱',  title:'Survival Horror',         sub:'Pour les amateurs de frissons', filter:{ themeIds:[19] } },
 ];
 let _colCache = {};
 let _activeCollection = null;
@@ -4811,11 +4811,10 @@ async function renderHomeCollections() {
 
 async function loadCollectionCovers(c) {
   if (_colCache[c.id]) { renderCollectionThumbnail(c.id, _colCache[c.id]); return; }
-  const data = await igdbFetch('search', { query: c.query, limit: 6, genres: c.genres, years: c.years });
+  const data = await igdbFetch('filter', { ...c.filter, limit: 6 });
   if (!data?.length) return;
   const games = data.map(mapIgdbGame).filter(g => g.cover || g.steamId).slice(0, 3);
-  _colCache[c.id] = _colCache[c.id] || [];
-  if (!_colCache[c.id].length) _colCache[c.id] = games;
+  _colCache[c.id] = games;
   renderCollectionThumbnail(c.id, games);
 }
 
@@ -4840,7 +4839,7 @@ async function openCollection(id) {
   modal.style.display = 'flex';
 
   if (!_colCache[id] || _colCache[id].length < 4) {
-    const data = await igdbFetch('search', { query: c.query, limit: 18, genres: c.genres, years: c.years });
+    const data = await igdbFetch('filter', { ...c.filter, limit: 18 });
     if (data?.length) _colCache[id] = data.map(mapIgdbGame).filter(g => g.cover || g.steamId);
   }
   const games = _colCache[id] || [];
@@ -4895,9 +4894,10 @@ async function loadSimilarGames(game) {
   if (!_similarCache[cacheKey]) {
     // Search by genre + exclude current game
     const data = await igdbFetch('similar', { gameId: String(game.id), limit: 8 });
-    // Fallback: genre search if no similar results
-    const fallback = (!data?.length) && game.genre
-      ? await igdbFetch('search', { query: game.genre, limit: 10 })
+    // Fallback: genre filter if no similar results
+    const genreId = game.genres?.[0]?.id;
+    const fallback = (!data?.length) && genreId
+      ? await igdbFetch('genre', { genreId, limit: 10, offset: 0 })
       : null;
     const results = (data?.length ? data : fallback) || [];
     _similarCache[cacheKey] = results
