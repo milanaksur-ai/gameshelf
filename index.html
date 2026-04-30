@@ -252,6 +252,7 @@ html, body {
   height: calc(64px + var(--safe-b)); padding-bottom: var(--safe-b);
   background: rgba(8,8,16,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 0.5px solid var(--border);
+  z-index: 300;
   display: flex; align-items: center; justify-content: space-around; z-index: 100;
 }
 .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 20px; background: none; border: none; cursor: pointer; color: var(--muted); transition: color 0.2s; }
@@ -4885,10 +4886,10 @@ function renderFriendProfile(friend) {
     platEl.style.display = 'flex';
   } else platEl.style.display = 'none';
   const games = friend.games || [];
-  const done  = games.filter(g=>g.status==='finished'||g.status==='platine').length;
-  const rated = games.filter(g=>g.score>0);
-  const avg   = rated.length ? (rated.reduce((s,g)=>s+g.score,0)/rated.length).toFixed(1) : '—';
-  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['⭐',avg,'moy.']].map(([ic,n,lb])=>`<div style="background:var(--s2);border-radius:12px;padding:10px 6px;text-align:center"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
+  const done    = games.filter(g=>g.status==='finished'||g.status==='platine').length;
+  const platine = games.filter(g=>g.status==='platine').length;
+  const playing = games.filter(g=>g.status==='playing-solo'||g.status==='playing-multi').length;
+  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['🏆',platine,'100%']].map(([ic,n,lb])=>`<div style="background:var(--s2);border-radius:12px;padding:10px 6px;text-align:center"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
   const myIds = new Set(Object.keys(userGames));
   // EN CE MOMENT
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
