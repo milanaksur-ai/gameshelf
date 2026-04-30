@@ -1,31 +1,20 @@
-const CACHE = 'gameshelf-v1';
-const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
+// Self-destructing SW: always serve from network, then kill itself
+self.addEventListener('install', () => self.skipWaiting());
 
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
-  self.skipWaiting();
-});
+// Pass all fetches through to the network (no cache)
+self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    (async () => {
+      // 1. Clear all caches
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+      // 2. Navigate all clients BEFORE unregistering
+      const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
+      await Promise.all(clients.map(c => c.navigate(c.url)));
+      // 3. Unregister this SW
+      await self.registration.unregister();
+    })()
   );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', e => {
-  const url = e.request.url;
-  if (url.includes('/api/') || url.includes('supabase.co') || url.includes('igdb')) {
-    e.respondWith(
-      fetch(e.request).catch(() =>
-        new Response('{"error":"offline"}', { headers: { 'Content-Type': 'application/json' } })
-      )
-    );
-  } else {
-    e.respondWith(
-      caches.match(e.request).then(r => r || fetch(e.request))
-    );
-  }
 });
