@@ -1316,6 +1316,12 @@ html, body {
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
         <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
       </div>
+      <div id="plat-filter-bar" style="display:none;padding:4px 0 0 0">
+        <span id="plat-filter-chip" style="display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:4px 10px;font-size:12px;font-weight:700;border:0.5px solid;cursor:default">
+          <span id="plat-filter-label"></span>
+          <button onclick="clearPlatformFilter()" style="background:none;border:none;cursor:pointer;font-size:15px;line-height:1;padding:0 0 0 2px;opacity:0.7;color:inherit">×</button>
+        </span>
+      </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
   </div>
@@ -3135,7 +3141,11 @@ function openDetail(gameId) {
   // Platform badges
   const platsEl = document.getElementById('detail-platforms');
   const plats = g.platforms || [];
-  if (platsEl) platsEl.innerHTML = plats.map(p => `<span style="background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--a)">${p}</span>`).join('');
+  if (platsEl) platsEl.innerHTML = plats.map(p => {
+    const color = PLAT_COLORS[p] || 'rgba(108,92,231,0.15)';
+    const borderColor = PLAT_COLORS[p] ? PLAT_COLORS[p].replace(')', ',0.4)').replace('rgb','rgba') : 'rgba(108,92,231,0.3)';
+    return `<span onclick="filterByPlatform('${p}')" style="background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);border-radius:6px;padding:3px 8px;font-size:11px;font-weight:600;color:var(--a);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">${p} <span style="font-size:9px;opacity:0.55">↗</span></span>`;
+  }).join('');
   appGoTo('detail');
   // Load similar games async
   loadSimilarGames(g);
@@ -3212,7 +3222,36 @@ function saveGame() {
 // LIBRARY
 // ══════════════════════════════════════
 let currentFilter = 'all';
+let currentPlatformFilter = null;
+
 function setFilter(f,el){ currentFilter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); filterGames(); }
+
+function filterByPlatform(p) {
+  currentPlatformFilter = p;
+  appGoTo('library');
+  updatePlatformFilterUI();
+  filterGames();
+}
+function clearPlatformFilter() {
+  currentPlatformFilter = null;
+  updatePlatformFilterUI();
+  filterGames();
+}
+function updatePlatformFilterUI() {
+  const bar   = document.getElementById('plat-filter-bar');
+  const label = document.getElementById('plat-filter-label');
+  const chip  = document.getElementById('plat-filter-chip');
+  if (!bar) return;
+  if (currentPlatformFilter) {
+    const bg = PLAT_COLORS[currentPlatformFilter] || 'rgba(108,92,231,0.2)';
+    bar.style.display = 'block';
+    if (label) label.textContent = currentPlatformFilter;
+    if (chip) { chip.style.background = bg + '33'; chip.style.borderColor = bg; chip.style.color = '#fff'; }
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
 function filterGames(){
   const q=document.getElementById('search-input').value.toLowerCase();
   const filtered=GAMES.filter(g=>{
@@ -3222,7 +3261,8 @@ function filterGames(){
     else if (currentFilter === 'playing') matchFilter = isPlaying(ug.status);
     else matchFilter = ug.status === currentFilter;
     const matchSearch = !q||g.title.toLowerCase().includes(q);
-    return matchFilter && matchSearch;
+    const matchPlat = !currentPlatformFilter || (g.platforms||[]).includes(currentPlatformFilter);
+    return matchFilter && matchSearch && matchPlat;
   });
   renderGameGrid(filtered);
   document.getElementById('lib-count').textContent=filtered.length+' jeux';
