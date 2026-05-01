@@ -2043,9 +2043,14 @@ async function igdbSearch(query, limit = 20) {
              : obCurrentStatus === 'playing-solo'  ? 'solo'
              : null;
   let data = await igdbFetch('search', { query, limit, mode });
-  // Safety: if backend mode filter returned too few results, retry without it
-  if (mode && (!data || data.length < 3)) {
+  // If mode filter returned too few, retry without it
+  if (mode && (!data || data.length < 5)) {
     data = await igdbFetch('search', { query, limit });
+  }
+  // If still sparse, widen the net
+  if (!data || data.length < 5) {
+    const wider = await igdbFetch('search', { query, limit: 40 });
+    if (wider?.length > (data?.length || 0)) data = wider;
   }
   if (!data?.length) return mockSearch(query);
   const mapped = dedupByTitle(data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
@@ -2691,8 +2696,8 @@ async function searchGames(q) {
   if (!q.trim()) { list.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Commence à taper…</div>'; return; }
   list.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
   searchTimer = setTimeout(async ()=>{
-    const results = await igdbSearch(q, 20);
-    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat</div>`; return; }
+    const results = await igdbSearch(q, 30);
+    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat pour « ${q} »<br><span style="font-size:11px;opacity:.6">Essaie un autre titre ou vérifie l'orthographe</span></div>`; return; }
     list.innerHTML = results.map(g=>{
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
@@ -2708,7 +2713,7 @@ async function searchGames(q) {
         <button class="result-add" onclick="showObStatusPicker('${g.id}')">${isAdded?'\u2713':'+'}</button>
       </div>`;
     }).join('');
-  }, 500);
+  }, 300);
 }
 function toggleGame(g) {
   const idx = addedGames.findIndex(a => a.id === g.id);
