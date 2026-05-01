@@ -1655,13 +1655,16 @@ html, body {
     </div>
     <div class="scroll-area" style="padding:0 16px 40px">
       <!-- Hero card -->
-      <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
-        <div id="fp-avatar" style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:30px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px"></div>
-        <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
-        <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:8px"></div>
-        <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:12px"></div>
-        <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
-        <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+      <div id="fp-hero-card" style="position:relative;overflow:hidden;background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
+        <div id="fp-hero-content" style="position:relative;z-index:2">
+          <div id="fp-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
+          <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
+          <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:8px"></div>
+          <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
+          <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px"></div>
+          <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+          <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+        </div>
       </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
@@ -1677,6 +1680,11 @@ html, body {
       <div id="fp-reco-section" style="display:none;margin-bottom:16px">
         <div id="fp-reco-title" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">IL RECOMMANDE</div>
         <div id="fp-reco-list" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px"></div>
+      </div>
+      <!-- Activité récente -->
+      <div id="fp-activity-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">CETTE SEMAINE</div>
+        <div id="fp-activity-list" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
       <!-- Sa bibliothèque -->
       <div id="fp-lib-section" style="display:none">
@@ -4576,39 +4584,54 @@ let _friendProfileData = null;
 const DUMMY_FRIENDS_DATA = [
   { id:'__dummy_alex', username:'Alex', avatar:'🏆', avatar_grad:'linear-gradient(135deg,#fd79a8,#e84393)',
     bio:'Platinum hunter. 47 jeux à 100%. Ne dort plus.', platforms:['PS5','PC'],
+    activity:[
+      {title:'God of War Ragnarök', status:'playing-solo', score:0, steamId:2322010, ago:'il y a 1h'},
+      {title:'Astro Bot',           status:'finished',     score:10,steamId:0,       ago:'il y a 2j'},
+      {title:'Hollow Knight',       status:'platine',      score:9, steamId:367520,  ago:'il y a 4j'},
+    ],
     games:[
-      {id:'gow-ragna',    title:'God of War Ragnarök',    status:'playing-solo', score:0,  steamId:2322010},
-      {id:'elden-ring',   title:'Elden Ring',              status:'finished',     score:9,  steamId:1245620},
-      {id:'celeste',      title:'Celeste',                 status:'platine',      score:10, steamId:504230},
-      {id:'hollow-knight',title:'Hollow Knight',           status:'platine',      score:9,  steamId:367520},
-      {id:'returnal',     title:'Returnal',                status:'finished',     score:8,  steamId:1649240},
-      {id:'tlou2',        title:'The Last of Us Part II',  status:'finished',     score:10, steamId:0},
-      {id:'astro-bot',    title:'Astro Bot',               status:'finished',     score:10, steamId:0},
-      {id:'bg3',          title:"Baldur's Gate 3",         status:'backlog',      score:0,  steamId:1086940},
+      {id:'gow-ragna',    title:'God of War Ragnarök',    genre:'Action RPG',   status:'playing-solo', score:0,  steamId:2322010},
+      {id:'elden-ring',   title:'Elden Ring',              genre:'Action RPG',   status:'finished',     score:9,  steamId:1245620},
+      {id:'celeste',      title:'Celeste',                 genre:'Platformer',   status:'platine',      score:10, steamId:504230},
+      {id:'hollow-knight',title:'Hollow Knight',           genre:'Metroidvania', status:'platine',      score:9,  steamId:367520},
+      {id:'returnal',     title:'Returnal',                genre:'Roguelike',    status:'finished',     score:8,  steamId:1649240},
+      {id:'tlou2',        title:'The Last of Us Part II',  genre:'Action',       status:'finished',     score:10, steamId:0},
+      {id:'astro-bot',    title:'Astro Bot',               genre:'Platformer',   status:'finished',     score:10, steamId:0},
+      {id:'bg3',          title:"Baldur's Gate 3",         genre:'RPG',          status:'backlog',      score:0,  steamId:1086940},
     ]},
   { id:'__dummy_jul', username:'Julien', avatar:'⚔️', avatar_grad:'linear-gradient(135deg,#43d8c9,#4396d8)',
     bio:"RPG & stratégie. BG3 c'est la vie.", platforms:['PC','Switch'],
+    activity:[
+      {title:"Baldur's Gate 3",  status:'playing-solo', score:0, steamId:1086940, ago:'il y a 3h'},
+      {title:'Mass Effect 2',    status:'finished',     score:9, steamId:24980,   ago:'il y a 3j'},
+      {title:'Into the Breach',  status:'platine',      score:9, steamId:590380,  ago:'il y a 6j'},
+    ],
     games:[
-      {id:'bg3',          title:"Baldur's Gate 3",         status:'playing-solo', score:0,  steamId:1086940},
-      {id:'disco',        title:'Disco Elysium',           status:'finished',     score:10, steamId:632470},
-      {id:'witcher3',     title:'The Witcher 3',           status:'finished',     score:10, steamId:292030},
-      {id:'mass-effect2', title:'Mass Effect 2',           status:'finished',     score:9,  steamId:24980},
-      {id:'hades2',       title:'Hades II',                status:'finished',     score:9,  steamId:1812620},
-      {id:'into-breach',  title:'Into the Breach',         status:'platine',      score:9,  steamId:590380},
-      {id:'elden-ring',   title:'Elden Ring',              status:'backlog',      score:0,  steamId:1245620},
-      {id:'metaphor',     title:'Metaphor: ReFantazio',    status:'abandoned',    score:5,  steamId:2679460},
+      {id:'bg3',          title:"Baldur's Gate 3",         genre:'RPG',          status:'playing-solo', score:0,  steamId:1086940},
+      {id:'disco',        title:'Disco Elysium',           genre:'RPG',          status:'finished',     score:10, steamId:632470},
+      {id:'witcher3',     title:'The Witcher 3',           genre:'Action RPG',   status:'finished',     score:10, steamId:292030},
+      {id:'mass-effect2', title:'Mass Effect 2',           genre:'RPG',          status:'finished',     score:9,  steamId:24980},
+      {id:'hades2',       title:'Hades II',                genre:'Roguelike',    status:'finished',     score:9,  steamId:1812620},
+      {id:'into-breach',  title:'Into the Breach',         genre:'Stratégie',    status:'platine',      score:9,  steamId:590380},
+      {id:'elden-ring',   title:'Elden Ring',              genre:'Action RPG',   status:'backlog',      score:0,  steamId:1245620},
+      {id:'metaphor',     title:'Metaphor: ReFantazio',    genre:'JRPG',         status:'abandoned',    score:5,  steamId:2679460},
     ]},
   { id:'__dummy_sara', username:'Sara', avatar:'🌙', avatar_grad:'linear-gradient(135deg,#a843d8,#d843a8)',
     bio:'Indie & narratif. Pleure à tous les Telltale.', platforms:['Switch','PC'],
+    activity:[
+      {title:'Stardew Valley',  status:'playing-solo', score:0, steamId:413150,  ago:'il y a 2h'},
+      {title:'Night in the Woods', status:'finished',  score:8, steamId:481510,  ago:'il y a 4j'},
+      {title:'Ori and the Will of the Wisps', status:'finished', score:9, steamId:1057090, ago:'il y a 6j'},
+    ],
     games:[
-      {id:'stardew',      title:'Stardew Valley',          status:'playing-solo', score:0,  steamId:413150},
-      {id:'celeste',      title:'Celeste',                 status:'finished',     score:10, steamId:504230},
-      {id:'hades',        title:'Hades',                  status:'finished',     score:9,  steamId:1145360},
-      {id:'spiritfarer',  title:'Spiritfarer',             status:'finished',     score:9,  steamId:1155980},
-      {id:'ori',          title:'Ori and the Will of the Wisps', status:'finished', score:9, steamId:1057090},
-      {id:'night-woods',  title:'Night in the Woods',      status:'finished',     score:8,  steamId:481510},
-      {id:'hollow-knight',title:'Hollow Knight',           status:'backlog',      score:0,  steamId:367520},
-      {id:'disco',        title:'Disco Elysium',           status:'backlog',      score:0,  steamId:632470},
+      {id:'stardew',      title:'Stardew Valley',          genre:'Simulation',   status:'playing-solo', score:0,  steamId:413150},
+      {id:'celeste',      title:'Celeste',                 genre:'Platformer',   status:'finished',     score:10, steamId:504230},
+      {id:'hades',        title:'Hades',                  genre:'Roguelike',    status:'finished',     score:9,  steamId:1145360},
+      {id:'spiritfarer',  title:'Spiritfarer',             genre:'Narratif',     status:'finished',     score:9,  steamId:1155980},
+      {id:'ori',          title:'Ori and the Will of the Wisps', genre:'Platformer', status:'finished', score:9, steamId:1057090},
+      {id:'night-woods',  title:'Night in the Woods',      genre:'Narratif',     status:'finished',     score:8,  steamId:481510},
+      {id:'hollow-knight',title:'Hollow Knight',           genre:'Metroidvania', status:'backlog',      score:0,  steamId:367520},
+      {id:'disco',        title:'Disco Elysium',           genre:'RPG',          status:'backlog',      score:0,  steamId:632470},
     ]},
 ];
 const DUMMY_ACTIVITY = [
@@ -4869,6 +4892,68 @@ function fpRenderLibTab(tab) {
   document.getElementById('fp-lib-list').innerHTML = idxs.map(i=>fpGameRow(i)).join('');
 }
 
+const FP_GENRE_COLORS = {
+  'RPG':'#6c5ce7','Action RPG':'#6c5ce7','JRPG':'#a29bfe',
+  'Action':'#e17055','FPS':'#e17055','Survival Horror':'#e17055',
+  'Platformer':'#00cec9','Metroidvania':'#00b894',
+  'Roguelike':'#fd79a8','Narratif':'#fd79a8',
+  'Stratégie':'#0984e3','Simulation':'#55efc4','Open World':'#fdcb6e',
+};
+
+function fpSetBanner(games) {
+  const card = document.getElementById('fp-hero-card');
+  card.querySelectorAll('.fp-blur,.fp-grad').forEach(el => el.remove());
+  const bg = games.find(g=>g.status==='playing-solo'||g.status==='playing-multi')
+    || [...games].filter(g=>g.score>0).sort((a,b)=>b.score-a.score)[0];
+  if (!bg) return;
+  const src = fpCoverSrc(bg);
+  if (!src) return;
+  const blur = document.createElement('div');
+  blur.className = 'fp-blur';
+  blur.style.cssText = `position:absolute;inset:-30px;background:url('${src}') center/cover;filter:blur(28px);opacity:0.45;z-index:0`;
+  const grad = document.createElement('div');
+  grad.className = 'fp-grad';
+  grad.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,8,16,0.1) 0%,rgba(8,8,16,0.82) 58%,var(--s1) 100%);z-index:1';
+  card.insertBefore(grad, card.firstChild);
+  card.insertBefore(blur, card.firstChild);
+}
+
+function fpGenreTags(games) {
+  const counts = {};
+  games.filter(g=>g.genre&&(g.status==='finished'||g.status==='platine'||g.status==='playing-solo'||g.status==='playing-multi'))
+    .forEach(g=>{ counts[g.genre]=(counts[g.genre]||0)+1; });
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([g])=>g);
+}
+
+function formatTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const m = Math.floor(diff/60000);
+  if (m < 60) return `il y a ${m}min`;
+  const h = Math.floor(m/60);
+  if (h < 24) return `il y a ${h}h`;
+  const d = Math.floor(h/24);
+  return d < 7 ? `il y a ${d}j` : `il y a ${Math.floor(d/7)} sem`;
+}
+
+function renderFriendActivity(activities) {
+  const sec = document.getElementById('fp-activity-section');
+  if (!activities?.length) { sec.style.display='none'; return; }
+  const VERB = {'finished':'a fini','platine':'a platinisé 🏆','playing-solo':'joue à','playing-multi':'joue à','backlog':'a ajouté','abandoned':'a abandonné'};
+  document.getElementById('fp-activity-list').innerHTML = activities.map(a => {
+    const src = fpCoverSrc(a);
+    return `<div style="display:flex;gap:10px;align-items:flex-start">
+      <div style="width:36px;height:46px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:14px">
+        ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" onerror="this.style.display='none'">🎮`:'🎮'}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||'a mis à jour'}</span> <span style="font-weight:600">${a.title}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.ago||formatTimeAgo(a.updated_at)}</div>
+      </div>
+    </div>`;
+  }).join('');
+  sec.style.display = 'block';
+}
+
 function renderFriendProfile(friend) {
   _fpProfile = friend;
   _fpAllGames = friend.games || [];
@@ -4880,30 +4965,43 @@ function renderFriendProfile(friend) {
   document.getElementById('fp-name').textContent = friend.username || '';
   document.getElementById('fp-handle').textContent = '@' + (friend.username||'').toLowerCase().replace(/\s+/g,'');
   document.getElementById('fp-bio').textContent = friend.bio || '';
+
+  // B — Banner dynamique
+  fpSetBanner(friend.games || []);
+
+  // A — Genre tags
+  const genreEl = document.getElementById('fp-genre-tags');
+  const tags = fpGenreTags(friend.games || []);
+  if (tags.length) {
+    genreEl.innerHTML = tags.map(t => { const c=FP_GENRE_COLORS[t]||'#6b7280'; return `<span style="background:${c}22;border:1px solid ${c}55;border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;color:${c}">${t}</span>`; }).join('');
+    genreEl.style.display = 'flex';
+  } else genreEl.style.display = 'none';
+
   const platEl = document.getElementById('fp-platforms');
   if (friend.platforms?.length) {
     platEl.innerHTML = friend.platforms.map(p => { const c=(typeof PLAT_COLORS!=='undefined'&&PLAT_COLORS[p])||'#6b7280'; return `<span style="background:${c}22;border:1px solid ${c}55;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:600;color:${c}">${p}</span>`; }).join('');
     platEl.style.display = 'flex';
   } else platEl.style.display = 'none';
+
   const games = friend.games || [];
   const done    = games.filter(g=>g.status==='finished'||g.status==='platine').length;
   const platine = games.filter(g=>g.status==='platine').length;
-  const playing = games.filter(g=>g.status==='playing-solo'||g.status==='playing-multi').length;
-  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['🏆',platine,'100%']].map(([ic,n,lb])=>`<div style="background:var(--s2);border-radius:12px;padding:10px 6px;text-align:center"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
+  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['🏆',platine,'100%']].map(([ic,n,lb])=>`<div style="background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);border-radius:12px;padding:10px 6px;text-align:center;border:0.5px solid rgba(255,255,255,0.08)"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
+
   const myIds = new Set(Object.keys(userGames));
-  // EN CE MOMENT
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
   if (nowIdx.length) { nowSec.style.display='block'; document.getElementById('fp-now-list').innerHTML=nowIdx.map(i=>fpGameRow(i)).join(''); } else nowSec.style.display='none';
-  // JEUX EN COMMUN
   const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (gid&&myIds.has(gid))?i:-1; }).filter(i=>i>=0);
   const commonSec = document.getElementById('fp-common-section');
   if (commonIdx.length) { commonSec.style.display='block'; document.getElementById('fp-common-list').innerHTML=commonIdx.map(i=>fpCommonRow(i)).join(''); } else commonSec.style.display='none';
-  // IL/ELLE RECOMMANDE
   const recoIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (g.score>=8&&(!gid||!myIds.has(gid)))?i:-1; }).filter(i=>i>=0);
   const recoSec = document.getElementById('fp-reco-section');
   if (recoIdx.length) { recoSec.style.display='block'; document.getElementById('fp-reco-list').innerHTML=recoIdx.map(i=>fpRecoCard(i)).join(''); } else recoSec.style.display='none';
-  // SA BIBLIOTHÈQUE
+
+  // D — Activité récente
+  renderFriendActivity(friend.activity || null);
+
   const libSec = document.getElementById('fp-lib-section');
   if (games.length) {
     libSec.style.display='block';
@@ -4932,18 +5030,23 @@ function closeFriendGamePopup() { document.getElementById('fp-game-overlay').sty
 
 async function openFriendProfile(userId) {
   document.getElementById('screen-friend-profile').style.display = 'flex';
-  ['fp-now-section','fp-common-section','fp-reco-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  ['fp-now-section','fp-common-section','fp-reco-section','fp-activity-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-stats').innerHTML = '';
   document.getElementById('fp-platforms').style.display = 'none';
+  document.getElementById('fp-genre-tags').style.display = 'none';
+  document.getElementById('fp-hero-card').querySelectorAll('.fp-blur,.fp-grad').forEach(el=>el.remove());
   if (userId.startsWith('__dummy_')) {
     const dummy = DUMMY_FRIENDS_DATA.find(d => d.id === userId);
     if (dummy) renderFriendProfile(dummy);
     return;
   }
-  const [{ data: profile }, { data: games }] = await Promise.all([
+  const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+  const [{ data: profile }, { data: games }, { data: recentActivity }] = await Promise.all([
     _sb.from('profiles').select('*').eq('id', userId).single(),
-    _sb.from('user_games').select('*').eq('user_id', userId)
+    _sb.from('user_games').select('*').eq('user_id', userId),
+    _sb.from('user_games').select('title,status,score,image_id,updated_at').eq('user_id', userId)
+      .gte('updated_at', since).order('updated_at', {ascending:false}).limit(8)
   ]);
   if (!profile) return;
   _friendProfileData = { profile, games: games || [] };
@@ -4953,7 +5056,8 @@ async function openFriendProfile(userId) {
     avatar_grad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
     bio: profile.bio || '',
     platforms: profile.platforms || [],
-    games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') }))
+    games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
+    activity: recentActivity || []
   });
 }
 
