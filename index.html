@@ -1580,9 +1580,11 @@ html, body {
           <div class="rating-label" style="margin-bottom:8px">Heures jouées</div>
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="hours-input" min="0" max="9999" placeholder="0"
-              style="width:90px;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:16px;font-weight:700;color:var(--text);outline:none;text-align:center">
+              style="width:90px;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:16px;font-weight:700;color:var(--text);outline:none;text-align:center"
+              oninput="updateHoursRank(this.value)">
             <span style="font-size:13px;color:var(--muted2)">h jouées</span>
           </div>
+          <div id="hours-rank-display" style="margin-top:8px;font-size:12px;color:var(--muted2);display:none"></div>
         </div>
 
         <!-- MEDIA UPLOAD -->
@@ -1678,12 +1680,12 @@ html, body {
       </div>
       <!-- Il/Elle recommande -->
       <div id="fp-reco-section" style="display:none;margin-bottom:16px">
-        <div id="fp-reco-title" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">IL RECOMMANDE</div>
+        <div id="fp-reco-title" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">COUP DE CŒUR</div>
         <div id="fp-reco-list" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px"></div>
       </div>
       <!-- Activité récente -->
       <div id="fp-activity-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">CETTE SEMAINE</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">CE MOIS-CI</div>
         <div id="fp-activity-list" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
       <!-- Sa bibliothèque -->
@@ -1703,7 +1705,7 @@ html, body {
   </div>
 
   <!-- NAV -->
-  <nav id="app-nav" style="position:relative">
+  <nav id="app-nav">
     <div id="nav-indicator"></div>
     <button class="nav-btn active" id="nav-feed" onclick="appGoTo('feed')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -1948,7 +1950,7 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const PLAT_COLORS = {
   'PC':          '#6b7280', 'Mac':      '#6b7280', 'Linux':    '#6b7280',
   'PS4':         '#003087', 'PS5':      '#003087',
-  'XBO':         '#107c10', 'XBSX':     '#107c10', 'Series X|S': '#107c10', 'Xbox Series X': '#107c10',
+  'XBO':         '#107c10', 'XONE':     '#107c10', 'XBSX':     '#107c10', 'Series X|S': '#107c10', 'Xbox Series X': '#107c10',
   'Switch':      '#e4000f', 'NSW':      '#e4000f', 'Switch 2': '#e4000f',   'NSW2':    '#e4000f',
   'iOS':         '#5856d6', 'Android':  '#3ddc84',
 };
@@ -2007,6 +2009,16 @@ async function igdbFetch(action, extra = {}) {
 }
 
 const DLC_RE = /\b(dlc|bundle|pack|season pass|expansion pass|artbook|soundtrack)\b/i;
+const EDITION_RE = /\s*[-:·]?\s*(deluxe|standard|gold|premium|complete|definitive|goty|game of the year|remastered|ultimate|enhanced|anniversary|extended|royal|legendary|director'?s? cut)\s*(edition)?$/i;
+function dedupByTitle(games) {
+  const seen = new Map();
+  return games.filter(g => {
+    const key = g.title.replace(EDITION_RE, '').trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.set(key, true);
+    return true;
+  });
+}
 // game_modes: 1=Solo 2=Multi 3=Coop 4=Split 5=MMO 6=BattleRoyale
 function filterByTab(games) {
   if (obCurrentStatus === 'playing-solo') {
@@ -2037,7 +2049,7 @@ async function igdbSearch(query, limit = 20) {
     data = await igdbFetch('search', { query, limit });
   }
   if (!data?.length) return mockSearch(query);
-  const mapped = data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+  const mapped = dedupByTitle(data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
   return mode ? filterByTab(mapped) : mapped;
 }
 
@@ -2222,7 +2234,7 @@ function discSearch(q) {
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   _discSearchTimer = setTimeout(async () => {
     const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
-    const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+    const games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
     _discPool = games;
     const lmWrap = document.getElementById('disc-loadmore-wrap');
     if (lmWrap) lmWrap.style.display = 'none';
@@ -2322,7 +2334,7 @@ function ldiscSearch(q) {
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   _ldiscSearchTimer = setTimeout(async () => {
     const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
-    const games = (data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title));
+    const games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
     _ldiscPool = games;
     const lmWrap = document.getElementById('ldisc-loadmore-wrap');
     if (lmWrap) lmWrap.style.display = 'none';
@@ -3099,7 +3111,16 @@ function moveNavIndicator(btn) {
   const centerX = btnRect.left - navRect.left + btnRect.width / 2;
   indicator.style.left = (centerX - 12) + 'px';
 }
-function appGoBack() { appGoTo(appPrevScreen==='detail'?'library':appPrevScreen); }
+function appGoBack() {
+  if (appCurrentScreen === 'detail' && _tempRecoId) {
+    const idx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (idx >= 0) GAMES.splice(idx, 1);
+    delete userGames[_tempRecoId];
+    _tempRecoId = null;
+    renderGameGrid(); renderFeed();
+  }
+  appGoTo(appPrevScreen === 'detail' ? 'library' : appPrevScreen);
+}
 
 // ══════════════════════════════════════
 // DETAIL
@@ -3121,6 +3142,27 @@ function isDone(status) {
   return status === 'finished' || status === 'platine';
 }
 
+function hoursRank(h) {
+  if (!h || h <= 0) return null;
+  if (h < 5)   return { emoji:'🌱', label:'Découverte' };
+  if (h < 20)  return { emoji:'🎮', label:'Premier run' };
+  if (h < 50)  return { emoji:'🔥', label:'Bien joué' };
+  if (h < 100) return { emoji:'💯', label:'Hardcore' };
+  if (h < 300) return { emoji:'😤', label:'No life assumé' };
+  return { emoji:'🏆', label:'Légendaire' };
+}
+function updateHoursRank(val) {
+  const el = document.getElementById('hours-rank-display');
+  if (!el) return;
+  const h = parseInt(val) || 0;
+  const rank = hoursRank(h);
+  if (rank) {
+    el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--a)">${rank.emoji} ${rank.label}</span>`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+}
 function updateScoreDisplay(score, status) {
   const scoreEl  = document.getElementById('my-score-display');
   const tempEl   = document.getElementById('score-temp-label');
@@ -3177,6 +3219,7 @@ function openDetail(gameId) {
   updateSlotLabels();
   document.getElementById('notes-input').value = ug.notes||'';
   document.getElementById('hours-input').value = ug.hours || g.hours || '';
+  updateHoursRank(ug.hours || g.hours || 0);
   // Platform badges
   const platsEl = document.getElementById('detail-platforms');
   const plats = g.platforms || [];
@@ -3326,6 +3369,7 @@ function saveGame() {
   const h = parseInt(document.getElementById('hours-input').value) || 0;
   ug.hours = h;
   currentGame.hours = h;
+  _tempRecoId = null;
   renderGameGrid();
   renderFeed();
   saveToStorage();
@@ -3738,7 +3782,7 @@ async function renderHomeRecos(refresh = false) {
     return;
   }
 
-  const recs = _recoPool.slice(0, 6);
+  const recs = _recoPool.slice(0, 5);
   container.innerHTML = recs.map(g => {
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -3761,46 +3805,36 @@ async function renderHomeRecos(refresh = false) {
   }).join('');
 }
 
+let _tempRecoId = null;
 function recoOpenDetail(id) {
   const g = _recoPool.find(x => x.id === id);
   if (!g) return;
-  // If not in library, add as wish temporarily for display, then open
   if (!GAMES.find(x => x.id === id)) {
+    _tempRecoId = id;
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
     userGames[id] = {status:'wish', score:0, notes:'', hours:0};
-    saveToStorage(); renderGameGrid(); renderFeed();
-    showToast(`${g.title} ajouté aux souhaits`);
+  } else {
+    _tempRecoId = null;
   }
   openDetail(id);
 }
 
 function recoWishToggle(id) {
+  event.stopPropagation();
   const g = _recoPool.find(x => x.id === id);
   if (!g) return;
   const existing = GAMES.find(x => x.id === id);
-  if (existing) {
-    // remove
-    const idx = GAMES.indexOf(existing);
-    GAMES.splice(idx, 1);
-    delete userGames[id];
+  if (!existing) {
+    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
     saveToStorage();
     renderGameGrid(); renderFeed();
-    renderHomeRecos();
-    return;
+    showToast(`${g.title} ajouté aux souhaits`);
   }
-  GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-  userGames[id] = {status:'wish', score:0, notes:'', hours:0};
-  saveToStorage();
-  renderGameGrid(); renderFeed();
-  // update button in-place
-  const btn = document.getElementById('reco-btn-'+id);
-  if (btn) {
-    btn.textContent = '✓ Souhait';
-    btn.style.background = 'rgba(0,230,118,0.1)';
-    btn.style.borderColor = 'rgba(0,230,118,0.25)';
-    btn.style.color = 'var(--green)';
-  }
-  showToast(`${g.title} ajouté aux souhaits`);
+  // Remove from pool and re-render section (shows next available game)
+  const poolIdx = _recoPool.findIndex(x => x.id === id);
+  if (poolIdx >= 0) _recoPool.splice(poolIdx, 1);
+  renderHomeRecos();
 }
 function renderGameGrid(games=GAMES){
   const grid=document.getElementById('game-grid'); grid.innerHTML='';
@@ -4635,11 +4669,11 @@ const DUMMY_FRIENDS_DATA = [
     ]},
 ];
 const DUMMY_ACTIVITY = [
-  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, ago:'il y a 1h'},
-  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:"Baldur's Gate 3",     status:'playing-solo', score:0,  ago:'il y a 3h'},
-  {username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', title:'Hollow Knight',        status:'backlog',      score:0,  ago:'il y a 1j'},
-  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'Celeste',              status:'finished',     score:9,  ago:'il y a 2j'},
-  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:'Disco Elysium',        status:'finished',     score:10, ago:'il y a 2j'},
+  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, steamId:1593500, ago:'il y a 1h'},
+  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:"Baldur's Gate 3",     status:'playing-solo', score:0,  steamId:1086940, ago:'il y a 3h'},
+  {username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', title:'Hollow Knight',       status:'backlog',      score:0,  steamId:367520,  ago:'il y a 1j'},
+  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'Celeste',             status:'finished',     score:9,  steamId:504230,  ago:'il y a 2j'},
+  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:'Disco Elysium',       status:'finished',     score:10, steamId:632470,  ago:'il y a 2j'},
 ];
 
 async function loadSocialScreen() {
@@ -4791,11 +4825,23 @@ async function declineFriend(friendshipId) {
   loadSocialScreen();
 }
 
+function _activityCoverCircle(steamId, grad, avatar, size, borderColor) {
+  const coverUrl = steamId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_600x900.jpg` : null;
+  const s = size || 44;
+  const border = borderColor || 'var(--a2)';
+  if (coverUrl) {
+    return `<div style="width:${s}px;height:${s}px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${border};background:${grad}">
+      <img src="${coverUrl}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px\\'>${avatar}</div>'">
+    </div>`;
+  }
+  return `<div style="width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;border:2px solid ${border};background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px">${avatar}</div>`;
+}
+
 function renderDummyActivity() {
   const ACTION = {'finished':'a fini','platine':'a eu le 100% sur','playing-solo':'joue à','playing-multi':'joue en multi à','backlog':'a ajouté au backlog','abandoned':'a abandonné','wish':'souhaite','paused':'a mis en pause'};
   const html = DUMMY_ACTIVITY.map(item => `
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:50%;background:${item.grad};font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${item.avatar}</div>
+      ${_activityCoverCircle(item.steamId, item.grad, item.avatar, 44, 'var(--a2)')}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>
@@ -4810,7 +4856,7 @@ function renderDummyActivity() {
   if (homeSection) homeSection.style.display = 'block';
   if (homeList) homeList.innerHTML = DUMMY_ACTIVITY.slice(0,3).map(item => `
     <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      <div style="width:30px;height:30px;border-radius:50%;background:${item.grad};font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${item.avatar}</div>
+      ${_activityCoverCircle(item.steamId, item.grad, item.avatar, 34, 'var(--a)')}
       <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
     </div>`).join('');
 }
@@ -4939,7 +4985,7 @@ function renderFriendActivity(activities) {
   const sec = document.getElementById('fp-activity-section');
   if (!activities?.length) { sec.style.display='none'; return; }
   const VERB = {'finished':'a fini','platine':'a platinisé 🏆','playing-solo':'joue à','playing-multi':'joue à','backlog':'a ajouté','abandoned':'a abandonné'};
-  document.getElementById('fp-activity-list').innerHTML = activities.map(a => {
+  document.getElementById('fp-activity-list').innerHTML = activities.slice(0, 5).map(a => {
     const src = fpCoverSrc(a);
     return `<div style="display:flex;gap:10px;align-items:flex-start">
       <div style="width:36px;height:46px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:14px">
@@ -5041,7 +5087,7 @@ async function openFriendProfile(userId) {
     if (dummy) renderFriendProfile(dummy);
     return;
   }
-  const since = new Date(Date.now() - 7*24*60*60*1000).toISOString();
+  const since = new Date(Date.now() - 30*24*60*60*1000).toISOString();
   const [{ data: profile }, { data: games }, { data: recentActivity }] = await Promise.all([
     _sb.from('profiles').select('*').eq('id', userId).single(),
     _sb.from('user_games').select('*').eq('user_id', userId),
@@ -5101,23 +5147,31 @@ async function loadFriendActivity(friendIds) {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     const ago = timeAgo(item.updated_at);
+    const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+    const av = p.avatar || '🎮';
+    const cover = src
+      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--a2);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid var(--a2);background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-      <div style="width:36px;height:36px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+      ${cover}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
       </div>
-      ${src ? `<img src="${src}" style="width:30px;height:40px;border-radius:5px;object-fit:cover;flex-shrink:0">` : ''}
     </div>`;
   }).join('');
   if (actList)  actList.innerHTML  = html;
   if (homeList) homeList.innerHTML = data.slice(0,3).map(item => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
+    const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+    const av = p.avatar || '🎮';
+    const cover = src
+      ? `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--a);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : `<div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;border:2px solid var(--a);background:${grad};display:flex;align-items:center;justify-content:center;font-size:14px">${av}</div>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      <div style="width:30px;height:30px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+      ${cover}
       <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
-      ${src ? `<img src="${src}" style="width:24px;height:32px;border-radius:4px;object-fit:cover;flex-shrink:0">` : ''}
     </div>`;
   }).join('');
 }
