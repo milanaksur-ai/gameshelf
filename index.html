@@ -252,8 +252,7 @@ html, body {
   height: calc(64px + var(--safe-b)); padding-bottom: var(--safe-b);
   background: rgba(8,8,16,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 0.5px solid var(--border);
-  z-index: 300;
-  display: flex; align-items: center; justify-content: space-around; z-index: 100;
+  display: flex; align-items: center; justify-content: space-around; z-index: 400;
 }
 .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 20px; background: none; border: none; cursor: pointer; color: var(--muted); transition: color 0.2s; }
 .nav-btn.active { color: var(--a); }
@@ -5050,10 +5049,11 @@ function renderFriendProfile(friend) {
   document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['🏆',platine,'100%']].map(([ic,n,lb])=>`<div style="background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);border-radius:12px;padding:10px 6px;text-align:center;border:0.5px solid rgba(255,255,255,0.08)"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
 
   const myIds = new Set(Object.keys(userGames));
+  const myTitles = new Set(GAMES.map(g => g.title.toLowerCase().trim()));
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
   if (nowIdx.length) { nowSec.style.display='block'; document.getElementById('fp-now-list').innerHTML=nowIdx.map(i=>fpGameRow(i)).join(''); } else nowSec.style.display='none';
-  const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (gid&&myIds.has(gid))?i:-1; }).filter(i=>i>=0);
+  const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); const byId=gid&&myIds.has(gid); const byTitle=myTitles.has(g.title.toLowerCase().trim()); return (byId||byTitle)?i:-1; }).filter(i=>i>=0);
   const commonSec = document.getElementById('fp-common-section');
   if (commonIdx.length) { commonSec.style.display='block'; document.getElementById('fp-common-list').innerHTML=commonIdx.map(i=>fpCommonCard(i)).join(''); } else commonSec.style.display='none';
   const recoIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (g.score>=8&&(!gid||!myIds.has(gid)))?i:-1; }).filter(i=>i>=0);
@@ -5117,11 +5117,12 @@ async function openFriendGamePopup(idx) {
       urls.push(`${SUPABASE_URL}/storage/v1/object/public/screenshots/${_fpProfile.id}/${gid}/${f.name}`);
     });
   }
+  _fpScreenshotUrls = urls;
   const screenshotHtml = urls.length ? `
     <div style="margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Captures</div>
       <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px">
-        ${urls.map(url => `<div style="flex-shrink:0;height:88px;border-radius:8px;overflow:hidden;background:var(--s2)"><img src="${url}" referrerpolicy="no-referrer" style="height:100%;width:auto;max-width:160px;object-fit:cover" onerror="this.parentNode.style.display='none'"></div>`).join('')}
+        ${urls.map((url, i) => `<div onclick="openFriendScreenshot(${i})" style="flex-shrink:0;height:88px;border-radius:8px;overflow:hidden;background:var(--s2);cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"><img src="${url}" referrerpolicy="no-referrer" style="height:100%;width:auto;max-width:160px;object-fit:cover" onerror="this.parentNode.style.display='none'"></div>`).join('')}
       </div>
     </div>` : '';
   el.innerHTML = buildHtml(screenshotHtml);
@@ -5645,6 +5646,14 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 let _lbMedia = []; let _lbIdx = 0;
 function openLightbox(gameId, idx) {
   _lbMedia = (gameMedia[gameId]||[]).filter(m => m.type === 'image');
+  if (!_lbMedia.length) return;
+  _lbIdx = idx % _lbMedia.length;
+  updateLightbox();
+  document.getElementById('lightbox').style.display = 'flex';
+}
+let _fpScreenshotUrls = [];
+function openFriendScreenshot(idx) {
+  _lbMedia = _fpScreenshotUrls.map(url => ({ type:'image', url }));
   if (!_lbMedia.length) return;
   _lbIdx = idx % _lbMedia.length;
   updateLightbox();
