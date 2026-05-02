@@ -995,7 +995,6 @@ html, body {
 .pool-cover-wrap.sel .pool-cover { outline:2.5px solid #fff;outline-offset:2px;transform:scale(1.06) }
 .pool-cover-wrap:active .pool-cover { opacity:0.75 }
 .export-hub-btn { width:100%;padding:13px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px }
-</style>
 .quiz-card { background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden }
 .quiz-card:active { transform:scale(0.97) }
 .quiz-best-badge { position:absolute;top:10px;right:10px;background:rgba(255,202,40,0.15);border:0.5px solid rgba(255,202,40,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--amber) }
@@ -1372,12 +1371,21 @@ html, body {
       </div>
       <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
 
+        <!-- QUIZ -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="sec-label" style="padding:0">❓ Quiz</div>
+        </div>
+        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px"></div>
+
+        <!-- SEPARATEUR -->
+        <div style="height:0.5px;background:var(--border);margin-bottom:20px"></div>
+
         <!-- TIER LIST -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
           <div class="sec-label" style="padding:0">🏆 Tier List</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
-          <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform 0.15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+        <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:24px">
+          <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
             <div style="font-size:36px">📚</div>
             <div style="flex:1">
               <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Mes jeux</div>
@@ -1386,7 +1394,7 @@ html, body {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
             <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));opacity:0.04;pointer-events:none"></div>
           </div>
-          <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform 0.15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+          <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
             <div style="font-size:36px">🔥</div>
             <div style="flex:1">
               <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Top 20 du moment</div>
@@ -1396,12 +1404,6 @@ html, body {
             <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a2),#e84393);opacity:0.04;pointer-events:none"></div>
           </div>
         </div>
-
-        <!-- QUIZ -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-          <div class="sec-label" style="padding:0">❓ Quiz</div>
-        </div>
-        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:24px"></div>
 
       </div>
     </div>
@@ -5942,6 +5944,39 @@ const QUIZ_DATA = [
       { q:"Dans quel jeu incarne-t-on Frisk dans le Royaume des Monstres ?", a:["Cave Story","Undertale","Deltarune","Omori"], c:1 },
       { q:"Quel est le style artistique distinctif de Cuphead ?", a:["Pixel art 16-bit","Animation des années 30","Voxel 3D","Cartoon moderne"], c:1 },
       { q:"Dans Hades II, quel personnage est le nouveau protagoniste ?", a:["Zagreus","Melinoe","Charon","Nemesis"], c:1 },
+    ]},
+  { id:'sims', title:'Quiz Les Sims', emoji:'🏠', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#74b9ff)',
+    questions:[
+      { q:"Quel cheat code donne 50 000 § dans Les Sims 4 ?", a:["kaching","rosebud","motherlode","freemoney"], c:2 },
+      { q:"Comment s'appelle la monnaie dans Les Sims ?", a:["Crédits","Simflouz (§)","Simcoins","LifePoints"], c:1 },
+      { q:"Quel code permet de déplacer les objets librement dans Les Sims 4 ?", a:["bb.enablefreebuild","bb.showhiddenobjects","bb.moveobjects","freebuild on"], c:2 },
+      { q:"Comment s'appelle le quartier d'introduction des Sims 4 ?", a:["Oasis Springs","Del Sol Valley","Brindleton Bay","Willow Creek"], c:3 },
+      { q:"Quel pack Les Sims 4 permet de devenir sorcier ?", a:["Vampires","Paranormal","Royaume de la Magie","Strangerville"], c:2 },
+      { q:"Quel studio développe la série Les Sims ?", a:["Activision","EA Maxis","Ubisoft","2K Games"], c:1 },
+      { q:"Dans Les Sims 4, que se passe-t-il si un bébé est négligé trop longtemps ?", a:["Il pleure sans arrêt","Il est retiré par les services sociaux","Il meurt","Il disparaît"], c:1 },
+      { q:"Comment appelle-t-on les personnages générés aléatoirement dans Les Sims ?", a:["Génériques","Townies","Wanderers","Extras"], c:1 },
+    ]},
+  { id:'ac', title:"Assassin's Creed", emoji:'🦅', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
+    questions:[
+      { q:"Dans quel contexte historique se déroule le premier Assassin's Creed ?", a:["Égypte antique","Les Croisades (Terre Sainte)","Renaissance italienne","Japon féodal"], c:1 },
+      { q:"Comment s'appelle la machine qui revit les souvenirs ancestraux ?", a:["MemoCap","Helix","Animus","Creed Machine"], c:2 },
+      { q:"Quel est le nom du protagoniste d'Assassin's Creed II ?", a:["Altaïr Ibn La'Ahad","Connor Kenway","Edward Kenway","Ezio Auditore da Firenze"], c:3 },
+      { q:"Quel est le credo des Assassins ?", a:["La liberté par la force","Tuer pour la paix","Rien n'est vrai, tout est permis","Dans l'ombre, pour la lumière"], c:2 },
+      { q:"Dans AC Origins, quel est le nom du protagoniste ?", a:["Alexios","Kassandra","Eivor","Bayek de Siwa"], c:3 },
+      { q:"Dans AC Odyssey, en quelle période se déroule l'aventure ?", a:["Égypte ptolémaïque","Renaissance italienne","Grèce antique classique","Révolution française"], c:2 },
+      { q:"Quel est le nom du protagoniste viking dans AC Valhalla ?", a:["Sigurd","Basim","Halfdan","Eivor"], c:3 },
+      { q:"Quelle ville est au cœur d'Assassin's Creed Mirage ?", a:["Le Caire","Alexandrie","Bagdad","Constantinople"], c:2 },
+    ]},
+  { id:'gta', title:'Quiz GTA', emoji:'🚗', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#ff7675)',
+    questions:[
+      { q:"Dans GTA V, combien de protagonistes jouables y a-t-il ?", a:["1","2","3","4"], c:2 },
+      { q:"Comment s'appelle la ville fictive de GTA V inspirée de Los Angeles ?", a:["Vice City","San Andreas","Liberty City","Los Santos"], c:3 },
+      { q:"Quel est le vrai nom de CJ dans GTA San Andreas ?", a:["Tommy Vercetti","Carl Johnson","Niko Bellic","Trevor Philips"], c:1 },
+      { q:"Comment s'appellent les cartes monnaie premium de GTA Online ?", a:["Rockstar Cash","GTA Dollars","Premium Credits","Shark Cards"], c:3 },
+      { q:"Dans GTA V, quel personnage est un ancien braqueur de banque devenu père de famille ?", a:["Trevor","Franklin","Lamar","Michael"], c:3 },
+      { q:"Quelle ville américaine inspire Vice City dans GTA Vice City ?", a:["New York","Los Angeles","Miami","Chicago"], c:2 },
+      { q:"En quelle année est sorti GTA V ?", a:["2011","2012","2013","2015"], c:2 },
+      { q:"Quel studio développe la série Grand Theft Auto ?", a:["Activision","2K Games","Rockstar Games","Take-Two Interactive"], c:2 },
     ]},
 ];
 
