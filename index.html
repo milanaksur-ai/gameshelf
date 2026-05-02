@@ -978,8 +978,24 @@ html, body {
 }
 
 /* ══════════════════════════════════════
-   QUIZ
+   TIER LIST
 ══════════════════════════════════════ */
+#tierlist-overlay { display:none;position:fixed;inset:0;z-index:800;background:var(--bg);flex-direction:column }
+#tierlist-overlay.open { display:flex }
+.tier-row { display:flex;align-items:stretch;border-bottom:0.5px solid rgba(255,255,255,0.07);min-height:74px;cursor:pointer;transition:background 0.12s;-webkit-tap-highlight-color:transparent }
+.tier-row:active { background:rgba(255,255,255,0.04) }
+.tier-row.drop-ready { background:rgba(255,255,255,0.06) }
+.tier-label { width:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800 }
+.tier-games { flex:1;display:flex;flex-wrap:wrap;gap:5px;padding:7px 8px;align-content:flex-start;min-height:74px }
+.tier-cover-wrap { position:relative;cursor:pointer }
+.tier-cover { width:46px;height:62px;border-radius:7px;overflow:hidden;background:var(--s3);flex-shrink:0;object-fit:cover }
+.tier-cover-wrap:active .tier-cover { opacity:0.7 }
+.pool-cover-wrap { position:relative;flex-shrink:0;cursor:pointer }
+.pool-cover { width:52px;height:70px;border-radius:8px;overflow:hidden;background:var(--s3);display:block;object-fit:cover;transition:transform 0.15s,outline 0.1s }
+.pool-cover-wrap.sel .pool-cover { outline:2.5px solid #fff;outline-offset:2px;transform:scale(1.06) }
+.pool-cover-wrap:active .pool-cover { opacity:0.75 }
+.export-hub-btn { width:100%;padding:13px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px }
+</style>
 .quiz-card { background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden }
 .quiz-card:active { transform:scale(0.97) }
 .quiz-best-badge { position:absolute;top:10px;right:10px;background:rgba(255,202,40,0.15);border:0.5px solid rgba(255,202,40,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--amber) }
@@ -1347,15 +1363,46 @@ html, body {
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
   </div>
 
-  <!-- QUIZ HUB -->
+  <!-- QUIZ + TIER LIST HUB -->
   <div class="screen" id="screen-explore">
     <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-      <div style="padding:calc(var(--safe-t) + 16px) 16px 14px;flex-shrink:0">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Quiz Gaming</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Teste ta culture jeux vidéo</div>
+      <div style="padding:calc(var(--safe-t) + 16px) 16px 10px;flex-shrink:0">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Jeux &amp; Culture</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Quiz · Tier List</div>
       </div>
       <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
-        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:8px"></div>
+
+        <!-- TIER LIST -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="sec-label" style="padding:0">🏆 Tier List</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+          <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform 0.15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+            <div style="font-size:36px">📚</div>
+            <div style="flex:1">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Mes jeux</div>
+              <div style="font-size:12px;color:var(--muted2)">Classe ta bibliothèque en tiers S→F</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));opacity:0.04;pointer-events:none"></div>
+          </div>
+          <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform 0.15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+            <div style="font-size:36px">🔥</div>
+            <div style="flex:1">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Top 20 du moment</div>
+              <div style="font-size:12px;color:var(--muted2)">Classe les meilleurs jeux de tous les temps</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+            <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a2),#e84393);opacity:0.04;pointer-events:none"></div>
+          </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <div class="sec-label" style="padding:0">❓ Quiz</div>
+        </div>
+        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:24px"></div>
+
       </div>
     </div>
   </div>
@@ -1701,6 +1748,36 @@ html, body {
       <div id="fp-game-card-content" style="padding:20px 20px 4px"></div>
     </div>
   </div>
+
+  <!-- TIER LIST OVERLAY -->
+  <div id="tierlist-overlay">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;padding:calc(var(--safe-t)+10px) 16px 10px;flex-shrink:0;gap:10px;border-bottom:0.5px solid var(--border)">
+      <button onclick="closeTierList()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="flex:1;min-width:0">
+        <div id="tl-title" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700"></div>
+        <div id="tl-hint" style="font-size:11px;color:var(--muted2)">Sélectionne un jeu puis choisis son tier</div>
+      </div>
+      <button onclick="exportTierList()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        Exporter
+      </button>
+    </div>
+    <!-- Tier rows -->
+    <div id="tl-tiers" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+    <!-- Pool -->
+    <div style="flex-shrink:0;border-top:0.5px solid var(--border);background:var(--s1)">
+      <div style="padding:8px 16px 4px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">À classer</div>
+        <div id="tl-pool-count" style="font-size:11px;color:var(--muted2)"></div>
+      </div>
+      <div id="tl-pool" style="display:flex;gap:8px;overflow-x:auto;padding:4px 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+    </div>
+  </div>
+  <!-- hidden canvas for tier list export -->
+  <canvas id="tl-canvas" style="display:none"></canvas>
 
   <!-- NAV -->
   <nav id="app-nav">
@@ -6021,6 +6098,249 @@ async function saveQuizScore(quizId, score, total) {
     if (!user) return;
     await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
   } catch(e) { /* Silently skip if table doesn't exist yet */ }
+}
+
+// ══════════════════════════════════════
+// TIER LIST
+// ══════════════════════════════════════
+const TIER_CONFIG = [
+  { id:'S', label:'S', bg:'#b71c1c', color:'#ff5252' },
+  { id:'A', label:'A', bg:'#e65100', color:'#ff9800' },
+  { id:'B', label:'B', bg:'#f57f17', color:'#ffca28' },
+  { id:'C', label:'C', bg:'#1b5e20', color:'#69f0ae' },
+  { id:'D', label:'D', bg:'#0d47a1', color:'#82b1ff' },
+  { id:'F', label:'F', bg:'#212121', color:'#9e9e9e' },
+];
+
+const TIERLIST_POPULAR = [
+  {id:'elden-ring',    title:'Elden Ring',              steamId:1245620,  imageId:'co4jni'},
+  {id:'bg3',           title:"Baldur's Gate 3",          steamId:1086940,  imageId:'co6ly7'},
+  {id:'witcher3',      title:'The Witcher 3',            steamId:292030,   imageId:'co1wyy'},
+  {id:'rdr2',          title:'Red Dead Redemption 2',    steamId:1174180,  imageId:'co3bbp'},
+  {id:'cyberpunk',     title:'Cyberpunk 2077',           steamId:1091500,  imageId:'co4buk'},
+  {id:'hades',         title:'Hades',                    steamId:1145360,  imageId:'co2iyh'},
+  {id:'tlou2',         title:'The Last of Us Part II',   steamId:0,        imageId:'co5wkf'},
+  {id:'god-of-war',    title:'God of War Ragnarök',      steamId:2322010,  imageId:'co5s5v'},
+  {id:'sekiro',        title:'Sekiro',                   steamId:814380,   imageId:'co1ids'},
+  {id:'celeste',       title:'Celeste',                  steamId:504230,   imageId:'co1nsa'},
+  {id:'hollow-knight', title:'Hollow Knight',            steamId:367520,   imageId:'co1rgi'},
+  {id:'disco',         title:'Disco Elysium',            steamId:632470,   imageId:'co1n2s'},
+  {id:'stardew',       title:'Stardew Valley',           steamId:413150,   imageId:'co2bln'},
+  {id:'ori',           title:'Ori and the Will of the Wisps', steamId:1057090, imageId:'co1n2v'},
+  {id:'returnal',      title:'Returnal',                 steamId:1649240,  imageId:'co2lcd'},
+  {id:'astro-bot',     title:'Astro Bot',                steamId:0,        imageId:'co86tn'},
+  {id:'hades2',        title:'Hades II',                 steamId:1812620,  imageId:'co7esv'},
+  {id:'metaphor',      title:'Metaphor: ReFantazio',     steamId:2679460,  imageId:'co87xf'},
+  {id:'animal-crossing',title:'Animal Crossing: NH',     steamId:0,        imageId:'co2ymq'},
+  {id:'minecraft',     title:'Minecraft',                steamId:1264440,  imageId:'co6ci3'},
+];
+
+let _tlMode     = null;   // 'library' | 'popular'
+let _tlPool     = [];     // [{id,title,steamId,imageId,cover}] unplaced
+let _tlTiers    = {};     // { S:[], A:[], B:[], C:[], D:[], F:[] }
+let _tlSelected = null;   // id currently selected in pool
+
+function _tlCoverSrc(g) {
+  if (g.cover) return g.cover;
+  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+  if (g.steamId) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+  return null;
+}
+
+function _tlCoverHtml(g, cls, wrapCls, onclick) {
+  const src  = _tlCoverSrc(g);
+  const init = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const w = cls === 'pool-cover' ? 52 : 46;
+  const h = cls === 'pool-cover' ? 70 : 62;
+  const inner = src
+    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
+      `<div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-align:center;padding:2px">${init}</div>`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-align:center;padding:2px">${init}</div>`;
+  return `<div class="${wrapCls}" onclick="${onclick}" title="${g.title.replace(/"/g,'&quot;')}">
+    <div class="${cls}" style="width:${w}px;height:${h}px">${inner}</div>
+  </div>`;
+}
+
+function openTierList(mode) {
+  _tlMode  = mode;
+  _tlTiers = { S:[], A:[], B:[], C:[], D:[], F:[] };
+  _tlSelected = null;
+  if (mode === 'library') {
+    _tlPool = GAMES.map(g => {
+      const ug = userGames[g.id] || {};
+      return { id:g.id, title:g.title, steamId:g.steamId||0, imageId:g.imageId||null, cover:g.cover||null, status:ug.status||g.status };
+    }).filter(g => g.status !== 'wish');
+  } else {
+    _tlPool = TIERLIST_POPULAR.map(g => ({ ...g }));
+  }
+  document.getElementById('tl-title').textContent = mode === 'library' ? '📚 Mes jeux' : '🔥 Top 20 du moment';
+  document.getElementById('tierlist-overlay').classList.add('open');
+  renderTierListTiers();
+  renderTierListPool();
+}
+
+function closeTierList() {
+  document.getElementById('tierlist-overlay').classList.remove('open');
+  _tlMode = null; _tlSelected = null;
+}
+
+function renderTierListTiers() {
+  const el = document.getElementById('tl-tiers');
+  if (!el) return;
+  el.innerHTML = TIER_CONFIG.map(t => `
+    <div class="tier-row" id="tl-row-${t.id}" onclick="placeTierCard('${t.id}')">
+      <div class="tier-label" style="background:${t.bg};color:${t.color}">${t.label}</div>
+      <div class="tier-games" id="tl-games-${t.id}">
+        ${(_tlTiers[t.id]||[]).map(g => _tlCoverHtml(g,'tier-cover','tier-cover-wrap',`removeTierCard('${g.id}','${t.id}')`)).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function renderTierListPool() {
+  const el    = document.getElementById('tl-pool');
+  const count = document.getElementById('tl-pool-count');
+  if (!el) return;
+  if (count) count.textContent = _tlPool.length > 0 ? `${_tlPool.length} restant${_tlPool.length>1?'s':''}` : 'Tout classé ! 🎉';
+  el.innerHTML = _tlPool.length === 0
+    ? `<div style="padding:12px 0;font-size:13px;color:var(--muted2)">Tout classé ! 🎉 Lance l'export.</div>`
+    : _tlPool.map(g => {
+        const sel = _tlSelected === g.id;
+        return `<div class="pool-cover-wrap${sel?' sel':''}" id="pc-${g.id}" onclick="selectPoolCard('${g.id}')">
+          ${_tlCoverHtml(g,'pool-cover','','').replace('<div class="" ','<div ').replace(' onclick=""','')}
+        </div>`;
+      }).join('');
+  // re-inject onclick on outer wrapper (simpler approach above already does it)
+}
+
+function selectPoolCard(id) {
+  _tlSelected = (_tlSelected === id) ? null : id;
+  document.getElementById('tl-hint').textContent = _tlSelected
+    ? 'Choisis un tier pour le placer'
+    : 'Sélectionne un jeu puis choisis son tier';
+  renderTierListPool();
+}
+
+function placeTierCard(tierId) {
+  if (!_tlSelected) { showToast('Sélectionne d\'abord un jeu dans le pool'); return; }
+  const idx = _tlPool.findIndex(g => g.id === _tlSelected);
+  if (idx < 0) return;
+  const [g] = _tlPool.splice(idx, 1);
+  if (!_tlTiers[tierId]) _tlTiers[tierId] = [];
+  _tlTiers[tierId].push(g);
+  _tlSelected = null;
+  document.getElementById('tl-hint').textContent = 'Sélectionne un jeu puis choisis son tier';
+  // Update only the modified tier row + pool for perf
+  const rowGames = document.getElementById(`tl-games-${tierId}`);
+  if (rowGames) rowGames.innerHTML = _tlTiers[tierId].map(g2 => _tlCoverHtml(g2,'tier-cover','tier-cover-wrap',`removeTierCard('${g2.id}','${tierId}')`)).join('');
+  renderTierListPool();
+}
+
+function removeTierCard(gameId, tierId) {
+  const arr = _tlTiers[tierId];
+  if (!arr) return;
+  const idx = arr.findIndex(g => g.id === gameId);
+  if (idx < 0) return;
+  const [g] = arr.splice(idx, 1);
+  _tlPool.unshift(g);
+  const rowGames = document.getElementById(`tl-games-${tierId}`);
+  if (rowGames) rowGames.innerHTML = _tlTiers[tierId].map(g2 => _tlCoverHtml(g2,'tier-cover','tier-cover-wrap',`removeTierCard('${g2.id}','${tierId}')`)).join('');
+  renderTierListPool();
+}
+
+async function exportTierList() {
+  const canvas  = document.getElementById('tl-canvas');
+  const COLS    = 8;
+  const CW = 52, CH = 70, GAP = 5, LPAD = 52, RPAD = 12, VPAD = 10;
+  const HEADER_H = 48, FOOTER_H = 36;
+  const rowHeights = TIER_CONFIG.map(t => {
+    const n = (_tlTiers[t.id]||[]).length;
+    if (n === 0) return VPAD * 2 + CH;
+    const rows = Math.ceil(n / COLS);
+    return VPAD * 2 + rows * CH + (rows - 1) * GAP;
+  });
+  const totalH = HEADER_H + rowHeights.reduce((a,b)=>a+b,0) + FOOTER_H;
+  const W = 430;
+  canvas.width = W; canvas.height = totalH;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#080810'; ctx.fillRect(0,0,W,totalH);
+
+  // Header
+  ctx.fillStyle = '#eeeef5';
+  ctx.font = 'bold 18px "Space Grotesk", sans-serif';
+  ctx.fillText(_tlMode === 'library' ? '📚 Mes jeux' : '🔥 Top 20', 16, 30);
+  ctx.fillStyle = '#64647a'; ctx.font = '12px "DM Sans", sans-serif';
+  ctx.fillText('GameShelf — gameshelf-seven.vercel.app', 16, 44);
+
+  let y = HEADER_H;
+  for (let ri = 0; ri < TIER_CONFIG.length; ri++) {
+    const t   = TIER_CONFIG[ri];
+    const rh  = rowHeights[ri];
+    const games = _tlTiers[t.id] || [];
+    // Row bg
+    ctx.fillStyle = t.bg + '44';
+    ctx.fillRect(0, y, W, rh);
+    // Label bg
+    ctx.fillStyle = t.bg;
+    ctx.fillRect(0, y, LPAD, rh);
+    // Label text
+    ctx.fillStyle = t.color;
+    ctx.font = `bold 22px "Space Grotesk", sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText(t.label, LPAD/2, y + rh/2 + 8);
+    ctx.textAlign = 'left';
+    // Game covers
+    const promises = games.map((g, gi) => new Promise(resolve => {
+      const col = gi % COLS, row = Math.floor(gi / COLS);
+      const gx = LPAD + col * (CW + GAP);
+      const gy = y + VPAD + row * (CH + GAP);
+      const src = _tlCoverSrc(g);
+      if (!src) {
+        ctx.fillStyle = '#1f1f2e'; ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(gx,gy,CW,CH,6) : ctx.rect(gx,gy,CW,CH);
+        ctx.fill();
+        ctx.fillStyle = '#64647a'; ctx.font = '10px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(g.title.slice(0,3), gx+CW/2, gy+CH/2+4);
+        ctx.textAlign='left'; resolve(); return;
+      }
+      const img = new Image(); img.crossOrigin='anonymous';
+      img.onload = () => {
+        ctx.save();
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(gx,gy,CW,CH,6); else ctx.rect(gx,gy,CW,CH);
+        ctx.clip(); ctx.drawImage(img,gx,gy,CW,CH); ctx.restore(); resolve();
+      };
+      img.onerror = () => {
+        ctx.fillStyle='#1f1f2e'; ctx.fillRect(gx,gy,CW,CH);
+        ctx.fillStyle='#64647a'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+        ctx.fillText(g.title.slice(0,3), gx+CW/2, gy+CH/2+3); ctx.textAlign='left'; resolve();
+      };
+      img.src = src;
+    }));
+    await Promise.all(promises);
+    // Separator
+    ctx.fillStyle = 'rgba(255,255,255,0.07)'; ctx.fillRect(0, y+rh-1, W, 1);
+    y += rh;
+  }
+  // Footer
+  ctx.fillStyle = '#3a3a50'; ctx.fillRect(0, y, W, FOOTER_H);
+  ctx.fillStyle = '#9898b0'; ctx.font = '11px "DM Sans",sans-serif';
+  ctx.fillText('Créé avec GameShelf', 16, y + FOOTER_H/2 + 4);
+
+  // Export
+  canvas.toBlob(blob => {
+    if (!blob) { showToast('Erreur export'); return; }
+    const url = URL.createObjectURL(blob);
+    if (navigator.share && navigator.canShare && navigator.canShare({ files:[new File([blob],'tierlist.png',{type:'image/png'})] })) {
+      navigator.share({ files:[new File([blob],'tierlist.png',{type:'image/png'})], title:'Ma Tier List Gaming' })
+        .catch(()=>{}).finally(()=>URL.revokeObjectURL(url));
+    } else {
+      const a = document.createElement('a'); a.href=url; a.download='tierlist-gameshelf.png';
+      a.click(); setTimeout(()=>URL.revokeObjectURL(url),2000);
+    }
+    showToast('✓ Tier list exportée !');
+  }, 'image/png');
 }
 </script>
 
