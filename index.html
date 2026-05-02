@@ -976,6 +976,30 @@ html, body {
   from { opacity: 0; transform: translateY(14px) scale(0.93); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ══════════════════════════════════════
+   QUIZ
+══════════════════════════════════════ */
+.quiz-card { background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden }
+.quiz-card:active { transform:scale(0.97) }
+.quiz-best-badge { position:absolute;top:10px;right:10px;background:rgba(255,202,40,0.15);border:0.5px solid rgba(255,202,40,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--amber) }
+#quiz-overlay { display:none;position:fixed;inset:0;z-index:800;background:var(--bg);flex-direction:column }
+#quiz-overlay.open { display:flex }
+.quiz-progress-bar { height:3px;background:rgba(255,255,255,0.07);flex-shrink:0 }
+.quiz-progress-fill { height:100%;transition:width 0.45s cubic-bezier(0.4,0,0.2,1);border-radius:0 3px 3px 0 }
+.answer-btn { width:100%;padding:16px 18px;border-radius:14px;border:1.5px solid var(--border2);background:var(--s2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;text-align:left;cursor:pointer;display:flex;align-items:center;gap:12px;line-height:1.4;transition:background 0.2s,border-color 0.15s }
+.answer-btn:not(.revealed):active { background:var(--s3) }
+.answer-letter { width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;color:var(--muted2);transition:background 0.25s,color 0.25s }
+.answer-btn.correct { border-color:var(--green);background:rgba(0,230,118,0.08) }
+.answer-btn.correct .answer-letter { background:var(--green);color:#000 }
+.answer-btn.wrong { border-color:var(--red);background:rgba(255,82,82,0.06) }
+.answer-btn.wrong .answer-letter { background:var(--red);color:#fff }
+.answer-btn.revealed { cursor:default }
+@keyframes answerIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:translateX(0)} }
+.answer-btn { animation:answerIn 0.22s ease forwards;opacity:0 }
+@keyframes qIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.quiz-q-anim { animation:qIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards }
+.quiz-activity-item { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border) }
 </style>
 </head>
 <body>
@@ -1323,63 +1347,37 @@ html, body {
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
   </div>
 
-  <!-- ASSISTANT -->
+  <!-- QUIZ HUB -->
   <div class="screen" id="screen-explore">
     <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-
-      <!-- HEADER -->
-      <div style="padding:calc(var(--safe-t) + 16px) 20px 12px;flex-shrink:0">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Assistant</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Vocal · Ajouter · Recommander</div>
+      <div style="padding:calc(var(--safe-t) + 16px) 16px 14px;flex-shrink:0">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Quiz Gaming</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Teste ta culture jeux vidéo</div>
       </div>
-
-      <!-- QUICK ACTION BUTTONS -->
-      <div style="display:flex;gap:10px;padding:0 16px 14px;flex-shrink:0">
-        <button onclick="quickAction('add')" id="btn-quick-add" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;cursor:pointer;transition:border-color 0.2s,background 0.2s">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);display:flex;align-items:center;justify-content:center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Ajouter un jeu</div>
-          <div style="font-size:10px;color:var(--muted2);text-align:center;line-height:1.4">Dis le nom,<br>je l'ajoute</div>
-        </button>
-        <button onclick="quickAction('recommend')" id="btn-quick-reco" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;cursor:pointer;transition:border-color 0.2s,background 0.2s">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgba(253,121,168,0.12);border:0.5px solid rgba(253,121,168,0.25);display:flex;align-items:center;justify-content:center">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fd79a8" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          </div>
-          <div style="font-size:12px;font-weight:600;color:var(--text)">Que jouer ?</div>
-          <div style="font-size:10px;color:var(--muted2);text-align:center;line-height:1.4">Dis ton humeur,<br>je recommande</div>
-        </button>
+      <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
+        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:8px"></div>
       </div>
+    </div>
+  </div>
 
-      <!-- CHAT MESSAGES -->
-      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:0 16px;display:flex;flex-direction:column;gap:12px;scrollbar-width:none">
-        <!-- Welcome message -->
-        <div class="msg-ai" style="align-self:flex-start;max-width:85%">
-          <div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px">
-            <div style="font-size:13px;color:var(--text);line-height:1.5">Salut ! Je suis ton assistant gaming. Utilise les boutons ou dis-moi ce que tu veux — ajouter un jeu, une recommandation, ou n'importe quelle question gaming.</div>
-          </div>
-        </div>
+  <!-- QUIZ OVERLAY (play + results) -->
+  <div id="quiz-overlay">
+    <div style="display:flex;align-items:center;padding:calc(var(--safe-t)+12px) 16px 12px;flex-shrink:0;gap:12px">
+      <button onclick="closeQuiz()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="flex:1;min-width:0">
+        <div id="quiz-title-bar" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
+        <div id="quiz-counter" style="font-size:11px;color:var(--muted2)"></div>
       </div>
-
-      <!-- INPUT ZONE -->
-      <div style="flex-shrink:0;padding:10px 16px calc(80px + var(--safe-b));background:var(--bg)">
-        <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:6px 6px 6px 14px">
-          <input type="text" id="chat-input" placeholder="Pose ta question…"
-            style="flex:1;background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:6px 0"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}"
-          >
-          <!-- Mic button -->
-          <button id="mic-btn" onclick="toggleVoice()" style="width:40px;height:40px;border-radius:12px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.3);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all 0.2s">
-            <svg id="mic-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a29bfe" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <!-- Send button -->
-          <button onclick="sendChat()" style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-          </button>
-        </div>
-        <div id="voice-status" style="text-align:center;font-size:11px;color:var(--muted);margin-top:6px;min-height:16px"></div>
-      </div>
-
+      <div id="quiz-score-badge" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;flex-shrink:0"></div>
+    </div>
+    <div class="quiz-progress-bar">
+      <div class="quiz-progress-fill" id="quiz-progress-fill" style="width:0%"></div>
+    </div>
+    <div id="quiz-q-area" style="flex:1;overflow-y:auto;padding:24px 16px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
+    <div id="quiz-next-btn-wrap" style="display:none;padding:12px 16px calc(var(--safe-b)+16px);flex-shrink:0;background:var(--bg)">
+      <button id="quiz-next-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Suivant →</button>
     </div>
   </div>
 
@@ -1720,8 +1718,8 @@ html, body {
       <span>Amis</span>
     </button>
     <button class="nav-btn" id="nav-explore" onclick="appGoTo('explore')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 8v4l3 3"/></svg>
-      <span>Assistant</span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>Quiz</span>
     </button>
     <button class="nav-btn" id="nav-profile" onclick="appGoTo('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -3106,6 +3104,7 @@ function appGoTo(screen) {
   else stopProfileParticles();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
   if (screen === 'social') loadSocialScreen();
+  if (screen === 'explore') renderQuizHub();
 }
 
 function moveNavIndicator(btn) {
@@ -4699,7 +4698,9 @@ const DUMMY_FRIENDS_DATA = [
 ];
 const DUMMY_ACTIVITY = [
   {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, steamId:1593500, ago:'il y a 1h'},
+  {type:'quiz', username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', quizTitle:'Quiz RPG', quizEmoji:'🗡️', quizGradient:'linear-gradient(135deg,#fd79a8,#e84393)', quizColor:'#fd79a8', score:7, total:8, rankLabel:'Expert', rankEmoji:'🏅', rankColor:'var(--amber)', ago:'il y a 2h'},
   {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:"Baldur's Gate 3",     status:'playing-solo', score:0,  steamId:1086940, ago:'il y a 3h'},
+  {type:'quiz', username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', quizTitle:'Quiz Indie', quizEmoji:'🌱', quizGradient:'linear-gradient(135deg,#00e676,#00b894)', quizColor:'#00e676', score:8, total:8, rankLabel:'Légendaire', rankEmoji:'🏆', rankColor:'#a29bfe', ago:'il y a 5h'},
   {username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', title:'Hollow Knight',       status:'backlog',      score:0,  steamId:367520,  ago:'il y a 1j'},
   {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'Celeste',             status:'finished',     score:9,  steamId:504230,  ago:'il y a 2j'},
   {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:'Disco Elysium',       status:'finished',     score:10, steamId:632470,  ago:'il y a 2j'},
@@ -4866,16 +4867,33 @@ function _activityCoverCircle(steamId, grad, avatar, size, borderColor) {
   return `<div style="width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;border:2px solid ${border};background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px">${avatar}</div>`;
 }
 
-function renderDummyActivity() {
+function _renderActivityItem(item, size=44, borderColor='var(--a2)', compact=false) {
   const ACTION = {'finished':'a fini','platine':'a eu le 100% sur','playing-solo':'joue à','playing-multi':'joue en multi à','backlog':'a ajouté au backlog','abandoned':'a abandonné','wish':'souhaite','paused':'a mis en pause'};
-  const html = DUMMY_ACTIVITY.map(item => `
-    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-      ${_activityCoverCircle(item.steamId, item.grad, item.avatar, 44, 'var(--a2)')}
+  if (item.type === 'quiz') {
+    const quizBadge = `<div style="display:inline-flex;align-items:center;gap:4px;background:${item.quizGradient};border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;color:#fff;vertical-align:middle">${item.quizEmoji} ${item.quizTitle}</div>`;
+    const rankBadge = `<span style="color:${item.rankColor};font-weight:700">${item.rankEmoji} ${item.score}/${item.total} — ${item.rankLabel}</span>`;
+    const challengeBtn = compact ? '' : ` <button onclick="openQuiz('${item.quizId||''}')" style="display:inline-flex;align-items:center;gap:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:4px">⚡ Relever le défi</button>`;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
+      <div style="width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;background:${item.grad};border:2px solid ${item.quizColor||borderColor};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px">${item.avatar}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>
+        <div style="font-size:${compact?'12':'13'}px;line-height:1.45"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">a complété</span> ${quizBadge} <span style="color:var(--muted2)">·</span> ${rankBadge}</div>
+        ${challengeBtn ? `<div style="margin-top:5px">${challengeBtn}</div>` : ''}
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${item.ago}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }
+  return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
+    ${_activityCoverCircle(item.steamId, item.grad, item.avatar, size, borderColor)}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:${compact?'12':'13'}px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
+      ${!compact ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>` : ''}
+    </div>
+  </div>`;
+}
+
+function renderDummyActivity() {
+  const allActivity = [..._localQuizActivity, ...DUMMY_ACTIVITY];
+  const html = allActivity.map(item => _renderActivityItem(item, 44, 'var(--a2)', false)).join('');
   const actSection = document.getElementById('social-activity-section');
   const actList = document.getElementById('social-activity-list');
   if (actSection) actSection.style.display = 'block';
@@ -4883,11 +4901,7 @@ function renderDummyActivity() {
   const homeSection = document.getElementById('home-activity-section');
   const homeList = document.getElementById('home-activity-list');
   if (homeSection) homeSection.style.display = 'block';
-  if (homeList) homeList.innerHTML = DUMMY_ACTIVITY.slice(0,3).map(item => `
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      ${_activityCoverCircle(item.steamId, item.grad, item.avatar, 34, 'var(--a)')}
-      <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
-    </div>`).join('');
+  if (homeList) homeList.innerHTML = allActivity.slice(0,4).map(item => _renderActivityItem(item, 34, 'var(--a)', true)).join('');
 }
 
 // ── Friend Profile ─────────────────────────────────────────
@@ -5791,6 +5805,222 @@ function closeTirageIntro() {
   if (el) el.style.display = 'none';
   // Then launch bracket
   initBracket();
+}
+
+// ══════════════════════════════════════
+// QUIZ
+// ══════════════════════════════════════
+const QUIZ_DATA = [
+  { id:'general', title:'Culture Générale', emoji:'🎮', color:'#a29bfe', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
+    questions:[
+      { q:"Quel studio a développé The Last of Us ?", a:["Guerrilla Games","Santa Monica Studio","Naughty Dog","Insomniac Games"], c:2 },
+      { q:"Combien y a-t-il d'étoiles dans Super Mario 64 ?", a:["70","100","120","150"], c:2 },
+      { q:"Quel est le vrai nom de Master Chief ?", a:["James-024","Samuel-034","John-117","Fred-104"], c:2 },
+      { q:"Quel studio a créé la série Dark Souls ?", a:["Square Enix","Bandai Namco","CD Projekt Red","FromSoftware"], c:3 },
+      { q:"Quel jeu cumule 238 millions d'exemplaires vendus ?", a:["GTA V","Minecraft","Tetris","Wii Sports"], c:1 },
+      { q:"En quelle année est sorti le premier Grand Theft Auto ?", a:["1995","1997","1999","2001"], c:1 },
+      { q:"Quel titre a reçu le Game Awards GOTY 2023 ?", a:["Spider-Man 2","Alan Wake 2","Starfield","Baldur's Gate 3"], c:3 },
+      { q:"Dans Zelda, quel est le nom du grand antagoniste de la série ?", a:["Ganon / Ganondorf","Demise","Vaati","Majora"], c:0 },
+    ]},
+  { id:'rpg', title:'Quiz RPG', emoji:'🗡️', color:'#fd79a8', gradient:'linear-gradient(135deg,#fd79a8,#e84393)',
+    questions:[
+      { q:"Dans Elden Ring, quel boss porte le titre 'Lame de Miquella' ?", a:["Margit","Radahn","Malenia","Morgott"], c:2 },
+      { q:"Quel est le nom du protagoniste de The Witcher 3 ?", a:["Eredin","Geralt de Riv","Lambert","Eskel"], c:1 },
+      { q:"Dans Final Fantasy VII, quel est le nom du mercenaire protagoniste ?", a:["Zack Fair","Cloud Strife","Sephiroth","Barrett Wallace"], c:1 },
+      { q:"Dans Skyrim, quel cri du Dovahkiin projette les ennemis ?", a:["YOL TOOR SHUL","WULD NAH KEST","FUS RO DAH","TIID KLO UL"], c:2 },
+      { q:"Dans The Witcher 3, comment s'appelle la fille adoptive de Geralt ?", a:["Yennefer","Triss","Shani","Ciri"], c:3 },
+      { q:"Dans Disco Elysium, dans quelle ville se déroule l'histoire ?", a:["Pale Bay","Jamrock","Revachol","Martinaise"], c:2 },
+      { q:"Quel RPG a reçu le Game Awards GOTY 2023 ?", a:["Cyberpunk 2077","Metaphor: ReFantazio","Elden Ring","Baldur's Gate 3"], c:3 },
+      { q:"Dans Persona 5, quel est le nom de code du protagoniste ?", a:["Ryuji","Joker","Fox","Skull"], c:1 },
+    ]},
+  { id:'action', title:'Action / Aventure', emoji:'⚔️', color:'#00cec9', gradient:'linear-gradient(135deg,#00cec9,#00b894)',
+    questions:[
+      { q:"Dans God of War (2018), quel est le nom du fils de Kratos ?", a:["Thor","Baldur","Tyr","Atreus"], c:3 },
+      { q:"Dans The Last of Us, quelle mutation cause l'infection ?", a:["Le Fléau rouge","Cordyceps","Le Virus T","Ophiocordyceps"], c:1 },
+      { q:"Quelle est l'arme signature de Kratos dans les premiers God of War ?", a:["Léviathan","Mjolnir","Lames du Chaos","Faux de Cronos"], c:2 },
+      { q:"Dans Sekiro, comment s'appelle le jeune seigneur que Wolf protège ?", a:["Genichiro","Isshin","Emma","Kuro"], c:3 },
+      { q:"Dans Horizon Zero Dawn, comment s'appelle la protagoniste ?", a:["Sylens","Aloy","Erend","Varl"], c:1 },
+      { q:"Dans Red Dead Redemption 2, quel est le nom du gang de Dutch ?", a:["Van der Linde","O'Driscoll","Deadwood","Grays"], c:0 },
+      { q:"Quel studio a développé Batman: Arkham Asylum ?", a:["Naughty Dog","Insomniac","Rocksteady","WB Games"], c:2 },
+      { q:"Dans Ghost of Tsushima, qui est le principal antagoniste mongol ?", a:["Shimura","Ryuzo","Khotun Khan","Tengu"], c:2 },
+    ]},
+  { id:'shooter', title:'Quiz Shooter', emoji:'🎯', color:'#ff7675', gradient:'linear-gradient(135deg,#ff5252,#ff7675)',
+    questions:[
+      { q:"Quel est le grade complet de Master Chief dans Halo ?", a:["Sergent Major","Commandant","Amiral","Master Chief Petty Officer"], c:3 },
+      { q:"Quelle est la map la plus iconique de Counter-Strike ?", a:["Inferno","Dust2","Mirage","Nuke"], c:1 },
+      { q:"Quel studio a créé la série Halo originale ?", a:["Epic Games","Rare","id Software","Bungie"], c:3 },
+      { q:"Dans Apex Legends, combien de Legends étaient disponibles au lancement ?", a:["6","8","9","12"], c:1 },
+      { q:"Dans Valorant, quelle agente peut soigner ses coéquipiers ?", a:["Reyna","Skye","Sage","Phoenix"], c:2 },
+      { q:"Quel est le nom du Battle Royale de Call of Duty ?", a:["Blackout","Ground War","Warzone","Requiem"], c:2 },
+      { q:"Dans DOOM (2016), comment s'appelle officiellement le protagoniste ?", a:["Doomguy","DOOM Slayer","B.J. Blazkowicz","Flynn Taggart"], c:1 },
+      { q:"Dans Fortnite, combien de joueurs par partie classique ?", a:["50","64","100","150"], c:2 },
+    ]},
+  { id:'indie', title:'Quiz Indie', emoji:'🌱', color:'#00e676', gradient:'linear-gradient(135deg,#00e676,#00b894)',
+    questions:[
+      { q:"Qui a développé Stardew Valley seul pendant 4 ans ?", a:["Toby Fox","Jonatan Söderström","Eric Barone (ConcernedApe)","Edmund McMillen"], c:2 },
+      { q:"Dans Hollow Knight, dans quel royaume se déroule l'aventure ?", a:["Deepnest","The Abyss","Greenpath","Hallownest"], c:3 },
+      { q:"Dans Hades, quel dieu est le père de Zagreus ?", a:["Zeus","Poséidon","Arès","Hadès"], c:3 },
+      { q:"Quel studio a développé Cuphead ?", a:["Supergiant Games","Studio MDHR","Devolver Digital","Klei Entertainment"], c:1 },
+      { q:"Dans Celeste, quel est l'objectif principal de Madeline ?", a:["Vaincre un dragon","Trouver une clé magique","Gravir la montagne Celeste","Sauver sa famille"], c:2 },
+      { q:"Dans quel jeu incarne-t-on Frisk dans le Royaume des Monstres ?", a:["Cave Story","Undertale","Deltarune","Omori"], c:1 },
+      { q:"Quel est le style artistique distinctif de Cuphead ?", a:["Pixel art 16-bit","Animation des années 30","Voxel 3D","Cartoon moderne"], c:1 },
+      { q:"Dans Hades II, quel personnage est le nouveau protagoniste ?", a:["Zagreus","Melinoe","Charon","Nemesis"], c:1 },
+    ]},
+];
+
+const QUIZ_RANKS = [
+  { min:0,  max:3, label:'Débutant',    emoji:'🎮', color:'#9898b0', bg:'rgba(152,152,176,0.12)' },
+  { min:4,  max:5, label:'Connaisseur', emoji:'🕹️', color:'#74b9ff', bg:'rgba(116,185,255,0.12)' },
+  { min:6,  max:7, label:'Expert',      emoji:'🏅', color:'var(--amber)', bg:'rgba(255,202,40,0.12)' },
+  { min:8,  max:8, label:'Légendaire',  emoji:'🏆', color:'#a29bfe', bg:'rgba(162,155,254,0.15)' },
+];
+
+let _quizActive   = null;
+let _quizQIdx     = 0;
+let _quizScore    = 0;
+let _quizAnswered = false;
+let _quizPublished = new Set();
+let _quizLocalScores  = JSON.parse(localStorage.getItem('gs_quiz_scores')   || '{}');
+let _localQuizActivity = JSON.parse(localStorage.getItem('gs_quiz_activity') || '[]');
+
+function getQuizRank(score, total) {
+  const s = Math.round((score / total) * 8);
+  return QUIZ_RANKS.find(r => s >= r.min && s <= r.max) || QUIZ_RANKS[0];
+}
+
+function renderQuizHub() {
+  const grid = document.getElementById('quiz-hub-grid');
+  if (!grid) return;
+  grid.innerHTML = QUIZ_DATA.map(q => {
+    const best = _quizLocalScores[q.id];
+    const rank = best ? getQuizRank(best.score, best.total) : null;
+    return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
+      <div style="font-size:36px;margin-bottom:10px">${q.emoji}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
+      <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
+      ${rank ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
+      <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
+    </div>`;
+  }).join('');
+}
+
+function openQuiz(id) {
+  _quizActive = QUIZ_DATA.find(q => q.id === id);
+  if (!_quizActive) return;
+  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false;
+  _quizPublished.delete(id);
+  const overlay = document.getElementById('quiz-overlay');
+  overlay.classList.add('open');
+  document.getElementById('quiz-title-bar').textContent = _quizActive.title;
+  document.getElementById('quiz-progress-fill').style.background = _quizActive.gradient;
+  renderQuizQuestion();
+}
+
+function closeQuiz() {
+  document.getElementById('quiz-overlay').classList.remove('open');
+  _quizActive = null;
+  renderQuizHub();
+}
+
+function renderQuizQuestion() {
+  if (!_quizActive) return;
+  const q     = _quizActive.questions[_quizQIdx];
+  const total = _quizActive.questions.length;
+  _quizAnswered = false;
+  document.getElementById('quiz-counter').textContent    = `Question ${_quizQIdx + 1} / ${total}`;
+  document.getElementById('quiz-score-badge').textContent = `${_quizScore} ✓`;
+  document.getElementById('quiz-next-btn-wrap').style.display = 'none';
+  document.getElementById('quiz-progress-fill').style.width   = ((_quizQIdx / total) * 100) + '%';
+  const letters = ['A','B','C','D'];
+  document.getElementById('quiz-q-area').innerHTML = `
+    <div class="quiz-q-anim">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;line-height:1.4;margin-bottom:28px;padding:0 2px">${q.q}</div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="quiz-answers">
+        ${q.a.map((ans,i) => `<button class="answer-btn" style="animation-delay:${i*0.07}s" onclick="submitAnswer(${i})">
+          <span class="answer-letter">${letters[i]}</span><span>${ans}</span>
+        </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function submitAnswer(idx) {
+  if (_quizAnswered) return;
+  _quizAnswered = true;
+  const q = _quizActive.questions[_quizQIdx];
+  const correct = idx === q.c;
+  if (correct) _quizScore++;
+  document.querySelectorAll('#quiz-answers .answer-btn').forEach((btn, i) => {
+    btn.classList.add('revealed');
+    if (i === q.c) btn.classList.add('correct');
+    else if (i === idx && !correct) btn.classList.add('wrong');
+  });
+  document.getElementById('quiz-score-badge').textContent = `${_quizScore} ✓`;
+  const isLast = _quizQIdx >= _quizActive.questions.length - 1;
+  const nextBtn = document.getElementById('quiz-next-btn');
+  nextBtn.textContent = isLast ? 'Voir mes résultats 🏆' : 'Suivant →';
+  nextBtn.onclick = isLast ? showQuizResults : nextQuizQuestion;
+  document.getElementById('quiz-next-btn-wrap').style.display = 'block';
+}
+
+function nextQuizQuestion() { _quizQIdx++; renderQuizQuestion(); }
+
+function showQuizResults() {
+  const total = _quizActive.questions.length;
+  const rank  = getQuizRank(_quizScore, total);
+  _quizLocalScores[_quizActive.id] = { score:_quizScore, total, ts:Date.now() };
+  localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
+  saveQuizScore(_quizActive.id, _quizScore, total);
+  document.getElementById('quiz-progress-fill').style.width = '100%';
+  document.getElementById('quiz-next-btn-wrap').style.display = 'none';
+  const pct = Math.round((_quizScore / total) * 100);
+  const qid = _quizActive.id;
+  document.getElementById('quiz-q-area').innerHTML = `
+    <div class="quiz-q-anim" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 0 24px">
+      <div style="font-size:72px;margin-bottom:20px;line-height:1">${rank.emoji}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:800;background:${_quizActive.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:12px">${_quizScore}<span style="font-size:28px;opacity:0.6">/${total}</span></div>
+      <div style="display:inline-flex;align-items:center;gap:8px;background:${rank.bg};border:0.5px solid ${rank.color};border-radius:50px;padding:8px 22px;margin-bottom:6px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:${rank.color}">${rank.label}</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:36px">${pct}% de bonnes réponses</div>
+      <button onclick="publishQuizResult()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px">
+        📢 Publier dans mon feed
+      </button>
+      <div style="display:flex;gap:10px;width:100%">
+        <button onclick="openQuiz('${qid}')" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">↻ Rejouer</button>
+        <button onclick="closeQuiz()" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
+      </div>
+    </div>`;
+}
+
+function publishQuizResult() {
+  if (!_quizActive) return;
+  const id = _quizActive.id;
+  if (_quizPublished.has(id)) { showToast('Déjà publié dans le feed !'); return; }
+  _quizPublished.add(id);
+  const rank = getQuizRank(_quizScore, _quizActive.questions.length);
+  const profile = JSON.parse(localStorage.getItem('gs_profile') || '{}');
+  _localQuizActivity.unshift({
+    type:'quiz', mine:true,
+    username: profile.username || 'Toi',
+    avatar: profile.avatar || '🎮',
+    grad: profile.grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+    quizId: id, quizTitle:_quizActive.title, quizEmoji:_quizActive.emoji,
+    quizGradient: _quizActive.gradient, quizColor: _quizActive.color,
+    score:_quizScore, total:_quizActive.questions.length,
+    rankLabel: rank.label, rankEmoji: rank.emoji, rankColor: rank.color,
+    ago:"à l'instant"
+  });
+  localStorage.setItem('gs_quiz_activity', JSON.stringify(_localQuizActivity.slice(0,20)));
+  renderDummyActivity();
+  showToast('✓ Publié dans ton feed !');
+}
+
+async function saveQuizScore(quizId, score, total) {
+  try {
+    const { data:{ user } } = await _sb.auth.getUser();
+    if (!user) return;
+    await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
+  } catch(e) { /* Silently skip if table doesn't exist yet */ }
 }
 </script>
 
