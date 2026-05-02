@@ -1372,10 +1372,13 @@ html, body {
       <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
 
         <!-- QUIZ -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
           <div class="sec-label" style="padding:0">❓ Quiz</div>
         </div>
-        <div id="quiz-hub-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px"></div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Par Licence</div>
+        <div id="quiz-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px">Par Genre</div>
+        <div id="quiz-genre-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px"></div>
 
         <!-- SEPARATEUR -->
         <div style="height:0.5px;background:var(--border);margin-bottom:20px"></div>
@@ -5890,7 +5893,8 @@ function closeTirageIntro() {
 // QUIZ
 // ══════════════════════════════════════
 const QUIZ_DATA = [
-  { id:'general', title:'Culture Générale', emoji:'🎮', color:'#a29bfe', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
+  // ── PAR GENRE ─────────────────────────────────────────────────────
+  { id:'general', cat:'genre', title:'Culture Générale', emoji:'🎮', color:'#a29bfe', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
     questions:[
       { q:"Quel studio a développé The Last of Us ?", a:["Guerrilla Games","Santa Monica Studio","Naughty Dog","Insomniac Games"], c:2 },
       { q:"Combien y a-t-il d'étoiles dans Super Mario 64 ?", a:["70","100","120","150"], c:2 },
@@ -5901,7 +5905,7 @@ const QUIZ_DATA = [
       { q:"Quel titre a reçu le Game Awards GOTY 2023 ?", a:["Spider-Man 2","Alan Wake 2","Starfield","Baldur's Gate 3"], c:3 },
       { q:"Dans Zelda, quel est le nom du grand antagoniste de la série ?", a:["Ganon / Ganondorf","Demise","Vaati","Majora"], c:0 },
     ]},
-  { id:'rpg', title:'Quiz RPG', emoji:'🗡️', color:'#fd79a8', gradient:'linear-gradient(135deg,#fd79a8,#e84393)',
+  { id:'rpg', cat:'genre', title:'Quiz RPG', emoji:'🗡️', color:'#fd79a8', gradient:'linear-gradient(135deg,#fd79a8,#e84393)',
     questions:[
       { q:"Dans Elden Ring, quel boss porte le titre 'Lame de Miquella' ?", a:["Margit","Radahn","Malenia","Morgott"], c:2 },
       { q:"Quel est le nom du protagoniste de The Witcher 3 ?", a:["Eredin","Geralt de Riv","Lambert","Eskel"], c:1 },
@@ -5912,18 +5916,29 @@ const QUIZ_DATA = [
       { q:"Quel RPG a reçu le Game Awards GOTY 2023 ?", a:["Cyberpunk 2077","Metaphor: ReFantazio","Elden Ring","Baldur's Gate 3"], c:3 },
       { q:"Dans Persona 5, quel est le nom de code du protagoniste ?", a:["Ryuji","Joker","Fox","Skull"], c:1 },
     ]},
-  { id:'action', title:'Action / Aventure', emoji:'⚔️', color:'#00cec9', gradient:'linear-gradient(135deg,#00cec9,#00b894)',
+  { id:'action', cat:'genre', title:'Quiz Action', emoji:'⚔️', color:'#00cec9', gradient:'linear-gradient(135deg,#00cec9,#00b894)',
     questions:[
       { q:"Dans God of War (2018), quel est le nom du fils de Kratos ?", a:["Thor","Baldur","Tyr","Atreus"], c:3 },
-      { q:"Dans The Last of Us, quelle mutation cause l'infection ?", a:["Le Fléau rouge","Cordyceps","Le Virus T","Ophiocordyceps"], c:1 },
       { q:"Quelle est l'arme signature de Kratos dans les premiers God of War ?", a:["Léviathan","Mjolnir","Lames du Chaos","Faux de Cronos"], c:2 },
       { q:"Dans Sekiro, comment s'appelle le jeune seigneur que Wolf protège ?", a:["Genichiro","Isshin","Emma","Kuro"], c:3 },
-      { q:"Dans Horizon Zero Dawn, comment s'appelle la protagoniste ?", a:["Sylens","Aloy","Erend","Varl"], c:1 },
-      { q:"Dans Red Dead Redemption 2, quel est le nom du gang de Dutch ?", a:["Van der Linde","O'Driscoll","Deadwood","Grays"], c:0 },
       { q:"Quel studio a développé Batman: Arkham Asylum ?", a:["Naughty Dog","Insomniac","Rocksteady","WB Games"], c:2 },
       { q:"Dans Ghost of Tsushima, qui est le principal antagoniste mongol ?", a:["Shimura","Ryuzo","Khotun Khan","Tengu"], c:2 },
+      { q:"Dans Metal Gear Solid V, comment s'appelle l'organisation de Big Boss ?", a:["Outer Heaven","Mother Base","Diamond Dogs","Militaires Sans Frontières"], c:2 },
+      { q:"Dans Devil May Cry 5, qui est le frère de Dante ?", a:["Nero","V","Vergil","Trish"], c:2 },
+      { q:"Quel jeu met en scène la sorcière Bayonetta affrontant des anges ?", a:["Dante's Inferno","Bayonetta","NieR: Automata","Astral Chain"], c:1 },
     ]},
-  { id:'shooter', title:'Quiz Shooter', emoji:'🎯', color:'#ff7675', gradient:'linear-gradient(135deg,#ff5252,#ff7675)',
+  { id:'aventure', cat:'genre', title:'Quiz Aventure', emoji:'🗺️', color:'#6c5ce7', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
+    questions:[
+      { q:"Dans The Last of Us, quelle mutation cause l'infection ?", a:["Le Fléau rouge","Cordyceps","Le Virus T","Ophiocordyceps"], c:1 },
+      { q:"Dans Red Dead Redemption 2, quel est le nom du gang de Dutch ?", a:["Van der Linde","O'Driscoll","Deadwood","Grays"], c:0 },
+      { q:"Dans Horizon Zero Dawn, comment s'appelle la protagoniste ?", a:["Sylens","Aloy","Erend","Varl"], c:1 },
+      { q:"Dans Uncharted 4, quel est le prénom du frère perdu de Nathan Drake ?", a:["Victor","Harry","Samuel","Rafe"], c:2 },
+      { q:"Dans Alan Wake 2, quel nouveau personnage est agent du FBI ?", a:["Alan Wake","Saga Anderson","Tom Zane","Barbara Jagger"], c:1 },
+      { q:"Dans Days Gone, comment s'appellent les infectés ?", a:["Claqueurs","Freakers","Runners","Bloaters"], c:1 },
+      { q:"Dans Horizon Forbidden West, quel est le peuple d'origine d'Aloy ?", a:["Les Carja","Les Nora","Les Oseram","Les Tenakth"], c:1 },
+      { q:"Quel studio développe la série Uncharted ?", a:["Guerrilla Games","Santa Monica Studio","Naughty Dog","Insomniac Games"], c:2 },
+    ]},
+  { id:'shooter', cat:'genre', title:'Quiz Shooter', emoji:'🎯', color:'#ff7675', gradient:'linear-gradient(135deg,#ff5252,#ff7675)',
     questions:[
       { q:"Quel est le grade complet de Master Chief dans Halo ?", a:["Sergent Major","Commandant","Amiral","Master Chief Petty Officer"], c:3 },
       { q:"Quelle est la map la plus iconique de Counter-Strike ?", a:["Inferno","Dust2","Mirage","Nuke"], c:1 },
@@ -5934,7 +5949,7 @@ const QUIZ_DATA = [
       { q:"Dans DOOM (2016), comment s'appelle officiellement le protagoniste ?", a:["Doomguy","DOOM Slayer","B.J. Blazkowicz","Flynn Taggart"], c:1 },
       { q:"Dans Fortnite, combien de joueurs par partie classique ?", a:["50","64","100","150"], c:2 },
     ]},
-  { id:'indie', title:'Quiz Indie', emoji:'🌱', color:'#00e676', gradient:'linear-gradient(135deg,#00e676,#00b894)',
+  { id:'indie', cat:'genre', title:'Quiz Indie', emoji:'🌱', color:'#00e676', gradient:'linear-gradient(135deg,#00e676,#00b894)',
     questions:[
       { q:"Qui a développé Stardew Valley seul pendant 4 ans ?", a:["Toby Fox","Jonatan Söderström","Eric Barone (ConcernedApe)","Edmund McMillen"], c:2 },
       { q:"Dans Hollow Knight, dans quel royaume se déroule l'aventure ?", a:["Deepnest","The Abyss","Greenpath","Hallownest"], c:3 },
@@ -5945,7 +5960,152 @@ const QUIZ_DATA = [
       { q:"Quel est le style artistique distinctif de Cuphead ?", a:["Pixel art 16-bit","Animation des années 30","Voxel 3D","Cartoon moderne"], c:1 },
       { q:"Dans Hades II, quel personnage est le nouveau protagoniste ?", a:["Zagreus","Melinoe","Charon","Nemesis"], c:1 },
     ]},
-  { id:'sims', title:'Quiz Les Sims', emoji:'🏠', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#74b9ff)',
+  { id:'sport', cat:'genre', title:'Quiz Sport', emoji:'⚽', color:'#55efc4', gradient:'linear-gradient(135deg,#00b894,#55efc4)',
+    questions:[
+      { q:"Comment s'appelle la nouvelle marque EA Sports qui remplace FIFA ?", a:["EA FC","FIFA Pro","Sports World","Goal United"], c:0 },
+      { q:"Dans Rocket League, quelle est la durée d'un match standard ?", a:["3 min","4 min","5 min","7 min"], c:2 },
+      { q:"Quel studio développe la série NBA 2K ?", a:["EA Sports","2K Games","Sony San Diego","Konami"], c:1 },
+      { q:"Quel sport pratique-t-on dans Rocket League ?", a:["Basketball en voiture","Football en voiture","Hockey en voiture","Rugby en voiture"], c:1 },
+      { q:"Quel jeu de sport était livré avec la Nintendo Wii en 2006 ?", a:["Wii Fit","Mario Tennis","Wii Sports","Switch Sports"], c:2 },
+      { q:"Dans FIFA/EA FC, comment appelle-t-on le mode de gestion de club ?", a:["Ultimate Team","Carrière","Pro Clubs","The Journey"], c:1 },
+      { q:"Quel jeu de skateboard culte a relancé la série en 2020 ?", a:["Session","Skater XL","Tony Hawk's Pro Skater 1+2","OlliOlli World"], c:2 },
+      { q:"Quel jeu de golf est sorti sur Nintendo Switch en 2021 ?", a:["Golf Story","Mario Golf: Super Rush","Everybody's Golf","Hot Shots Golf"], c:1 },
+    ]},
+  { id:'strategie', cat:'genre', title:'Quiz Stratégie', emoji:'♟️', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
+    questions:[
+      { q:"Dans Civilization VI, quelle victoire s'obtient en envoyant une fusée dans l'espace ?", a:["Victoire culturelle","Victoire religieuse","Victoire scientifique","Victoire dominante"], c:2 },
+      { q:"Dans StarCraft II, quelle est la race insectoïde ?", a:["Terran","Zerg","Protoss","Hybrid"], c:1 },
+      { q:"Dans XCOM 2, comment s'appelle l'organisation ennemie qui contrôle la Terre ?", a:["ADVENT","EXALT","ALIEN","ZEUS"], c:0 },
+      { q:"Quel studio développe la série Total War ?", a:["Paradox Interactive","Firaxis Games","Creative Assembly","Amplitude Studios"], c:2 },
+      { q:"Dans Civilization, qui est le fondateur de la série ?", a:["Peter Molyneux","Sid Meier","Will Wright","Ken Levine"], c:1 },
+      { q:"Dans Crusader Kings III, que gère-t-on principalement ?", a:["Une armée spatiale","Une civilisation ancienne","Une dynastie médiévale","Un empire commercial"], c:2 },
+      { q:"Dans Age of Empires II, combien de ressources différentes existe-t-il ?", a:["2","3","4","5"], c:2 },
+      { q:"Dans Into the Breach, combien de cases compte la grille de combat ?", a:["6x6","8x8","5x5","9x9"], c:1 },
+    ]},
+  { id:'plateforme', cat:'genre', title:'Quiz Plateforme', emoji:'🍄', color:'#e84393', gradient:'linear-gradient(135deg,#e84393,#fd79a8)',
+    questions:[
+      { q:"Dans Crash Bandicoot, quel est le nom du scientifique ennemi principal ?", a:["Dingodile","Dr N. Gin","Dr Neo Cortex","Tiny Tiger"], c:2 },
+      { q:"Quel est le vrai nom de Sonic dans la série Sega ?", a:["Sonic Maurice Hedgehog","Sonic Thomas Hedgehog","Sonic Ogilvie Maurice Hedgehog","Sonic James Hedgehog"], c:2 },
+      { q:"Dans Mega Man, quelle capacité obtient-on après avoir vaincu un Robot Master ?", a:["Une armure","Son arme spéciale","Un cœur de vie","Des recharges E"], c:1 },
+      { q:"Dans Kirby, quel est le nom du roi ennemi récurrent ?", a:["Meta Knight","Dedede","Magolor","Morpho Knight"], c:1 },
+      { q:"Dans Super Mario Odyssey, comment s'appelle le chapeau de Mario ?", a:["Cappiello","Toadsworth","Cappy","Hat-Kun"], c:2 },
+      { q:"Dans LittleBigPlanet, comment s'appelle le personnage principal ?", a:["Sackboy","Patchwork","Knit-Knight","Plush"], c:0 },
+      { q:"Dans Donkey Kong Country (SNES), quel ami peut voler ?", a:["Funky Kong","Diddy Kong","Dixie Kong","Expresso l'autruche"], c:3 },
+      { q:"Dans Rayman Legends, quel est le nom du compagnon fantôme ?", a:["Globox","Barbara","Murfy","Teensie"], c:2 },
+    ]},
+  { id:'simulation', cat:'genre', title:'Quiz Simulation', emoji:'✈️', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#74b9ff)',
+    questions:[
+      { q:"Dans Microsoft Flight Simulator (2020), combien d'aéroports sont reproduits ?", a:["10 000","20 000","37 000","50 000"], c:2 },
+      { q:"Dans Farming Simulator, quelle marque de tracteur est disponible dès le début ?", a:["John Deere","Fendt","Deutz-Fahr","CLAAS"], c:1 },
+      { q:"Dans Cities: Skylines, quel studio a développé le jeu ?", a:["EA Maxis","Paradox Interactive","Colossal Order","Blizzard"], c:2 },
+      { q:"Dans Planet Coaster, quel est l'objectif principal ?", a:["Gérer un zoo","Construire et gérer un parc d'attractions","Construire une ville","Gérer un hôpital"], c:1 },
+      { q:"Dans House Flipper, quelle action principale réalise-t-on ?", a:["Construire des maisons","Acheter, rénover et revendre des maisons","Louer des appartements","Décorer des intérieurs"], c:1 },
+      { q:"Dans PowerWash Simulator, qu'est-ce qu'on fait principalement ?", a:["Construire des maisons","Nettoyer des surfaces au karcher","Peindre des façades","Réparer des machines"], c:1 },
+      { q:"Quel simulateur de conduite est développé par Slightly Mad Studios ?", a:["Gran Turismo","Forza Motorsport","Project CARS","Assetto Corsa"], c:2 },
+      { q:"Dans Two Point Hospital, que gère-t-on ?", a:["Une école","Une prison","Un hôpital","Un restaurant"], c:2 },
+    ]},
+
+  // ── PAR LICENCE ───────────────────────────────────────────────────
+  { id:'pokemon', cat:'licence', title:'Pokémon', emoji:'⚡', color:'#ffd32a', gradient:'linear-gradient(135deg,#f9ca24,#f0932b)',
+    questions:[
+      { q:"Quel est le Pokémon n°1 dans le Pokédex national ?", a:["Bulbizarre","Carapuce","Salamèche","Ronflex"], c:0 },
+      { q:"Dans Pokémon Rouge/Bleu, combien y a-t-il de Pokémon au total ?", a:["150","151","152","154"], c:1 },
+      { q:"Quel est le type de Pikachu ?", a:["Feu","Électrik","Normal","Fée"], c:1 },
+      { q:"Comment s'appelle le rival du joueur dans Pokémon Or/Argent ?", a:["Blue","Silver","Kris","Wally"], c:1 },
+      { q:"Quel objet permet à Ronflex de se réveiller dans Rouge/Bleu ?", a:["Flûte de Feu","Poké Flûte","Sifflet d'or","Harpe céleste"], c:1 },
+      { q:"Dans Pokémon GO, quel Pokémon a été le plus capturé au monde ?", a:["Pikachu","Magmar","Magicarpe","Rattata"], c:0 },
+      { q:"Quel est le Pokémon légendaire mascotte de Pokémon Écarlate ?", a:["Koraidon","Miraidon","Rayquaza","Zacian"], c:0 },
+      { q:"Dans Pokémon Diamant/Perle, quel est le légendaire du temps ?", a:["Palkia","Giratina","Dialga","Arceus"], c:2 },
+    ]},
+  { id:'mario', cat:'licence', title:'Mario', emoji:'🍄', color:'#e84393', gradient:'linear-gradient(135deg,#e84393,#fd79a8)',
+    questions:[
+      { q:"Dans quel jeu Mario fait-il sa première apparition en 1981 ?", a:["Super Mario Bros","Donkey Kong","Mario Bros","Mario Kart"], c:1 },
+      { q:"Comment s'appelle la princesse que Mario sauve le plus souvent ?", a:["Daisy","Rosalina","Pauline","Peach"], c:3 },
+      { q:"Dans Mario Kart 8 Deluxe, combien de circuits sont disponibles en tout ?", a:["32","42","48","96"], c:3 },
+      { q:"Dans Super Mario Bros original, combien de mondes compte le jeu ?", a:["6","7","8","10"], c:2 },
+      { q:"Dans Super Mario Odyssey, comment s'appelle le chapeau de Mario ?", a:["Cappiello","Toadsworth","Cappy","Hat-Kun"], c:2 },
+      { q:"Dans Super Mario Odyssey, dans quelle ville new-yorkaise débarque Mario ?", a:["Metro Kingdom","New Donk City","City Kingdom","Steam Gardens"], c:1 },
+      { q:"Combien d'étoiles faut-il pour finir Super Mario 64 ?", a:["70","80","120","150"], c:0 },
+      { q:"Dans Paper Mario: Thousand-Year Door, quel est le nom de la partenaire Goomba ?", a:["Vivian","Goombella","Koops","Flurrie"], c:1 },
+    ]},
+  { id:'cod', cat:'licence', title:'Call of Duty', emoji:'🔫', color:'#b2bec3', gradient:'linear-gradient(135deg,#636e72,#b2bec3)',
+    questions:[
+      { q:"Dans quel Call of Duty débarque-t-on en Normandie le 6 juin 1944 ?", a:["COD 2","COD 4: Modern Warfare","COD: WWII","COD: Finest Hour"], c:0 },
+      { q:"Dans MW2 (2009), comment s'appelle la mission controversée dans l'aéroport ?", a:["War Pig","Death from Above","No Russian","The Gulag"], c:2 },
+      { q:"Quel Battle Royale est lancé par Activision pour Call of Duty ?", a:["Blackout","Warzone","Ground War","Operations"], c:1 },
+      { q:"Dans Black Ops, quel est le nom du personnage principal ?", a:["Price","Alex Mason","Ghost","Soap MacTavish"], c:1 },
+      { q:"Dans MW2 (2009), quel est le nom du célèbre fusil de sniper ?", a:["Intervention","Barrett","R700","DSR-50"], c:0 },
+      { q:"Dans quel opus COD peut-on jouer en zombies pour la première fois ?", a:["COD 4","World at War","Black Ops","COD: WWII"], c:1 },
+      { q:"Quel est le nom du capitaine protagoniste récurrent de Modern Warfare ?", a:["Ghost","Shepherd","Price","Gaz"], c:2 },
+      { q:"Dans Black Ops II, en quelle année futuriste se déroule une partie du jeu ?", a:["2020","2025","2045","2060"], c:1 },
+    ]},
+  { id:'minecraft', cat:'licence', title:'Minecraft', emoji:'⛏️', color:'#a0d468', gradient:'linear-gradient(135deg,#4a6741,#a0d468)',
+    questions:[
+      { q:"Quel est le nom du boss final de Minecraft ?", a:["Le Wither","L'Ender Dragon","Le Gardien","L'Élder Gardien"], c:1 },
+      { q:"Quel bloc est nécessaire pour créer une table d'enchantement ?", a:["Diamant et obsidienne","Livre, diamant et obsidienne","Or et redstone","Émeraude et bois"], c:1 },
+      { q:"Comment s'appelle le personnage masculin par défaut dans Minecraft ?", a:["Creeper","Alex","Steve","Notch"], c:2 },
+      { q:"Comment s'appelle le créateur original de Minecraft ?", a:["Jeb","C418","Notch","Dinnerbone"], c:2 },
+      { q:"Dans Minecraft, combien de planches de bois faut-il pour faire un établi ?", a:["2","4","6","8"], c:1 },
+      { q:"Quel mob explosif détruit les constructions du joueur ?", a:["Zombie","Squelette","Creeper","Enderman"], c:2 },
+      { q:"Dans The End, quel est le nom des mobs qui téléportent ?", a:["Creepers","Enderman","Phantoms","Shulkers"], c:1 },
+      { q:"Quel studio a racheté Minecraft en 2014 ?", a:["Sony","Epic Games","Microsoft","Google"], c:2 },
+    ]},
+  { id:'fortnite', cat:'licence', title:'Fortnite', emoji:'🏗️', color:'#6c5ce7', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
+    questions:[
+      { q:"En quelle année Fortnite Battle Royale a-t-il été lancé ?", a:["2016","2017","2018","2019"], c:1 },
+      { q:"Dans Fortnite, comment s'appelle le véhicule de départ d'où les joueurs sautent ?", a:["Storm Blimp","Battle Bus","Sky Carrier","Drop Ship"], c:1 },
+      { q:"Quel studio développe Fortnite ?", a:["Activision","Rockstar","Epic Games","Riot Games"], c:2 },
+      { q:"Quel événement en 2019 a fait disparaître toute la map de Fortnite ?", a:["Le Méga-Gratte-Ciel","The Black Hole","The Storm","The Cube Event"], c:1 },
+      { q:"Quel chanteur a donné un concert virtuel dans Fortnite en 2020 avec 12 millions de spectateurs ?", a:["Drake","Travis Scott","Justin Bieber","Marshmello"], c:1 },
+      { q:"Dans Fortnite, quel terme désigne le dernier survivant ?", a:["Winner Winner","Victory Royale","Battle King","Storm Survivor"], c:1 },
+      { q:"Quelle mécanique unique de Fortnite le distingue des autres Battle Royale ?", a:["Le craft d'armes","La construction","La conduite de véhicules","Les super-pouvoirs"], c:1 },
+      { q:"Dans Fortnite, combien de joueurs par partie classique ?", a:["50","64","100","150"], c:2 },
+    ]},
+  { id:'zelda', cat:'licence', title:'The Legend of Zelda', emoji:'🗡️', color:'#ffd32a', gradient:'linear-gradient(135deg,#218c74,#ffd32a)',
+    questions:[
+      { q:"Dans Ocarina of Time, quel instrument joue Link ?", a:["Harpe","Flûte","Ocarina","Lyre"], c:2 },
+      { q:"Quel est le nom de la déesse de la sagesse dans Zelda ?", a:["Din","Nayru","Farore","Hylia"], c:1 },
+      { q:"Dans Breath of the Wild, combien y a-t-il de sanctuaires au total ?", a:["100","120","136","152"], c:1 },
+      { q:"Dans Majora's Mask, combien de jours dure la boucle temporelle ?", a:["2","3","4","7"], c:1 },
+      { q:"Quel jeu Zelda est le premier à sortir en 3D ?", a:["A Link to the Past","Link's Awakening","Ocarina of Time","Majora's Mask"], c:2 },
+      { q:"Dans Tears of the Kingdom, quelle nouvelle capacité remplace Magnesis ?", a:["Ultrahand","Recall","Ascend","Fuse"], c:0 },
+      { q:"Dans Wind Waker, quel est le nom du bateau parlant de Link ?", a:["Le Navigateur","Le Grand Voilier","Le Roi des Rouges","La Grand Tetra"], c:2 },
+      { q:"Quel est le nom complet du méchant principal de la série ?", a:["Ganon","Ganondorf Dragmire","Calamity Ganon","Demise"], c:1 },
+    ]},
+  { id:'finalfantasy', cat:'licence', title:'Final Fantasy', emoji:'💎', color:'#a29bfe', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)',
+    questions:[
+      { q:"Quel est le premier Final Fantasy à utiliser un système de combat ATB (Active Time Battle) ?", a:["FF I","FF IV","FF VI","FF VIII"], c:1 },
+      { q:"Dans FF VII, quel est le nom de l'antagoniste principal aux cheveux argentés ?", a:["Cloud","Genesis","Sephiroth","Rufus"], c:2 },
+      { q:"Dans FF X, comment s'appelle la protagoniste féminine ?", a:["Terra","Yuna","Tifa","Lightning"], c:1 },
+      { q:"Quelle créature invocable est présente dans presque tous les Final Fantasy ?", a:["Phoenix","Bahamut","Shiva","Ifrit"], c:1 },
+      { q:"Quel studio développe la série Final Fantasy ?", a:["Konami","Capcom","Square Enix","Bandai Namco"], c:2 },
+      { q:"Dans FF IX, quel est le nom du protagoniste à la queue de singe ?", a:["Zidane","Vivi","Garnet","Steiner"], c:0 },
+      { q:"Dans FF XVI, dans quel monde se déroule l'aventure ?", a:["Spira","Ivalice","Valisthea","Orience"], c:2 },
+      { q:"Dans FF XIV, quel est le nom de l'extension la plus acclamée par la critique ?", a:["A Realm Reborn","Heavensward","Shadowbringers","Endwalker"], c:2 },
+    ]},
+  { id:'wow', cat:'licence', title:'World of Warcraft', emoji:'🧙', color:'#fd79a8', gradient:'linear-gradient(135deg,#fd79a8,#6c5ce7)',
+    questions:[
+      { q:"En quelle année World of Warcraft est-il sorti ?", a:["2002","2003","2004","2005"], c:2 },
+      { q:"Quelle est la première extension de WoW ?", a:["Wrath of the Lich King","Burning Crusade","Cataclysm","Mists of Pandaria"], c:1 },
+      { q:"Quel est le niveau maximum dans WoW Classic ?", a:["50","60","70","80"], c:1 },
+      { q:"Dans WoW, comment s'appelle la capitale de l'Alliance humaine ?", a:["Orgrimmar","Stormwind","Ironforge","Dalaran"], c:1 },
+      { q:"Quel est le nom du Roi-Liche ?", a:["Arthas Menethil","Sylvanas","Illidan","Garrosh"], c:0 },
+      { q:"Dans WoW, quelle faction a pour capitale Orgrimmar ?", a:["Alliance","Horde","Factions neutres","Mercenaires"], c:1 },
+      { q:"Quelle race a été introduite dans Burning Crusade pour l'Alliance ?", a:["Worgen","Draenei","Pandaren","Mechagnome"], c:1 },
+      { q:"Comment s'appelle le raid final de Wrath of the Lich King ?", a:["Dragon Soul","Sunwell Plateau","Icecrown Citadel","Trial of the Crusader"], c:2 },
+    ]},
+  { id:'lol', cat:'licence', title:'League of Legends', emoji:'⚔️', color:'#00cec9', gradient:'linear-gradient(135deg,#00cec9,#0984e3)',
+    questions:[
+      { q:"En quelle année League of Legends est-il officiellement sorti ?", a:["2007","2008","2009","2010"], c:2 },
+      { q:"Combien de rôles différents existent dans LoL ?", a:["3","4","5","6"], c:2 },
+      { q:"Comment s'appelle la carte principale de League of Legends ?", a:["The Crystal Scar","Twisted Treeline","Summoner's Rift","The Howling Abyss"], c:2 },
+      { q:"Quel champion a historiquement le plus grand nombre de skins dans LoL ?", a:["Lux","Jinx","Teemo","Ezreal"], c:0 },
+      { q:"Dans LoL, quel objectif central faut-il détruire pour gagner la partie ?", a:["Le Baron","La Tour Nexus","Le Nexus","L'Inhibiteur"], c:2 },
+      { q:"Quel studio développe League of Legends ?", a:["Valve","Epic Games","Riot Games","Blizzard"], c:2 },
+      { q:"Dans LoL, quelle championne est sœur d'une autre championne et originaire de Zaun ?", a:["Jinx","Vi","Caitlyn","Ekko"], c:0 },
+      { q:"Dans LoL, comment s'appelle la monnaie premium du jeu ?", a:["Gold","Riot Points","Blue Essence","Hextech Crystals"], c:1 },
+    ]},
+  { id:'sims', cat:'licence', title:'Les Sims', emoji:'🏠', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#74b9ff)',
     questions:[
       { q:"Quel cheat code donne 50 000 § dans Les Sims 4 ?", a:["kaching","rosebud","motherlode","freemoney"], c:2 },
       { q:"Comment s'appelle la monnaie dans Les Sims ?", a:["Crédits","Simflouz (§)","Simcoins","LifePoints"], c:1 },
@@ -5956,7 +6116,7 @@ const QUIZ_DATA = [
       { q:"Dans Les Sims 4, que se passe-t-il si un bébé est négligé trop longtemps ?", a:["Il pleure sans arrêt","Il est retiré par les services sociaux","Il meurt","Il disparaît"], c:1 },
       { q:"Comment appelle-t-on les personnages générés aléatoirement dans Les Sims ?", a:["Génériques","Townies","Wanderers","Extras"], c:1 },
     ]},
-  { id:'ac', title:"Assassin's Creed", emoji:'🦅', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
+  { id:'ac', cat:'licence', title:"Assassin's Creed", emoji:'🦅', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
     questions:[
       { q:"Dans quel contexte historique se déroule le premier Assassin's Creed ?", a:["Égypte antique","Les Croisades (Terre Sainte)","Renaissance italienne","Japon féodal"], c:1 },
       { q:"Comment s'appelle la machine qui revit les souvenirs ancestraux ?", a:["MemoCap","Helix","Animus","Creed Machine"], c:2 },
@@ -5967,7 +6127,7 @@ const QUIZ_DATA = [
       { q:"Quel est le nom du protagoniste viking dans AC Valhalla ?", a:["Sigurd","Basim","Halfdan","Eivor"], c:3 },
       { q:"Quelle ville est au cœur d'Assassin's Creed Mirage ?", a:["Le Caire","Alexandrie","Bagdad","Constantinople"], c:2 },
     ]},
-  { id:'gta', title:'Quiz GTA', emoji:'🚗', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#ff7675)',
+  { id:'gta', cat:'licence', title:'Grand Theft Auto', emoji:'🚗', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#ff7675)',
     questions:[
       { q:"Dans GTA V, combien de protagonistes jouables y a-t-il ?", a:["1","2","3","4"], c:2 },
       { q:"Comment s'appelle la ville fictive de GTA V inspirée de Los Angeles ?", a:["Vice City","San Andreas","Liberty City","Los Santos"], c:3 },
@@ -5977,6 +6137,39 @@ const QUIZ_DATA = [
       { q:"Quelle ville américaine inspire Vice City dans GTA Vice City ?", a:["New York","Los Angeles","Miami","Chicago"], c:2 },
       { q:"En quelle année est sorti GTA V ?", a:["2011","2012","2013","2015"], c:2 },
       { q:"Quel studio développe la série Grand Theft Auto ?", a:["Activision","2K Games","Rockstar Games","Take-Two Interactive"], c:2 },
+    ]},
+  { id:'residentevil', cat:'licence', title:'Resident Evil', emoji:'🧟', color:'#ff5252', gradient:'linear-gradient(135deg,#c0392b,#ff5252)',
+    questions:[
+      { q:"Dans Resident Evil (1996), dans quel lieu se déroule l'aventure principale ?", a:["Raccoon City","Le Spencer Mansion","L'Umbrella Lab","La Tour Umbrella"], c:1 },
+      { q:"Quel est le nom du virus principal dans Resident Evil 1 ?", a:["T-Virus","G-Virus","C-Virus","Mold"], c:0 },
+      { q:"Dans RE4, quel est le nom du protagoniste envoyé sauver la fille du Président ?", a:["Chris Redfield","Jill Valentine","Leon S. Kennedy","Carlos Oliveira"], c:2 },
+      { q:"Dans RE Village, quel est le nom de la grande dame vampire antagoniste ?", a:["Miranda","Alcina Dimitrescu","Angie","Bela"], c:1 },
+      { q:"Quelle entreprise pharmaceutique est la grande méchante de la série ?", a:["GeneTech","BioLabs","Umbrella Corporation","Tricell"], c:2 },
+      { q:"Dans RE2 Remake (2019), combien de scénarios principaux y a-t-il ?", a:["1","2","3","4"], c:1 },
+      { q:"Dans RE7, dans quel État américain se déroule l'aventure ?", a:["Texas","Louisiane","Mississippi","Floride"], c:1 },
+      { q:"Quel personnage est surnommé 'Maître de l'esquive' dans la série ?", a:["Claire Redfield","Ada Wong","Jill Valentine","Sherry Birkin"], c:2 },
+    ]},
+  { id:'halo', cat:'licence', title:'Halo', emoji:'👾', color:'#00e676', gradient:'linear-gradient(135deg,#00b894,#00e676)',
+    questions:[
+      { q:"Quel est le vrai nom de Master Chief ?", a:["James-024","John-117","Samuel-034","Fred-104"], c:1 },
+      { q:"Dans Halo, quelle est la coalition extraterrestre ennemie principale ?", a:["Les Élites","Le Covenant","Les Brutes","Les Précurseurs"], c:1 },
+      { q:"Quel studio a créé la série Halo originale ?", a:["343 Industries","Rare","Bungie","Epic Games"], c:2 },
+      { q:"Dans Halo 3, quel est le nom de l'IA qui accompagne Master Chief ?", a:["Cortana","GUILTY SPARK","Oracle","Serina"], c:0 },
+      { q:"Dans Halo: Reach, que désigne le titre 'Reach' ?", a:["Une planète","Une arme","Un Halo","Un personnage"], c:0 },
+      { q:"Dans Halo 2, quel Covenant devient un allié inattendu de Master Chief ?", a:["Le Prophète de la Vérité","L'Arbiter","Un Grunt","Un Jackal"], c:1 },
+      { q:"Quelle est la menace parasitaire dans Halo ?", a:["Les Sentinelles","Le Flood","Les Hunters","Les Jackals"], c:1 },
+      { q:"Dans Halo Infinite, sur quelle Installation se déroule l'aventure ?", a:["Installation 04","Installation 05","Installation 07","Installation 00"], c:2 },
+    ]},
+  { id:'elderscrolls', cat:'licence', title:'The Elder Scrolls', emoji:'🏔️', color:'#fdcb6e', gradient:'linear-gradient(135deg,#2d3436,#fdcb6e)',
+    questions:[
+      { q:"Dans Skyrim, quel titre porte le personnage que l'on incarne ?", a:["Nerevarine","Champion de Cyrodiil","Dovahkiin","Vestige"], c:2 },
+      { q:"Dans Oblivion, quel est le nom du plan obliviesque envahisseur ?", a:["Coldharbour","Oblivion","Apocrypha","Moonshadow"], c:1 },
+      { q:"Dans Morrowind, sur quelle île se déroule l'aventure ?", a:["Solstheim","Vvardenfell","Orsinium","Elsweyr"], c:1 },
+      { q:"Quel est le nom du dieu du temps et du destin dans The Elder Scrolls ?", a:["Akatosh","Talos","Mehrunes Dagon","Molag Bal"], c:0 },
+      { q:"Dans Skyrim, combien y a-t-il de Compagnonnages (Factions) principaux à rejoindre ?", a:["2","3","4","5"], c:2 },
+      { q:"Quel est le nom du jeu en ligne de la série ?", a:["Elder Scrolls Online","TES: Arena","ESO Online","The Elder Scrolls Legends"], c:0 },
+      { q:"Dans Skyrim, quel dragon est le grand antagoniste ?", a:["Paarthurnax","Miraak","Alduin","Odahviing"], c:2 },
+      { q:"Dans Oblivion, quel est le nom de la guilde des assassins ?", a:["La Confrérie Noire","La Guilde des Mages","La Guilde des Voleurs","Les Compagnons"], c:0 },
     ]},
 ];
 
@@ -6001,14 +6194,30 @@ function getQuizRank(score, total) {
 }
 
 function renderQuizHub() {
-  const grid = document.getElementById('quiz-hub-grid');
-  if (!grid) return;
-  grid.innerHTML = QUIZ_DATA.map(q => {
+  const licenceScroll = document.getElementById('quiz-licence-scroll');
+  const genreGrid     = document.getElementById('quiz-genre-grid');
+  if (!licenceScroll || !genreGrid) return;
+
+  const licenceQuizzes = QUIZ_DATA.filter(q => q.cat === 'licence');
+  const genreQuizzes   = QUIZ_DATA.filter(q => q.cat === 'genre');
+
+  licenceScroll.innerHTML = licenceQuizzes.map(q => {
+    const best = _quizLocalScores[q.id];
+    const rank = best ? getQuizRank(best.score, best.total) : null;
+    return `<div onclick="openQuiz('${q.id}')" style="flex-shrink:0;width:120px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;position:relative;overflow:hidden;text-align:center;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.95)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+      <div style="font-size:30px;margin-bottom:8px;line-height:1">${q.emoji}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px">${q.title}</div>
+      ${rank ? `<div style="font-size:10px;color:${rank.color};font-weight:700">${rank.emoji} ${best.score}/${best.total}</div>` : `<div style="font-size:10px;color:var(--muted2)">${q.questions.length} q.</div>`}
+      <div style="position:absolute;inset:0;border-radius:14px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
+    </div>`;
+  }).join('');
+
+  genreGrid.innerHTML = genreQuizzes.map(q => {
     const best = _quizLocalScores[q.id];
     const rank = best ? getQuizRank(best.score, best.total) : null;
     return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
-      <div style="font-size:36px;margin-bottom:10px">${q.emoji}</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
+      <div style="font-size:32px;margin-bottom:8px">${q.emoji}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
       <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
       ${rank ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
       <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
