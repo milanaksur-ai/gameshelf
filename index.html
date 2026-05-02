@@ -403,7 +403,7 @@ html, body {
 .connect-btn     { display: inline-flex; align-items: center; gap: 6px; background: var(--a); border: none; border-radius: 10px; padding: 9px 16px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; color: #fff; cursor: pointer; }
 
 /* toast */
-#toast { position: fixed; bottom: calc(80px + var(--safe-b) + 12px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--s3); border: 0.5px solid var(--border2); border-radius: 12px; padding: 10px 18px; font-size: 13px; color: var(--text); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; white-space: nowrap; z-index: 200; }
+#toast { position: fixed; bottom: calc(80px + var(--safe-b) + 12px); left: 50%; transform: translateX(-50%) translateY(20px); background: var(--s3); border: 0.5px solid var(--border2); border-radius: 12px; padding: 10px 18px; font-size: 13px; color: var(--text); opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; white-space: nowrap; z-index: 1200; }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
@@ -1384,10 +1384,11 @@ html, body {
         <div style="height:0.5px;background:var(--border);margin-bottom:20px"></div>
 
         <!-- TIER LIST -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
           <div class="sec-label" style="padding:0">🏆 Tier List</div>
+          <button onclick="openNewTierListModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent">➕ Nouvelle</button>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;padding-bottom:24px">
+        <div style="display:flex;flex-direction:column;gap:8px">
           <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
             <div style="font-size:36px">📚</div>
             <div style="flex:1">
@@ -1407,6 +1408,7 @@ html, body {
             <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a2),#e84393);opacity:0.04;pointer-events:none"></div>
           </div>
         </div>
+        <div id="tl-my-lists" style="margin-top:4px;padding-bottom:24px"></div>
 
       </div>
     </div>
@@ -1765,15 +1767,25 @@ html, body {
         <div id="tl-title" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700"></div>
         <div id="tl-hint" style="font-size:11px;color:var(--muted2)">Sélectionne un jeu puis choisis son tier</div>
       </div>
+      <button id="tl-save-btn" onclick="saveTierList()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">
+        💾 Sauvegarder
+      </button>
       <button onclick="exportTierList()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        Exporter
+        PNG
       </button>
     </div>
     <!-- Tier rows -->
     <div id="tl-tiers" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     <!-- Pool -->
     <div style="flex-shrink:0;border-top:0.5px solid var(--border);background:var(--s1)">
+      <div id="tl-search-wrap" style="display:none;padding:8px 16px 4px">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="tl-search-input" type="text" placeholder="Ajouter un jeu…" oninput="_tlSearchDebounce(this.value)" style="background:none;border:none;outline:none;font-size:13px;color:var(--text);flex:1;font-family:'DM Sans',sans-serif" autocomplete="off">
+        </div>
+        <div id="tl-search-results" style="display:flex;gap:8px;overflow-x:auto;padding:8px 0 0;scrollbar-width:none;min-height:0"></div>
+      </div>
       <div style="padding:8px 16px 4px;display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">À classer</div>
         <div id="tl-pool-count" style="font-size:11px;color:var(--muted2)"></div>
@@ -1783,6 +1795,56 @@ html, body {
   </div>
   <!-- hidden canvas for tier list export -->
   <canvas id="tl-canvas" style="display:none"></canvas>
+
+  <!-- NEW TIER LIST MODAL -->
+  <div id="tl-new-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlNewModal()">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">Nouvelle Tier List</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Choisis un point de départ</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div onclick="closeTlNewModal();openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
+          <div style="font-size:28px">📚</div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Mes jeux</div><div style="font-size:11px;color:var(--muted2)">Classe ta bibliothèque</div></div>
+        </div>
+        <div onclick="closeTlNewModal();openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
+          <div style="font-size:28px">🔥</div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Top 20 du moment</div><div style="font-size:11px;color:var(--muted2)">Les meilleurs jeux de tous les temps</div></div>
+        </div>
+        <div onclick="closeTlNewModal();openTierListCustomPrompt()" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
+          <div style="font-size:28px">✨</div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Thème libre</div><div style="font-size:11px;color:var(--muted2)">Choisis toi-même tes jeux via recherche</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM TIER LIST TITLE PROMPT -->
+  <div id="tl-custom-prompt" style="display:none;position:fixed;inset:0;z-index:910;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Thème libre</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Donne un titre à ta tier list</div>
+      <input id="tl-custom-title-input" type="text" placeholder="Ex : Mes jeux PS5, Meilleurs RPG…" maxlength="40" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px">
+      <button onclick="startCustomTierList()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Créer →</button>
+    </div>
+  </div>
+
+  <!-- TIER LIST SHARE MODAL -->
+  <div id="tl-share-modal" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlShareModal()">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">✅ Tier list sauvegardée !</div>
+      <div id="tl-share-name" style="font-size:12px;color:var(--muted2);margin-bottom:16px"></div>
+      <div style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+        <div id="tl-share-url" style="font-size:11px;color:var(--muted2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+        <button onclick="copyTlLink()" style="background:var(--a);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Copier</button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button id="tl-native-share-btn" onclick="nativeShareTl()" style="flex:1;padding:13px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">
+          📤 Partager
+        </button>
+        <button onclick="closeTlShareModal()" style="flex:1;padding:13px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">Fermer</button>
+      </div>
+    </div>
+  </div>
 
   <!-- NAV -->
   <nav id="app-nav">
@@ -3186,7 +3248,7 @@ function appGoTo(screen) {
   else stopProfileParticles();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
   if (screen === 'social') loadSocialScreen();
-  if (screen === 'explore') renderQuizHub();
+  if (screen === 'explore') { renderQuizHub(); renderTierListHub(); }
 }
 
 function moveNavIndicator(btn) {
@@ -4714,6 +4776,9 @@ function initApp(){
     renderHomeCollections();
     renderHomeRecos();
   }, 200);
+  // Check for shared tier list URL param
+  const tlParam = new URLSearchParams(location.search).get('tl');
+  if (tlParam) setTimeout(() => loadSharedTierList(tlParam), 600);
 }
 
 // ══════════════════════════════════════
@@ -6207,7 +6272,7 @@ function renderQuizHub() {
     return `<div onclick="openQuiz('${q.id}')" style="flex-shrink:0;width:120px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;position:relative;overflow:hidden;text-align:center;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.95)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
       <div style="font-size:30px;margin-bottom:8px;line-height:1">${q.emoji}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px">${q.title}</div>
-      ${rank ? `<div style="font-size:10px;color:${rank.color};font-weight:700">${rank.emoji} ${best.score}/${best.total}</div>` : `<div style="font-size:10px;color:var(--muted2)">${q.questions.length} q.</div>`}
+      ${rank ? `<div style="font-size:10px;color:${rank.color};font-weight:700">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
       <div style="position:absolute;inset:0;border-radius:14px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
     </div>`;
   }).join('');
@@ -6303,7 +6368,7 @@ function showQuizResults() {
         <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:${rank.color}">${rank.label}</span>
       </div>
       <div style="font-size:12px;color:var(--muted2);margin-bottom:36px">${pct}% de bonnes réponses</div>
-      <button onclick="publishQuizResult()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px">
+      <button id="quiz-publish-btn" onclick="publishQuizResult()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px">
         📢 Publier dans mon feed
       </button>
       <div style="display:flex;gap:10px;width:100%">
@@ -6334,6 +6399,8 @@ function publishQuizResult() {
   localStorage.setItem('gs_quiz_activity', JSON.stringify(_localQuizActivity.slice(0,20)));
   renderDummyActivity();
   showToast('✓ Publié dans ton feed !');
+  const btn = document.getElementById('quiz-publish-btn');
+  if (btn) { btn.textContent = '✓ Publié !'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
 }
 
 async function saveQuizScore(quizId, score, total) {
@@ -6405,27 +6472,220 @@ function _tlCoverHtml(g, cls, wrapCls, onclick) {
   </div>`;
 }
 
-function openTierList(mode) {
-  _tlMode  = mode;
-  _tlTiers = { S:[], A:[], B:[], C:[], D:[], F:[] };
-  _tlSelected = null;
+let _tlCustomTitle  = '';
+let _tlSavedId      = null;
+let _tlReadOnly     = false;
+let _tlMyLists      = JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]');
+let _tlSearchTimer  = null;
+let _tlShareUrl     = '';
+
+function openTierList(mode, opts = {}) {
+  _tlMode      = mode;
+  _tlTiers     = { S:[], A:[], B:[], C:[], D:[], F:[] };
+  _tlSelected  = null;
+  _tlSavedId   = null;
+  _tlReadOnly  = opts.readOnly || false;
+  _tlCustomTitle = opts.title || '';
+
   if (mode === 'library') {
     _tlPool = GAMES.map(g => {
       const ug = userGames[g.id] || {};
       return { id:g.id, title:g.title, steamId:g.steamId||0, imageId:g.imageId||null, cover:g.cover||null, status:ug.status||g.status };
     }).filter(g => g.status !== 'wish');
-  } else {
+  } else if (mode === 'popular') {
     _tlPool = TIERLIST_POPULAR.map(g => ({ ...g }));
+  } else if (mode === 'custom') {
+    _tlPool = [];
+  } else if (mode === 'view') {
+    _tlPool = [];
+    if (opts.items) _tlPool = opts.items.map(g => ({...g}));
+    if (opts.tiers) _tlTiers = opts.tiers;
+    _tlPool = _tlPool.filter(g => !Object.values(_tlTiers).flat().find(t => t.id === g.id));
   }
-  document.getElementById('tl-title').textContent = mode === 'library' ? '📚 Mes jeux' : '🔥 Top 20 du moment';
+
+  const titles = { library:'📚 Mes jeux', popular:'🔥 Top 20 du moment', custom: _tlCustomTitle || '✨ Thème libre', view: opts.name || '👁 Tier List' };
+  document.getElementById('tl-title').textContent = titles[mode] || '🏆 Tier List';
+
+  const searchWrap = document.getElementById('tl-search-wrap');
+  if (searchWrap) searchWrap.style.display = mode === 'custom' ? 'block' : 'none';
+
+  const saveBtn = document.getElementById('tl-save-btn');
+  if (saveBtn) {
+    if (_tlReadOnly) { saveBtn.textContent = '🔁 Créer la mienne'; saveBtn.onclick = forkTierList; }
+    else { saveBtn.textContent = '💾 Sauvegarder'; saveBtn.onclick = saveTierList; }
+  }
+
   document.getElementById('tierlist-overlay').classList.add('open');
   renderTierListTiers();
   renderTierListPool();
 }
 
+function openNewTierListModal() {
+  const m = document.getElementById('tl-new-modal');
+  if (m) m.style.display = 'flex';
+}
+function closeTlNewModal() {
+  const m = document.getElementById('tl-new-modal');
+  if (m) m.style.display = 'none';
+}
+function openTierListCustomPrompt() {
+  const m = document.getElementById('tl-custom-prompt');
+  if (m) { m.style.display = 'flex'; setTimeout(() => document.getElementById('tl-custom-title-input')?.focus(), 100); }
+}
+function startCustomTierList() {
+  const inp = document.getElementById('tl-custom-title-input');
+  const title = (inp?.value || '').trim() || '✨ Thème libre';
+  if (inp) inp.value = '';
+  const m = document.getElementById('tl-custom-prompt');
+  if (m) m.style.display = 'none';
+  openTierList('custom', { title });
+}
+
+let _tlSearchDebounceTimer = null;
+function _tlSearchDebounce(q) {
+  clearTimeout(_tlSearchDebounceTimer);
+  const res = document.getElementById('tl-search-results');
+  if (!q.trim()) { if (res) res.innerHTML = ''; return; }
+  _tlSearchDebounceTimer = setTimeout(() => _tlSearchAdd(q), 400);
+}
+
+async function _tlSearchAdd(q) {
+  const res = document.getElementById('tl-search-results');
+  if (!res) return;
+  res.innerHTML = '<div style="font-size:11px;color:var(--muted2);padding:4px 0">Recherche…</div>';
+  try {
+    const data = await igdbFetch('search', { query: q.trim(), limit: 12 });
+    if (!data || !data.length) { res.innerHTML = '<div style="font-size:11px;color:var(--muted2);padding:4px 0">Aucun résultat</div>'; return; }
+    res.innerHTML = data.map(g => {
+      const imgId = g.cover?.image_id;
+      const src = imgId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg` : null;
+      const inPool = _tlPool.find(p => p.id === 'igdb_'+g.id) || Object.values(_tlTiers).flat().find(p => p.id === 'igdb_'+g.id);
+      return `<div onclick="_tlAddFromSearch(${g.id},'${(g.name||'').replace(/'/g,"\\'")}','${imgId||''}')" style="flex-shrink:0;cursor:pointer;position:relative;opacity:${inPool?'0.4':'1'}">
+        ${src ? `<img src="${src}" style="width:46px;height:62px;border-radius:8px;object-fit:cover;display:block" loading="lazy">` : `<div style="width:46px;height:62px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted2);text-align:center;padding:2px">${(g.name||'').slice(0,6)}</div>`}
+        ${inPool ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:16px">✓</div>' : '<div style="position:absolute;bottom:2px;right:2px;background:var(--a);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff">+</div>'}
+      </div>`;
+    }).join('');
+  } catch(e) { res.innerHTML = '<div style="font-size:11px;color:var(--red);padding:4px 0">Erreur réseau</div>'; }
+}
+
+function _tlAddFromSearch(igdbId, title, imageId) {
+  const id = 'igdb_' + igdbId;
+  if (_tlPool.find(g => g.id === id) || Object.values(_tlTiers).flat().find(g => g.id === id)) return;
+  _tlPool.push({ id, title, imageId: imageId || null, steamId:0, cover:null });
+  renderTierListPool();
+  const q = document.getElementById('tl-search-input')?.value;
+  if (q) _tlSearchAdd(q);
+}
+
+async function saveTierList() {
+  const allItems = [..._tlPool, ...Object.values(_tlTiers).flat()];
+  if (allItems.length === 0) { showToast('Ajoute des jeux avant de sauvegarder'); return; }
+  const saveBtn = document.getElementById('tl-save-btn');
+  if (saveBtn) { saveBtn.textContent = '⏳…'; saveBtn.disabled = true; }
+  const titles = { library:'📚 Mes jeux', popular:'🔥 Top 20 du moment', custom: _tlCustomTitle || '✨ Thème libre' };
+  const name = _tlSavedId ? (titles[_tlMode] || '🏆 Tier List') : (titles[_tlMode] || '🏆 Tier List');
+  const profile = JSON.parse(localStorage.getItem('gs_profile') || '{}');
+  const payload = { name, mode: _tlMode, items: allItems, tiers: _tlTiers, creator_name: profile.username || 'Anonyme' };
+  try {
+    let id = _tlSavedId;
+    if (!id) {
+      const { data, error } = await _sb.from('tier_lists').insert(payload).select('id').single();
+      if (error) throw error;
+      id = data.id;
+      _tlSavedId = id;
+      _tlMyLists.unshift({ id, name, mode: _tlMode, createdAt: new Date().toISOString(), itemCount: allItems.length });
+      localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists.slice(0,20)));
+    } else {
+      await _sb.from('tier_lists').update({ items: allItems, tiers: _tlTiers }).eq('id', id);
+    }
+    _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
+    const urlEl = document.getElementById('tl-share-url');
+    const nameEl = document.getElementById('tl-share-name');
+    if (urlEl) urlEl.textContent = _tlShareUrl;
+    if (nameEl) nameEl.textContent = name;
+    const shareModal = document.getElementById('tl-share-modal');
+    if (shareModal) shareModal.style.display = 'flex';
+    renderTierListHub();
+  } catch(e) {
+    showToast('Erreur sauvegarde — vérifie Supabase');
+    console.error('TL save error:', e);
+  } finally {
+    if (saveBtn) { saveBtn.textContent = _tlSavedId ? '✓ Sauvegardé' : '💾 Sauvegarder'; saveBtn.disabled = false; }
+  }
+}
+
+function closeTlShareModal() {
+  const m = document.getElementById('tl-share-modal');
+  if (m) m.style.display = 'none';
+}
+function copyTlLink() {
+  if (!_tlShareUrl) return;
+  navigator.clipboard?.writeText(_tlShareUrl).then(() => showToast('✓ Lien copié !')).catch(() => {
+    const inp = document.createElement('input'); inp.value = _tlShareUrl;
+    document.body.appendChild(inp); inp.select(); document.execCommand('copy');
+    document.body.removeChild(inp); showToast('✓ Lien copié !');
+  });
+}
+function nativeShareTl() {
+  if (navigator.share) navigator.share({ title: 'Ma Tier List', url: _tlShareUrl }).catch(()=>{});
+  else copyTlLink();
+}
+
+async function loadSharedTierList(id) {
+  try {
+    const { data, error } = await _sb.from('tier_lists').select('*').eq('id', id).single();
+    if (error || !data) { showToast('Tier list introuvable'); return; }
+    openTierList('view', { name: data.name, items: data.items || [], tiers: data.tiers || {}, readOnly: true });
+    _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
+    appGoTo('explore');
+  } catch(e) { console.warn('loadSharedTierList error:', e); }
+}
+
+function forkTierList() {
+  const allItems = [..._tlPool, ...Object.values(_tlTiers).flat()];
+  closeTierList();
+  openTierList('custom', { title: '🔁 Ma version' });
+  _tlPool = allItems.map(g => ({...g}));
+  renderTierListPool();
+}
+
+function renderTierListHub() {
+  const el = document.getElementById('tl-my-lists');
+  if (!el) return;
+  const lists = JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]');
+  if (!lists.length) { el.innerHTML = ''; return; }
+  el.innerHTML = `
+    <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Mes créations</div>
+    ${lists.map(l => `
+      <div style="display:flex;align-items:center;gap:12px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px 14px;margin-bottom:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
+          <div style="font-size:11px;color:var(--muted2)">${l.itemCount} jeux · ${new Date(l.createdAt).toLocaleDateString('fr')}</div>
+        </div>
+        <button onclick="_tlShareFromHub('${l.id}','${l.name.replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer">🔗</button>
+      </div>
+    `).join('')}
+  `;
+}
+
+function _tlShareFromHub(id, name) {
+  _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
+  const urlEl = document.getElementById('tl-share-url');
+  const nameEl = document.getElementById('tl-share-name');
+  if (urlEl) urlEl.textContent = _tlShareUrl;
+  if (nameEl) nameEl.textContent = name;
+  const m = document.getElementById('tl-share-modal');
+  if (m) m.style.display = 'flex';
+}
+
 function closeTierList() {
   document.getElementById('tierlist-overlay').classList.remove('open');
-  _tlMode = null; _tlSelected = null;
+  _tlMode = null; _tlSelected = null; _tlReadOnly = false; _tlCustomTitle = '';
+  const sw = document.getElementById('tl-search-wrap'); if (sw) sw.style.display = 'none';
+  const si = document.getElementById('tl-search-input'); if (si) si.value = '';
+  const sr = document.getElementById('tl-search-results'); if (sr) sr.innerHTML = '';
+  const saveBtn = document.getElementById('tl-save-btn');
+  if (saveBtn) { saveBtn.textContent = '💾 Sauvegarder'; saveBtn.onclick = saveTierList; saveBtn.disabled = false; }
 }
 
 function renderTierListTiers() {
