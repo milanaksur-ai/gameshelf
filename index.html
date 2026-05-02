@@ -1171,6 +1171,7 @@ html, body {
         <div class="g-chip" onclick="discByGenre(8,this)">Plateforme</div>
         <div class="g-chip" onclick="discByGenre(32,this)">Indie</div>
         <div class="g-chip" onclick="discByGenre(25,this)">Action</div>
+        <div class="g-chip" onclick="discByGenre(13,this)">Simulation</div>
         <button onclick="discRefresh()" style="flex-shrink:0;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px">↻</button>
       </div>
       <div style="height:0.5px;background:var(--border)"></div>
@@ -1920,7 +1921,7 @@ html, body {
       <div class="g-chip" onclick="ldiscByGenre(8,this)">Plateforme</div>
       <div class="g-chip" onclick="ldiscByGenre(32,this)">Indie</div>
       <div class="g-chip" onclick="ldiscByGenre(25,this)">Action</div>
-
+      <div class="g-chip" onclick="ldiscByGenre(13,this)">Simulation</div>
     </div>
     <div style="height:0.5px;background:var(--border)"></div>
   </div>
@@ -2697,7 +2698,8 @@ async function searchGames(q) {
   list.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
   searchTimer = setTimeout(async ()=>{
     const results = await igdbSearch(q, 30);
-    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat pour « ${q} »<br><span style="font-size:11px;opacity:.6">Essaie un autre titre ou vérifie l'orthographe</span></div>`; return; }
+    const qSafe = q.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat pour « ${qSafe} »<br><span style="font-size:11px;opacity:.6">Essaie un autre titre ou vérifie l'orthographe</span></div>`; return; }
     list.innerHTML = results.map(g=>{
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
@@ -3137,7 +3139,6 @@ function getSlotCount(type) {
   }).length;
 }
 
-function updateSlotLabels() {}
 
 function isPlaying(status) {
   return status === 'playing-solo' || status === 'playing-multi';
@@ -3220,7 +3221,6 @@ function openDetail(gameId) {
   renderStars(ug.score, ug.status);
   updateScoreDisplay(ug.score, ug.status);
   renderStatus(ug.status);
-  updateSlotLabels();
   document.getElementById('notes-input').value = ug.notes||'';
   document.getElementById('hours-input').value = ug.hours || g.hours || '';
   updateHoursRank(ug.hours || g.hours || 0);
@@ -3320,6 +3320,7 @@ function renderStars(cur, status) {
       b.style.color = '#3a3a50';
     }
     b.onclick = (e) => {
+      if (!currentGame) return;
       const rect = b.getBoundingClientRect();
       const isHalf = (e.clientX - rect.left) < rect.width / 2;
       const ug = userGames[currentGame.id];
@@ -3332,6 +3333,7 @@ function renderStars(cur, status) {
 }
 
 function clearScore() {
+  if (!currentGame) return;
   const ug = userGames[currentGame.id];
   ug.score = 0;
   renderStars(0, ug.status);
@@ -3349,6 +3351,7 @@ function renderStatus(s) {
 }
 
 function setStatus(s) {
+  if (!currentGame) return;
   const ug = userGames[currentGame.id];
   const prev = ug.status;
   if (isPlaying(s) && s !== prev && getSlotCount(s) >= 5) {
@@ -3356,7 +3359,6 @@ function setStatus(s) {
   }
   ug.status = s;
   renderStatus(s);
-  updateSlotLabels();
   renderStars(ug.score, s);
   updateScoreDisplay(ug.score, s);
   renderFeed();
@@ -3832,6 +3834,12 @@ let _tempRecoId = null;
 function recoOpenDetail(id) {
   const g = _recoPool.find(x => x.id === id);
   if (!g) return;
+  // Clean up any previous temp game that wasn't saved
+  if (_tempRecoId && _tempRecoId !== id) {
+    const prevIdx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (prevIdx >= 0) GAMES.splice(prevIdx, 1);
+    delete userGames[_tempRecoId];
+  }
   if (!GAMES.find(x => x.id === id)) {
     _tempRecoId = id;
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
@@ -3960,7 +3968,6 @@ function renderFeed(){
   if (playingEl) playingEl.innerHTML = playingAll.map((g,i) => slotCard(g,i)).join('') || `<div style="padding:8px 0;font-size:13px;color:var(--muted)">Aucun jeu en cours — ajoute-en un !</div>`;
 
   // Update count labels
-  updateSlotLabels();
 
   // Smart recommendations
   renderHomeRecos();
@@ -4047,9 +4054,10 @@ async function importXboxLibrary(key) {
     renderProfileStats();
 
     // Update UI
+    const gtSafe = gamertag.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     if (dot)   { dot.style.background = '#4caf50'; }
     if (badge) { badge.textContent = `Xbox · ${gamertag}`; }
-    if (sub)   { sub.innerHTML = `<strong style="color:#4caf50">${gamertag}</strong> connecté — ${added} jeux importés.`; }
+    if (sub)   { sub.innerHTML = `<strong style="color:#4caf50">${gtSafe}</strong> connecté — ${added} jeux importés.`; }
     localStorage.setItem('xbl_gamertag', gamertag);
     showToast(`✓ ${added} jeux Xbox importés !`);
 
@@ -4077,7 +4085,7 @@ async function importXboxLibrary(key) {
   }
 })();
 // ══════════════════════════════════════
-const GEMINI_KEY = localStorage.getItem('gemini_key') || null;
+let GEMINI_KEY = localStorage.getItem('gemini_key') || null;
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
 
@@ -4356,12 +4364,11 @@ function promptGeminiKey() {
   const k = prompt('Entre ta clé API Gemini (aistudio.google.com) :');
   if (k && k.length > 10) {
     localStorage.setItem('gemini_key', k);
-    location.reload();
+    GEMINI_KEY = k;
+    showToast('✓ Clé Gemini sauvegardée');
   }
 }
 
-function renderExplore() { /* replaced by assistant */ }
-function searchExplore() {}
 
 // ══════════════════════════════════════
 // BACKLOG BRACKET
@@ -4615,7 +4622,6 @@ function closeBracket() {
   }, 230);
 }
 
-function renderFriendsList(){ /* masqué — fonctionnalité sociale désactivée */ }
 function initApp(){
   renderFeed(); renderGameGrid(); renderProfileStats();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
