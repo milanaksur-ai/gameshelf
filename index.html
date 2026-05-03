@@ -1863,7 +1863,7 @@ html, body {
     </button>
     <button class="nav-btn" id="nav-explore" onclick="appGoTo('explore')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span>Quiz</span>
+      <span>Culture</span>
     </button>
     <button class="nav-btn" id="nav-profile" onclick="appGoTo('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -6662,10 +6662,29 @@ function renderTierListHub() {
           <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
           <div style="font-size:11px;color:var(--muted2)">${l.itemCount} jeux · ${new Date(l.createdAt).toLocaleDateString('fr')}</div>
         </div>
+        <button onclick="editTierList('${l.id}');event.stopPropagation()" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--muted2);cursor:pointer">✏️</button>
         <button onclick="_tlShareFromHub('${l.id}','${l.name.replace(/'/g,"\\'")}');event.stopPropagation()" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer">🔗</button>
       </div>
     `).join('')}
   `;
+}
+
+async function editTierList(id) {
+  try {
+    const { data, error } = await _sb.from('tier_lists').select('*').eq('id', id).single();
+    if (error || !data) { showToast('Impossible de charger la tier list'); return; }
+    openTierList(data.mode === 'popular' ? 'popular' : data.mode === 'custom' ? 'custom' : 'library', {
+      title: data.name,
+      readOnly: false
+    });
+    _tlPool  = (data.items || []).filter(g => !Object.values(data.tiers || {}).flat().find(t => t.id === g.id));
+    _tlTiers = data.tiers || { S:[], A:[], B:[], C:[], D:[], F:[] };
+    _tlSavedId = id;
+    renderTierListTiers();
+    renderTierListPool();
+    const saveBtn = document.getElementById('tl-save-btn');
+    if (saveBtn) { saveBtn.textContent = '💾 Mettre à jour'; saveBtn.onclick = saveTierList; }
+  } catch(e) { showToast('Erreur lors du chargement'); console.error(e); }
 }
 
 function _tlShareFromHub(id, name) {
