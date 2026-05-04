@@ -1778,6 +1778,16 @@ html, body {
         PNG
       </button>
     </div>
+    <!-- PWA install banner (shared view only) -->
+    <div id="tl-install-banner" style="display:none;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(253,121,168,0.1));border-bottom:0.5px solid rgba(108,92,231,0.25)">
+      <div style="font-size:22px;flex-shrink:0">📲</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:700;color:var(--text)">Installe GameShelf</div>
+        <div style="font-size:11px;color:var(--muted2)">Bibliothèque · Quiz · Tier Lists</div>
+      </div>
+      <button onclick="triggerPwaInstall()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Installer</button>
+      <button onclick="document.getElementById('tl-install-banner').style.display='none'" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;line-height:1;padding:4px;flex-shrink:0">×</button>
+    </div>
     <!-- Tier rows -->
     <div id="tl-tiers" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     <!-- Pool -->
@@ -3221,6 +3231,8 @@ async function logoutUser() {
 // ══════════════════════════════════════
 let appCurrentScreen = 'feed';
 let appPrevScreen = 'feed';
+let _pwaPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _pwaPrompt = e; });
 
 function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
@@ -6783,7 +6795,23 @@ async function loadSharedTierList(id) {
     openTierList('view', { name: data.name, items: data.items || [], tiers: data.tiers || {}, readOnly: true });
     _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
     appGoTo('explore');
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const banner = document.getElementById('tl-install-banner');
+    if (banner && !isInstalled) banner.style.display = 'flex';
   } catch(e) { console.warn('loadSharedTierList error:', e); }
+}
+
+function triggerPwaInstall() {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(() => {
+      _pwaPrompt = null;
+      const b = document.getElementById('tl-install-banner');
+      if (b) b.style.display = 'none';
+    });
+  } else {
+    showToast('Sur iOS : Safari → Partager → Sur l\'écran d\'accueil');
+  }
 }
 
 function forkTierList() {
