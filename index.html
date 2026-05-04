@@ -1719,7 +1719,7 @@ html, body {
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
-          <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+          <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
         </div>
       </div>
       <!-- En ce moment -->
@@ -1762,8 +1762,9 @@ html, body {
   <div id="tierlist-overlay">
     <!-- Header -->
     <div style="display:flex;align-items:center;padding:calc(var(--safe-t)+10px) 16px 10px;flex-shrink:0;gap:10px;border-bottom:0.5px solid var(--border)">
-      <button onclick="closeTierList()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      <button onclick="closeTierList()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--s2);border:0.5px solid var(--border2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+        Retour
       </button>
       <div style="flex:1;min-width:0">
         <div id="tl-title" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700"></div>
@@ -3246,8 +3247,10 @@ function appGoTo(screen) {
   appCurrentScreen = screen;
 
   // Side effects per screen
+  closeFriendProfile();
   if (screen === 'profile') { renderProfileStats(); startProfileParticles(); }
   else stopProfileParticles();
+  if (screen === 'library') filterGames();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
   if (screen === 'social') loadSocialScreen();
   if (screen === 'explore') { renderQuizHub(); renderTierListHub(); }
@@ -3268,7 +3271,7 @@ function appGoBack() {
     if (idx >= 0) GAMES.splice(idx, 1);
     delete userGames[_tempRecoId];
     _tempRecoId = null;
-    renderGameGrid(); renderFeed();
+    renderFeed();
   }
   appGoTo(appPrevScreen === 'detail' ? 'library' : appPrevScreen);
 }
@@ -3566,8 +3569,7 @@ function confirmRemoveGame() {
   const title = GAMES[idx].title;
   GAMES.splice(idx, 1);
   delete userGames[id];
-  renderGameGrid(); renderFeed(); renderProfileStats();
-  document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
+  filterGames(); renderFeed(); renderProfileStats();
   saveToStorage();
   showToast(`${title} retiré`);
 }
@@ -5220,7 +5222,34 @@ function renderFriendProfile(friend) {
   const games = friend.games || [];
   const done    = games.filter(g=>g.status==='finished'||g.status==='platine').length;
   const platine = games.filter(g=>g.status==='platine').length;
-  document.getElementById('fp-stats').innerHTML = [['🎮',games.length,'jeux'],['✅',done,'finis'],['🏆',platine,'100%']].map(([ic,n,lb])=>`<div style="background:rgba(0,0,0,0.25);backdrop-filter:blur(4px);border-radius:12px;padding:10px 6px;text-align:center;border:0.5px solid rgba(255,255,255,0.08)"><div style="font-size:16px">${ic}</div><div style="font-size:15px;font-weight:700;font-family:'Space Grotesk',sans-serif">${n}</div><div style="font-size:10px;color:var(--muted2)">${lb}</div></div>`).join('');
+  const playing = games.filter(g=>g.status==='playing-solo'||g.status==='playing-multi').length;
+  const paused  = games.filter(g=>g.status==='paused').length;
+  const backlog = games.filter(g=>g.status==='backlog').length;
+  const abandon = games.filter(g=>g.status==='abandoned').length;
+  const pct = games.length ? Math.round((done/games.length)*100) : 0;
+  const statCell = (n,lb,col) => `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div></div>`;
+  document.getElementById('fp-stats').innerHTML = `
+    <div style="grid-column:1/-1;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:0">
+      <div style="width:52px;height:52px;flex-shrink:0;position:relative">
+        <svg viewBox="0 0 52 52" style="transform:rotate(-90deg);width:52px;height:52px">
+          <circle cx="26" cy="26" r="21" fill="none" stroke="var(--border2)" stroke-width="5"/>
+          <circle cx="26" cy="26" r="21" fill="none" stroke="var(--green)" stroke-width="5" stroke-linecap="round"
+            stroke-dasharray="${Math.round(2*Math.PI*21*pct/100)} ${Math.round(2*Math.PI*21)}" stroke-dashoffset="0"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'Space Grotesk',sans-serif">${pct}%</div>
+      </div>
+      <div>
+        <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif">${games.length}</div>
+        <div style="font-size:11px;color:var(--muted2)">jeux au total</div>
+      </div>
+    </div>
+    ${statCell(playing,'En cours','var(--a)')}
+    ${statCell(paused,'En pause','var(--amber)')}
+    ${statCell(done,'Finis','var(--green)')}
+    ${statCell(platine,'100%','var(--amber)')}
+    ${statCell(backlog,'Backlog','var(--muted2)')}
+    ${statCell(abandon,'Abandonnés','var(--red)')}
+  `;
 
   const myIds = new Set(Object.keys(userGames));
   const myTitles = new Set(GAMES.map(g => g.title.toLowerCase().trim()));
