@@ -1270,7 +1270,10 @@ html, body {
     <div class="status-bar"><span id="clock">9:41</span><span>●●● ▶</span></div>
     <div class="feed-header">
       <div class="logo">GameShelf</div>
+      <div style="position:relative;display:inline-block">
       <button class="avatar-btn" id="app-avatar-btn" onclick="appGoTo('profile')" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</button>
+      <span id="home-friend-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#ff5252;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 3px;display:none;align-items:center;justify-content:center;border:2px solid #080810;z-index:10"></span>
+    </div>
     </div>
     <div class="scroll-area">
 
@@ -1885,9 +1888,10 @@ html, body {
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="7" height="18" rx="1"/><rect x="9.5" y="3" width="7" height="18" rx="1"/><path d="m17 3 4.3 4.3a1 1 0 0 1 0 1.4L17 13"/></svg>
       <span>Biblio</span>
     </button>
-    <button class="nav-btn" id="nav-social" onclick="appGoTo('social')">
+    <button class="nav-btn" id="nav-social" onclick="appGoTo('social')" style="position:relative">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><circle cx="19" cy="7" r="2"/><path d="M23 21v-1a3 3 0 0 0-3-3h-1"/></svg>
       <span>Amis</span>
+      <span id="nav-social-badge" style="display:none;position:absolute;top:4px;right:6px;background:#ff5252;color:#fff;font-size:8px;font-weight:800;min-width:14px;height:14px;border-radius:7px;padding:0 3px;align-items:center;justify-content:center;border:1.5px solid #080810"></span>
     </button>
     <button class="nav-btn" id="nav-explore" onclick="appGoTo('explore')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -3028,6 +3032,7 @@ function launchApp() {
   renderGameGrid();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   saveToStorage();
+  syncProfileToSupabase(); // ensure profile is searchable by other users
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
 
   // Switch view
@@ -4776,8 +4781,35 @@ function closeBracket() {
   }, 230);
 }
 
+function _updateFriendBadges(count) {
+  const homeBadge = document.getElementById('home-friend-badge');
+  const navBadge  = document.getElementById('nav-social-badge');
+  if (homeBadge) {
+    if (count > 0) { homeBadge.textContent = count; homeBadge.style.display = 'flex'; }
+    else           { homeBadge.style.display = 'none'; }
+  }
+  if (navBadge) {
+    if (count > 0) { navBadge.textContent = count; navBadge.style.display = 'flex'; }
+    else           { navBadge.style.display = 'none'; }
+  }
+}
+
+async function checkPendingRequests() {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    const uid = session.user.id;
+    const { data, error } = await _sb.from('friendships')
+      .select('id').eq('addressee_id', uid).eq('status', 'pending');
+    if (error) return;
+    _updateFriendBadges((data||[]).length);
+  } catch(e) {}
+}
+
 function initApp(){
   renderFeed(); renderGameGrid(); renderProfileStats();
+  checkPendingRequests();
+  setInterval(checkPendingRequests, 30000); // check every 30s
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   const firstActive = document.querySelector('#app-nav .nav-btn.active');
   if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
@@ -4811,6 +4843,8 @@ async function loadSocialScreen() {
     renderSocialScreen(null);
     return;
   }
+  // Reset badges when user opens Amis tab
+  _updateFriendBadges(0);
   const uid = session.user.id;
 
   // Fetch all friendships involving current user
@@ -4899,15 +4933,26 @@ function renderSocialScreen(uid) {
 
 async function searchUsers(q) {
   const resultsEl = document.getElementById('friend-search-results');
-  if (!q || q.length < 2) { resultsEl.style.display = 'none'; return; }
+  // Strip leading @ if user types it
+  const cleanQ = q.startsWith('@') ? q.slice(1) : q;
+  if (!cleanQ || cleanQ.length < 2) { resultsEl.style.display = 'none'; return; }
   const { data: { session } } = await _sb.auth.getSession();
-  if (!session) return;
+  if (!session) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Connecte-toi pour chercher des amis</div>`;
+    return;
+  }
   const uid = session.user.id;
-  const { data } = await _sb.from('profiles').select('*')
-    .ilike('username', `%${q}%`).neq('id', uid).limit(6);
+  const { data, error } = await _sb.from('profiles').select('*')
+    .ilike('username', \`%\${cleanQ}%\`).neq('id', uid).limit(6);
+  if (error) {
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:12px;color:var(--red)">Erreur: \${error.message}</div>`;
+    return;
+  }
   if (!data || !data.length) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Aucun résultat</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Aucun résultat pour "${cleanQ}"</div>`;
     return;
   }
   resultsEl.style.display = 'block';
@@ -4942,6 +4987,7 @@ async function acceptFriend(friendshipId) {
   await _sb.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId);
   showToast('Ami ajouté !');
   loadSocialScreen();
+  checkPendingRequests();
 }
 
 async function declineFriend(friendshipId) {
