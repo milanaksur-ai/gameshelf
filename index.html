@@ -5895,6 +5895,7 @@ function applyProfileToUI() {
       document.getElementById('view-app').style.display = 'flex';
       initApp();
       syncFromSupabase(session.user); // background refresh
+      syncProfileToSupabase();        // ensure profile is visible in friend search
     } else {
       // No local data → fetch from Supabase
       await onAuthSuccess(session.user);
