@@ -5698,6 +5698,103 @@ function closeWrapped() {
 }
 
 // ══════════════════════════════════════
+// PUBLIC TIER LIST PAGE (shared link)
+// ══════════════════════════════════════
+async function renderPublicTierList(id) {
+  document.getElementById('view-onboarding').style.display = 'none';
+
+  const page = document.createElement('div');
+  page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
+  page.innerHTML = `
+    <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">GameShelf</div>
+      <div style="flex:1"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35)">Tier List</div>
+    </div>
+    <div id="tl-pub-body" style="flex:1;padding:0 0 200px">
+      <div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35);font-size:14px">Chargement…</div>
+    </div>
+    <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),16px);background:linear-gradient(to top,#080810 70%,transparent)">
+      <div onclick="tlPubInstall()" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent">
+        <div style="font-size:30px;line-height:1">📲</div>
+        <div style="flex:1">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Télécharge GameShelf</div>
+          <div style="font-size:11px;opacity:0.85;margin-top:2px">Bibliothèque · Quiz · Tier Lists</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Installer →</div>
+      </div>
+      <button onclick="tlPubFork()" style="width:100%;padding:13px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);border-radius:14px;color:rgba(255,255,255,0.8);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🔁 Créer ma propre version</button>
+    </div>`;
+  document.body.appendChild(page);
+
+  const TIER_COLORS = { S:{bg:'#b71c1c',txt:'#ff5252'}, A:{bg:'#e65100',txt:'#ff9800'}, B:{bg:'#f57f17',txt:'#ffca28'}, C:{bg:'#1b5e20',txt:'#69f0ae'}, D:{bg:'#0d47a1',txt:'#82b1ff'}, F:{bg:'#212121',txt:'#9e9e9e'} };
+
+  function coverUrl(g) {
+    if (g.cover)   return g.cover;
+    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+    if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+    return null;
+  }
+
+  function coverHtml(g) {
+    const url = coverUrl(g);
+    const initials = (g.title||'?').replace(/[^a-zA-Z0-9À-ɏ]/g,' ').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    if (url) return `<img src="${url}" alt="" crossorigin="anonymous" style="width:52px;height:70px;border-radius:8px;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div style="display:none;width:52px;height:70px;border-radius:8px;background:#1a1a2e;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:rgba(255,255,255,0.4)">${initials}</div>`;
+    return `<div style="width:52px;height:70px;border-radius:8px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:rgba(255,255,255,0.4)">${initials}</div>`;
+  }
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/tier_lists?id=eq.${encodeURIComponent(id)}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const [data] = await res.json();
+    if (!data) { document.getElementById('tl-pub-body').innerHTML = '<div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35)">Tier list introuvable</div>'; return; }
+
+    const tiers = data.tiers || {};
+    const creator = data.creator_name || 'Anonyme';
+    const totalPlaced = Object.values(tiers).flat().length;
+
+    let html = `
+      <div style="padding:20px 20px 12px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${data.name}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${creator.toLowerCase().replace(/\s+/g,'')}</span> · ${totalPlaced} jeux classés</div>
+      </div>`;
+
+    for (const [key, col] of Object.entries(TIER_COLORS)) {
+      const games = tiers[key] || [];
+      if (!games.length) continue;
+      html += `
+        <div style="display:flex;align-items:stretch;border-top:0.5px solid rgba(255,255,255,0.06);min-height:86px">
+          <div style="width:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${col.bg}22;border-right:2px solid ${col.bg}">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:900;color:${col.txt}">${key}</span>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;align-content:flex-start">
+            ${games.map(g => `<div style="position:relative" title="${g.title}">${coverHtml(g)}</div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    document.getElementById('tl-pub-body').innerHTML = html;
+  } catch(e) {
+    document.getElementById('tl-pub-body').innerHTML = '<div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35)">Erreur de chargement</div>';
+  }
+}
+
+function tlPubInstall() {
+  if (_pwaPrompt) {
+    _pwaPrompt.prompt();
+    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
+  } else {
+    alert('Sur iOS : ouvre dans Safari → appuie sur Partager → "Sur l\'écran d\'accueil"\nSur Android : menu Chrome → "Ajouter à l\'écran d\'accueil"');
+  }
+}
+
+function tlPubFork() {
+  window.location.href = window.location.origin + window.location.pathname;
+}
+
+// ══════════════════════════════════════
 // BOOT — check Supabase session first
 // ══════════════════════════════════════
 function applyProfileToUI() {
@@ -5714,6 +5811,10 @@ function applyProfileToUI() {
 }
 
 (async function bootApp() {
+  // ── Public tier list viewer (no auth needed) ──────────────────────
+  const _tlPublicId = new URLSearchParams(location.search).get('tl');
+  if (_tlPublicId) { renderPublicTierList(_tlPublicId); return; }
+  // ─────────────────────────────────────────────────────────────────
   // Restore local profile regardless of auth state
   const savedProfile = localStorage.getItem('gs_profile');
   if (savedProfile) {
