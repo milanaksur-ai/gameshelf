@@ -4944,10 +4944,10 @@ async function searchUsers(q) {
   }
   const uid = session.user.id;
   const { data, error } = await _sb.from('profiles').select('*')
-    .ilike('username', \`%\${cleanQ}%\`).neq('id', uid).limit(6);
+    .ilike('username', '%' + cleanQ + '%').neq('id', uid).limit(6);
   if (error) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:12px;color:var(--red)">Erreur: \${error.message}</div>`;
+    resultsEl.innerHTML = '<div style="padding:14px 16px;font-size:12px;color:var(--red)">Erreur: ' + error.message + '</div>';
     return;
   }
   if (!data || !data.length) {
