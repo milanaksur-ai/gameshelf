@@ -1270,10 +1270,15 @@ html, body {
     <div class="status-bar"><span id="clock">9:41</span><span>●●● ▶</span></div>
     <div class="feed-header">
       <div class="logo">GameShelf</div>
-      <div style="position:relative;display:inline-block">
-      <button class="avatar-btn" id="app-avatar-btn" onclick="appGoTo('profile')" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</button>
-      <span id="home-friend-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#ff5252;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 3px;display:none;align-items:center;justify-content:center;border:2px solid #080810;z-index:10"></span>
-    </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <!-- Bell notification button -->
+        <div style="position:relative;display:inline-block">
+          <button onclick="openNotifDrawer()" style="width:38px;height:38px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px">🔔</button>
+          <span id="bell-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#ff5252;color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 3px;align-items:center;justify-content:center;border:2px solid #080810;z-index:10"></span>
+        </div>
+        <!-- Avatar → profil -->
+        <button class="avatar-btn" id="app-avatar-btn" onclick="appGoTo('profile')" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</button>
+      </div>
     </div>
     <div class="scroll-area">
 
@@ -1856,6 +1861,19 @@ html, body {
       <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Donne un titre à ta tier list</div>
       <input id="tl-custom-title-input" type="text" placeholder="Ex : Mes jeux PS5, Meilleurs RPG…" maxlength="40" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px">
       <button onclick="startCustomTierList()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Créer →</button>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION DRAWER -->
+  <div id="notif-drawer" style="display:none;position:fixed;inset:0;z-index:950;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeNotifDrawer()">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:0 0 calc(env(safe-area-inset-bottom)+16px);max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);max-height:75vh;overflow:hidden;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 12px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700">Notifications</div>
+        <button onclick="closeNotifDrawer()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--muted2);cursor:pointer">✕</button>
+      </div>
+      <div id="notif-drawer-body" style="overflow-y:auto;padding:0 16px 8px;flex:1">
+        <div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Chargement…</div>
+      </div>
     </div>
   </div>
 
@@ -4782,15 +4800,86 @@ function closeBracket() {
 }
 
 function _updateFriendBadges(count) {
-  const homeBadge = document.getElementById('home-friend-badge');
+  const bellBadge = document.getElementById('bell-badge');
   const navBadge  = document.getElementById('nav-social-badge');
-  if (homeBadge) {
-    if (count > 0) { homeBadge.textContent = count; homeBadge.style.display = 'flex'; }
-    else           { homeBadge.style.display = 'none'; }
+  if (bellBadge) {
+    if (count > 0) { bellBadge.textContent = count; bellBadge.style.display = 'flex'; }
+    else           { bellBadge.style.display = 'none'; }
   }
   if (navBadge) {
     if (count > 0) { navBadge.textContent = count; navBadge.style.display = 'flex'; }
     else           { navBadge.style.display = 'none'; }
+  }
+}
+
+function closeNotifDrawer() {
+  const el = document.getElementById('notif-drawer');
+  if (el) el.style.display = 'none';
+}
+
+async function openNotifDrawer() {
+  const el = document.getElementById('notif-drawer');
+  const body = document.getElementById('notif-drawer-body');
+  el.style.display = 'flex';
+  body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Chargement…</div>';
+
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) { body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Connecte-toi pour voir tes notifications.</div>'; return; }
+    const uid = session.user.id;
+
+    const { data: rows } = await _sb.from('friendships').select('*').eq('addressee_id', uid).eq('status', 'pending');
+    if (!rows || rows.length === 0) {
+      body.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="color:var(--muted2);font-size:14px">Aucune notification pour l\'instant</div></div>';
+      _updateFriendBadges(0);
+      return;
+    }
+
+    const ids = rows.map(r => r.requester_id);
+    const { data: profiles } = await _sb.from('profiles').select('*').in('id', ids);
+    const profileMap = {};
+    (profiles||[]).forEach(p => profileMap[p.id] = p);
+
+    body.innerHTML = `
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Demandes d'amis · ${rows.length}</div>
+      ${rows.map(r => {
+        const p = profileMap[r.requester_id] || {};
+        return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
+          <div style="width:44px;height:44px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:700;font-size:14px">${p.username||'Gamer'}</div>
+            <div style="font-size:11px;color:var(--muted2)">veut être ton ami</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button onclick="acceptFriendFromNotif('${r.id}',this)" style="background:var(--a);border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">Accepter</button>
+            <button onclick="declineFriendFromNotif('${r.id}',this)" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
+          </div>
+        </div>`;
+      }).join('')}`;
+    _updateFriendBadges(rows.length);
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--red);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+async function acceptFriendFromNotif(friendshipId, btn) {
+  btn.textContent = '…'; btn.disabled = true;
+  const { error } = await _sb.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId);
+  if (!error) {
+    const card = btn.closest('div[style*="border-radius:16px"]');
+    if (card) card.style.opacity = '0.4';
+    showToast('Ami ajouté !');
+    checkPendingRequests();
+  }
+}
+
+async function declineFriendFromNotif(friendshipId, btn) {
+  btn.textContent = '…'; btn.disabled = true;
+  const { error } = await _sb.from('friendships').delete().eq('id', friendshipId);
+  if (!error) {
+    const card = btn.closest('div[style*="border-radius:16px"]');
+    if (card) card.remove();
+    checkPendingRequests();
   }
 }
 
@@ -5279,7 +5368,15 @@ function renderFriendProfile(friend) {
     libSec.style.display='block';
     const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'finished';
     fpRenderLibTab(firstTab);
-  } else libSec.style.display='none';
+  } else {
+    libSec.style.display = 'none';
+    document.getElementById('fp-stats').innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:32px 16px">
+        <div style="font-size:40px;margin-bottom:10px">🎮</div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:6px">${friend.username||'Ce gamer'} démarre tout juste</div>
+        <div style="font-size:13px;color:var(--muted2)">Aucun jeu dans sa bibliothèque pour l'instant.</div>
+      </div>`;
+  }
 }
 
 async function openFriendGamePopup(idx) {
