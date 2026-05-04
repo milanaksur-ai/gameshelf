@@ -55,7 +55,7 @@ export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const { action, query, ids, genreId, limit = 12, mode, offset = 0 } = req.body || {};
+    const { action, query, ids, genreId, genreIds, themeIds, yearFrom, yearTo, limit = 12, mode, offset = 0 } = req.body || {};
 
     if (action === 'search') {
       if (!query) return res.status(400).json({ error: 'query required' });
@@ -90,6 +90,24 @@ export default async function handler(req, res) {
       if (!genreId) return res.status(400).json({ error: 'genreId required' });
       const data = await igdbQuery('games',
         `fields ${COMMON_FIELDS}; where genres = (${genreId}) & platforms = ${MODERN_PLATFORMS} & aggregated_rating > 65 & aggregated_rating_count > 5; sort aggregated_rating desc; limit ${limit}; offset ${offset};`);
+      return res.json(data);
+    }
+
+    if (action === 'filter') {
+      const conditions = [`platforms = ${MODERN_PLATFORMS}`, 'version_parent = null', 'aggregated_rating_count > 3'];
+      if (genreIds?.length) conditions.push(`genres = (${genreIds.join(',')})`);
+      if (themeIds?.length) conditions.push(`themes = (${themeIds.join(',')})`);
+      if (yearFrom) {
+        const ts = Math.floor(new Date(`${yearFrom}-01-01T00:00:00Z`).getTime() / 1000);
+        conditions.push(`first_release_date >= ${ts}`);
+      }
+      if (yearTo) {
+        const ts = Math.floor(new Date(`${yearTo}-12-31T23:59:59Z`).getTime() / 1000);
+        conditions.push(`first_release_date <= ${ts}`);
+      }
+      const modeFilter = mode === 'multi' ? ' & (game_modes = null | game_modes = (2,3,4,5,6))' : '';
+      const data = await igdbQuery('games',
+        `fields ${COMMON_FIELDS}; where ${conditions.join(' & ')}${modeFilter}; sort aggregated_rating desc; limit ${limit}; offset ${offset};`);
       return res.json(data);
     }
 

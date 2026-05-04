@@ -1237,7 +1237,7 @@ html, body {
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 4 sur 5</div>
       <div class="step-title">Jeux <span>en ce moment</span></div>
-      <p class="step-sub">Ajoute ceux qui t'intéressent à ton backlog.</p>
+      <p class="step-sub">Ajoute ceux qui t'intéressent à ta liste.</p>
       <div id="trending-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
       <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px">
         <button class="btn-primary" onclick="obStep(4)">Continuer →</button>
@@ -1316,6 +1316,12 @@ html, body {
         <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
       </div>
 
+      <!-- 🎮 STUDIOS -->
+      <div style="padding:24px 16px 10px;display:flex;align-items:center;justify-content:space-between">
+        <div class="sec-label" style="padding:0">🎮 Par Studio</div>
+      </div>
+      <div id="studio-selector" style="display:flex;gap:8px;padding:0 16px 4px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex-wrap:nowrap"></div>
+
       <!-- 📚 COLLECTIONS -->
       <div style="padding:24px 16px 10px;display:flex;align-items:center;justify-content:space-between">
         <div class="sec-label" style="padding:0">📚 Collections</div>
@@ -1354,7 +1360,7 @@ html, body {
         <div class="chip" onclick="setFilter('paused',this)">En pause</div>
         <div class="chip" onclick="setFilter('finished',this)">Finis</div>
         <div class="chip" onclick="setFilter('platine',this)">⭐ 100%</div>
-        <div class="chip" onclick="setFilter('backlog',this)">Backlog</div>
+        <div class="chip" onclick="setFilter('backlog',this)">À jouer</div>
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
         <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
       </div>
@@ -1504,7 +1510,7 @@ html, body {
         </div>
         <div onclick="openShelf('backlog')" style="background:rgba(152,152,176,0.08);border:0.5px solid rgba(152,152,176,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(152,152,176,0.4)'" onmouseleave="this.style.borderColor='rgba(152,152,176,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--muted2)" id="stat-backlog">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Backlog</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px">À jouer</div>
         </div>
         <div onclick="openShelf('abandoned')" style="background:rgba(255,82,82,0.08);border:0.5px solid rgba(255,82,82,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(255,82,82,0.4)'" onmouseleave="this.style.borderColor='rgba(255,82,82,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--red)" id="stat-abandoned">0</div>
@@ -1553,6 +1559,15 @@ html, body {
             <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer">Clé OpenXBL</button>
           </div>
         </div>
+      </div>
+
+      <!-- MES TIER LISTS -->
+      <div id="profile-tierlists-section" style="padding:20px 16px 0">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">Mes Tier Lists</div>
+          <button onclick="appGoTo('explore')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px">+ Créer →</button>
+        </div>
+        <div id="profile-tierlists-list"></div>
       </div>
 
       <!-- RESET -->
@@ -1620,7 +1635,7 @@ html, body {
             <button class="status-btn" data-s="paused"        onclick="setStatus('paused')"        id="btn-paused">⏸ En pause</button>
             <button class="status-btn" data-s="finished"      onclick="setStatus('finished')">✓ Fini</button>
             <button class="status-btn" data-s="platine"       onclick="setStatus('platine')">⭐ 100%</button>
-            <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">Backlog</button>
+            <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">À jouer</button>
             <button class="status-btn" data-s="abandoned"     onclick="setStatus('abandoned')">Abandonné</button>
           </div>
         </div>
@@ -1993,7 +2008,7 @@ html, body {
         <input type="text" id="add-modal-input" placeholder="Rechercher un jeu…" oninput="searchAddModal(this.value)" autocomplete="off">
       </div>
       <div id="add-modal-status-row" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">Backlog</div>
+        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">À jouer</div>
         <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
         <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
         <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
@@ -2231,13 +2246,13 @@ async function igdbPopular() {
 const DISC_STATUSES = [
   ['playing-solo',  '▶ En cours'],
   ['paused',        '⏸ En pause'],
-  ['backlog',       '📋 Backlog'],
+  ['backlog',       '📋 À jouer'],
   ['wish',          '✦ Souhait'],
   ['finished',      '✅ Fini'],
   ['platine',       '⭐ 100%'],
   ['abandoned',     '❌ Abandonné'],
 ];
-const DISC_STATUS_LABELS = { backlog:'Backlog', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'En cours', finished:'Fini', platine:'100%', abandoned:'Abandonné', paused:'En pause' };
+const DISC_STATUS_LABELS = { backlog:'À jouer', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'En cours', finished:'Fini', platine:'100%', abandoned:'Abandonné', paused:'En pause' };
 
 function discCardHtml(g, ctx) {
   const src = coverUrl(g);
@@ -2931,7 +2946,7 @@ function showObStatusPicker(id) {
     [enCoursStatus, '\u25B6 En cours', alreadyPlaying],
     ['finished',    '\u2705 Fini',      false],
     ['platine',     '\u2B50 100%',      false],
-    ['backlog',     '\uD83D\uDCCB Backlog', false],
+    ['backlog',     '📋 À jouer', false],
     ['abandoned',   '\u274C Abandonn\u00E9', false],
   ];
   picker.innerHTML = options.map(([s,l,disabled]) =>
@@ -3026,61 +3041,7 @@ function launchApp() {
 // APP DATA
 // ══════════════════════════════════════
 // status: 'playing-solo' | 'playing-multi' | 'finished' | 'backlog' | 'abandoned' | 'wish'
-const GAMES = [
-  // En cours
-  {id:'elden-ring',title:'Elden Ring',steamId:1245620,meta:96,status:'playing-solo',score:9,hours:248,year:2022,genre:'Action RPG',notes:''},
-  {id:'rdr2',title:'Red Dead Redemption 2',steamId:1174180,meta:97,status:'playing-solo',score:9,hours:67,year:2019,genre:'Open World',notes:''},
-  {id:'apex',title:'Apex Legends',steamId:1172470,meta:0,status:'playing-multi',score:7,hours:120,year:2019,genre:'Battle Royale',notes:''},
-  // Finis
-  {id:'hollow-knight',title:'Hollow Knight',steamId:367520,meta:87,status:'finished',score:10,hours:52,year:2017,genre:'Metroidvania',notes:''},
-  {id:'hades',title:'Hades',steamId:1145360,meta:93,status:'finished',score:8,hours:78,year:2020,genre:'Roguelike',notes:''},
-  {id:'celeste',title:'Celeste',steamId:504230,meta:94,status:'finished',score:10,hours:28,year:2018,genre:'Platformer',notes:''},
-  {id:'witcher3',title:'The Witcher 3',steamId:292030,meta:92,status:'finished',score:9,hours:120,year:2015,genre:'Action RPG',notes:''},
-  {id:'tlou2',title:'The Last of Us Part II',steamId:0,meta:93,status:'finished',score:9,hours:26,year:2020,genre:'Action',notes:''},
-  // Backlog récents
-  {id:'bg3',title:"Baldur's Gate 3",steamId:1086940,meta:96,status:'backlog',score:0,hours:0,year:2023,genre:'RPG',notes:''},
-  {id:'disco',title:'Disco Elysium',steamId:632470,meta:91,status:'backlog',score:0,hours:0,year:2019,genre:'RPG',notes:''},
-  {id:'returnal',title:'Returnal',steamId:1649240,meta:86,status:'backlog',score:0,hours:0,year:2023,genre:'Roguelike',notes:''},
-  {id:'metaphor',title:'Metaphor: ReFantazio',steamId:2679460,meta:94,status:'backlog',score:0,hours:0,year:2024,genre:'JRPG',notes:''},
-  {id:'astro-bot',title:'Astro Bot',steamId:0,meta:94,status:'backlog',score:0,hours:0,year:2024,genre:'Platformer',notes:''},
-  {id:'black-myth',title:'Black Myth: Wukong',steamId:2358720,meta:82,status:'backlog',score:0,hours:0,year:2024,genre:'Action RPG',notes:''},
-  {id:'silent-hill2r',title:'Silent Hill 2 Remake',steamId:2114740,meta:87,status:'backlog',score:0,hours:0,year:2024,genre:'Survival Horror',notes:''},
-  {id:'indiana-jones',title:'Indiana Jones and the Great Circle',steamId:2677660,meta:88,status:'backlog',score:0,hours:0,year:2024,genre:'Action/Aventure',notes:''},
-  // 2025 récents / très attendus
-  {id:'crimson-desert',title:'Crimson Desert',steamId:2131630,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action RPG',notes:''},
-  {id:'arc-raiders',title:'Arc Raiders',steamId:1016490,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Extraction Shooter',notes:''},
-  {id:'ghost-of-yotei',title:'Ghost of Yotei',steamId:0,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action/Aventure',notes:''},
-  {id:'death-stranding2',title:'Death Stranding 2',steamId:0,meta:0,status:'backlog',score:0,hours:0,year:2025,genre:'Action',notes:''},
-  // Rétro
-  {id:'ocarina',title:'The Legend of Zelda: Ocarina of Time',steamId:0,meta:99,status:'finished',score:10,hours:30,year:1998,genre:'Action/Aventure',notes:''},
-  {id:'ff7',title:'Final Fantasy VII',steamId:39140,meta:92,status:'finished',score:9,hours:45,year:1997,genre:'JRPG',notes:''},
-  {id:'sotn',title:'Castlevania: Symphony of the Night',steamId:0,meta:93,status:'finished',score:10,hours:18,year:1997,genre:'Metroidvania',notes:''},
-  {id:'metal-gear-solid',title:'Metal Gear Solid',steamId:0,meta:94,status:'finished',score:9,hours:15,year:1998,genre:'Infiltration',notes:''},
-  {id:'half-life2',title:'Half-Life 2',steamId:220,meta:96,status:'finished',score:10,hours:14,year:2004,genre:'FPS',notes:''},
-  {id:'mass-effect2',title:'Mass Effect 2',steamId:24980,meta:96,status:'finished',score:10,hours:40,year:2010,genre:'RPG',notes:''},
-  // Abandonné
-  {id:'cyberpunk',title:'Cyberpunk 2077',steamId:1091500,meta:90,status:'abandoned',score:5,hours:14,year:2020,genre:'Action RPG',notes:''},
-  {id:'sekiro',title:'Sekiro',steamId:814380,meta:90,status:'abandoned',score:6,hours:22,year:2019,genre:'Action',notes:''},
-];
-const FRIENDS = [
-  {id:'alex',name:'Alex',initials:'A',color:'#fd79a8,#e84393'},
-  {id:'jul',name:'Julien',initials:'J',color:'#43d8c9,#4396d8'},
-  {id:'sara',name:'Sara',initials:'S',color:'#a843d8,#d843a8'},
-];
-const FEED_DATA = [
-  {friend:'alex',action:'a fini',game:'God of War',score:9,time:'2h'},
-  {friend:'jul',action:'joue à',game:"Baldur's Gate 3",score:0,time:'5h'},
-  {friend:'sara',action:'a ajouté au backlog',game:'Hollow Knight',score:0,time:'1j'},
-  {friend:'alex',action:'recommande',game:'Celeste',score:10,time:'2j'},
-  {friend:'jul',action:'a abandonné',game:'Cyberpunk 2077',score:5,time:'3j'},
-  {friend:'sara',action:'a fini',game:'Hades',score:9,time:'4j'},
-];
-const RECOS = [
-  {id:'dead-cells',title:'Dead Cells',emoji:'⚗️',reason:'Alex et Julien l\'adorent',meta:91,genre:'Roguelike'},
-  {id:'ori',title:'Ori and the Will of the Wisps',emoji:'✨',reason:'Tu as adoré Hollow Knight',meta:90,genre:'Platformer'},
-  {id:'blasphemous',title:'Blasphemous',emoji:'⛪',reason:'Similaire à Hollow Knight',meta:80,genre:'Metroidvania'},
-  {id:'sifu',title:'Sifu',emoji:'🥋',reason:'Populaire chez tes amis',meta:81,genre:'Action'},
-];
+const GAMES = [];
 let userGames = {};
 GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
@@ -3260,12 +3221,12 @@ function appGoTo(screen) {
 
   // Side effects per screen
   closeFriendProfile();
-  if (screen === 'profile') { renderProfileStats(); startProfileParticles(); }
+  if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); }
   else stopProfileParticles();
   if (screen === 'library') filterGames();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
   if (screen === 'social') loadSocialScreen();
-  if (screen === 'explore') { renderQuizHub(); renderTierListHub(); }
+  if (screen === 'explore') { renderQuizHub(); renderTierListHub(); renderStudios(); renderHomeCollections(); }
 }
 
 function moveNavIndicator(btn) {
@@ -3682,6 +3643,40 @@ async function removeMedia(gameId, idx) {
   renderFeed();
 }
 
+function renderProfileTierLists() {
+  const section = document.getElementById('profile-tierlists-section');
+  const listEl = document.getElementById('profile-tierlists-list');
+  if (!section || !listEl) return;
+  const lists = JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]');
+  if (!lists.length) {
+    section.style.display = 'none';
+    return;
+  }
+  section.style.display = 'block';
+  listEl.innerHTML = lists.map(tl => {
+    const date = new Date(tl.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
+    const ranked = Object.values(tl.tiers||{}).flat().length;
+    return `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${tl.name||'Tier List'}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:2px">${ranked} classés · ${date}</div>
+      </div>
+      <button onclick="editTierList('${tl.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer">✏️ Modifier</button>
+      <button onclick="deleteSavedTierList('${tl.id}',this)" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px">🗑️</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteSavedTierList(id, btn) {
+  const lists = JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]');
+  const updated = lists.filter(tl => tl.id !== id);
+  localStorage.setItem('gs_my_tierlists', JSON.stringify(updated));
+  _tlMyLists = updated;
+  showToast('Tier list supprimée');
+  renderProfileTierLists();
+  renderTierListHub();
+}
+
 function renderProfileStats() {
   const all      = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
   const playing  = all.filter(g => isPlaying(g.status)).length;
@@ -3788,7 +3783,7 @@ function renderProfileStats() {
         ? `<span style="color:var(--amber)">a obtenu 100%</span>`
         : isDone(g.status)
           ? `<span style="color:var(--green)">a fini</span>`
-          : `<span style="color:var(--muted2)">a ajouté au backlog</span>`;
+          : `<span style="color:var(--muted2)">a ajouté à sa liste</span>`;
       const score  = g.score > 0 ? `<span style="color:var(--amber)"> · ★ ${g.score}/10</span>` : '';
       const src = coverUrl(g);
       const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -3868,7 +3863,7 @@ function openShelf(type, extra) {
     finished: 'Jeux finis',
     platine:  '100% / Platine',
     paused:   'En pause',
-    backlog:  'Backlog',
+    backlog:  'À jouer',
     wish:     'Souhaits',
     abandoned:'Abandonné',
   };
@@ -4039,9 +4034,9 @@ function renderGameGrid(games=GAMES){
   }
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
-    const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'Backlog','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
+    const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'À jouer','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
     const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish','paused':'status-paused'};
-    const label = statusMap[ug.status] || 'Backlog';
+    const label = statusMap[ug.status] || 'À jouer';
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -4094,7 +4089,7 @@ function quickStatusChange(id, status) {
   userGames[id].status = status;
   renderGameGrid(); renderFeed(); renderProfileStats();
   saveToStorage();
-  showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
+  showToast(`→ ${{'backlog':'À jouer','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
 }
 
 // ══════════════════════════════════════
@@ -4359,7 +4354,7 @@ function buildProfileContext() {
   return `Profil du joueur :
 - Jeux finis (${finished.length}) : ${finished.slice(0,6).map(g=>`${g.title}${g.score?` (${g.score}/10)`:''}`).join(', ')}
 - En cours : ${playing.map(g=>g.title).join(', ') || 'aucun'}
-- Backlog (${backlog.length} jeux) : ${backlog.slice(0,8).map(g=>g.title).join(', ')}
+- À jouer (${backlog.length} jeux) : ${backlog.slice(0,8).map(g=>g.title).join(', ')}
 - Genres préférés : ${topGenres || 'variés'}`;
 }
 
@@ -4456,7 +4451,7 @@ async function addSingleGame(titleRaw, defaultStatus) {
   const coverHtml = src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
     : '';
-  const statusLabel = {backlog:'Backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
+  const statusLabel = {backlog:'À jouer','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
   return `${coverHtml}<strong>${g.title}</strong> (${g.genre}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${g.id}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
 }
 
@@ -4806,77 +4801,14 @@ let _socialFriends    = []; // accepted friendships with profile data
 let _socialPending    = []; // incoming pending requests
 let _friendProfileData = null;
 
-const DUMMY_FRIENDS_DATA = [
-  { id:'__dummy_alex', username:'Alex', avatar:'🏆', avatar_grad:'linear-gradient(135deg,#fd79a8,#e84393)',
-    bio:'Platinum hunter. 47 jeux à 100%. Ne dort plus.', platforms:['PS5','PC'],
-    activity:[
-      {title:'God of War Ragnarök', status:'playing-solo', score:0, steamId:2322010, ago:'il y a 1h'},
-      {title:'Astro Bot',           status:'finished',     score:10,steamId:0,       ago:'il y a 2j'},
-      {title:'Hollow Knight',       status:'platine',      score:9, steamId:367520,  ago:'il y a 4j'},
-    ],
-    games:[
-      {id:'gow-ragna',    title:'God of War Ragnarök',    genre:'Action RPG',   status:'playing-solo', score:0,  steamId:2322010, platform:'PS5',    hours:34,  notes:'Magnifique suite, encore mieux que le premier. Kratos père au top.'},
-      {id:'elden-ring',   title:'Elden Ring',              genre:'Action RPG',   status:'finished',     score:9,  steamId:1245620, platform:'PS5',    hours:120, notes:'120h, 2 runs complets. GOTY sans discussion. Incroyable world design.'},
-      {id:'celeste',      title:'Celeste',                 genre:'Platformer',   status:'platine',      score:10, steamId:504230,  platform:'PC',     hours:45,  notes:'Tous les crystal hearts et fraises. Bande son parfaite de Lena Raine.'},
-      {id:'hollow-knight',title:'Hollow Knight',           genre:'Metroidvania', status:'platine',      score:9,  steamId:367520,  platform:'PC',     hours:67,  notes:'100% obtenu après 67h. L\'un des meilleurs jeux indie de la décennie.'},
-      {id:'returnal',     title:'Returnal',                genre:'Roguelike',    status:'finished',     score:8,  steamId:1649240, platform:'PS5',    hours:23,  notes:'Mort 40 fois avant le premier boss. Tellement accrocheur quand ça clique.'},
-      {id:'tlou2',        title:'The Last of Us Part II',  genre:'Action',       status:'finished',     score:10, steamId:0,       platform:'PS5',    hours:28,  notes:'Narration courageuse et magistrale. J\'ai pleuré 3 fois, pas de honte.'},
-      {id:'astro-bot',    title:'Astro Bot',               genre:'Platformer',   status:'finished',     score:10, steamId:0,       platform:'PS5',    hours:18,  notes:'Pure joie de jouer. Le meilleur jeu PS5 à ce jour.'},
-      {id:'bg3',          title:"Baldur's Gate 3",         genre:'RPG',          status:'backlog',      score:0,  steamId:1086940, platform:'PC',     hours:0,   notes:''},
-    ]},
-  { id:'__dummy_jul', username:'Julien', avatar:'⚔️', avatar_grad:'linear-gradient(135deg,#43d8c9,#4396d8)',
-    bio:"RPG & stratégie. BG3 c'est la vie.", platforms:['PC','Switch'],
-    activity:[
-      {title:"Baldur's Gate 3",  status:'playing-solo', score:0, steamId:1086940, ago:'il y a 3h'},
-      {title:'Mass Effect 2',    status:'finished',     score:9, steamId:24980,   ago:'il y a 3j'},
-      {title:'Into the Breach',  status:'platine',      score:9, steamId:590380,  ago:'il y a 6j'},
-    ],
-    games:[
-      {id:'bg3',          title:"Baldur's Gate 3",         genre:'RPG',          status:'playing-solo', score:0,  steamId:1086940, platform:'PC',     hours:180, notes:'200h et j\'en suis encore à l\'acte 2. La définition du MASTERPIECE.'},
-      {id:'disco',        title:'Disco Elysium',           genre:'RPG',          status:'finished',     score:10, steamId:632470,  platform:'PC',     hours:42,  notes:'Le RPG le plus original de la décennie. Faut absolument le vivre.'},
-      {id:'witcher3',     title:'The Witcher 3',           genre:'Action RPG',   status:'finished',     score:10, steamId:292030,  platform:'PC',     hours:95,  notes:'95h main quest + DLC. Meilleur monde ouvert jamais créé selon moi.'},
-      {id:'mass-effect2', title:'Mass Effect 2',           genre:'RPG',          status:'finished',     score:9,  steamId:24980,   platform:'PC',     hours:35,  notes:'Le meilleur de la trilogie, sans hésitation. Les missions de loyauté...'},
-      {id:'hades2',       title:'Hades II',                genre:'Roguelike',    status:'finished',     score:9,  steamId:1812620, platform:'PC',     hours:28,  notes:'Plus addictif que le premier. Gameplay absolument parfait.'},
-      {id:'into-breach',  title:'Into the Breach',         genre:'Stratégie',    status:'platine',      score:9,  steamId:590380,  platform:'Switch', hours:56,  notes:'Jeu de stratégie parfait pour le Switch. Jamais lassant, toujours tendu.'},
-      {id:'elden-ring',   title:'Elden Ring',              genre:'Action RPG',   status:'backlog',      score:0,  steamId:1245620, platform:'PC',     hours:0,   notes:''},
-      {id:'metaphor',     title:'Metaphor: ReFantazio',    genre:'JRPG',         status:'abandoned',    score:5,  steamId:2679460, platform:'PC',     hours:12,  notes:'Commencé mais pas vraiment accroché. Le système de combat m\'a perdu.'},
-    ]},
-  { id:'__dummy_sara', username:'Sara', avatar:'🌙', avatar_grad:'linear-gradient(135deg,#a843d8,#d843a8)',
-    bio:'Indie & narratif. Pleure à tous les Telltale.', platforms:['Switch','PC'],
-    activity:[
-      {title:'Stardew Valley',  status:'playing-solo', score:0, steamId:413150,  ago:'il y a 2h'},
-      {title:'Night in the Woods', status:'finished',  score:8, steamId:481510,  ago:'il y a 4j'},
-      {title:'Ori and the Will of the Wisps', status:'finished', score:9, steamId:1057090, ago:'il y a 6j'},
-    ],
-    games:[
-      {id:'stardew',      title:'Stardew Valley',          genre:'Simulation',   status:'playing-solo', score:0,  steamId:413150,  platform:'Switch', hours:340, notes:'340h. Pure thérapie vidéoludique. Je retourne toujours un peu chaque soir.'},
-      {id:'celeste',      title:'Celeste',                 genre:'Platformer',   status:'finished',     score:10, steamId:504230,  platform:'Switch', hours:32,  notes:'Sublime. La montagne comme métaphore de la dépression. Chef-d\'œuvre.'},
-      {id:'hades',        title:'Hades',                   genre:'Roguelike',    status:'finished',     score:9,  steamId:1145360, platform:'Switch', hours:78,  notes:'Enfin un roguelike qui me passionne vraiment. La narration est géniale.'},
-      {id:'spiritfarer',  title:'Spiritfarer',             genre:'Narratif',     status:'finished',     score:9,  steamId:1155980, platform:'Switch', hours:25,  notes:'J\'ai tellement pleuré... Une expérience unique sur la mort et le deuil.'},
-      {id:'ori',          title:'Ori and the Will of the Wisps', genre:'Platformer', status:'finished', score:9, steamId:1057090, platform:'Switch', hours:14, notes:'Les visuels sont d\'une beauté incroyable. La séquence musicale...'},
-      {id:'night-woods',  title:'Night in the Woods',      genre:'Narratif',     status:'finished',     score:8,  steamId:481510,  platform:'PC',     hours:10,  notes:'Nostalgique et bouleversant. La vie adulte selon Mae Borowski.'},
-      {id:'hollow-knight',title:'Hollow Knight',           genre:'Metroidvania', status:'backlog',      score:0,  steamId:367520,  platform:'Switch', hours:0,   notes:''},
-      {id:'disco',        title:'Disco Elysium',           genre:'RPG',          status:'backlog',      score:0,  steamId:632470,  platform:'PC',     hours:0,   notes:''},
-    ]},
-];
-const DUMMY_ACTIVITY = [
-  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'God of War Ragnarök', status:'platine',      score:10, steamId:1593500, ago:'il y a 1h'},
-  {type:'quiz', username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', quizTitle:'Quiz RPG', quizEmoji:'🗡️', quizGradient:'linear-gradient(135deg,#fd79a8,#e84393)', quizColor:'#fd79a8', score:7, total:8, rankLabel:'Expert', rankEmoji:'🏅', rankColor:'var(--amber)', ago:'il y a 2h'},
-  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:"Baldur's Gate 3",     status:'playing-solo', score:0,  steamId:1086940, ago:'il y a 3h'},
-  {type:'quiz', username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', quizTitle:'Quiz Indie', quizEmoji:'🌱', quizGradient:'linear-gradient(135deg,#00e676,#00b894)', quizColor:'#00e676', score:8, total:8, rankLabel:'Légendaire', rankEmoji:'🏆', rankColor:'#a29bfe', ago:'il y a 5h'},
-  {username:'Sara',  avatar:'🌙', grad:'linear-gradient(135deg,#a843d8,#d843a8)', title:'Hollow Knight',       status:'backlog',      score:0,  steamId:367520,  ago:'il y a 1j'},
-  {username:'Alex',  avatar:'🏆', grad:'linear-gradient(135deg,#fd79a8,#e84393)', title:'Celeste',             status:'finished',     score:9,  steamId:504230,  ago:'il y a 2j'},
-  {username:'Julien',avatar:'⚔️', grad:'linear-gradient(135deg,#43d8c9,#4396d8)', title:'Disco Elysium',       status:'finished',     score:10, steamId:632470,  ago:'il y a 2j'},
-];
-
+const DUMMY_FRIENDS_DATA = [];
+const DUMMY_ACTIVITY = [];
 async function loadSocialScreen() {
-  // Always show dummy friends regardless of auth/network state
-  _socialFriends = [...DUMMY_FRIENDS_DATA];
+  _socialFriends = [];
 
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
     renderSocialScreen(null);
-    renderDummyActivity();
     return;
   }
   const uid = session.user.id;
@@ -4906,7 +4838,7 @@ async function loadSocialScreen() {
     const { data: profiles } = await _sb.from('profiles').select('*').in('id', acceptedIds);
     friends = profiles || [];
   }
-  _socialFriends = [...DUMMY_FRIENDS_DATA, ...friends];
+  _socialFriends = [...friends];
 
   // Fetch profiles for pending requesters
   let pendingWithProfiles = [];
@@ -4921,7 +4853,6 @@ async function loadSocialScreen() {
   _socialPending = pendingWithProfiles;
 
   renderSocialScreen(uid);
-  renderDummyActivity();
   if (friends.length) loadFriendActivity(acceptedIds);
 }
 
@@ -5031,40 +4962,59 @@ function _activityCoverCircle(steamId, grad, avatar, size, borderColor) {
 }
 
 function _renderActivityItem(item, size=44, borderColor='var(--a2)', compact=false) {
-  const ACTION = {'finished':'a fini','platine':'a eu le 100% sur','playing-solo':'joue à','playing-multi':'joue en multi à','backlog':'a ajouté au backlog','abandoned':'a abandonné','wish':'souhaite','paused':'a mis en pause'};
+  const ACTION = {'finished':'a fini','platine':'a eu le 100% sur','playing-solo':'joue à','playing-multi':'joue en multi à','backlog':'a ajouté à sa liste','abandoned':'a abandonné','wish':'souhaite','paused':'a mis en pause'};
   if (item.type === 'quiz') {
     const quizBadge = `<div style="display:inline-flex;align-items:center;gap:4px;background:${item.quizGradient};border-radius:8px;padding:2px 8px;font-size:10px;font-weight:700;color:#fff;vertical-align:middle">${item.quizEmoji} ${item.quizTitle}</div>`;
     const rankBadge = `<span style="color:${item.rankColor};font-weight:700">${item.rankEmoji} ${item.score}/${item.total} — ${item.rankLabel}</span>`;
     const challengeBtn = compact ? '' : ` <button onclick="openQuiz('${item.quizId||''}')" style="display:inline-flex;align-items:center;gap:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:3px 8px;font-size:10px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:4px">⚡ Relever le défi</button>`;
+    const _qk = _actItemKey(item);
+    const _qliked = _actLikes[_qk] ? true : false;
+    const quizLikeBtn = compact ? '' : `<button onclick="event.stopPropagation();toggleLike('${_qk.replace(/'/g,"\\'")}',this)" style="background:none;border:none;font-size:12px;cursor:pointer;color:${_qliked?'var(--a2)':'var(--muted)'};padding:0;margin-top:4px">${_qliked?'❤️':'🤍'}${_qliked?' 1':''}</button>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
       <div style="width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;background:${item.grad};border:2px solid ${item.quizColor||borderColor};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px">${item.avatar}</div>
       <div style="flex:1;min-width:0">
         <div style="font-size:${compact?'12':'13'}px;line-height:1.45"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">a complété</span> ${quizBadge} <span style="color:var(--muted2)">·</span> ${rankBadge}</div>
         ${challengeBtn ? `<div style="margin-top:5px">${challengeBtn}</div>` : ''}
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${item.ago}</div>
+        ${quizLikeBtn}
       </div>
     </div>`;
   }
+  const _k = _actItemKey(item);
+  const _liked = _actLikes[_k] ? true : false;
+  const likeBtn = compact ? '' : `<button onclick="event.stopPropagation();toggleLike('${_k.replace(/'/g,"\\'")}',this)" style="background:none;border:none;font-size:12px;cursor:pointer;color:${_liked?'var(--a2)':'var(--muted)'};padding:0;margin-top:4px">${_liked?'❤️':'🤍'}${_liked?' 1':''}</button>`;
   return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
     ${_activityCoverCircle(item.steamId, item.grad, item.avatar, size, borderColor)}
     <div style="flex:1;min-width:0">
       <div style="font-size:${compact?'12':'13'}px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
       ${!compact ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>` : ''}
+      ${likeBtn}
     </div>
   </div>`;
 }
 
 function renderDummyActivity() {
-  const allActivity = [..._localQuizActivity, ...DUMMY_ACTIVITY];
-  const html = allActivity.map(item => _renderActivityItem(item, 44, 'var(--a2)', false)).join('');
+  const items = _localQuizActivity;
   const actSection = document.getElementById('social-activity-section');
   const actList = document.getElementById('social-activity-list');
-  if (actSection) actSection.style.display = 'block';
-  if (actList) actList.innerHTML = html;
+  if (actSection) actSection.style.display = items.length ? 'block' : 'none';
+  if (actList) actList.innerHTML = items.map(item => _renderActivityItem(item, 44, 'var(--a2)', false)).join('');
   const homeSection = document.getElementById('home-activity-section');
   const homeList = document.getElementById('home-activity-list');
-  if (homeSection) homeSection.style.display = 'block';
-  if (homeList) homeList.innerHTML = allActivity.slice(0,4).map(item => _renderActivityItem(item, 34, 'var(--a)', true)).join('');
+  if (homeSection) homeSection.style.display = 'none';
+  if (homeList) homeList.innerHTML = '';
+}
+
+function _actItemKey(item) {
+  return (item.username||'')+'|'+(item.title||item.quizTitle||'')+'|'+(item.ago||'');
+}
+function toggleLike(key, btn) {
+  const liked = _actLikes[key];
+  _actLikes[key] = liked ? 0 : 1;
+  localStorage.setItem('gs_act_likes', JSON.stringify(_actLikes));
+  const count = _actLikes[key] ? 1 : 0;
+  btn.innerHTML = `${_actLikes[key] ? '❤️' : '🤍'} ${count || ''}`;
+  btn.style.color = _actLikes[key] ? 'var(--a2)' : 'var(--muted)';
 }
 
 // ── Friend Profile ─────────────────────────────────────────
@@ -5073,7 +5023,7 @@ let _fpAllGames = [];
 let _fpMyGames = {};
 let _fpActiveTab = '';
 
-const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné'};
+const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'À jouer','abandoned':'Abandonné'};
 
 function fpCoverSrc(g) {
   if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
@@ -5131,7 +5081,7 @@ function fpRenderLibTab(tab) {
     {key:'playing-solo', label:'En cours', match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
     {key:'finished',     label:'Finis',    match:g=>g.status==='finished'},
     {key:'platine',      label:'100%',     match:g=>g.status==='platine'},
-    {key:'backlog',      label:'Backlog',  match:g=>g.status==='backlog'},
+    {key:'backlog',      label:'À jouer',  match:g=>g.status==='backlog'},
     {key:'abandoned',    label:'Abandonné',match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
   document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;white-space:nowrap;${tab===t.key?'background:var(--a);color:#fff;border-color:var(--a)':'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`).join('');
@@ -5259,7 +5209,7 @@ function renderFriendProfile(friend) {
     ${statCell(paused,'En pause','var(--amber)')}
     ${statCell(done,'Finis','var(--green)')}
     ${statCell(platine,'100%','var(--amber)')}
-    ${statCell(backlog,'Backlog','var(--muted2)')}
+    ${statCell(backlog,'À jouer','var(--muted2)')}
     ${statCell(abandon,'Abandonnés','var(--red)')}
   `;
 
@@ -5378,7 +5328,7 @@ async function openFriendProfile(userId) {
 }
 
 function statusLabel(s) {
-  return { 'playing-solo':'En cours','playing-multi':'Multi','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné','wish':'Souhaité','paused':'En pause' }[s] || s;
+  return { 'playing-solo':'En cours','playing-multi':'Multi','finished':'Fini','platine':'100%','backlog':'À jouer','abandoned':'Abandonné','wish':'Souhaité','paused':'En pause' }[s] || s;
 }
 
 function closeFriendProfile() {
@@ -5498,12 +5448,23 @@ function trendingOpenDetail(id) {
 // COLLECTIONS THÉMATIQUES
 // ══════════════════════════════════════
 const COLLECTIONS = [
-  { id:'goty2024', emoji:'🏆', title:'Jeux de l\'année 2024', sub:'Les meilleurs de 2024',     filter:{ yearFrom:2024, yearTo:2024 } },
-  { id:'rpg',      emoji:'⚔️',  title:'Incontournables RPG',     sub:'Les classiques du genre',  filter:{ genreIds:[12] } },
-  { id:'indie',    emoji:'🌙',  title:'Indés à ne pas manquer',  sub:'Jeux indépendants cultes', filter:{ genreIds:[32] } },
-  { id:'short',    emoji:'⚡',  title:'Moins de 10 heures',      sub:'Courts mais intenses',     filter:{ genreIds:[8,9] } },
-  { id:'multi',    emoji:'👾',  title:'Soirée multijoueur',      sub:'Pour jouer entre amis',    filter:{ mode:'multi' } },
-  { id:'horror',   emoji:'😱',  title:'Survival Horror',         sub:'Pour les amateurs de frissons', filter:{ themeIds:[19] } },
+  { id:'goty2024',   emoji:'🏆', title:'Jeux de l\'année 2024',     sub:'Les meilleurs de 2024',              filter:{ yearFrom:2024, yearTo:2024 } },
+  { id:'rpg',        emoji:'⚔️',  title:'Incontournables RPG',        sub:'Les classiques du genre',            filter:{ genreIds:[12] } },
+  { id:'indie',      emoji:'🌙',  title:'Indés à ne pas manquer',     sub:'Jeux indépendants cultes',           filter:{ genreIds:[32] } },
+  { id:'soulslike',  emoji:'💀',  title:'Soulslike',                  sub:'Défis extrêmes, satisfaction ultime', filter:{ gameIds:[119133,11133,119171,3194,2026,367520,119171,1183506] } },
+  { id:'openworld',  emoji:'🌍',  title:'Mondes Ouverts',             sub:'Des univers infinis à explorer',     filter:{ themeIds:[38] } },
+];
+const STUDIO_COLLECTIONS = [
+  { id:'fromsoft',   emoji:'⚔️',  name:'FromSoftware',   color:'#e17055', gradient:'linear-gradient(135deg,#e17055,#d63031)', gameIds:[119133,11133,119171,3194,2026] },
+  { id:'rockstar',   emoji:'🚗',  name:'Rockstar',        color:'#fdcb6e', gradient:'linear-gradient(135deg,#fdcb6e,#e17055)', gameIds:[25076,1020,22394,3023] },
+  { id:'cdpr',       emoji:'🗡️',  name:'CD Projekt Red',  color:'#a29bfe', gradient:'linear-gradient(135deg,#a29bfe,#6c5ce7)', gameIds:[1942,1877,440] },
+  { id:'naughtydog', emoji:'🌿',  name:'Naughty Dog',     color:'#00b894', gradient:'linear-gradient(135deg,#00b894,#00cec9)', gameIds:[17269,87541,7331,7334] },
+  { id:'nintendo',   emoji:'🍄',  name:'Nintendo',        color:'#e84393', gradient:'linear-gradient(135deg,#fd79a8,#e84393)', gameIds:[7346,119388,812,25312] },
+  { id:'bethesda',   emoji:'⚙️',  name:'Bethesda',        color:'#74b9ff', gradient:'linear-gradient(135deg,#74b9ff,#0984e3)', gameIds:[2131,2076,117096,1716] },
+  { id:'squareenix', emoji:'🔮',  name:'Square Enix',     color:'#fd79a8', gradient:'linear-gradient(135deg,#fd79a8,#a29bfe)', gameIds:[103374,3863,104261,2013] },
+  { id:'larian',     emoji:'📖',  name:'Larian Studios',  color:'#00e676', gradient:'linear-gradient(135deg,#00e676,#00b894)', gameIds:[115553,239,28] },
+  { id:'insomniac',  emoji:'🕷️',  name:'Insomniac',       color:'#6c5ce7', gradient:'linear-gradient(135deg,#6c5ce7,#a29bfe)', gameIds:[22803,193530,9521] },
+  { id:'ubisoft',    emoji:'🦅',  name:'Ubisoft',         color:'#fdcb6e', gradient:'linear-gradient(135deg,#fdcb6e,#e17055)', gameIds:[21950,65905,113112,66243] },
 ];
 let _colCache = {};
 let _activeCollection = null;
@@ -5526,9 +5487,58 @@ async function renderHomeCollections() {
   COLLECTIONS.slice(0, 3).forEach(c => loadCollectionCovers(c));
 }
 
+function renderStudios() {
+  const el = document.getElementById('studio-selector');
+  if (!el) return;
+  el.innerHTML = STUDIO_COLLECTIONS.map(s => `
+    <div onclick="openStudioCollection('${s.id}')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;cursor:pointer;transition:opacity 0.15s;font-size:13px;font-weight:600" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <span style="font-size:16px">${s.emoji}</span>${s.name}
+    </div>`).join('');
+}
+
+async function openStudioCollection(studioId) {
+  const s = STUDIO_COLLECTIONS.find(x => x.id === studioId);
+  if (!s) return;
+  const modal = document.getElementById('collection-modal');
+  const grid  = document.getElementById('col-modal-grid');
+  document.getElementById('col-modal-title').textContent = `${s.emoji} ${s.name}`;
+  document.getElementById('col-modal-sub').textContent = 'Les incontournables du studio';
+  grid.innerHTML = '<div class="loading-dots" style="grid-column:1/-1;padding:32px 0"><span></span><span></span><span></span></div>';
+  modal.style.display = 'flex';
+  let data = _colCache['studio_'+studioId];
+  if (!data || data.length < 2) {
+    const raw = await igdbFetch('game', { ids: s.gameIds });
+    if (raw?.length) {
+      data = raw.map(mapIgdbGame).filter(g => g.cover || g.steamId);
+      _colCache['studio_'+studioId] = data;
+    }
+  }
+  if (!data?.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted2)">Aucun jeu trouvé</div>';
+    return;
+  }
+  grid.innerHTML = data.map(g => {
+    const src = coverUrl(g);
+    return `<div onclick="addGameFromCollection(${JSON.stringify(g).replace(/"/g,'&quot;')})" style="cursor:pointer;position:relative" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="padding-top:133%;position:relative;border-radius:10px;overflow:hidden;background:var(--s2)">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
+      </div>
+      <div style="margin-top:5px;font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      ${g.meta ? `<div style="font-size:10px;color:var(--amber);font-weight:700">★${Math.round(g.meta)}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
 async function loadCollectionCovers(c) {
   if (_colCache[c.id]) { renderCollectionThumbnail(c.id, _colCache[c.id]); return; }
-  const data = await igdbFetch('filter', { ...c.filter, limit: 6 });
+  let data;
+  if (c.filter?.gameIds?.length) {
+    data = await igdbFetch('game', { ids: c.filter.gameIds.slice(0,6) });
+  } else if (c.filter?.themeIds?.length) {
+    data = await igdbFetch('filter', { themeIds: c.filter.themeIds, limit: 6 });
+  } else {
+    data = await igdbFetch('filter', { ...c.filter, limit: 6 });
+  }
   if (!data?.length) return;
   const games = data.map(mapIgdbGame).filter(g => g.cover || g.steamId).slice(0, 3);
   _colCache[c.id] = games;
@@ -5556,7 +5566,14 @@ async function openCollection(id) {
   modal.style.display = 'flex';
 
   if (!_colCache[id] || _colCache[id].length < 4) {
-    const data = await igdbFetch('filter', { ...c.filter, limit: 18 });
+    let data;
+    if (c.filter?.gameIds?.length) {
+      data = await igdbFetch('game', { ids: c.filter.gameIds });
+    } else if (c.filter?.themeIds?.length) {
+      data = await igdbFetch('filter', { themeIds: c.filter.themeIds, limit: 18 });
+    } else {
+      data = await igdbFetch('filter', { ...c.filter, limit: 18 });
+    }
     if (data?.length) _colCache[id] = data.map(mapIgdbGame).filter(g => g.cover || g.steamId);
   }
   const games = _colCache[id] || [];
@@ -5944,7 +5961,7 @@ function addGameFromModal(g, btn) {
   if (item) item.classList.add('added');
   if (btn) btn.textContent = '✓';
 
-  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
+  const statusLabels = {backlog:'À jouer','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
   showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
 }
 
@@ -6086,7 +6103,6 @@ function clearLibrary() {
 // LE TIRAGE — intro popup (one-time)
 // ══════════════════════════════════════
 function showTirageIntroIfNeeded() {
-  if (localStorage.getItem('gs_tirage_seen')) { initBracket(); return; }
   const el = document.getElementById('tirage-intro');
   if (el) { el.style.display = 'flex'; }
 }
@@ -6395,6 +6411,7 @@ let _quizScore    = 0;
 let _quizAnswered = false;
 let _quizPublished = new Set();
 let _quizLocalScores  = JSON.parse(localStorage.getItem('gs_quiz_scores')   || '{}');
+let _actLikes        = JSON.parse(localStorage.getItem('gs_act_likes')       || '{}');
 let _localQuizActivity = JSON.parse(localStorage.getItem('gs_quiz_activity') || '[]');
 
 function getQuizRank(score, total) {
@@ -6437,6 +6454,15 @@ function renderQuizHub() {
 function openQuiz(id) {
   _quizActive = QUIZ_DATA.find(q => q.id === id);
   if (!_quizActive) return;
+  // 24h cooldown per quiz
+  const prev = _quizLocalScores[id];
+  if (prev && prev.ts) {
+    const hoursLeft = Math.ceil((24 * 3600000 - (Date.now() - prev.ts)) / 3600000);
+    if (hoursLeft > 0) {
+      showToast(`Déjà complété ! Reviens dans ${hoursLeft}h`);
+      return;
+    }
+  }
   _quizQIdx = 0; _quizScore = 0; _quizAnswered = false;
   _quizPublished.delete(id);
   const overlay = document.getElementById('quiz-overlay');
@@ -6516,7 +6542,7 @@ function showQuizResults() {
         📢 Publier dans mon feed
       </button>
       <div style="display:flex;gap:10px;width:100%">
-        <button onclick="openQuiz('${qid}')" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">↻ Rejouer</button>
+        <button onclick="closeQuiz()" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
         <button onclick="closeQuiz()" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
       </div>
     </div>`;
@@ -6864,6 +6890,7 @@ async function saveTierList() {
     const shareModal = document.getElementById('tl-share-modal');
     if (shareModal) shareModal.style.display = 'flex';
     renderTierListHub();
+    renderProfileTierLists();
   } catch(e) {
     showToast('Erreur sauvegarde — vérifie Supabase');
     console.error('TL save error:', e);
@@ -7162,9 +7189,32 @@ async function exportTierList() {
 
 <div id="tirage-intro" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:0">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:28px 24px calc(32px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1)">
-    <div style="text-align:center;font-size:36px;margin-bottom:14px">⚡</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:8px">Le Tirage</div>
-    <div style="font-size:14px;color:var(--muted2);text-align:center;line-height:1.6;margin-bottom:24px">Tu ne sais pas quoi jouer dans ton backlog ?<br>Deux jeux s'affrontent — tu choisis le gagnant.<br>Le dernier debout, c'est ton prochain jeu.</div>
+    <div style="text-align:center;font-size:36px;margin-bottom:10px">⚡</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:6px">Comment ça marche ?</div>
+    <div style="font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px">Trouve ton prochain jeu en 3 étapes</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+      <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
+        <div style="font-size:28px;flex-shrink:0">🎮 vs 🎮</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Duel</div>
+          <div style="font-size:12px;color:var(--muted2)">2 jeux de ta liste "À jouer" s'affrontent</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
+        <div style="font-size:28px;flex-shrink:0">👆</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Vote</div>
+          <div style="font-size:12px;color:var(--muted2)">Tap sur celui que tu préfères jouer en premier</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
+        <div style="font-size:28px;flex-shrink:0">🏆</div>
+        <div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Gagnant</div>
+          <div style="font-size:12px;color:var(--muted2)">Le dernier survivant = ton prochain jeu !</div>
+        </div>
+      </div>
+    </div>
     <button onclick="closeTirageIntro()" class="btn-primary">C'est parti !</button>
   </div>
 </div>
