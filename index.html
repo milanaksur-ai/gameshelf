@@ -2766,13 +2766,16 @@ async function authWithGoogle() {
 }
 
 async function onAuthSuccess(user) {
-  // Try to pull existing data from Supabase
-  const { data: games } = await _sb.from('user_games').select('*').eq('user_id', user.id);
-  if (games && games.length > 0) {
+  // Check profile first — existence of profile = returning user (even with 0 games)
+  const [{ data: profile }, { data: games }] = await Promise.all([
+    _sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+    _sb.from('user_games').select('*').eq('user_id', user.id)
+  ]);
+  if (profile) {
     // Returning user — restore library from Supabase
     GAMES.length = 0;
     Object.keys(userGames).forEach(k => delete userGames[k]);
-    games.forEach(g => {
+    (games || []).forEach(g => {
       GAMES.push({
         id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
         notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
@@ -2785,32 +2788,38 @@ async function onAuthSuccess(user) {
         gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
       }
     });
-    // Pull profile
-    const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
-    if (profile) {
-      obProfile = {
-        username: profile.username || 'Gamer',
-        avatar: profile.avatar || '🎮',
-        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
-        bio: profile.bio || '',
-        platforms: profile.platforms || []
-      };
-      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-    }
+    obProfile = {
+      username: profile.username || 'Gamer',
+      avatar: profile.avatar || '🎮',
+      avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+      bio: profile.bio || '',
+      platforms: profile.platforms || []
+    };
+    localStorage.setItem('gs_profile', JSON.stringify(obProfile));
     saveToStorage();
     launchApp();
   } else {
-    // New user — go through profile onboarding
+    // Truly new user — go through profile onboarding
     obStep(2);
   }
 }
 
 // Keep old name for any legacy call-sites
 function validateStep1() { authSubmit(); }
-function validateStep2() {
+async function validateStep2() {
   const u = document.getElementById('username-input').value.trim();
-  if (!u||u.length<3) { showToast('Choisis un pseudo (3 min)'); return; }
+  if (!u || u.length < 3) { showToast('Choisis un pseudo (3 min)'); return; }
+  const btn = document.querySelector('#step-2 .btn-primary, #step-2 button[onclick*="validateStep2"]');
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const { data: existing } = await _sb.from('profiles').select('id').ilike('username', u).limit(1).maybeSingle();
+  if (existing) {
+    showToast('Ce pseudo est déjà pris 😕');
+    if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
+    return;
+  }
   obProfile.username = u;
+  await syncProfileToSupabase(); // create profile early so mid-onboarding reload doesn't sign out
+  if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
   obStep(3);
 }
 function validateStep3() {
@@ -6042,16 +6051,16 @@ function applyProfileToUI() {
   const { data: { session } } = await _sb.auth.getSession();
 
   if (session) {
-    // If the account was wiped server-side, the profile no longer exists → full local reset
-    const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
-    if (!_profileCheck) {
-      localStorage.clear();
-      await _sb.auth.signOut();
-      document.getElementById('progress-fill').style.width = '0%';
-      return;
-    }
     const hasLocal = loadFromStorage();
     if (hasLocal) {
+      // Returning user with local data → check if account was wiped server-side
+      const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
+      if (!_profileCheck) {
+        localStorage.clear();
+        await _sb.auth.signOut();
+        document.getElementById('progress-fill').style.width = '0%';
+        return;
+      }
       // Fast path: local data → launch immediately, then sync in background
       applyProfileToUI();
       document.getElementById('view-onboarding').style.display = 'none';
@@ -6061,7 +6070,7 @@ function applyProfileToUI() {
       syncProfileToSupabase();        // ensure profile is visible in friend search
       syncToSupabase();               // push local games to Supabase so friends can see them
     } else {
-      // No local data → fetch from Supabase
+      // No local data → new user or returning without cache → onAuthSuccess decides
       await onAuthSuccess(session.user);
     }
   } else {
@@ -6270,10 +6279,9 @@ function closeEditProfile() {
   if (modal) modal.style.display = 'none';
 }
 
-function saveEditProfile() {
+async function saveEditProfile() {
   const name = (document.getElementById('edit-name-input')?.value||'').trim() || obProfile.username;
   const bio  = (document.getElementById('edit-bio-input')?.value||'').trim();
-  const selectedAv = document.querySelector('#edit-avatar-grid [data-av]');
   let avatar = obProfile.avatar;
   document.querySelectorAll('#edit-avatar-grid [data-av]').forEach(d => {
     if (d.style.background.includes('108')) avatar = d.dataset.av;
@@ -6282,9 +6290,16 @@ function saveEditProfile() {
   document.querySelectorAll('#edit-platforms-grid [data-plat]').forEach(d => {
     if (d.style.background.includes('108')) platforms.push(d.dataset.plat);
   });
+  // Check username uniqueness (exclude current user)
+  if (name !== obProfile.username) {
+    const { data: { session } } = await _sb.auth.getSession();
+    const uid = session?.user?.id;
+    const { data: existing } = await _sb.from('profiles')
+      .select('id').ilike('username', name).neq('id', uid || 'none').limit(1).maybeSingle();
+    if (existing) { showToast('Ce pseudo est déjà pris 😕'); return; }
+  }
   obProfile = {...obProfile, username: name, avatar, bio, platforms};
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-  // Update visible elements
   const nameEl = document.getElementById('app-profile-name');
   const handleEl = document.getElementById('app-profile-handle');
   const avEl = document.getElementById('app-profile-av');
