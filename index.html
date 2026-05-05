@@ -7036,7 +7036,7 @@ async function _tlSearchAdd(q) {
   if (!res) return;
   res.innerHTML = '<div style="font-size:11px;color:var(--muted2);padding:4px 0">Recherche…</div>';
   try {
-    const data = await igdbFetch('search', { query: q.trim(), limit: 12 });
+    const data = await igdbFetch('search', { query: q.trim(), limit: 36 });
     if (!data || !data.length) { res.innerHTML = '<div style="font-size:11px;color:var(--muted2);padding:4px 0">Aucun résultat</div>'; return; }
     res.innerHTML = data.map(g => {
       const imgId = g.cover?.image_id;
