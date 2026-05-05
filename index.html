@@ -1730,7 +1730,8 @@ html, body {
       <button onclick="closeFriendProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700" id="fp-title">Profil</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" id="fp-title">Profil</div>
+      <button id="fp-remove-btn" style="display:none;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer" onclick="removeFriend()">Retirer</button>
     </div>
     <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
       <!-- Hero card -->
@@ -4574,9 +4575,9 @@ async function enrichMissingCovers(games) {
 }
 
 async function initBracket() {
-  const backlog = GAMES.filter(g => (userGames[g.id]||g).status === 'backlog');
+  const backlog = GAMES.filter(g => ['backlog','paused'].includes((userGames[g.id]||g).status));
   if (backlog.length < 2) {
-    showToast('Ajoute au moins 2 jeux au backlog pour lancer un bracket !');
+    showToast('Ajoute au moins 2 jeux à commencer ou en pause pour lancer un bracket !');
     return;
   }
   const shuffled = [...backlog].sort(() => Math.random() - 0.5);
@@ -5444,7 +5445,22 @@ async function openFriendGamePopup(idx) {
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
 
+let _fpFriendshipId = null;
+
+async function removeFriend() {
+  if (!_fpFriendshipId) return;
+  if (!confirm('Retirer cet ami ?')) return;
+  const { error } = await _sb.from('friendships').delete().eq('id', _fpFriendshipId);
+  if (!error) {
+    showToast('Ami retiré');
+    closeFriendProfile();
+    if (typeof loadSocialScreen === 'function') loadSocialScreen();
+  }
+}
+
 async function openFriendProfile(userId) {
+  _fpFriendshipId = null;
+  document.getElementById('fp-remove-btn').style.display = 'none';
   document.getElementById('screen-friend-profile').style.display = 'flex';
   ['fp-now-section','fp-common-section','fp-reco-section','fp-activity-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('fp-title').textContent = '…';
@@ -5457,14 +5473,23 @@ async function openFriendProfile(userId) {
     if (dummy) renderFriendProfile(dummy);
     return;
   }
+  const { data: { session } } = await _sb.auth.getSession();
+  const uid = session?.user?.id;
   const since = new Date(Date.now() - 30*24*60*60*1000).toISOString();
-  const [{ data: profile }, { data: games }, { data: recentActivity }] = await Promise.all([
+  const [{ data: profile }, { data: games }, { data: recentActivity }, { data: friendship }] = await Promise.all([
     _sb.from('profiles').select('*').eq('id', userId).single(),
     _sb.from('user_games').select('*').eq('user_id', userId),
     _sb.from('user_games').select('title,status,score,image_id,updated_at').eq('user_id', userId)
-      .gte('updated_at', since).order('updated_at', {ascending:false}).limit(8)
+      .gte('updated_at', since).order('updated_at', {ascending:false}).limit(8),
+    uid ? _sb.from('friendships').select('id').eq('status','accepted')
+      .or(`and(requester_id.eq.${uid},addressee_id.eq.${userId}),and(requester_id.eq.${userId},addressee_id.eq.${uid})`)
+      .limit(1).maybeSingle() : Promise.resolve({ data: null })
   ]);
   if (!profile) return;
+  if (friendship?.id) {
+    _fpFriendshipId = friendship.id;
+    document.getElementById('fp-remove-btn').style.display = 'block';
+  }
   _friendProfileData = { profile, games: games || [] };
   renderFriendProfile({
     username: profile.username || 'Gamer',
@@ -7341,28 +7366,28 @@ async function exportTierList() {
 <div id="tirage-intro" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:0">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:28px 24px calc(32px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1)">
     <div style="text-align:center;font-size:36px;margin-bottom:10px">⚡</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:6px">Comment ça marche ?</div>
-    <div style="font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px">Trouve ton prochain jeu en 3 étapes</div>
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:6px">Le Tirage</div>
+    <div style="font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px">Tu as des jeux qui traînent dans ta bibliothèque ? Le Tirage t'aide à choisir lequel lancer enfin — qu'ils soient en pause ou jamais commencés.</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
-        <div style="font-size:28px;flex-shrink:0">🎮 vs 🎮</div>
+        <div style="font-size:26px;flex-shrink:0">🎮 vs 🎮</div>
         <div>
           <div style="font-size:13px;font-weight:700;margin-bottom:2px">Duel</div>
-          <div style="font-size:12px;color:var(--muted2)">2 jeux de ta liste "À jouer" s'affrontent</div>
+          <div style="font-size:12px;color:var(--muted2)">2 jeux de ta liste s'affrontent — en pause ou à commencer</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
-        <div style="font-size:28px;flex-shrink:0">👆</div>
+        <div style="font-size:26px;flex-shrink:0">👆</div>
         <div>
           <div style="font-size:13px;font-weight:700;margin-bottom:2px">Vote</div>
-          <div style="font-size:12px;color:var(--muted2)">Tap sur celui que tu préfères jouer en premier</div>
+          <div style="font-size:12px;color:var(--muted2)">Tap sur celui que tu as le plus envie de jouer maintenant</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
-        <div style="font-size:28px;flex-shrink:0">🏆</div>
+        <div style="font-size:26px;flex-shrink:0">🏆</div>
         <div>
-          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Gagnant</div>
-          <div style="font-size:12px;color:var(--muted2)">Le dernier survivant = ton prochain jeu !</div>
+          <div style="font-size:13px;font-weight:700;margin-bottom:2px">Le verdict</div>
+          <div style="font-size:12px;color:var(--muted2)">Le gagnant = le jeu que tu vas enfin finir !</div>
         </div>
       </div>
     </div>
