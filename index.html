@@ -6041,6 +6041,14 @@ function applyProfileToUI() {
   const { data: { session } } = await _sb.auth.getSession();
 
   if (session) {
+    // If the account was wiped server-side, the profile no longer exists → full local reset
+    const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
+    if (!_profileCheck) {
+      localStorage.clear();
+      await _sb.auth.signOut();
+      document.getElementById('progress-fill').style.width = '0%';
+      return;
+    }
     const hasLocal = loadFromStorage();
     if (hasLocal) {
       // Fast path: local data → launch immediately, then sync in background
