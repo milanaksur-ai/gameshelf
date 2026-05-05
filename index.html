@@ -1374,7 +1374,7 @@ html, body {
         <div class="chip" onclick="setFilter('paused',this)">En pause</div>
         <div class="chip" onclick="setFilter('finished',this)">Finis</div>
         <div class="chip" onclick="setFilter('platine',this)">⭐ 100%</div>
-        <div class="chip" onclick="setFilter('backlog',this)">À jouer</div>
+        <div class="chip" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>Backlog</span><span style="font-size:9px;opacity:0.55;font-weight:400">à commencer</span></div>
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
         <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
       </div>
@@ -1524,7 +1524,8 @@ html, body {
         </div>
         <div onclick="openShelf('backlog')" style="background:rgba(152,152,176,0.08);border:0.5px solid rgba(152,152,176,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(152,152,176,0.4)'" onmouseleave="this.style.borderColor='rgba(152,152,176,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--muted2)" id="stat-backlog">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">À jouer</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Backlog</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:1px">à commencer</div>
         </div>
         <div onclick="openShelf('abandoned')" style="background:rgba(255,82,82,0.08);border:0.5px solid rgba(255,82,82,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(255,82,82,0.4)'" onmouseleave="this.style.borderColor='rgba(255,82,82,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--red)" id="stat-abandoned">0</div>
@@ -1649,7 +1650,7 @@ html, body {
             <button class="status-btn" data-s="paused"        onclick="setStatus('paused')"        id="btn-paused">⏸ En pause</button>
             <button class="status-btn" data-s="finished"      onclick="setStatus('finished')">✓ Fini</button>
             <button class="status-btn" data-s="platine"       onclick="setStatus('platine')">⭐ 100%</button>
-            <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">À jouer</button>
+            <button class="status-btn" data-s="backlog"       onclick="setStatus('backlog')">Backlog</button>
             <button class="status-btn" data-s="abandoned"     onclick="setStatus('abandoned')">Abandonné</button>
           </div>
         </div>
@@ -2037,7 +2038,7 @@ html, body {
         <input type="text" id="add-modal-input" placeholder="Rechercher un jeu…" oninput="searchAddModal(this.value)" autocomplete="off">
       </div>
       <div id="add-modal-status-row" style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
-        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">À jouer</div>
+        <div class="chip active" id="add-status-backlog"   onclick="setAddStatus('backlog',this)">Backlog</div>
         <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
         <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
         <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
@@ -2275,13 +2276,13 @@ async function igdbPopular() {
 const DISC_STATUSES = [
   ['playing-solo',  '▶ En cours'],
   ['paused',        '⏸ En pause'],
-  ['backlog',       '📋 À jouer'],
+  ['backlog',       '📋 Backlog'],
   ['wish',          '✦ Souhait'],
   ['finished',      '✅ Fini'],
   ['platine',       '⭐ 100%'],
   ['abandoned',     '❌ Abandonné'],
 ];
-const DISC_STATUS_LABELS = { backlog:'À jouer', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'En cours', finished:'Fini', platine:'100%', abandoned:'Abandonné', paused:'En pause' };
+const DISC_STATUS_LABELS = { backlog:'Backlog', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'En cours', finished:'Fini', platine:'100%', abandoned:'Abandonné', paused:'En pause' };
 
 function discCardHtml(g, ctx) {
   const src = coverUrl(g);
@@ -2975,7 +2976,7 @@ function showObStatusPicker(id) {
     [enCoursStatus, '\u25B6 En cours', alreadyPlaying],
     ['finished',    '\u2705 Fini',      false],
     ['platine',     '\u2B50 100%',      false],
-    ['backlog',     '📋 À jouer', false],
+    ['backlog',     '📋 Backlog', false],
     ['abandoned',   '\u274C Abandonn\u00E9', false],
   ];
   picker.innerHTML = options.map(([s,l,disabled]) =>
@@ -3893,7 +3894,7 @@ function openShelf(type, extra) {
     finished: 'Jeux finis',
     platine:  '100% / Platine',
     paused:   'En pause',
-    backlog:  'À jouer',
+    backlog:  'Backlog',
     wish:     'Souhaits',
     abandoned:'Abandonné',
   };
@@ -4064,9 +4065,9 @@ function renderGameGrid(games=GAMES){
   }
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
-    const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'À jouer','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
+    const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'Backlog','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
     const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish','paused':'status-paused'};
-    const label = statusMap[ug.status] || 'À jouer';
+    const label = statusMap[ug.status] || 'Backlog';
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -4119,7 +4120,7 @@ function quickStatusChange(id, status) {
   userGames[id].status = status;
   renderGameGrid(); renderFeed(); renderProfileStats();
   saveToStorage();
-  showToast(`→ ${{'backlog':'À jouer','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
+  showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
 }
 
 // ══════════════════════════════════════
@@ -4481,7 +4482,7 @@ async function addSingleGame(titleRaw, defaultStatus) {
   const coverHtml = src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
     : '';
-  const statusLabel = {backlog:'À jouer','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
+  const statusLabel = {backlog:'Backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
   return `${coverHtml}<strong>${g.title}</strong> (${g.genre}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${g.id}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
 }
 
@@ -5165,7 +5166,7 @@ let _fpAllGames = [];
 let _fpMyGames = {};
 let _fpActiveTab = '';
 
-const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'À jouer','abandoned':'Abandonné'};
+const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné'};
 
 function fpCoverSrc(g) {
   if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
@@ -5223,7 +5224,7 @@ function fpRenderLibTab(tab) {
     {key:'playing-solo', label:'En cours', match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
     {key:'finished',     label:'Finis',    match:g=>g.status==='finished'},
     {key:'platine',      label:'100%',     match:g=>g.status==='platine'},
-    {key:'backlog',      label:'À jouer',  match:g=>g.status==='backlog'},
+    {key:'backlog',      label:'Backlog',   match:g=>g.status==='backlog'},
     {key:'abandoned',    label:'Abandonné',match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
   document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;white-space:nowrap;${tab===t.key?'background:var(--a);color:#fff;border-color:var(--a)':'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`).join('');
@@ -5336,6 +5337,7 @@ function renderFriendProfile(friend) {
   const abandon = games.filter(g=>g.status==='abandoned').length;
   const pct = games.length ? Math.round((done/games.length)*100) : 0;
   const statCell = (n,lb,col) => `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div></div>`;
+  const statCellSub = (n,lb,sub,col) => `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div><div style="font-size:9px;color:var(--muted);margin-top:1px">${sub}</div></div>`;
   document.getElementById('fp-stats').innerHTML = `
     <div style="grid-column:1/-1;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:0">
       <div style="width:52px;height:52px;flex-shrink:0;position:relative">
@@ -5355,7 +5357,7 @@ function renderFriendProfile(friend) {
     ${statCell(paused,'En pause','var(--amber)')}
     ${statCell(done,'Finis','var(--green)')}
     ${statCell(platine,'100%','var(--amber)')}
-    ${statCell(backlog,'À jouer','var(--muted2)')}
+    ${statCellSub(backlog,'Backlog','à commencer','var(--muted2)')}
     ${statCell(abandon,'Abandonnés','var(--red)')}
   `;
 
@@ -5509,7 +5511,7 @@ async function openFriendProfile(userId) {
 }
 
 function statusLabel(s) {
-  return { 'playing-solo':'En cours','playing-multi':'Multi','finished':'Fini','platine':'100%','backlog':'À jouer','abandoned':'Abandonné','wish':'Souhaité','paused':'En pause' }[s] || s;
+  return { 'playing-solo':'En cours','playing-multi':'Multi','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné','wish':'Souhaité','paused':'En pause' }[s] || s;
 }
 
 function closeFriendProfile() {
@@ -6144,7 +6146,7 @@ function addGameFromModal(g, btn) {
   if (item) item.classList.add('added');
   if (btn) btn.textContent = '✓';
 
-  const statusLabels = {backlog:'À jouer','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
+  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
   showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
 }
 
