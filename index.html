@@ -6025,6 +6025,7 @@ function applyProfileToUI() {
       initApp();
       syncFromSupabase(session.user); // background refresh
       syncProfileToSupabase();        // ensure profile is visible in friend search
+      syncToSupabase();               // push local games to Supabase so friends can see them
     } else {
       // No local data → fetch from Supabase
       await onAuthSuccess(session.user);
