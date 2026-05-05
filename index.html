@@ -4984,7 +4984,18 @@ async function loadSocialScreen() {
   _socialPending = pendingWithProfiles;
 
   renderSocialScreen(uid);
-  if (friends.length) loadFriendActivity(acceptedIds);
+  if (friends.length) {
+    loadFriendActivity(acceptedIds);
+  } else {
+    const actSection = document.getElementById('social-activity-section');
+    const actList = document.getElementById('social-activity-list');
+    if (actSection) actSection.style.display = 'none';
+    if (actList) actList.innerHTML = '';
+    const homeSection = document.getElementById('home-activity-section');
+    const homeList = document.getElementById('home-activity-list');
+    if (homeSection) homeSection.style.display = 'none';
+    if (homeList) homeList.innerHTML = '';
+  }
 }
 
 function renderSocialScreen(uid) {
@@ -5462,7 +5473,7 @@ async function removeFriend() {
   if (!error) {
     showToast('Ami retiré');
     closeFriendProfile();
-    if (typeof loadSocialScreen === 'function') loadSocialScreen();
+    if (typeof loadSocialScreen === 'function') await loadSocialScreen();
   }
 }
 
