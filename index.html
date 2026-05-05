@@ -55,8 +55,8 @@ html, body {
    ONBOARDING
 ══════════════════════════════════════ */
 #ob-shell {
-  height: 100dvh; max-width: 430px;
-  margin: 0 auto; position: relative; overflow: hidden;
+  height: 100dvh; width: 100%;
+  position: relative; overflow: hidden;
   display: flex; flex-direction: column;
 }
 .step { display: none; flex-direction: column; flex: 1; overflow: hidden; }
@@ -239,8 +239,8 @@ html, body {
 ══════════════════════════════════════ */
 #app-shell {
   display: flex; flex-direction: column;
-  height: 100dvh; max-width: 430px;
-  margin: 0 auto; position: relative; overflow: hidden;
+  height: 100dvh; width: 100%;
+  position: relative; overflow: hidden;
 }
 .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
 .screen.active { display: flex; }
@@ -249,8 +249,8 @@ html, body {
 
 /* nav */
 #app-nav {
-  position: fixed; bottom: 0; left: 0; right: 0; margin: 0 auto;
-  width: 100%; max-width: 430px;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  width: 100%;
   height: calc(64px + var(--safe-b)); padding-bottom: var(--safe-b);
   background: rgba(8,8,16,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 0.5px solid var(--border);
