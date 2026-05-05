@@ -2274,7 +2274,7 @@ async function igdbPopular() {
 const DISC_STATUSES = [
   ['playing-solo',  '▶ En cours'],
   ['paused',        '⏸ En pause'],
-  ['backlog',       '📋 Backlog'],
+  ['backlog',       '📋 Backlog<span style="display:block;font-size:9px;opacity:0.5;font-weight:400;margin-top:1px">à commencer</span>'],
   ['wish',          '✦ Souhait'],
   ['finished',      '✅ Fini'],
   ['platine',       '⭐ 100%'],
@@ -2974,7 +2974,7 @@ function showObStatusPicker(id) {
     [enCoursStatus, '\u25B6 En cours', alreadyPlaying],
     ['finished',    '\u2705 Fini',      false],
     ['platine',     '\u2B50 100%',      false],
-    ['backlog',     '📋 Backlog', false],
+    ['backlog',     '📋 Backlog<span style="font-size:8px;opacity:0.5;font-weight:400;margin-left:3px">· à commencer</span>', false],
     ['abandoned',   '\u274C Abandonn\u00E9', false],
   ];
   picker.innerHTML = options.map(([s,l,disabled]) =>
