@@ -3094,7 +3094,7 @@ let _pendingInterval = null;
 let _rvTimer = null;
 function refreshViews() {
   cancelAnimationFrame(_rvTimer);
-  _rvTimer = requestAnimationFrame(() => { refreshViews(); });
+  _rvTimer = requestAnimationFrame(() => { renderGameGrid(); renderFeed(); renderProfileStats(); });
 }
 
 // ── localStorage persistence ──────────────────────────────
@@ -6124,7 +6124,11 @@ function applyProfileToUI() {
       const { data: { session: s2 } } = await _sb.auth.getSession();
       if (s2) { await onAuthSuccess(s2.user); return; }
     }
-    // No session → show splash (step-0 is already active)
+    // No session → clear any stale game data so a new user gets a clean start
+    localStorage.removeItem('gs_games');
+    localStorage.removeItem('gs_userGames');
+    GAMES.length = 0;
+    Object.keys(userGames).forEach(k => delete userGames[k]);
     document.getElementById('progress-fill').style.width = '0%';
   }
 
@@ -6405,13 +6409,15 @@ async function saveEditProfile() {
 // ══════════════════════════════════════
 // CLEAR LIBRARY
 // ══════════════════════════════════════
-function clearLibrary() {
+async function clearLibrary() {
   if (!confirm('Vider la bibliothèque ? Tous tes jeux seront supprimés, ton profil sera conservé.')) return;
   GAMES.length = 0;
   Object.keys(userGames).forEach(k => delete userGames[k]);
   saveToStorage();
   refreshViews();
   showToast('Bibliothèque vidée');
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) await _sb.from('user_games').delete().eq('user_id', session.user.id);
 }
 
 // ══════════════════════════════════════
