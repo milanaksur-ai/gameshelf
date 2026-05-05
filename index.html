@@ -1576,6 +1576,10 @@ html, body {
 
       <!-- RESET -->
       <div style="padding:24px 16px 44px;text-align:center">
+        <div id="account-email-row" style="display:none;margin-bottom:16px;padding:10px 16px;background:var(--s2);border-radius:12px;border:0.5px solid var(--border2)">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">Compte actif</div>
+          <div id="account-email-text" style="font-size:13px;font-weight:600;color:var(--text)"></div>
+        </div>
         <button onclick="logoutUser()" style="background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--muted2);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Se déconnecter
@@ -3122,7 +3126,23 @@ async function syncToSupabase() {
 
 async function syncFromSupabase(user) {
   try {
-    const { data: games } = await _sb.from('user_games').select('*').eq('user_id', user.id);
+    const [{ data: games }, { data: profile }] = await Promise.all([
+      _sb.from('user_games').select('*').eq('user_id', user.id),
+      _sb.from('profiles').select('*').eq('id', user.id).single()
+    ]);
+    // Sync profile even if no games
+    if (profile) {
+      obProfile = {
+        username: profile.username || 'Gamer',
+        avatar: profile.avatar || '🎮',
+        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+        avatarUrl: profile.avatar_url || null,
+        bio: profile.bio || '',
+        platforms: profile.platforms || []
+      };
+      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+      applyProfileToUI();
+    }
     if (!games || games.length === 0) return;
     GAMES.length = 0;
     Object.keys(userGames).forEach(k => delete userGames[k]);
@@ -3139,19 +3159,6 @@ async function syncFromSupabase(user) {
         gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
       }
     });
-    const { data: profile } = await _sb.from('profiles').select('*').eq('id', user.id).single();
-    if (profile) {
-      obProfile = {
-        username: profile.username || 'Gamer',
-        avatar: profile.avatar || '🎮',
-        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
-        avatarUrl: profile.avatar_url || null,
-        bio: profile.bio || '',
-        platforms: profile.platforms || []
-      };
-      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-      applyProfileToUI();
-    }
     try {
       localStorage.setItem('gs_games', JSON.stringify(GAMES));
       localStorage.setItem('gs_userGames', JSON.stringify(userGames));
@@ -6053,6 +6060,13 @@ function applyProfileToUI() {
   const hdlEl  = document.getElementById('app-profile-handle');
   if (nameEl) nameEl.textContent = nm;
   if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
+  // Show active account email
+  _sb.auth.getSession().then(({ data: { session } }) => {
+    const email = session?.user?.email;
+    const row = document.getElementById('account-email-row');
+    const txt = document.getElementById('account-email-text');
+    if (row && txt && email) { txt.textContent = email; row.style.display = 'block'; }
+  });
 }
 
 (async function bootApp() {
