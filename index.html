@@ -2792,6 +2792,7 @@ async function onAuthSuccess(user) {
       username: profile.username || 'Gamer',
       avatar: profile.avatar || '🎮',
       avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+      avatarUrl: profile.avatar_url || null,
       bio: profile.bio || '',
       platforms: profile.platforms || []
     };
@@ -3038,12 +3039,7 @@ function buildSuccessPreview() {
 
 function launchApp() {
   // Pass profile to app
-  document.getElementById('app-avatar-btn').textContent = obProfile.avatar;
-  document.getElementById('app-avatar-btn').style.background = obProfile.avatarGrad;
-  document.getElementById('app-profile-av').textContent = obProfile.avatar;
-  document.getElementById('app-profile-av').style.background = obProfile.avatarGrad;
-  document.getElementById('app-profile-name').textContent = obProfile.username;
-  document.getElementById('app-profile-handle').textContent = '@'+obProfile.username.toLowerCase().replace(/\s+/g,'');
+  applyProfileToUI();
 
   // Merge onboarding games into library with their chosen status
   addedGames.forEach(g => {
@@ -3139,6 +3135,7 @@ async function syncFromSupabase(user) {
         username: profile.username || 'Gamer',
         avatar: profile.avatar || '🎮',
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+        avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
         platforms: profile.platforms || []
       };
@@ -3178,6 +3175,7 @@ async function syncProfileToSupabase() {
       username: obProfile.username || 'Gamer',
       avatar: obProfile.avatar || '🎮',
       avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+      avatar_url: obProfile.avatarUrl || null,
       bio: obProfile.bio || '',
       platforms: obProfile.platforms || [],
       updated_at: new Date().toISOString()
@@ -6024,15 +6022,25 @@ function tlPubFork() {
 // ══════════════════════════════════════
 // BOOT — check Supabase session first
 // ══════════════════════════════════════
+function _setAvatarEl(el, av, grad, url) {
+  if (!el) return;
+  if (url) {
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${av}';this.parentElement.style.background='${grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}';this.remove()">`;
+    el.style.background = 'transparent';
+  } else {
+    el.innerHTML = av;
+    el.style.background = grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  }
+}
 function applyProfileToUI() {
   const av = obProfile.avatar || '🎮';
   const nm = obProfile.username || 'Gamer';
-  const avBtn = document.getElementById('app-avatar-btn');
-  const avEl  = document.getElementById('app-profile-av');
-  const nameEl= document.getElementById('app-profile-name');
-  const hdlEl = document.getElementById('app-profile-handle');
-  if (avBtn)  { avBtn.textContent = av; if(obProfile.avatarGrad) avBtn.style.background = obProfile.avatarGrad; }
-  if (avEl)   { avEl.textContent = av; if(obProfile.avatarGrad) avEl.style.background = obProfile.avatarGrad; }
+  const grad = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  const url  = obProfile.avatarUrl || null;
+  _setAvatarEl(document.getElementById('app-profile-av'), av, grad, url);
+  _setAvatarEl(document.getElementById('app-avatar-btn'), av, grad, url);
+  const nameEl = document.getElementById('app-profile-name');
+  const hdlEl  = document.getElementById('app-profile-handle');
   if (nameEl) nameEl.textContent = nm;
   if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
 }
@@ -6237,8 +6245,11 @@ function openEditProfile() {
   const avatarGrid = document.getElementById('edit-avatar-grid');
   const currentAvatar = obProfile.avatar || '🎮';
   if (avatarGrid) {
-    avatarGrid.innerHTML = EDIT_AVATARS.map(av => `
-      <div onclick="selectEditAvatar('${av}',this)" data-av="${av}" style="width:46px;height:46px;border-radius:12px;background:${av===currentAvatar?'rgba(108,92,231,0.2)':'var(--s2)'};border:0.5px solid ${av===currentAvatar?'var(--a)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.15s">${av}</div>
+    const photoTile = obProfile.avatarUrl
+      ? `<label id="avatar-photo-tile" style="width:46px;height:46px;border-radius:12px;background:transparent;border:2px solid var(--a);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0;position:relative"><img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block"><input type="file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)"></label>`
+      : `<label id="avatar-photo-tile" style="width:46px;height:46px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0" title="Importer une photo"><span>📷</span><input type="file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)"></label>`;
+    avatarGrid.innerHTML = photoTile + EDIT_AVATARS.map(av => `
+      <div onclick="selectEditAvatar('${av}',this)" data-av="${av}" style="width:46px;height:46px;border-radius:12px;background:${av===currentAvatar && !obProfile.avatarUrl?'rgba(108,92,231,0.2)':'var(--s2)'};border:0.5px solid ${av===currentAvatar && !obProfile.avatarUrl?'var(--a)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.15s">${av}</div>
     `).join('');
   }
   // Populate name
@@ -6260,11 +6271,49 @@ function openEditProfile() {
 }
 
 function selectEditAvatar(av, el) {
+  // Deselect photo tile
+  const photoTile = document.getElementById('avatar-photo-tile');
+  if (photoTile) { photoTile.style.borderWidth = '0.5px'; photoTile.style.borderColor = 'var(--border2)'; }
+  obProfile.avatarUrl = null;
   document.querySelectorAll('#edit-avatar-grid [data-av]').forEach(d => {
     const isMe = d.dataset.av === av;
     d.style.background = isMe ? 'rgba(108,92,231,0.2)' : 'var(--s2)';
     d.style.borderColor = isMe ? 'var(--a)' : 'var(--border2)';
   });
+}
+
+async function handleAvatarUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) { showToast('Connecte-toi pour uploader une photo'); return; }
+  const uid = session.user.id;
+  showToast('Upload en cours…');
+  try {
+    const compressed = await compressImage(file, 400, 0.85);
+    const { error } = await _sb.storage.from('screenshots').upload(`${uid}/avatar.jpg`, compressed, { upsert: true, contentType: 'image/jpeg' });
+    if (error) throw error;
+    const { data: { publicUrl } } = _sb.storage.from('screenshots').getPublicUrl(`${uid}/avatar.jpg`);
+    const urlWithBust = publicUrl + '?t=' + Date.now();
+    obProfile.avatarUrl = urlWithBust;
+    // Update tile preview
+    const tile = document.getElementById('avatar-photo-tile');
+    if (tile) {
+      tile.innerHTML = `<img src="${urlWithBust}" style="width:100%;height:100%;object-fit:cover;display:block"><input type="file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this)">`;
+      tile.style.borderWidth = '2px';
+      tile.style.borderColor = 'var(--a)';
+      tile.style.background = 'transparent';
+    }
+    // Deselect emoji tiles
+    document.querySelectorAll('#edit-avatar-grid [data-av]').forEach(d => {
+      d.style.background = 'var(--s2)';
+      d.style.borderColor = 'var(--border2)';
+    });
+    showToast('Photo importée ✓');
+  } catch (e) {
+    showToast('Erreur upload 😕');
+    console.error(e);
+  }
 }
 
 function toggleEditPlatform(p, el) {
@@ -6300,14 +6349,7 @@ async function saveEditProfile() {
   }
   obProfile = {...obProfile, username: name, avatar, bio, platforms};
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-  const nameEl = document.getElementById('app-profile-name');
-  const handleEl = document.getElementById('app-profile-handle');
-  const avEl = document.getElementById('app-profile-av');
-  const avBtn = document.getElementById('app-avatar-btn');
-  if (nameEl) nameEl.textContent = name;
-  if (handleEl) handleEl.textContent = '@' + name.toLowerCase().replace(/\s+/g,'');
-  if (avEl) avEl.textContent = avatar;
-  if (avBtn) avBtn.textContent = avatar;
+  applyProfileToUI();
   closeEditProfile();
   showToast('Profil mis à jour ✓');
   syncProfileToSupabase();
