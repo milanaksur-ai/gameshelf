@@ -5270,7 +5270,11 @@ function formatTimeAgo(dateStr) {
 
 function renderFriendActivity(activities) {
   const sec = document.getElementById('fp-activity-section');
-  if (!activities?.length) { sec.style.display='none'; return; }
+  sec.style.display = 'block';
+  if (!activities?.length) {
+    document.getElementById('fp-activity-list').innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">Aucune activité récente</div>`;
+    return;
+  }
   const VERB = {'finished':'a fini','platine':'a platinisé 🏆','playing-solo':'joue à','playing-multi':'joue à','backlog':'a ajouté','abandoned':'a abandonné'};
   document.getElementById('fp-activity-list').innerHTML = activities.slice(0, 5).map(a => {
     const src = fpCoverSrc(a);
@@ -5350,32 +5354,35 @@ function renderFriendProfile(friend) {
 
   const myIds = new Set(Object.keys(userGames));
   const myTitles = new Set(GAMES.map(g => g.title.toLowerCase().trim()));
+  const emptyRow = (msg) => `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">${msg}</div>`;
+  const emptyCard = (msg) => `<div style="min-width:140px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:20px 16px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted2)">${msg}</div>`;
+
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
-  if (nowIdx.length) { nowSec.style.display='block'; document.getElementById('fp-now-list').innerHTML=nowIdx.map(i=>fpGameRow(i)).join(''); } else nowSec.style.display='none';
+  nowSec.style.display = 'block';
+  document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : emptyRow('Aucun jeu en cours');
+
   const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); const byId=gid&&myIds.has(gid); const byTitle=myTitles.has(g.title.toLowerCase().trim()); return (byId||byTitle)?i:-1; }).filter(i=>i>=0);
   const commonSec = document.getElementById('fp-common-section');
-  if (commonIdx.length) { commonSec.style.display='block'; document.getElementById('fp-common-list').innerHTML=commonIdx.map(i=>fpCommonCard(i)).join(''); } else commonSec.style.display='none';
+  commonSec.style.display = 'block';
+  document.getElementById('fp-common-list').innerHTML = commonIdx.length ? commonIdx.map(i=>fpCommonCard(i)).join('') : emptyCard('Aucun jeu en commun');
+
   const recoIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (g.score>=8&&(!gid||!myIds.has(gid)))?i:-1; }).filter(i=>i>=0);
   const recoSec = document.getElementById('fp-reco-section');
-  if (recoIdx.length) { recoSec.style.display='block'; document.getElementById('fp-reco-list').innerHTML=recoIdx.map(i=>fpRecoCard(i)).join(''); } else recoSec.style.display='none';
+  recoSec.style.display = 'block';
+  document.getElementById('fp-reco-list').innerHTML = recoIdx.length ? recoIdx.map(i=>fpRecoCard(i)).join('') : emptyCard('Aucun coup de cœur');
 
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
 
   const libSec = document.getElementById('fp-lib-section');
+  libSec.style.display = 'block';
   if (games.length) {
-    libSec.style.display='block';
     const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'finished';
     fpRenderLibTab(firstTab);
   } else {
-    libSec.style.display = 'none';
-    document.getElementById('fp-stats').innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:32px 16px">
-        <div style="font-size:40px;margin-bottom:10px">🎮</div>
-        <div style="font-weight:700;font-size:15px;margin-bottom:6px">${friend.username||'Ce gamer'} démarre tout juste</div>
-        <div style="font-size:13px;color:var(--muted2)">Aucun jeu dans sa bibliothèque pour l'instant.</div>
-      </div>`;
+    document.getElementById('fp-lib-tabs').innerHTML = '';
+    document.getElementById('fp-lib-list').innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">Bibliothèque vide pour l'instant</div>`;
   }
 }
 
