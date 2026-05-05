@@ -1652,9 +1652,10 @@ html, body {
           <div style="display:flex;align-items:center;gap:10px">
             <input type="number" id="hours-input" min="0" max="9999" placeholder="0"
               style="width:90px;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:16px;font-weight:700;color:var(--text);outline:none;text-align:center"
-              oninput="updateHoursRank(this.value)">
+              oninput="updateHoursRank(this.value);document.getElementById('hours-ttb-hint').style.display='none'">
             <span style="font-size:13px;color:var(--muted2)">h jouées</span>
           </div>
+          <div id="hours-ttb-hint" style="display:none;margin-top:6px;font-size:11px;color:var(--amber);opacity:0.8">⏱ Durée moyenne IGDB — modifie si besoin</div>
           <div id="hours-rank-display" style="margin-top:8px;font-size:12px;color:var(--muted2);display:none"></div>
         </div>
 
@@ -2151,6 +2152,7 @@ function mapIgdbGame(g) {
   const videos = g.videos || [];
   const gameplayVid = videos.find(v => /gameplay/i.test(v.name || ''));
   const videoId = (gameplayVid || videos[0])?.video_id || null;
+  const ttbSec = g.game_time_to_beat?.normally || g.game_time_to_beat?.hastily || 0;
   return {
     id: String(g.id),
     title: g.name,
@@ -2165,6 +2167,7 @@ function mapIgdbGame(g) {
     gameModes: g.game_modes || [],
     hasMulti:  !!(g.multiplayer_modes?.length),
     videoId,
+    timeToBeat: ttbSec ? Math.round(ttbSec / 3600) : 0,
   };
 }
 
@@ -3363,6 +3366,8 @@ function openDetail(gameId) {
   document.getElementById('notes-input').value = ug.notes||'';
   document.getElementById('hours-input').value = ug.hours || g.hours || '';
   updateHoursRank(ug.hours || g.hours || 0);
+  const _ttbHint = document.getElementById('hours-ttb-hint');
+  if (_ttbHint) _ttbHint.style.display = 'none';
   // Platform badges
   const platsEl = document.getElementById('detail-platforms');
   const plats = g.platforms || [];
@@ -3504,6 +3509,14 @@ function setStatus(s) {
   saveToStorage();
   if ((s === 'finished' || s === 'platine') && prev !== 'finished' && prev !== 'platine') {
     ug._justFinished = true;
+    // Pre-fill hours from IGDB time_to_beat if user hasn't entered anything
+    const hoursInput = document.getElementById('hours-input');
+    if (hoursInput && !parseInt(hoursInput.value) && currentGame.timeToBeat > 0) {
+      hoursInput.value = currentGame.timeToBeat;
+      updateHoursRank(currentGame.timeToBeat);
+      const hint = document.getElementById('hours-ttb-hint');
+      if (hint) hint.style.display = 'block';
+    }
   }
 }
 

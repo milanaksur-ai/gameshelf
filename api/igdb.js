@@ -13,6 +13,7 @@ const COMMON_FIELDS = [
   'external_games.uid', 'external_games.category',
   'platforms.abbreviation', 'platforms.name',
   'game_modes', 'multiplayer_modes',
+  'game_time_to_beat.normally', 'game_time_to_beat.hastily',
 ].join(',');
 
 let tokenCache = { token: null, expires: 0 };
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
     if (action === 'filter') {
       const conditions = [`platforms = ${MODERN_PLATFORMS}`, 'version_parent = null', 'aggregated_rating_count > 3'];
       if (genreIds?.length) conditions.push(`genres = (${genreIds.join(',')})`);
-      if (themeIds?.length) conditions.push(`themes = (${themeIds.join(',')})`);
+      if (themeIds?.length) conditions.push(`themes = (${themeIds.join(',')})`);;
       if (yearFrom) {
         const ts = Math.floor(new Date(`${yearFrom}-01-01T00:00:00Z`).getTime() / 1000);
         conditions.push(`first_release_date >= ${ts}`);
