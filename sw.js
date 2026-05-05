@@ -1,20 +1,33 @@
-// Self-destructing SW: always serve from network, then kill itself
-self.addEventListener('install', () => self.skipWaiting());
+// GameShelf Service Worker — network-first, shell fallback
+const CACHE = 'gs-v1';
+const SHELL = ['/'];
 
-// Pass all fetches through to the network (no cache)
-self.addEventListener('fetch', e => e.respondWith(fetch(e.request)));
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  self.skipWaiting();
+});
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    (async () => {
-      // 1. Clear all caches
-      const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
-      // 2. Navigate all clients BEFORE unregistering
-      const clients = await self.clients.matchAll({ includeUncontrolled: true, type: 'window' });
-      await Promise.all(clients.map(c => c.navigate(c.url)));
-      // 3. Unregister this SW
-      await self.registration.unregister();
-    })()
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
+  e.respondWith(
+    fetch(e.request)
+      .then(res => {
+        // Cache the shell page on success
+        if (e.request.url === self.location.origin + '/') {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });

@@ -2290,7 +2290,7 @@ const DISC_STATUS_LABELS = { backlog:'Backlog', wish:'Souhait', 'playing-solo':'
 
 function discCardHtml(g, ctx) {
   const src = coverUrl(g);
-  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+  const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
   const meta = [g.genre, g.year||''].filter(Boolean).join(' · ');
   const inOb  = addedGames.some(a => a.id === g.id);
   const inLib = !!GAMES.find(x => x.id === g.id);
@@ -2329,7 +2329,7 @@ function discTogglePicker(id, ctx) {
       const idx = GAMES.findIndex(x => x.id === id);
       if (idx >= 0) GAMES.splice(idx, 1);
       delete userGames[id];
-      saveToStorage(); renderGameGrid(); renderFeed();
+      saveToStorage(); refreshViews();
     }
     btn.textContent = '+ Ajouter';
     btn.className = 'disc-add';
@@ -2360,7 +2360,7 @@ function discPick(id, status, ctx) {
       GAMES.push({...g, status, score:0, notes:'', hours:0});
       userGames[id] = {status, score:0, notes:'', hours:0};
     }
-    saveToStorage(); renderGameGrid(); renderFeed();
+    saveToStorage(); refreshViews();
     showToast(`${g.title} → ${DISC_STATUS_LABELS[status]||status}`);
   }
   const btn    = document.getElementById(`disc-btn-${ctx}-${id}`);
@@ -2780,42 +2780,45 @@ async function authWithGoogle() {
 }
 
 async function onAuthSuccess(user) {
-  // Check profile first — existence of profile = returning user (even with 0 games)
-  const [{ data: profile }, { data: games }] = await Promise.all([
-    _sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
-    _sb.from('user_games').select('*').eq('user_id', user.id)
-  ]);
-  if (profile) {
-    // Returning user — restore library from Supabase
-    GAMES.length = 0;
-    Object.keys(userGames).forEach(k => delete userGames[k]);
-    (games || []).forEach(g => {
-      GAMES.push({
-        id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
-        notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
-        cover: g.cover || null, imageId: g.image_id || null,
-        meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
-        hours: g.hours || 0
+  if (_authInProgress) return;
+  _authInProgress = true;
+  try {
+    const [{ data: profile }, { data: games }] = await Promise.all([
+      _sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      _sb.from('user_games').select('*').eq('user_id', user.id)
+    ]);
+    if (profile) {
+      GAMES.length = 0;
+      Object.keys(userGames).forEach(k => delete userGames[k]);
+      (games || []).forEach(g => {
+        GAMES.push({
+          id: g.game_id, title: g.title, status: g.status, score: g.score || 0,
+          notes: g.notes || '', year: g.year || 0, genre: g.genre || '',
+          cover: g.cover || null, imageId: g.image_id || null,
+          meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
+          hours: g.hours || 0
+        });
+        userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0 };
+        if (g.screenshots?.length) {
+          gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
+        }
       });
-      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0 };
-      if (g.screenshots?.length) {
-        gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
-      }
-    });
-    obProfile = {
-      username: profile.username || 'Gamer',
-      avatar: profile.avatar || '🎮',
-      avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
-      avatarUrl: profile.avatar_url || null,
-      bio: profile.bio || '',
-      platforms: profile.platforms || []
-    };
-    localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-    saveToStorage();
-    launchApp();
-  } else {
-    // Truly new user — go through profile onboarding
-    obStep(2);
+      obProfile = {
+        username: profile.username || 'Gamer',
+        avatar: profile.avatar || '🎮',
+        avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+        avatarUrl: profile.avatar_url || null,
+        bio: profile.bio || '',
+        platforms: profile.platforms || []
+      };
+      localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+      saveToStorage();
+      launchApp();
+    } else {
+      obStep(2);
+    }
+  } finally {
+    _authInProgress = false;
   }
 }
 
@@ -2917,7 +2920,7 @@ async function searchGames(q) {
     list.innerHTML = results.map(g=>{
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
-      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       obPickerGames[g.id] = {id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'\uD83C\uDFAE',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]};
       return `<div class="result-item ${isAdded?'added':''}" id="ri-${g.id}">
         <div class="result-cover" style="background:var(--s3)">
@@ -3085,6 +3088,15 @@ const GAMES = [];
 let userGames = {};
 GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
+function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+let _authInProgress = false;
+let _pendingInterval = null;
+let _rvTimer = null;
+function refreshViews() {
+  cancelAnimationFrame(_rvTimer);
+  _rvTimer = requestAnimationFrame(() => { refreshViews(); });
+}
+
 // ── localStorage persistence ──────────────────────────────
 let _syncTimer;
 function saveToStorage() {
@@ -3163,7 +3175,7 @@ async function syncFromSupabase(user) {
       localStorage.setItem('gs_games', JSON.stringify(GAMES));
       localStorage.setItem('gs_userGames', JSON.stringify(userGames));
     } catch(e) {}
-    renderFeed(); renderGameGrid(); renderProfileStats();
+    refreshViews();
     loadHomeActivityFeed();
   } catch(e) { console.warn('GameShelf: syncFromSupabase failed', e); }
 }
@@ -3216,12 +3228,10 @@ function disconnectApp() {
 }
 
 async function forceRefresh() {
-  if ('serviceWorker' in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(regs.map(r => r.unregister()));
+  if ('caches' in window) {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
   }
-  const keys = await caches.keys();
-  await Promise.all(keys.map(k => caches.delete(k)));
   location.reload(true);
 }
 
@@ -3378,7 +3388,7 @@ function openDetail(gameId) {
   } else {
     const fb = document.createElement('div'); fb.className = 'detail-hero-fallback';
     fb.style.cssText = 'background:var(--s2);font-family:Space Grotesk,sans-serif;font-size:32px;font-weight:700;color:var(--muted)';
-    fb.textContent = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    fb.textContent = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     hero.insertBefore(fb, hero.firstChild);
   }
   document.getElementById('detail-title').textContent = g.title;
@@ -3815,7 +3825,7 @@ function renderProfileStats() {
     topGamesEl.innerHTML = slots.map(g => {
       if (!g) return `<div style="background:var(--s2);border:0.5px dashed var(--border);border-radius:12px;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px"><div style="font-size:20px;opacity:0.2">🎮</div><div style="font-size:10px;color:var(--muted);opacity:0.5">Aucun jeu</div></div>`;
       const src = coverUrl(g);
-      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       return `<div onclick="openDetail('${g.id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,transparent 50%)"></div>
@@ -3841,7 +3851,7 @@ function renderProfileStats() {
           : `<span style="color:var(--muted2)">a ajouté à sa liste</span>`;
       const score  = g.score > 0 ? `<span style="color:var(--amber)"> · ★ ${g.score}/10</span>` : '';
       const src = coverUrl(g);
-      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       return `<div class="feed-item" onclick="openDetail('${g.id}')">
         <div style="width:36px;height:36px;border-radius:8px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
           ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
@@ -3874,7 +3884,7 @@ function renderProfileStats() {
 function profileGameRow(g) {
   const ug = userGames[g.id]||g;
   const src = coverUrl(g);
-  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   return `<div class="feed-item" onclick="openDetail('${g.id}');closeShelf()" style="cursor:pointer">
     <div style="width:44px;height:25px;border-radius:6px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
       ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:10px;font-weight:700;color:var(--muted)">${initials}</span>`}
@@ -3981,7 +3991,7 @@ function renderShelfGrid() {
     const ug   = userGames[g.id] || g;
     const dot  = STATUS_DOT_COLORS[ug.status] || '';
     const delay = Math.min(i * 45, 500);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
     return `<div class="shelf-item" onclick="openDetail('${g.id}');closeShelf()" style="animation-delay:${delay}ms">
       <div class="shelf-cover">
         ${src ? `<div class="shelf-cover-blur" style="background-image:url('${src}')"></div>` : ''}
@@ -4019,7 +4029,7 @@ async function renderHomeRecos(refresh = false) {
   const recs = _recoPool.slice(0, 5);
   container.innerHTML = recs.map(g => {
     const src = coverUrl(g);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const inLib = !!GAMES.find(x => x.id === g.id);
     const isWish = inLib && (userGames[g.id]?.status === 'wish');
     const btnBg = inLib ? 'rgba(0,230,118,0.1)' : 'rgba(0,206,201,0.08)';
@@ -4068,7 +4078,7 @@ function recoWishToggle(id) {
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
     userGames[id] = {status:'wish', score:0, notes:'', hours:0};
     saveToStorage();
-    renderGameGrid(); renderFeed();
+    refreshViews();
     showToast(`${g.title} ajouté aux souhaits`);
   }
   // Remove from pool and re-render section (shows next available game)
@@ -4094,7 +4104,7 @@ function renderGameGrid(games=GAMES){
     const label = statusMap[ug.status] || 'Backlog';
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const cell=document.createElement('div'); cell.className='game-cell anim'; cell.style.animationDelay=(i*0.04)+'s'; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
@@ -4142,7 +4152,7 @@ function quickActionBtn(id, status) {
 function quickStatusChange(id, status) {
   if (!userGames[id]) return;
   userGames[id].status = status;
-  renderGameGrid(); renderFeed(); renderProfileStats();
+  refreshViews();
   saveToStorage();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
 }
@@ -4158,7 +4168,7 @@ function renderFeed(){
   function slotCard(g, idx) {
     const ug = userGames[g.id] || g;
     const src = coverUrl(g);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const media = (gameMedia[g.id]||[]);
     const hasMedia = media.length > 0;
     return `<div class="now-card anim" onclick="openDetail('${g.id}')">
@@ -4494,14 +4504,14 @@ async function addSingleGame(titleRaw, defaultStatus) {
     // If already in library, just update status if needed
     if (status !== 'backlog' && userGames[existing.id]) {
       userGames[existing.id].status = status;
-      renderGameGrid(); renderFeed();
+      refreshViews();
       return `<strong>${g.title}</strong> déjà en bibliothèque — statut mis à jour : ${status.replace('-',' ')}.`;
     }
     return `<strong>${g.title}</strong> est déjà dans ta bibliothèque.`;
   }
   GAMES.push({...g, status, score:0, notes:'', hours:0});
   userGames[g.id] = {status, score:0, notes:'', hours:0};
-  renderGameGrid(); renderFeed();
+  refreshViews();
   const src = coverUrl(g);
   const coverHtml = src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
@@ -4691,7 +4701,7 @@ function fillBracketSide(idx, g) {
   const badgeOld = coverEl.querySelector('.b-meta-pill');
   if (badgeOld) badgeOld.remove();
 
-  const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   fallbackEl.textContent = initials;
   fallbackEl.style.display = 'none'; // hide until we know image won't load
 
@@ -4779,7 +4789,7 @@ function showBracketChampion(g) {
       document.getElementById(id).style.display = 'none');
 
     const src      = coverUrl(g);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const img      = document.getElementById('champ-cover-img');
     const fallback = document.getElementById('champ-cover-fallback');
 
@@ -4806,7 +4816,7 @@ function playBracketChampion() {
   const g = bracketChampGame;
   if (!userGames[g.id]) userGames[g.id] = {status:'playing-solo', score:0, notes:'', hours:0};
   else userGames[g.id].status = 'playing-solo';
-  renderFeed(); renderGameGrid();
+  refreshViews();
   closeBracket();
   showToast(`🎮 ${g.title} — c'est parti !`);
   appGoTo('feed');
@@ -4928,9 +4938,10 @@ async function checkPendingRequests() {
 }
 
 function initApp(){
-  renderFeed(); renderGameGrid(); renderProfileStats();
+  refreshViews();
   checkPendingRequests();
-  setInterval(checkPendingRequests, 30000); // check every 30s
+  if (_pendingInterval) clearInterval(_pendingInterval);
+  _pendingInterval = setInterval(checkPendingRequests, 30000);
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   const firstActive = document.querySelector('#app-nav .nav-btn.active');
   if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
@@ -5647,7 +5658,7 @@ async function renderHomeTrending(refresh = false) {
   row.innerHTML = _trendingCache.map(g => {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     return `<div onclick="trendingOpenDetail('${g.id}')" style="flex-shrink:0;width:110px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:110px;height:145px;border-radius:12px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:6px">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--muted)">${initials}</div>`}
@@ -5807,7 +5818,7 @@ async function openCollection(id) {
   grid.innerHTML = games.map(g => {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     return `<div onclick="colOpenDetail('${g.id}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="border-radius:12px;background:var(--s2);overflow:hidden;position:relative;aspect-ratio:3/4;margin-bottom:6px">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
@@ -5871,7 +5882,7 @@ async function loadSimilarGames(game) {
   list.innerHTML = similar.map(g => {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
-    const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     return `<div onclick="simOpenDetail('${g.id}','${cacheKey}')" style="flex-shrink:0;width:90px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:90px;height:120px;border-radius:10px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:5px">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</div>`}
@@ -5999,8 +6010,8 @@ async function renderPublicTierList(id) {
 
     let html = `
       <div style="padding:20px 20px 12px">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${data.name}</div>
-        <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${creator.toLowerCase().replace(/\s+/g,'')}</span> · ${totalPlaced} jeux classés</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${_esc(data.name)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${_esc(creator).toLowerCase().replace(/\s+/g,'')}</span> · ${totalPlaced} jeux classés</div>
       </div>`;
 
     for (const [key, col] of Object.entries(TIER_COLORS)) {
@@ -6172,7 +6183,7 @@ function searchAddModal(q) {
     results.innerHTML = games.map(g => {
       const inLib = GAMES.find(x => x.id === g.id);
       const src = g.cover || (g.steamId > 0 ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
-      const initials = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
         <div class="result-cover">
@@ -6195,7 +6206,7 @@ function addGameFromModal(g, btn) {
     // Update status if different
     if (userGames[existing.id] && userGames[existing.id].status !== addModalStatus) {
       userGames[existing.id].status = addModalStatus;
-      renderGameGrid(); renderFeed();
+      refreshViews();
       showToast(`${g.title} → ${addModalStatus.replace('-',' ')}`);
     } else {
       showToast(`${g.title} déjà en bibliothèque`);
@@ -6204,7 +6215,7 @@ function addGameFromModal(g, btn) {
   }
   GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours:0});
   userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours:0};
-  renderGameGrid(); renderFeed(); renderProfileStats();
+  refreshViews();
   saveToStorage();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
 
@@ -6399,7 +6410,7 @@ function clearLibrary() {
   GAMES.length = 0;
   Object.keys(userGames).forEach(k => delete userGames[k]);
   saveToStorage();
-  renderFeed(); renderGameGrid(); renderProfileStats();
+  refreshViews();
   showToast('Bibliothèque vidée');
 }
 
@@ -7044,7 +7055,7 @@ function _tlCoverSrc(g) {
 
 function _tlCoverHtml(g, cls, wrapCls, onclick) {
   const src  = _tlCoverSrc(g);
-  const init = g.title.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+  const init = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
   const w = cls === 'pool-cover' ? 52 : 46;
   const h = cls === 'pool-cover' ? 70 : 62;
   const inner = src
@@ -7554,9 +7565,7 @@ async function exportTierList() {
 
 <script>
 if ('serviceWorker' in navigator) {
-  // Unregister all SWs and clear all caches immediately — always serve live version
-  navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
-  caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 </script>
 </body>
