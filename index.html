@@ -6220,8 +6220,10 @@ function addGameFromModal(g, btn) {
     }
     return;
   }
-  GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours:0});
-  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours:0};
+  const isDoneStatus = addModalStatus === 'finished' || addModalStatus === 'platine';
+  const autoHours = isDoneStatus && g.timeToBeat ? g.timeToBeat : 0;
+  GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours: autoHours});
+  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours: autoHours};
   refreshViews();
   saveToStorage();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
