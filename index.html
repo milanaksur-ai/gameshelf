@@ -3006,8 +3006,10 @@ function showObStatusPicker(id) {
 function addWithObStatus(id, status) {
   const g = obPickerGames[id];
   if (!g) return;
+  const isDone = status === 'finished' || status === 'platine';
+  const hours = isDone && g.timeToBeat ? g.timeToBeat : 0;
   addedGames = addedGames.filter(a => a.id !== id);
-  addedGames.push({ ...g, status });
+  addedGames.push({ ...g, status, hours });
   updateAddedChips();
   const item = document.getElementById('ri-' + id);
   if (item) {
@@ -3062,8 +3064,9 @@ function launchApp() {
   addedGames.forEach(g => {
     if (!userGames[g.id]) {
       const status = g.status || 'backlog';
-      GAMES.push({...g, meta:0, status, score:0, hours:0, year:g.year||2024, genre:g.genre||'', notes:''});
-      userGames[g.id] = { status, score:0, notes:'' };
+      const hours = g.hours || 0;
+      GAMES.push({...g, meta:0, status, score:0, hours, year:g.year||2024, genre:g.genre||'', notes:''});
+      userGames[g.id] = { status, score:0, notes:'', hours };
     }
   });
 
