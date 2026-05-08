@@ -1022,7 +1022,7 @@ html, body {
 .quiz-q-anim { animation:qIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards }
 .quiz-activity-item { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border) }
 </style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 </head>
 <body>
 
@@ -3259,16 +3259,13 @@ function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
   appPrevScreen = appCurrentScreen;
 
-  // Swap active screen with fade
-  const prevEl = document.querySelector('.screen.active');
+  // Swap active screen (CSS screenFadeIn handles the transition)
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const nextEl = document.getElementById('screen-'+screen);
   if (nextEl) {
+    void nextEl.offsetWidth; // force reflow so CSS animation re-triggers
     nextEl.classList.add('active');
     nextEl.querySelector('.scroll-area')?.scrollTo(0,0);
-    if (typeof anime !== 'undefined') {
-      anime({ targets: nextEl, opacity: [0, 1], translateY: [6, 0], duration: 220, easing: 'easeOutQuart' });
-    }
   }
 
   // Nav buttons + sliding indicator
@@ -4145,6 +4142,8 @@ function renderGameGrid(games=GAMES){
       duration: 250,
       easing: 'easeOutQuart'
     });
+  } else {
+    grid.querySelectorAll('.game-cell').forEach(c => { c.style.opacity = '1'; });
   }
 }
 
