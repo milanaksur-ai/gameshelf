@@ -1022,6 +1022,7 @@ html, body {
 .quiz-q-anim { animation:qIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards }
 .quiz-activity-item { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border) }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" defer></script>
 </head>
 <body>
 
@@ -3010,6 +3011,7 @@ function addWithObStatus(id, status) {
   const hours = isDone && g.timeToBeat ? g.timeToBeat : 0;
   addedGames = addedGames.filter(a => a.id !== id);
   addedGames.push({ ...g, status, hours });
+  if (isDone) celebrateStatus(status);
   updateAddedChips();
   const item = document.getElementById('ri-' + id);
   if (item) {
@@ -3257,14 +3259,16 @@ function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
   appPrevScreen = appCurrentScreen;
 
-  // Swap active screen (CSS animation fires on .active class)
+  // Swap active screen with fade
+  const prevEl = document.querySelector('.screen.active');
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const nextEl = document.getElementById('screen-'+screen);
   if (nextEl) {
-    // Force reflow so animation re-triggers
-    void nextEl.offsetWidth;
     nextEl.classList.add('active');
     nextEl.querySelector('.scroll-area')?.scrollTo(0,0);
+    if (typeof anime !== 'undefined') {
+      anime({ targets: nextEl, opacity: [0, 1], translateY: [6, 0], duration: 220, easing: 'easeOutQuart' });
+    }
   }
 
   // Nav buttons + sliding indicator
@@ -3568,6 +3572,7 @@ function saveGame() {
   renderGameGrid();
   renderFeed();
   saveToStorage();
+  if (ug._justFinished) { celebrateStatus(ug.status); delete ug._justFinished; }
   showToast('✓ Sauvegardé');
   setTimeout(() => appGoBack(), 600);
 }
@@ -4108,7 +4113,7 @@ function renderGameGrid(games=GAMES){
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const cell=document.createElement('div'); cell.className='game-cell anim'; cell.style.animationDelay=(i*0.04)+'s'; cell.onclick=()=>openDetail(g.id);
+    const cell=document.createElement('div'); cell.className='game-cell'; cell.dataset.id=g.id; cell.style.opacity='0'; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
@@ -4130,6 +4135,17 @@ function renderGameGrid(games=GAMES){
     </div>`;
     grid.appendChild(cell);
   });
+  if (typeof anime !== 'undefined') {
+    anime({
+      targets: '#game-grid .game-cell',
+      opacity: [0, 1],
+      translateY: [16, 0],
+      scale: [0.95, 1],
+      delay: anime.stagger(30, { start: 20 }),
+      duration: 250,
+      easing: 'easeOutQuart'
+    });
+  }
 }
 
 function quickActionBtn(id, status) {
@@ -6227,6 +6243,11 @@ function addGameFromModal(g, btn) {
   refreshViews();
   saveToStorage();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
+  if (isDoneStatus) celebrateStatus(addModalStatus);
+  setTimeout(() => {
+    const card = document.querySelector(`#game-grid .game-cell[data-id="${g.id}"]`);
+    if (card && typeof anime !== 'undefined') anime({ targets: card, scale: [1.08, 1], duration: 400, easing: 'easeOutBack' });
+  }, 80);
 
   // Update button
   const item = document.getElementById('am-'+g.id);
@@ -6244,6 +6265,28 @@ updateClock(); setInterval(updateClock,30000);
 // toast
 let toastT;
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
+
+function celebrateStatus(status) {
+  if (typeof anime === 'undefined') return;
+  const emojis = status === 'platine' ? ['⭐','🏆','✨','💎','🎖️'] : ['🎉','✅','🎮','🏁','👏'];
+  for (let i = 0; i < 14; i++) {
+    const el = document.createElement('div');
+    el.textContent = emojis[i % emojis.length];
+    el.style.cssText = 'position:fixed;font-size:22px;pointer-events:none;z-index:9999;left:50%;top:55%;will-change:transform,opacity';
+    document.body.appendChild(el);
+    anime({
+      targets: el,
+      translateX: () => anime.random(-160, 160),
+      translateY: () => anime.random(-220, 40),
+      opacity: [1, 0],
+      scale: [{ value: 1.3, duration: 120 }, { value: 0.5, duration: 700 }],
+      rotate: () => anime.random(-70, 70),
+      duration: anime.random(700, 1150),
+      easing: 'easeOutExpo',
+      complete: () => el.remove()
+    });
+  }
+}
 
 // ══════════════════════════════════════
 // LIGHTBOX
