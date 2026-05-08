@@ -4110,7 +4110,7 @@ function renderGameGrid(games=GAMES){
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const cell=document.createElement('div'); cell.className='game-cell anim'; cell.dataset.id=g.id; cell.style.animationDelay=(i*0.06)+'s'; cell.onclick=()=>openDetail(g.id);
+    const cell=document.createElement('div'); cell.className='game-cell'; cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
@@ -4132,6 +4132,17 @@ function renderGameGrid(games=GAMES){
     </div>`;
     grid.appendChild(cell);
   });
+  if (typeof anime !== 'undefined' && games.length > 0) {
+    anime({
+      targets: '#game-grid .game-cell',
+      opacity: [0, 1],
+      translateY: [32, 0],
+      scale: [0.92, 1],
+      delay: anime.stagger(60, { start: 0 }),
+      duration: 420,
+      easing: 'easeOutQuart'
+    });
+  }
 }
 
 function quickActionBtn(id, status) {
