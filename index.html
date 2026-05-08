@@ -414,6 +414,10 @@ html, body {
 
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(28px) scale(0.93)} to{opacity:1;transform:translateY(0) scale(1)} }
 .anim { animation: fadeUp2 0.4s cubic-bezier(0.22,1,0.36,1) forwards; opacity: 0; }
+@keyframes confettiPop {
+  0%   { opacity:1; transform: translate(0,0) scale(1.3) rotate(0deg); }
+  100% { opacity:0; transform: translate(var(--cx),var(--cy)) scale(0.35) rotate(var(--cr)); }
+}
 
 /* ══════════════════════════════════════
    SCREEN TRANSITIONS
@@ -6273,24 +6277,18 @@ let toastT;
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
 
 function celebrateStatus(status) {
-  if (typeof anime === 'undefined') return;
   const emojis = status === 'platine' ? ['⭐','🏆','✨','💎','🎖️'] : ['🎉','✅','🎮','🏁','👏'];
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     const el = document.createElement('div');
     el.textContent = emojis[i % emojis.length];
-    el.style.cssText = 'position:fixed;font-size:22px;pointer-events:none;z-index:9999;left:50%;top:55%;will-change:transform,opacity';
+    const cx = (Math.random() * 340 - 170) + 'px';
+    const cy = -(Math.random() * 240 + 60) + 'px';
+    const cr = (Math.random() * 140 - 70) + 'deg';
+    const dur = 750 + Math.random() * 500;
+    const delay = i * 40;
+    el.style.cssText = `position:fixed;font-size:28px;pointer-events:none;z-index:9999;left:50%;top:50%;--cx:${cx};--cy:${cy};--cr:${cr};animation:confettiPop ${dur}ms ease-out ${delay}ms both`;
     document.body.appendChild(el);
-    anime({
-      targets: el,
-      translateX: () => anime.random(-160, 160),
-      translateY: () => anime.random(-220, 40),
-      opacity: [1, 0],
-      scale: [{ value: 1.3, duration: 120 }, { value: 0.5, duration: 700 }],
-      rotate: () => anime.random(-70, 70),
-      duration: anime.random(700, 1150),
-      easing: 'easeOutExpo',
-      complete: () => el.remove()
-    });
+    setTimeout(() => el.remove(), dur + delay + 100);
   }
 }
 
