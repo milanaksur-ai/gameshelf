@@ -3097,6 +3097,7 @@ function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;
 let _authInProgress = false;
 let _pendingInterval = null;
 let _rvTimer = null;
+let _lastAddedId = null;
 function refreshViews() {
   cancelAnimationFrame(_rvTimer);
   _rvTimer = requestAnimationFrame(() => { renderGameGrid(); renderFeed(); renderProfileStats(); });
@@ -4133,15 +4134,26 @@ function renderGameGrid(games=GAMES){
     grid.appendChild(cell);
   });
   if (typeof anime !== 'undefined' && games.length > 0) {
-    anime({
-      targets: '#game-grid .game-cell',
-      opacity: [0, 1],
-      translateY: [32, 0],
-      scale: [0.92, 1],
-      delay: anime.stagger(60, { start: 0 }),
-      duration: 420,
-      easing: 'easeOutQuart'
-    });
+    const popId = _lastAddedId;
+    _lastAddedId = null;
+    const staggerTargets = popId
+      ? Array.from(grid.querySelectorAll('.game-cell')).filter(c => c.dataset.id !== String(popId))
+      : '#game-grid .game-cell';
+    if ((Array.isArray(staggerTargets) ? staggerTargets.length : true)) {
+      anime({
+        targets: staggerTargets,
+        opacity: [0, 1],
+        translateY: [32, 0],
+        scale: [0.92, 1],
+        delay: anime.stagger(60, { start: 0 }),
+        duration: 420,
+        easing: 'easeOutQuart'
+      });
+    }
+    if (popId) {
+      const newCard = grid.querySelector(`.game-cell[data-id="${popId}"]`);
+      if (newCard) anime({ targets: newCard, opacity: [0, 1], scale: [1.14, 1], duration: 520, easing: 'easeOutBack' });
+    }
   }
 }
 
@@ -6237,14 +6249,11 @@ function addGameFromModal(g, btn) {
   const autoHours = isDoneStatus && g.timeToBeat ? g.timeToBeat : 0;
   GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours: autoHours});
   userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours: autoHours};
+  _lastAddedId = g.id;
   refreshViews();
   saveToStorage();
   document.getElementById('lib-count').textContent = GAMES.length + ' jeux';
   if (isDoneStatus) celebrateStatus(addModalStatus);
-  setTimeout(() => {
-    const card = document.querySelector(`#game-grid .game-cell[data-id="${g.id}"]`);
-    if (card && typeof anime !== 'undefined') anime({ targets: card, scale: [1.08, 1], duration: 400, easing: 'easeOutBack' });
-  }, 80);
 
   // Update button
   const item = document.getElementById('am-'+g.id);
