@@ -2064,6 +2064,7 @@ html, body {
         <div class="chip"       id="add-status-solo"      onclick="setAddStatus('playing-solo',this)">Solo</div>
         <div class="chip"       id="add-status-multi"     onclick="setAddStatus('playing-multi',this)">Multi</div>
         <div class="chip"       id="add-status-finished"  onclick="setAddStatus('finished',this)">Fini</div>
+        <div class="chip"       id="add-status-platine"   onclick="setAddStatus('platine',this)">⭐ 100%</div>
         <div class="chip"       id="add-status-wish"      onclick="setAddStatus('wish',this)" style="color:var(--a3)">✦ Souhait</div>
       </div>
     </div>
@@ -6377,7 +6378,7 @@ function setAddStatus(status, el) {
   addModalStatus = status;
   document.querySelectorAll('#add-modal-status-row .chip').forEach(c => c.classList.remove('active'));
   if (el) el.classList.add('active');
-  // Re-render results if there's a query
+  if (status === 'platine') celebrateStatus('platine');
   const q = document.getElementById('add-modal-input')?.value?.trim();
   if (q) searchAddModal(q);
 }
