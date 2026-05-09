@@ -3891,24 +3891,44 @@ function renderProfileStats() {
   const segPlaying = (all.filter(g => isPlaying(g.status) || g.status === 'paused').length / ringTotal) * circumference;
   const segRest    = Math.max(0, circumference - segDone - segPlaying);
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  document.getElementById('ring-pct').textContent = pct + '%';
-  requestAnimationFrame(() => {
-    const segDoneEl    = document.getElementById('ring-seg-done');
-    const segPlayingEl = document.getElementById('ring-seg-playing');
-    const segRestEl    = document.getElementById('ring-seg-rest');
-    if (segDoneEl) {
-      segDoneEl.style.strokeDasharray    = `${segDone} ${circumference - segDone}`;
-      segDoneEl.style.strokeDashoffset   = '0';
-    }
-    if (segPlayingEl) {
-      segPlayingEl.style.strokeDasharray  = `${segPlaying} ${circumference - segPlaying}`;
-      segPlayingEl.style.strokeDashoffset = `${-segDone}`;
-    }
-    if (segRestEl) {
-      segRestEl.style.strokeDasharray  = `${segRest} ${circumference - segRest}`;
-      segRestEl.style.strokeDashoffset = `${-(segDone + segPlaying)}`;
-    }
-  });
+
+  const segDoneEl    = document.getElementById('ring-seg-done');
+  const segPlayingEl = document.getElementById('ring-seg-playing');
+  const segRestEl    = document.getElementById('ring-seg-rest');
+  const pctEl        = document.getElementById('ring-pct');
+
+  if (!isProfileVisible) {
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (segDoneEl)    { segDoneEl.style.strokeDasharray    = `${segDone} ${circumference - segDone}`;    segDoneEl.style.strokeDashoffset = '0'; }
+    if (segPlayingEl) { segPlayingEl.style.strokeDasharray = `${segPlaying} ${circumference - segPlaying}`; segPlayingEl.style.strokeDashoffset = `${-segDone}`; }
+    if (segRestEl)    { segRestEl.style.strokeDasharray    = `${segRest} ${circumference - segRest}`;    segRestEl.style.strokeDashoffset = `${-(segDone + segPlaying)}`; }
+  } else {
+    // Reset ring to 0 instantly, then animate in sync with count-up
+    [segDoneEl, segPlayingEl, segRestEl].forEach(el => {
+      if (el) { el.style.transition = 'none'; el.style.strokeDasharray = `0 ${circumference}`; el.style.strokeDashoffset = '0'; }
+    });
+    if (pctEl) pctEl.textContent = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const dur = 1400, ease = 'easeOutExpo';
+      const obj = { done: 0, playing: 0, rest: 0, pct: 0 };
+      if (typeof anime !== 'undefined') {
+        anime({ targets: obj, done: segDone, playing: segPlaying, rest: segRest, pct,
+          round: 1, duration: dur, easing: ease,
+          update() {
+            if (segDoneEl)    { segDoneEl.style.transition='none'; segDoneEl.style.strokeDasharray=`${obj.done} ${circumference-obj.done}`; segDoneEl.style.strokeDashoffset='0'; }
+            if (segPlayingEl) { segPlayingEl.style.transition='none'; segPlayingEl.style.strokeDasharray=`${obj.playing} ${circumference-obj.playing}`; segPlayingEl.style.strokeDashoffset=`${-obj.done}`; }
+            if (segRestEl)    { segRestEl.style.transition='none'; segRestEl.style.strokeDasharray=`${obj.rest} ${circumference-obj.rest}`; segRestEl.style.strokeDashoffset=`${-(obj.done+obj.playing)}`; }
+            if (pctEl) pctEl.textContent = obj.pct + '%';
+          }
+        });
+      } else {
+        if (pctEl) pctEl.textContent = pct + '%';
+        if (segDoneEl)    { segDoneEl.style.strokeDasharray=`${segDone} ${circumference-segDone}`; segDoneEl.style.strokeDashoffset='0'; }
+        if (segPlayingEl) { segPlayingEl.style.strokeDasharray=`${segPlaying} ${circumference-segPlaying}`; segPlayingEl.style.strokeDashoffset=`${-segDone}`; }
+        if (segRestEl)    { segRestEl.style.strokeDasharray=`${segRest} ${circumference-segRest}`; segRestEl.style.strokeDashoffset=`${-(segDone+segPlaying)}`; }
+      }
+    }));
+  }
 
   // Genre breakdown — weight finished games more
   const genreScore = {};
