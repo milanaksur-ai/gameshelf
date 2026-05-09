@@ -3118,7 +3118,7 @@ let _rvTimer = null;
 let _lastAddedId = null;
 let _lastChangedId = null;
 
-function _countUp(el, target, dur = 550) {
+function _countUp(el, target, dur = 1400) {
   if (!el) return;
   if (typeof anime === 'undefined' || target === 0) { el.textContent = target; return; }
   el.textContent = '0';
