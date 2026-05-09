@@ -3114,6 +3114,16 @@ let _authInProgress = false;
 let _pendingInterval = null;
 let _rvTimer = null;
 let _lastAddedId = null;
+let _lastChangedId = null;
+
+function _countUp(el, target, dur = 550) {
+  if (!el) return;
+  if (typeof anime === 'undefined') { el.textContent = target; return; }
+  const from = parseInt(el.textContent) || 0;
+  if (from === target) return;
+  anime({ targets: { v: from }, v: target, round: 1, duration: dur, easing: 'easeOutExpo',
+    update(a) { el.textContent = Math.round(a.animations[0].currentValue); } });
+}
 function refreshViews() {
   cancelAnimationFrame(_rvTimer);
   _rvTimer = requestAnimationFrame(() => { renderGameGrid(); renderFeed(); renderProfileStats(); });
@@ -3274,6 +3284,11 @@ window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _pwaPr
 
 function appGoTo(screen) {
   if(screen===appCurrentScreen) return;
+  // Stop gyro when leaving detail
+  if (appCurrentScreen === 'detail') {
+    const hero = document.getElementById('detail-hero');
+    if (hero?._gyroHandler) { window.removeEventListener('deviceorientation', hero._gyroHandler); hero.style.transform = ''; }
+  }
   appPrevScreen = appCurrentScreen;
 
   // Swap active screen (CSS screenFadeIn handles the transition)
@@ -3312,7 +3327,10 @@ function moveNavIndicator(btn) {
   const navRect = nav.getBoundingClientRect();
   const btnRect = btn.getBoundingClientRect();
   const centerX = btnRect.left - navRect.left + btnRect.width / 2;
-  indicator.style.left = (centerX - 12) + 'px';
+  indicator.style.left = (centerX - 12) + 'px'; // CSS spring handles left
+  if (typeof anime !== 'undefined') {
+    anime({ targets: indicator, width: ['24px', '44px', '24px'], duration: 380, easing: 'easeOutBack' });
+  }
 }
 function appGoBack() {
   if (appCurrentScreen === 'detail' && _tempRecoId) {
@@ -3428,6 +3446,7 @@ function openDetail(gameId) {
   const plats = g.platforms || [];
   renderDetailPlatforms(g);
   appGoTo('detail');
+  _initDetailFx();
   // Load similar games async
   loadSimilarGames(g);
   // Fetch videoId for library games that predate the videos feature
@@ -3447,6 +3466,49 @@ function openDetail(gameId) {
         }
       }
     }).catch(() => { g.videoId = null; });
+  }
+}
+
+function _initDetailFx() {
+  const hero = document.getElementById('detail-hero');
+  const scrollArea = document.querySelector('#screen-detail .scroll-area');
+  if (!hero || !scrollArea) return;
+
+  // Parallax on blur background
+  if (scrollArea._parallax) scrollArea.removeEventListener('scroll', scrollArea._parallax);
+  scrollArea._parallax = () => {
+    const y = scrollArea.scrollTop;
+    const blurBg = hero.querySelector('.hero-blur-bg');
+    if (blurBg) blurBg.style.transform = `scale(1.1) translateY(${y * 0.45}px)`;
+    const heroImg = hero.querySelector('.detail-hero-img');
+    if (heroImg) heroImg.style.transform = `translateY(${y * 0.28}px)`;
+  };
+  scrollArea.scrollTop = 0;
+  scrollArea.addEventListener('scroll', scrollArea._parallax, { passive: true });
+
+  // Gyroscope tilt
+  if (hero._gyroHandler) window.removeEventListener('deviceorientation', hero._gyroHandler);
+  hero._gyroHandler = (e) => {
+    if (e.gamma === null) return;
+    const g2 = Math.max(-25, Math.min(25, e.gamma));
+    const b2 = Math.max(-15, Math.min(25, (e.beta || 0) - 45));
+    const heroImg = hero.querySelector('.detail-hero-img');
+    if (heroImg) heroImg.style.transform = `perspective(900px) rotateY(${g2 * 0.05}deg) rotateX(${-b2 * 0.04}deg)`;
+  };
+  if (typeof DeviceOrientationEvent !== 'undefined') {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      if (!hero._iosPerm) {
+        hero._iosPerm = true;
+        hero.addEventListener('click', function askOnce() {
+          DeviceOrientationEvent.requestPermission().then(p => {
+            if (p === 'granted') window.addEventListener('deviceorientation', hero._gyroHandler, { passive: true });
+          }).catch(() => {});
+          hero.removeEventListener('click', askOnce);
+        }, { once: true });
+      }
+    } else {
+      window.addEventListener('deviceorientation', hero._gyroHandler, { passive: true });
+    }
   }
 }
 
@@ -3501,7 +3563,7 @@ function selectPlayedPlatform(gameId, p) {
   renderGameGrid();
 }
 
-function renderStars(cur, status) {
+function renderStars(cur, status, doAnim = false) {
   const playing = isPlaying(status);
   const color = playing ? 'var(--green)' : '#ffca28';
   const row = document.getElementById('stars-row'); row.innerHTML = '';
@@ -3524,10 +3586,21 @@ function renderStars(cur, status) {
       const isHalf = (e.clientX - rect.left) < rect.width / 2;
       const ug = userGames[currentGame.id];
       ug.score = isHalf ? i - 0.5 : i;
-      renderStars(ug.score, ug.status);
+      renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
     };
     row.appendChild(b);
+  }
+  // Pop animation on filled + half stars
+  if (doAnim && cur > 0 && typeof anime !== 'undefined') {
+    anime({
+      targets: Array.from(row.querySelectorAll('.star-btn')).slice(0, Math.ceil(cur)),
+      scale:  [0, 1.4, 1],
+      rotate: ['-20deg', '6deg', '0deg'],
+      delay:  anime.stagger(38),
+      duration: 310,
+      easing: 'easeOutBack'
+    });
   }
 }
 
@@ -3776,18 +3849,18 @@ function renderProfileStats() {
   const done     = finished + platine;
   const total    = all.filter(g => g.status !== 'wish').length;
 
-  document.getElementById('stat-total').textContent    = total + wish;
+  _countUp(document.getElementById('stat-total'),    total + wish);
   const totalHours = all.reduce((s, g) => s + (userGames[g.id]?.hours || g.hours || 0), 0);
   const hoursEl = document.getElementById('stat-hours-total');
   if (hoursEl) hoursEl.textContent = totalHours > 0 ? `⏱ ${totalHours}h jouées` : '';
-  document.getElementById('stat-playing').textContent  = playing;
+  _countUp(document.getElementById('stat-playing'),   playing);
   const pausedEl = document.getElementById('stat-paused');
-  if (pausedEl) pausedEl.textContent = paused;
-  document.getElementById('stat-finished').textContent = finished;
-  document.getElementById('stat-platine').textContent  = platine;
-  document.getElementById('stat-backlog').textContent  = backlog;
-  document.getElementById('stat-abandoned').textContent= abandoned;
-  document.getElementById('stat-wish').textContent = wish;
+  if (pausedEl) _countUp(pausedEl, paused);
+  _countUp(document.getElementById('stat-finished'),  finished);
+  _countUp(document.getElementById('stat-platine'),   platine);
+  _countUp(document.getElementById('stat-backlog'),   backlog);
+  _countUp(document.getElementById('stat-abandoned'), abandoned);
+  _countUp(document.getElementById('stat-wish'),      wish);
 
   // Multi-color ring animation
   const circumference = 232.48;
@@ -3939,6 +4012,10 @@ const STATUS_DOT_COLORS = {
 };
 
 function openShelf(type, extra) {
+  try {
+    const src = (typeof event !== 'undefined' && event) ? (event.currentTarget || event.target?.closest('[onclick]')) : null;
+    if (src && typeof anime !== 'undefined') anime({ targets: src, scale: [1, 1.06, 1], duration: 260, easing: 'easeOutBack' });
+  } catch(e) {}
   const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
   shelfType  = type;
   shelfExtra = extra || '';
@@ -4183,25 +4260,24 @@ function renderGameGrid(games=GAMES){
     grid.appendChild(cell);
   });
   if (typeof anime !== 'undefined' && games.length > 0) {
-    const popId = _lastAddedId;
-    _lastAddedId = null;
-    const staggerTargets = popId
-      ? Array.from(grid.querySelectorAll('.game-cell')).filter(c => c.dataset.id !== String(popId))
+    const popId     = _lastAddedId;   _lastAddedId   = null;
+    const changedId = _lastChangedId; _lastChangedId = null;
+    const skipIds   = [popId, changedId].filter(Boolean);
+    const staggerTargets = skipIds.length
+      ? Array.from(grid.querySelectorAll('.game-cell')).filter(c => !skipIds.includes(c.dataset.id))
       : '#game-grid .game-cell';
-    if ((Array.isArray(staggerTargets) ? staggerTargets.length : true)) {
-      anime({
-        targets: staggerTargets,
-        opacity: [0, 1],
-        translateY: [32, 0],
-        scale: [0.92, 1],
-        delay: anime.stagger(60, { start: 0 }),
-        duration: 420,
-        easing: 'easeOutQuart'
-      });
+    if (Array.isArray(staggerTargets) ? staggerTargets.length > 0 : true) {
+      anime({ targets: staggerTargets, opacity: [0,1], translateY: [32,0], scale: [0.92,1],
+        delay: anime.stagger(60, { start: 0 }), duration: 420, easing: 'easeOutQuart' });
     }
     if (popId) {
-      const newCard = grid.querySelector(`.game-cell[data-id="${popId}"]`);
-      if (newCard) anime({ targets: newCard, opacity: [0, 1], scale: [1.14, 1], duration: 520, easing: 'easeOutBack' });
+      const c = grid.querySelector(`.game-cell[data-id="${popId}"]`);
+      if (c) anime({ targets: c, opacity: [0,1], scale: [1.14,1], duration: 520, easing: 'easeOutBack' });
+    }
+    if (changedId) {
+      const c = grid.querySelector(`.game-cell[data-id="${changedId}"]`);
+      if (c) anime({ targets: c, opacity: [0,1], scale: [0.82, 1.06, 1], rotateY: ['-18deg','4deg','0deg'],
+        duration: 480, easing: 'easeOutBack' });
     }
   }
 }
@@ -4229,8 +4305,9 @@ function quickActionBtn(id, status) {
 function quickStatusChange(id, status) {
   if (!userGames[id]) return;
   userGames[id].status = status;
-  refreshViews();
   saveToStorage();
+  _lastChangedId = id;
+  refreshViews();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
 }
 
