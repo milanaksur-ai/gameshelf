@@ -3653,7 +3653,7 @@ function setStatus(s) {
   saveToStorage();
   if ((s === 'finished' || s === 'platine') && prev !== 'finished' && prev !== 'platine') {
     ug._justFinished = true;
-    celebrateStatus(s);
+    try { celebrateStatus(s); } catch(e) {}
     // Pre-fill hours from IGDB time_to_beat if user hasn't entered anything
     const hoursInput = document.getElementById('hours-input');
     if (hoursInput && !parseInt(hoursInput.value) && currentGame.timeToBeat > 0) {
@@ -3687,7 +3687,7 @@ function saveGame() {
 let currentFilter = 'all';
 function setFilter(f,el){ currentFilter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); filterGames(); }
 function filterGames(){
-  const q=document.getElementById('search-input').value.toLowerCase();
+  const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   const filtered=GAMES.filter(g=>{
     const ug=userGames[g.id]||{status:g.status};
     let matchFilter;
@@ -4353,17 +4353,16 @@ function quickStatusChange(id, status) {
   saveToStorage();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
   if ((status === 'finished' || status === 'platine') && prev !== 'finished' && prev !== 'platine') {
-    celebrateStatus(status);
+    try { celebrateStatus(status); } catch(e) {}
   }
   const c = document.querySelector(`.game-cell[data-id="${id}"]`);
   if (c && typeof anime !== 'undefined') {
     c.style.transition = 'none';
     anime({ targets: c, opacity: [1, 0.6, 1], scale: [1, 0.85, 1.05, 1], rotateY: ['0deg', '-22deg', '6deg', '0deg'],
       duration: 500, easing: 'easeOutBack',
-      complete() { c.style.transition = ''; refreshViews(); } });
-  } else {
-    refreshViews();
+      complete() { c.style.transition = ''; } });
   }
+  setTimeout(() => refreshViews(), 520);
 }
 
 // ══════════════════════════════════════
