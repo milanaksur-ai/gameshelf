@@ -3676,7 +3676,7 @@ function saveGame() {
   renderGameGrid();
   renderFeed();
   saveToStorage();
-  if (ug._justFinished) { celebrateStatus(ug.status); delete ug._justFinished; }
+  if (ug._justFinished) { try { celebrateStatus(ug.status); } catch(e) {} delete ug._justFinished; }
   showToast('✓ Sauvegardé');
   setTimeout(() => appGoBack(), 600);
 }
@@ -6475,14 +6475,12 @@ function celebrateStatus(status) {
     const rot   = (Math.random() * 540) - 270;
     anime({
       targets: el,
-      translateY: [0, fallY],
-      translateX: [0, driftX],
-      rotate: [0, rot],
-      opacity: [1, 1, 0],
-      scale: [1, 0.5],
+      translateY: { value: fallY, duration: dur, easing: 'easeIn' },
+      translateX: { value: driftX, duration: dur, easing: 'linear' },
+      rotate:     { value: rot,    duration: dur, easing: 'linear' },
+      scale:      { value: 0.5,   duration: dur, easing: 'easeIn' },
+      opacity:    [{ value: 1, duration: dur * 0.78 }, { value: 0, duration: dur * 0.22 }],
       delay,
-      duration: dur,
-      easing: 'easeIn',
       complete() { el.remove(); }
     });
   }
