@@ -417,10 +417,9 @@ html, body {
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(28px) scale(0.93)} to{opacity:1;transform:translateY(0) scale(1)} }
 .anim { animation: fadeUp2 0.4s cubic-bezier(0.22,1,0.36,1) forwards; opacity: 0; }
 @keyframes starRain {
-  0%   { opacity:0; transform: translateY(0) translateX(0) rotate(0deg) scale(0.6); }
-  12%  { opacity:1; }
-  85%  { opacity:0.9; }
-  100% { opacity:0; transform: translateY(var(--fall)) translateX(var(--drift)) rotate(var(--cr)) scale(0.7); }
+  0%   { opacity:1; transform: translateY(0) translateX(0) rotate(0deg) scale(1); }
+  80%  { opacity:1; }
+  100% { opacity:0; transform: translateY(var(--fall)) translateX(var(--drift)) rotate(var(--cr)) scale(0.5); }
 }
 
 /* ══════════════════════════════════════
@@ -3657,6 +3656,7 @@ function setStatus(s) {
   saveToStorage();
   if ((s === 'finished' || s === 'platine') && prev !== 'finished' && prev !== 'platine') {
     ug._justFinished = true;
+    celebrateStatus(s);
     // Pre-fill hours from IGDB time_to_beat if user hasn't entered anything
     const hoursInput = document.getElementById('hours-input');
     if (hoursInput && !parseInt(hoursInput.value) && currentGame.timeToBeat > 0) {
@@ -4331,11 +4331,13 @@ function quickActionBtn(id, status) {
 
 function quickStatusChange(id, status) {
   if (!userGames[id]) return;
+  const prev = userGames[id].status;
   userGames[id].status = status;
   saveToStorage();
-  _lastChangedId = id;
-  refreshViews();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
+  if ((status === 'finished' || status === 'platine') && prev !== 'finished' && prev !== 'platine') {
+    celebrateStatus(status);
+  }
   const c = document.querySelector(`.game-cell[data-id="${id}"]`);
   if (c && typeof anime !== 'undefined') {
     c.style.transition = 'none';
@@ -6436,20 +6438,20 @@ function showToast(msg){ const t=document.getElementById('toast'); t.textContent
 
 function celebrateStatus(status) {
   const stars = status === 'platine'
-    ? ['⭐','✨','💎','🌟','💫']
-    : ['✨','🌟','💫','⭐','🎉'];
-  const count = 28;
+    ? ['⭐','✨','💎','🌟','💫','🏆']
+    : ['✨','🌟','💫','⭐','🎉','🎊'];
+  const count = 44;
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
     el.textContent = stars[i % stars.length];
-    const left  = (5 + Math.random() * 90) + '%';
-    const fall  = (65 + Math.random() * 50) + 'vh';
-    const drift = (Math.random() * 80 - 40) + 'px';
-    const cr    = (Math.random() * 360) + 'deg';
-    const dur   = 900 + Math.random() * 900;
-    const delay = i * 45;
-    const size  = 20 + Math.random() * 14;
-    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${left};top:-32px;--fall:${fall};--drift:${drift};--cr:${cr};animation:starRain ${dur}ms cubic-bezier(0.4,0,0.8,1) ${delay}ms both`;
+    const left  = (2 + Math.random() * 96) + '%';
+    const fall  = (72 + Math.random() * 40) + 'vh';
+    const drift = (Math.random() * 120 - 60) + 'px';
+    const cr    = (Math.random() * 540 - 270) + 'deg';
+    const dur   = 1100 + Math.random() * 700;
+    const delay = Math.floor(i / 4) * 60 + Math.random() * 30;
+    const size  = 22 + Math.random() * 20;
+    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${left};top:-40px;--fall:${fall};--drift:${drift};--cr:${cr};animation:starRain ${dur}ms ease-in ${delay}ms both`;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), dur + delay + 100);
   }
