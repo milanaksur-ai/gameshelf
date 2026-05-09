@@ -416,11 +416,7 @@ html, body {
 
 @keyframes fadeUp2 { from{opacity:0;transform:translateY(28px) scale(0.93)} to{opacity:1;transform:translateY(0) scale(1)} }
 .anim { animation: fadeUp2 0.4s cubic-bezier(0.22,1,0.36,1) forwards; opacity: 0; }
-@keyframes starRain {
-  0%   { opacity:1; transform: translateY(0) translateX(0) rotate(0deg) scale(1); }
-  80%  { opacity:1; }
-  100% { opacity:0; transform: translateY(var(--fall)) translateX(var(--drift)) rotate(var(--cr)) scale(0.5); }
-}
+/* starRain removed — now driven by anime.js */
 
 /* ══════════════════════════════════════
    SCREEN TRANSITIONS
@@ -6458,23 +6454,38 @@ let toastT;
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
 
 function celebrateStatus(status) {
-  const stars = status === 'platine'
+  if (typeof anime === 'undefined') return;
+  const emojis = status === 'platine'
     ? ['⭐','✨','💎','🌟','💫','🏆']
     : ['✨','🌟','💫','⭐','🎉','🎊'];
+  const vh = window.innerHeight;
+  const vw = window.innerWidth;
   const count = 44;
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
-    el.textContent = stars[i % stars.length];
-    const left  = (2 + Math.random() * 96) + '%';
-    const fall  = (72 + Math.random() * 40) + 'vh';
-    const drift = (Math.random() * 120 - 60) + 'px';
-    const cr    = (Math.random() * 540 - 270) + 'deg';
-    const dur   = 1100 + Math.random() * 700;
-    const delay = Math.floor(i / 4) * 60 + Math.random() * 30;
+    el.textContent = emojis[i % emojis.length];
     const size  = 22 + Math.random() * 20;
-    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${left};top:-40px;--fall:${fall};--drift:${drift};--cr:${cr};animation:starRain ${dur}ms ease-in ${delay}ms both`;
+    const startX = Math.random() * vw;
+    const startY = -size;
+    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${startX}px;top:${startY}px;opacity:1`;
     document.body.appendChild(el);
-    setTimeout(() => el.remove(), dur + delay + 100);
+    const delay = Math.floor(i / 4) * 55 + Math.random() * 25;
+    const dur   = 1100 + Math.random() * 700;
+    const fallY = vh * (0.72 + Math.random() * 0.35);
+    const driftX = (Math.random() * 120) - 60;
+    const rot   = (Math.random() * 540) - 270;
+    anime({
+      targets: el,
+      translateY: [0, fallY],
+      translateX: [0, driftX],
+      rotate: [0, rot],
+      opacity: [1, 1, 0],
+      scale: [1, 0.5],
+      delay,
+      duration: dur,
+      easing: 'easeIn',
+      complete() { el.remove(); }
+    });
   }
 }
 
