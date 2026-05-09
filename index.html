@@ -311,6 +311,8 @@ html, body {
 .game-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; perspective: 600px; }
 .game-cell   { background: var(--s2); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform 0.15s; border: 0.5px solid var(--border); }
 .game-cell:active { transform: scale(0.97); opacity: 0.85; }
+.game-cell.cell-playing { border-color: rgba(108,92,231,0.5); animation: cellPulse 2.4s ease-in-out infinite; }
+@keyframes cellPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,92,231,0); } 50%{ box-shadow: 0 0 0 4px rgba(108,92,231,0.22); } }
 .game-cell:hover .remove-game-btn { opacity: 1 !important; }
 /* On touch devices, show remove btn on long-press via active state */
 .game-cover:active .remove-game-btn { opacity: 1 !important; }
@@ -3126,7 +3128,10 @@ function _countUp(el, target, dur = 550) {
 }
 function refreshViews() {
   cancelAnimationFrame(_rvTimer);
-  _rvTimer = requestAnimationFrame(() => { renderGameGrid(); renderFeed(); renderProfileStats(); });
+  _rvTimer = requestAnimationFrame(() => {
+    if (appCurrentScreen === 'library') filterGames(); else renderGameGrid();
+    renderFeed(); renderProfileStats();
+  });
 }
 
 // ── localStorage persistence ──────────────────────────────
@@ -3312,6 +3317,7 @@ function appGoTo(screen) {
 
   // Side effects per screen
   closeFriendProfile();
+  closeShelf();
   if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); }
   else stopProfileParticles();
   if (screen === 'library') filterGames();
@@ -3849,18 +3855,19 @@ function renderProfileStats() {
   const done     = finished + platine;
   const total    = all.filter(g => g.status !== 'wish').length;
 
-  _countUp(document.getElementById('stat-total'),    total + wish);
+  const isProfileVisible = appCurrentScreen === 'profile';
+  const setStat = (el, n) => { if (!el) return; isProfileVisible ? _countUp(el, n) : (el.textContent = n); };
+  setStat(document.getElementById('stat-total'),    total + wish);
   const totalHours = all.reduce((s, g) => s + (userGames[g.id]?.hours || g.hours || 0), 0);
   const hoursEl = document.getElementById('stat-hours-total');
   if (hoursEl) hoursEl.textContent = totalHours > 0 ? `⏱ ${totalHours}h jouées` : '';
-  _countUp(document.getElementById('stat-playing'),   playing);
-  const pausedEl = document.getElementById('stat-paused');
-  if (pausedEl) _countUp(pausedEl, paused);
-  _countUp(document.getElementById('stat-finished'),  finished);
-  _countUp(document.getElementById('stat-platine'),   platine);
-  _countUp(document.getElementById('stat-backlog'),   backlog);
-  _countUp(document.getElementById('stat-abandoned'), abandoned);
-  _countUp(document.getElementById('stat-wish'),      wish);
+  setStat(document.getElementById('stat-playing'),   playing);
+  setStat(document.getElementById('stat-paused'),    paused);
+  setStat(document.getElementById('stat-finished'),  finished);
+  setStat(document.getElementById('stat-platine'),   platine);
+  setStat(document.getElementById('stat-backlog'),   backlog);
+  setStat(document.getElementById('stat-abandoned'), abandoned);
+  setStat(document.getElementById('stat-wish'),      wish);
 
   // Multi-color ring animation
   const circumference = 232.48;
@@ -4237,7 +4244,7 @@ function renderGameGrid(games=GAMES){
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const cell=document.createElement('div'); cell.className='game-cell'; cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
+    const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
@@ -4310,9 +4317,16 @@ function quickStatusChange(id, status) {
   if (!userGames[id]) return;
   userGames[id].status = status;
   saveToStorage();
-  _lastChangedId = id;
-  refreshViews();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
+  const c = document.querySelector(`.game-cell[data-id="${id}"]`);
+  if (c && typeof anime !== 'undefined') {
+    c.style.transition = 'none';
+    anime({ targets: c, opacity: [1, 0.6, 1], scale: [1, 0.85, 1.05, 1], rotateY: ['0deg', '-22deg', '6deg', '0deg'],
+      duration: 500, easing: 'easeOutBack',
+      complete() { c.style.transition = ''; refreshViews(); } });
+  } else {
+    refreshViews();
+  }
 }
 
 // ══════════════════════════════════════
