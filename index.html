@@ -3439,7 +3439,7 @@ function openDetail(gameId) {
   document.getElementById('detail-title').textContent = g.title;
   document.getElementById('detail-meta').textContent  = g.genre + ' · ' + g.year;
   document.getElementById('meta-score').textContent   = g.meta || '—';
-  renderStars(ug.score, ug.status, true);
+  renderStars(ug.score, ug.status, false);
   updateScoreDisplay(ug.score, ug.status);
   renderStatus(ug.status);
   document.getElementById('notes-input').value = ug.notes||'';
@@ -3452,6 +3452,8 @@ function openDetail(gameId) {
   const plats = g.platforms || [];
   renderDetailPlatforms(g);
   appGoTo('detail');
+  const _starScore = ug.score, _starStatus = ug.status, _starId = g.id;
+  setTimeout(() => { if (currentGame?.id === _starId) renderStars(_starScore, _starStatus, true); }, 290);
   _initDetailFx();
   // Load similar games async
   loadSimilarGames(g);
