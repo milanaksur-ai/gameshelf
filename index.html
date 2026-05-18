@@ -6013,7 +6013,6 @@ async function loadGamePass() {
   const CACHE_KEY = 'gs_gp3';
   const TTL = 12 * 3600 * 1000;
 
-  // Show section immediately with loading state
   const sec = document.getElementById('gp-section');
   const row = document.getElementById('gp-row');
   if (sec) sec.style.display = 'block';
@@ -6021,57 +6020,20 @@ async function loadGamePass() {
 
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-    if (cached && Date.now() - cached.ts < TTL) {
+    if (cached && cached.games?.length && Date.now() - cached.ts < TTL) {
       _gpData = { ...cached, titles: new Set(cached.titlesArr) };
       renderGPSection(); return;
     }
   } catch(e) {}
+
   try {
-    // Step 1: fetch product IDs (PC + Console Game Pass, US market = most stable)
-    const [r1, r2] = await Promise.all([
-      fetch('https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=en-US&market=US'),
-      fetch('https://catalog.gamepass.com/sigls/v2?id=b8900d09-a491-44cc-916e-32b5acae621b&language=en-US&market=US')
-    ]);
-    const [s1, s2] = await Promise.all([r1.json(), r2.json()]);
-    const seen = new Set(); const ids = [];
-    for (const item of [...s1.slice(1), ...s2.slice(1)]) {
-      if (item.id && !seen.has(item.id)) { seen.add(item.id); ids.push(item.id); }
-    }
-    if (!ids.length) throw new Error('No GP IDs returned');
-
-    // Step 2: fetch product details — try proxies in order until one works
-    const games = [];
-    const _proxiedFetch = async (url) => {
-      const proxies = [
-        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
-        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-        u => `https://thingproxy.freeboard.io/fetch/${u}`,
-      ];
-      for (const makeUrl of proxies) {
-        try {
-          const res = await Promise.race([
-            fetch(makeUrl(url)),
-            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 7000))
-          ]);
-          if (res && res.ok) return res.json();
-        } catch(e) { /* try next proxy */ }
-      }
-      throw new Error('Tous les proxies CORS ont échoué');
-    };
-    for (let i = 0; i < Math.min(ids.length, 60); i += 20) {
-      const batch = ids.slice(i, i + 20).join(',');
-      const target = `https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${batch}&market=US&languages=en-US`;
-      const data = await _proxiedFetch(target);
-      for (const prod of data.Products || []) {
-        const loc = prod.LocalizedProperties?.[0];
-        if (!loc?.ProductTitle) continue;
-        const imgObj = loc.Images?.find(img => ['BoxArt','Poster','SuperHeroArt'].includes(img.ImagePurpose));
-        const img = imgObj?.Uri ? (imgObj.Uri.startsWith('//') ? 'https:' + imgObj.Uri : imgObj.Uri) : null;
-        games.push({ title: loc.ProductTitle, img, id: prod.ProductId });
-      }
-    }
-    if (!games.length) throw new Error('No products returned');
-
+    const res = await fetch(
+      'https://raw.githubusercontent.com/milanaksur-ai/gameshelf/main/gamepass.json?t=' + Date.now()
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const games = data.games || [];
+    if (!games.length) throw new Error('Catalogue vide — workflow en cours');
     const titlesArr = games.map(g => _normGP(g.title));
     _gpData = { games, titlesArr, titles: new Set(titlesArr), ts: Date.now() };
     localStorage.setItem(CACHE_KEY, JSON.stringify({ games, titlesArr, ts: _gpData.ts }));
@@ -6079,7 +6041,7 @@ async function loadGamePass() {
     renderGameGrid();
   } catch(e) {
     console.error('GamePass load failed:', e);
-    if (row) row.innerHTML = `<div style="padding:8px 0;font-size:11px;color:var(--muted)">Catalogue indisponible (${e.message})</div>`;
+    if (row) row.innerHTML = `<div style="padding:8px 0;font-size:11px;color:var(--muted)">${e.message}</div>`;
   }
 }
 
