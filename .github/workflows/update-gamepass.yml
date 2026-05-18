@@ -42,7 +42,7 @@ jobs:
               if (item.id && !seen.has(item.id)) { seen.add(item.id); ids.push(item.id); }
             console.log('IDs found:', ids.length);
 
-            const games = [];
+            const byId = {};
             for (let i = 0; i < ids.length; i += 20) {
               const batch = ids.slice(i, i + 20).join(',');
               const data  = await get(
@@ -55,10 +55,12 @@ jobs:
                 const img = imgObj?.Uri
                   ? (imgObj.Uri.startsWith('//') ? 'https:' + imgObj.Uri : imgObj.Uri)
                   : null;
-                games.push({ title: loc.ProductTitle, img, id: prod.ProductId });
+                byId[prod.ProductId] = { title: loc.ProductTitle, img, id: prod.ProductId };
               }
               process.stdout.write('.');
             }
+            // Preserve sigls order (newest first = Microsoft's "recently added" order)
+            const games = ids.map(id => byId[id]).filter(Boolean);
             console.log('\nGames saved:', games.length);
             fs.writeFileSync('gamepass.json', JSON.stringify({ games, updatedAt: new Date().toISOString() }));
           }
