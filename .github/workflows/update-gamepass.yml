@@ -64,13 +64,19 @@ jobs:
                 const img = imgObj?.Uri
                   ? (imgObj.Uri.startsWith('//') ? 'https:' + imgObj.Uri : imgObj.Uri)
                   : null;
-                byId[prod.ProductId] = { title: loc.ProductTitle, img, id: prod.ProductId };
+                byId[prod.ProductId] = {
+                  title: loc.ProductTitle,
+                  img,
+                  id: prod.ProductId,
+                  releaseDate: prod.MarketProperties?.[0]?.OriginalReleaseDate || null
+                };
               }
               process.stdout.write('.');
             }
 
-            // Preserve sigls order, sort by sigls index
-            const games = ids.map(id => byId[id]).filter(Boolean);
+            // Sort by release date descending (most recent = recently added to GP)
+            const games = ids.map(id => byId[id]).filter(Boolean)
+              .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
 
             // Newly added = present now but absent in previous run
             const freshGames = games.filter(g => !existingIds.has(g.id));
