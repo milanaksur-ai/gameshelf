@@ -314,6 +314,7 @@ html, body {
 .game-cell.cell-playing { border-color: rgba(108,92,231,0.5); animation: cellPulse 2.4s ease-in-out infinite; }
 @keyframes cellPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,92,231,0); } 50%{ box-shadow: 0 0 0 4px rgba(108,92,231,0.22); } }
 .game-cell:hover .remove-game-btn { opacity: 1 !important; }
+.gp-badge { background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0.04em;line-height:1 }
 /* On touch devices, show remove btn on long-press via active state */
 .game-cover:active .remove-game-btn { opacity: 1 !important; }
 .game-cover  { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: flex; align-items: center; justify-content: center; font-size: 32px; position: relative; overflow: hidden; }
@@ -1345,6 +1346,15 @@ html, body {
           <button onclick="appGoTo('social')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px">Voir tout →</button>
         </div>
         <div id="home-activity-list" style="padding:0 16px 4px"></div>
+      </div>
+
+      <!-- 🎮 GAME PASS -->
+      <div id="gp-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
+          <div class="sec-label" style="padding:0">🎮 Nouveautés Game Pass</div>
+          <div id="gp-update-label" style="font-size:10px;color:var(--muted)"></div>
+        </div>
+        <div id="gp-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
       </div>
 
       <!-- 🔥 TENDANCES DU MOMENT -->
@@ -3463,7 +3473,7 @@ function openDetail(gameId) {
     hero.insertBefore(fb, hero.firstChild);
   }
   document.getElementById('detail-title').textContent = g.title;
-  document.getElementById('detail-meta').textContent  = g.genre + ' · ' + g.year;
+  document.getElementById('detail-meta').innerHTML = (g.genre + ' · ' + g.year) + (isOnGamePass(g.title) ? ' &nbsp;<span class="gp-badge">GAME PASS</span>' : '');
   document.getElementById('meta-score').textContent   = g.meta || '—';
   renderStars(ug.score, ug.status, false);
   renderVibe(ug.vibe || null, (ug.score || 0) > 0);
@@ -4417,6 +4427,7 @@ function renderGameGrid(games=GAMES){
       <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">
         ${ug.platform?`<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[ug.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 6px">${ug.platform}</span>`:''}
         ${(ug.hours||g.hours)>0?`<span style="font-size:10px;color:var(--muted)">⏱ ${ug.hours||g.hours}h</span>`:''}
+        ${isOnGamePass(g.title)?`<span class="gp-badge">GAME PASS</span>`:''}
       </div>
       ${quickActionBtn(g.id, ug.status)}
     </div>`;
@@ -5280,6 +5291,7 @@ function initApp(){
   setTimeout(() => {
     renderHomeTrending();
     renderHomeRecos();
+    loadGamePass();
   }, 200);
   // Check for shared tier list URL param
   const tlParam = new URLSearchParams(location.search).get('tl');
@@ -5984,6 +5996,80 @@ function timeAgo(iso) {
 // TENDANCES CAROUSEL
 // ══════════════════════════════════════
 let _trendingCache = null;
+
+// ── GAME PASS ──────────────────────────────────────────────
+let _gpData = null;
+
+function _normGP(t) {
+  return (t||'').toLowerCase().replace(/[™®©:'''\-]/g,'').replace(/\s+/g,' ').trim();
+}
+function isOnGamePass(title) {
+  if (!_gpData?.titles) return false;
+  const n = _normGP(title);
+  return _gpData.titles.has(n) || _gpData.titles.has(n.split(' ')[0] + ' ') || [..._gpData.titles].some(k => k === n);
+}
+
+async function loadGamePass() {
+  const CACHE_KEY = 'gs_gp3';
+  const TTL = 12 * 3600 * 1000;
+  try {
+    const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+    if (cached && Date.now() - cached.ts < TTL) {
+      _gpData = { ...cached, titles: new Set(cached.titlesArr) };
+      renderGPSection(); return;
+    }
+  } catch(e) {}
+  try {
+    const [r1, r2] = await Promise.all([
+      fetch('https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=fr-FR&market=FR'),
+      fetch('https://catalog.gamepass.com/sigls/v2?id=b8900d09-a491-44cc-916e-32b5acae621b&language=fr-FR&market=FR')
+    ]);
+    const [s1, s2] = await Promise.all([r1.json(), r2.json()]);
+    const seen = new Set(); const ids = [];
+    for (const item of [...s1.slice(1), ...s2.slice(1)]) {
+      if (item.id && !seen.has(item.id)) { seen.add(item.id); ids.push(item.id); }
+    }
+    const games = [];
+    for (let i = 0; i < Math.min(ids.length, 120); i += 20) {
+      const batch = ids.slice(i, i + 20).join(',');
+      const res = await fetch(`https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${batch}&market=FR&languages=fr-FR&MS-CV=DGU1mcuYo0WMMp`);
+      const data = await res.json();
+      for (const prod of data.Products || []) {
+        const loc = prod.LocalizedProperties?.[0];
+        if (!loc?.ProductTitle) continue;
+        const imgObj = loc.Images?.find(img => img.ImagePurpose === 'BoxArt' || img.ImagePurpose === 'Poster' || img.ImagePurpose === 'SuperHeroArt');
+        const img = imgObj?.Uri ? (imgObj.Uri.startsWith('//') ? 'https:' + imgObj.Uri : imgObj.Uri) : null;
+        games.push({ title: loc.ProductTitle, img, id: prod.ProductId });
+      }
+    }
+    const titlesArr = games.map(g => _normGP(g.title));
+    _gpData = { games, titlesArr, titles: new Set(titlesArr), ts: Date.now() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, titlesArr, ts: _gpData.ts }));
+    renderGPSection();
+    renderGameGrid();
+  } catch(e) { console.warn('GamePass load failed', e); }
+}
+
+function renderGPSection() {
+  const sec = document.getElementById('gp-section');
+  const row = document.getElementById('gp-row');
+  if (!sec || !row || !_gpData?.games?.length) return;
+  sec.style.display = 'block';
+  const label = document.getElementById('gp-update-label');
+  if (label) label.textContent = 'Màj ' + new Date(_gpData.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  row.innerHTML = _gpData.games.slice(0, 20).map(g => {
+    const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
+    return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openAddModal()" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">
+        ${g.img ? `<img src="${g.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
+        <div style="position:absolute;bottom:4px;left:4px;background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0.03em">GP</div>
+        ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    </div>`;
+  }).join('');
+}
+// ───────────────────────────────────────────────────────────
 
 async function renderHomeTrending(refresh = false) {
   const row = document.getElementById('home-trending-row');
