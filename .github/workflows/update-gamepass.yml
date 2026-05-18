@@ -64,8 +64,14 @@ jobs:
                 const img = imgObj?.Uri
                   ? (imgObj.Uri.startsWith('//') ? 'https:' + imgObj.Uri : imgObj.Uri)
                   : null;
+                const rawTitle = loc.ProductTitle;
+                const cleanTitle = rawTitle
+                  .replace(/\s*[\(\[](?:Game Preview|Windows PC|Windows|PC|Xbox Series X\/S|Xbox One)[)\]]/gi, '')
+                  .replace(/\s*-\s*(?:Windows|PC|Digital Standard Edition|Standard Edition|Digital Edition).*/i, '')
+                  .replace(/[™®©]/g, '')
+                  .trim();
                 byId[prod.ProductId] = {
-                  title: loc.ProductTitle,
+                  title: cleanTitle,
                   img,
                   id: prod.ProductId,
                   releaseDate: prod.MarketProperties?.[0]?.OriginalReleaseDate || null
