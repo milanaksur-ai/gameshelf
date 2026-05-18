@@ -74,9 +74,13 @@ jobs:
               process.stdout.write('.');
             }
 
-            // Sort by release date descending (most recent = recently added to GP)
+            // Sort by release date desc — treat 9998 (Microsoft's "no date") as oldest
             const games = ids.map(id => byId[id]).filter(Boolean)
-              .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+              .sort((a, b) => {
+                const da = (a.releaseDate && !a.releaseDate.startsWith('9998')) ? new Date(a.releaseDate) : new Date(0);
+                const db = (b.releaseDate && !b.releaseDate.startsWith('9998')) ? new Date(b.releaseDate) : new Date(0);
+                return db - da;
+              });
 
             // Newly added = present now but absent in previous run
             const freshGames = games.filter(g => !existingIds.has(g.id));
