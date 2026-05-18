@@ -1591,6 +1591,14 @@ html, body {
         </div>
       </div>
 
+      <!-- TROUVAILLES DU MOMENT -->
+      <div style="padding:20px 16px 0" id="trouvailles-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Trouvailles du moment</div>
+        </div>
+        <div id="trouvailles-list"></div>
+      </div>
+
       <!-- MES TIER LISTS -->
       <div id="profile-tierlists-section" style="padding:20px 16px 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
@@ -1659,6 +1667,7 @@ html, body {
             <button id="clear-score-btn" onclick="clearScore()" style="display:none;background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;padding:2px 6px;border-radius:6px;border:0.5px solid var(--border2)">Effacer</button>
           </div>
           <div class="stars-row" id="stars-row"></div>
+          <div id="vibe-row" style="display:none;margin-top:10px;flex-wrap:wrap;gap:6px"></div>
         </div>
         <div style="margin-bottom:16px">
           <div class="rating-label">Statut</div>
@@ -1791,6 +1800,11 @@ html, body {
       <div id="fp-activity-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">CE MOIS-CI</div>
         <div id="fp-activity-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <!-- Trouvailles -->
+      <div id="fp-trouvailles-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">✦ TROUVAILLES DU MOMENT</div>
+        <div id="fp-trouvailles-list"></div>
       </div>
       <!-- Sa bibliothèque -->
       <div id="fp-lib-section" style="display:none">
@@ -3174,6 +3188,8 @@ async function syncToSupabase() {
         steam_id: g.steamId || null,
         hours: ug.hours ?? g.hours ?? 0,
         screenshots: (gameMedia[String(g.id)] || []).map(m => m.url),
+        vibe: ug.vibe || null,
+        rated_at: ug.ratedAt || null,
         updated_at: new Date().toISOString()
       };
     });
@@ -3328,7 +3344,7 @@ function appGoTo(screen) {
   // Side effects per screen
   closeFriendProfile();
   closeShelf();
-  if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); }
+  if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); renderTrouvailles(userGames, GAMES, 'trouvailles-list'); }
   else stopProfileParticles();
   if (screen === 'library') filterGames();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
@@ -3450,6 +3466,7 @@ function openDetail(gameId) {
   document.getElementById('detail-meta').textContent  = g.genre + ' · ' + g.year;
   document.getElementById('meta-score').textContent   = g.meta || '—';
   renderStars(ug.score, ug.status, false);
+  renderVibe(ug.vibe || null, (ug.score || 0) > 0);
   updateScoreDisplay(ug.score, ug.status);
   renderStatus(ug.status);
   document.getElementById('notes-input').value = ug.notes||'';
@@ -3581,6 +3598,32 @@ function selectPlayedPlatform(gameId, p) {
   renderGameGrid();
 }
 
+const VIBES = [
+  { key:'masterpiece',   label:'💎 Chef-d\'œuvre' },
+  { key:'mustplay',      label:'🔥 Incontournable' },
+  { key:'good',          label:'👍 Bien' },
+  { key:'average',       label:'😐 Moyen' },
+  { key:'disappointing', label:'💩 Décevant' },
+];
+
+function renderVibe(curVibe, hasScore) {
+  const row = document.getElementById('vibe-row');
+  if (!row) return;
+  if (!hasScore) { row.style.display = 'none'; return; }
+  row.style.display = 'flex';
+  row.innerHTML = VIBES.map(v => {
+    const sel = curVibe === v.key;
+    return `<button onclick="setVibe('${v.key}')" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:0.5px solid ${sel?'var(--a)':'var(--border2)'};background:${sel?'rgba(108,92,231,0.2)':'var(--s2)'};color:${sel?'var(--a)':'var(--muted2)'};cursor:pointer;white-space:nowrap;transition:all 0.15s">${v.label}</button>`;
+  }).join('');
+}
+function setVibe(vibe) {
+  if (!currentGame) return;
+  const ug = userGames[currentGame.id];
+  ug.vibe = ug.vibe === vibe ? null : vibe;
+  renderVibe(ug.vibe, ug.score > 0);
+  saveToStorage();
+}
+
 function renderStars(cur, status, doAnim = false) {
   const playing = isPlaying(status);
   const color = playing ? 'var(--green)' : '#ffca28';
@@ -3604,6 +3647,8 @@ function renderStars(cur, status, doAnim = false) {
       const isHalf = (e.clientX - rect.left) < rect.width / 2;
       const ug = userGames[currentGame.id];
       ug.score = isHalf ? i - 0.5 : i;
+      ug.ratedAt = new Date().toISOString();
+      renderVibe(ug.vibe, ug.score > 0);
       renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
     };
@@ -3626,8 +3671,11 @@ function clearScore() {
   if (!currentGame) return;
   const ug = userGames[currentGame.id];
   ug.score = 0;
+  ug.vibe = null;
+  ug.ratedAt = null;
   renderStars(0, ug.status);
   updateScoreDisplay(0, ug.status);
+  renderVibe(null, false);
 }
 
 function renderStatus(s) {
@@ -4014,6 +4062,55 @@ function renderProfileStats() {
           </div>`).join('') + `</div>`;
     }
   }
+}
+
+function renderTrouvailles(ugData, gamesData, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const rated = gamesData
+    .filter(g => (ugData[g.id]?.score || 0) > 0)
+    .map(g => ({ ...g, ...(ugData[g.id]||{}) }))
+    .sort((a, b) => new Date(b.ratedAt||b.id||0) - new Date(a.ratedAt||a.id||0))
+    .slice(0, 8);
+  if (!rated.length) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">Aucun jeu noté pour l\'instant</div>';
+    return;
+  }
+  const groups = {};
+  const now = new Date();
+  rated.forEach(g => {
+    const d = g.ratedAt ? new Date(g.ratedAt) : null;
+    const key = d ? (d.getFullYear() === now.getFullYear()
+      ? d.toLocaleDateString('fr-FR',{month:'long'})
+      : d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))
+      : 'Récemment';
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(g);
+  });
+  el.innerHTML = Object.entries(groups).map(([month, games]) => `
+    <div style="margin-bottom:16px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:capitalize;letter-spacing:0.06em;margin-bottom:8px;padding-left:2px">${month}</div>
+      ${games.map(g => {
+        const src = coverUrl(g);
+        const vibe = VIBES.find(v => v.key === g.vibe);
+        const review = g.notes || '';
+        const MAX = 90;
+        const short = review.length > MAX ? review.slice(0, MAX) + '…' : review;
+        const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
+        return `<div onclick="openDetail('${g.id}')" style="display:flex;gap:10px;padding:10px 12px;background:var(--s2);border-radius:12px;margin-bottom:6px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+          ${src?`<img src="${src}" referrerpolicy="no-referrer" style="width:42px;height:58px;object-fit:cover;border-radius:8px;flex-shrink:0">` : `<div style="width:42px;height:58px;border-radius:8px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">${(g.title||'?')[0]}</div>`}
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px">
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+              <div style="font-size:13px;font-weight:700;color:var(--amber);white-space:nowrap;flex-shrink:0">${scoreStr}</div>
+            </div>
+            ${vibe ? `<div style="font-size:10px;color:var(--muted2);margin-top:2px">${vibe.label}</div>` : ''}
+            ${short ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">${short}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `).join('');
 }
 
 function profileGameRow(g) {
@@ -5771,6 +5868,14 @@ async function openFriendProfile(userId) {
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
     activity: recentActivity || []
   });
+  const fpUg = {};
+  (games||[]).forEach(g => { fpUg[g.game_id||g.id] = g; });
+  const fpGames = (games||[]).map(g => ({ id: g.game_id||g.id, title: g.title, cover: g.cover, imageId: g.image_id, genre: g.genre, score: g.score, vibe: g.vibe, notes: g.notes, ratedAt: g.rated_at }));
+  const fpTrouvaillesEl = document.getElementById('fp-trouvailles-section');
+  if (fpGames.filter(g => g.score > 0).length > 0) {
+    fpTrouvaillesEl.style.display = 'block';
+    renderTrouvailles(fpUg, fpGames, 'fp-trouvailles-list');
+  }
 }
 
 function statusLabel(s) {
