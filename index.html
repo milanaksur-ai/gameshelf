@@ -6022,7 +6022,7 @@ async function loadGamePass() {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
     if (cached && Date.now() - cached.ts < TTL) {
-      _gpData = { ...cached, titles: new Set(cached.titlesArr) };
+      _gpData = { ...cached, titles: new Set(cached.titlesArr), newGames: cached.newGames || [] };
       renderGPSection(); return;
     }
   } catch(e) {}
@@ -6032,9 +6032,10 @@ async function loadGamePass() {
     const data = await res.json();
     const games = data.games || [];
     if (!games.length) throw new Error('Catalogue vide');
+    const newGames = data.newGames || [];
     const titlesArr = games.map(g => _normGP(g.title));
-    _gpData = { games, titlesArr, titles: new Set(titlesArr), ts: Date.now() };
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, titlesArr, ts: _gpData.ts }));
+    _gpData = { games, newGames, titlesArr, titles: new Set(titlesArr), ts: Date.now() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, newGames, titlesArr, ts: _gpData.ts }));
     renderGPSection();
     renderGameGrid();
   } catch(e) {
@@ -6050,7 +6051,9 @@ function renderGPSection() {
   if (!sec || !row || !_gpData?.games?.length) return;
   const label = document.getElementById('gp-update-label');
   if (label) label.textContent = 'Màj ' + new Date(_gpData.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
-  row.innerHTML = _gpData.games.slice(0, 20).map(g => {
+  // Show newGames (diff-based recently added) if available, else first 20 from catalog
+  const displayGames = (_gpData.newGames?.length ? _gpData.newGames : _gpData.games).slice(0, 20);
+  row.innerHTML = displayGames.map(g => {
     const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
     return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openGPGame('${g.title.replace(/'/g,"\\'")}')" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">

@@ -32,6 +32,15 @@ jobs:
           }
 
           async function main() {
+            // Load existing game IDs to detect new additions by diff
+            let existingIds = new Set();
+            let existingNewGames = [];
+            try {
+              const prev = JSON.parse(fs.readFileSync('gamepass.json', 'utf8'));
+              existingIds = new Set((prev.games || []).map(g => g.id));
+              existingNewGames = prev.newGames || [];
+            } catch(e) {}
+
             const [s1, s2] = await Promise.all([
               get('https://catalog.gamepass.com/sigls/v2?id=fdd9e2a7-0fee-49f6-ad69-4354098401ff&language=en-US&market=US'),
               get('https://catalog.gamepass.com/sigls/v2?id=b8900d09-a491-44cc-916e-32b5acae621b&language=en-US&market=US'),
@@ -59,10 +68,20 @@ jobs:
               }
               process.stdout.write('.');
             }
-            // Preserve sigls order (newest first = Microsoft's "recently added" order)
+
+            // Preserve sigls order, sort by sigls index
             const games = ids.map(id => byId[id]).filter(Boolean);
-            console.log('\nGames saved:', games.length);
-            fs.writeFileSync('gamepass.json', JSON.stringify({ games, updatedAt: new Date().toISOString() }));
+
+            // Newly added = present now but absent in previous run
+            const freshGames = games.filter(g => !existingIds.has(g.id));
+            // Keep a rolling window of ~30 recent additions (new ones first, then carry over previous)
+            const prevIds = new Set(freshGames.map(g => g.id));
+            const carried = existingNewGames.filter(g => !prevIds.has(g.id) && byId[g.id]).slice(0, 30 - freshGames.length);
+            const newGames = [...freshGames, ...carried].slice(0, 30);
+
+            console.log(`\nGames: ${games.length}, New this run: ${freshGames.length}, Shown as new: ${newGames.length}`);
+            fs.writeFileSync('gamepass.json', JSON.stringify({ games, newGames, updatedAt: new Date().toISOString() }));
+          }
           }
           main().catch(e => { console.error(e); process.exit(1); });
           EOF
