@@ -6067,13 +6067,20 @@ function renderGPSection() {
 }
 
 async function openGPGame(title) {
+  // Strip Microsoft store suffixes before searching
+  const clean = title
+    .replace(/\s*[\(\[](Game Preview|Windows PC|Windows|PC|Xbox Series X\/S|Xbox One)[)\]]/gi, '')
+    .replace(/\s*-\s*(Windows|PC|Digital Standard Edition|Standard Edition|Digital Edition).*/i, '')
+    .replace(/[™®©]/g, '')
+    .trim();
+
   // Already in library → open directly
-  const inLib = GAMES.find(g => _normGP(g.title) === _normGP(title));
+  const inLib = GAMES.find(g => _normGP(g.title) === _normGP(clean) || _normGP(g.title) === _normGP(title));
   if (inLib) { openDetail(inLib.id); return; }
   // Not in library → fetch from IGDB and open
   showToast('Chargement…');
-  const results = await igdbSearch(title, 5);
-  const match = results.find(g => _normGP(g.title) === _normGP(title)) || results[0];
+  const results = await igdbSearch(clean, 5);
+  const match = results.find(g => _normGP(g.title) === _normGP(clean)) || results[0];
   if (!match) { showToast('Jeu introuvable'); return; }
   if (!GAMES.find(g => g.id === match.id)) {
     GAMES.push({ ...match, status: 'wish', score: 0, notes: '', hours: 0 });
