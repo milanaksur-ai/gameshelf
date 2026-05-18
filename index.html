@@ -6039,15 +6039,29 @@ async function loadGamePass() {
     }
     if (!ids.length) throw new Error('No GP IDs returned');
 
-    // Step 2: fetch product details via CORS proxy (displaycatalog blocks direct browser requests)
+    // Step 2: fetch product details — try proxies in order until one works
     const games = [];
-    const PROXY = 'https://corsproxy.io/?';
+    const _proxiedFetch = async (url) => {
+      const proxies = [
+        u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+        u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
+        u => `https://thingproxy.freeboard.io/fetch/${u}`,
+      ];
+      for (const makeUrl of proxies) {
+        try {
+          const res = await Promise.race([
+            fetch(makeUrl(url)),
+            new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 7000))
+          ]);
+          if (res && res.ok) return res.json();
+        } catch(e) { /* try next proxy */ }
+      }
+      throw new Error('Tous les proxies CORS ont échoué');
+    };
     for (let i = 0; i < Math.min(ids.length, 60); i += 20) {
       const batch = ids.slice(i, i + 20).join(',');
       const target = `https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${batch}&market=US&languages=en-US`;
-      const res = await fetch(PROXY + encodeURIComponent(target));
-      if (!res.ok) throw new Error(`displaycatalog HTTP ${res.status}`);
-      const data = await res.json();
+      const data = await _proxiedFetch(target);
       for (const prod of data.Products || []) {
         const loc = prod.LocalizedProperties?.[0];
         if (!loc?.ProductTitle) continue;
