@@ -6039,11 +6039,13 @@ async function loadGamePass() {
     }
     if (!ids.length) throw new Error('No GP IDs returned');
 
-    // Step 2: fetch product details (first 60 games, 3 batches of 20)
+    // Step 2: fetch product details via CORS proxy (displaycatalog blocks direct browser requests)
     const games = [];
+    const PROXY = 'https://corsproxy.io/?';
     for (let i = 0; i < Math.min(ids.length, 60); i += 20) {
       const batch = ids.slice(i, i + 20).join(',');
-      const res = await fetch(`https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${batch}&market=US&languages=en-US`);
+      const target = `https://displaycatalog.mp.microsoft.com/v7.0/products?bigIds=${batch}&market=US&languages=en-US`;
+      const res = await fetch(PROXY + encodeURIComponent(target));
       if (!res.ok) throw new Error(`displaycatalog HTTP ${res.status}`);
       const data = await res.json();
       for (const prod of data.Products || []) {
