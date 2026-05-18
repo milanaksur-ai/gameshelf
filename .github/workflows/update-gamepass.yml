@@ -88,7 +88,6 @@ jobs:
             console.log(`\nGames: ${games.length}, New this run: ${freshGames.length}, Shown as new: ${newGames.length}`);
             fs.writeFileSync('gamepass.json', JSON.stringify({ games, newGames, updatedAt: new Date().toISOString() }));
           }
-          }
           main().catch(e => { console.error(e); process.exit(1); });
           EOF
 
