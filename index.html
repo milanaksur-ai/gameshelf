@@ -6052,7 +6052,7 @@ function renderGPSection() {
   if (label) label.textContent = 'Màj ' + new Date(_gpData.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
   row.innerHTML = _gpData.games.slice(0, 20).map(g => {
     const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
-    return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openAddModal()" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openGPGame('${g.title.replace(/'/g,"\\'")}')" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">
         ${g.img ? `<img src="${g.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
         <div style="position:absolute;bottom:4px;left:4px;background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0.03em">GP</div>
@@ -6061,6 +6061,22 @@ function renderGPSection() {
       <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
     </div>`;
   }).join('');
+}
+
+async function openGPGame(title) {
+  // Already in library → open directly
+  const inLib = GAMES.find(g => _normGP(g.title) === _normGP(title));
+  if (inLib) { openDetail(inLib.id); return; }
+  // Not in library → fetch from IGDB and open
+  showToast('Chargement…');
+  const results = await igdbSearch(title, 5);
+  const match = results.find(g => _normGP(g.title) === _normGP(title)) || results[0];
+  if (!match) { showToast('Jeu introuvable'); return; }
+  if (!GAMES.find(g => g.id === match.id)) {
+    GAMES.push({ ...match, status: 'wish', score: 0, notes: '', hours: 0 });
+    userGames[match.id] = { status: 'wish', score: 0, notes: '', hours: 0 };
+  }
+  openDetail(match.id);
 }
 // ───────────────────────────────────────────────────────────
 
