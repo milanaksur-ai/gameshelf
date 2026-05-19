@@ -1806,9 +1806,14 @@ html, body {
         </div>
       </div>
       <!-- Son top -->
-      <div id="fp-top-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">★ SON TOP</div>
+      <!-- Top | Activité (toggle, comme profil utilisateur) -->
+      <div id="fp-topact-section" style="display:none;margin-bottom:16px">
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button id="fp-tab-top-btn" onclick="switchFriendTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
+          <button id="fp-tab-act-btn" onclick="switchFriendTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
+        </div>
         <div id="fp-top-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+        <div id="fp-activity-list" style="display:none;flex-direction:column;gap:10px"></div>
       </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
@@ -1819,16 +1824,6 @@ html, body {
       <div id="fp-common-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">JEUX EN COMMUN</div>
         <div id="fp-common-list" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
-      </div>
-      <!-- Il/Elle recommande -->
-      <div id="fp-reco-section" style="display:none;margin-bottom:16px">
-        <div id="fp-reco-title" style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">COUP DE CŒUR</div>
-        <div id="fp-reco-list" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px"></div>
-      </div>
-      <!-- Activité récente -->
-      <div id="fp-activity-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">CE MOIS-CI</div>
-        <div id="fp-activity-list" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
       <!-- Trouvailles -->
       <div id="fp-trouvailles-section" style="display:none;margin-bottom:16px">
@@ -4180,6 +4175,22 @@ function renderProfileStats() {
   }
 }
 
+function switchFriendTab(tab) {
+  const topGrid = document.getElementById('fp-top-grid');
+  const actList = document.getElementById('fp-activity-list');
+  const topBtn  = document.getElementById('fp-tab-top-btn');
+  const actBtn  = document.getElementById('fp-tab-act-btn');
+  if (tab === 'top') {
+    topGrid.style.display = 'grid'; actList.style.display = 'none';
+    topBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s';
+    actBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s';
+  } else {
+    topGrid.style.display = 'none'; actList.style.display = 'flex';
+    actBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s';
+    topBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s';
+  }
+}
+
 function switchProfileTab(tab) {
   const topTab = document.getElementById('tab-top');
   const actTab = document.getElementById('tab-activity');
@@ -5858,8 +5869,8 @@ function formatTimeAgo(dateStr) {
 }
 
 function renderFriendActivity(activities) {
-  const sec = document.getElementById('fp-activity-section');
-  sec.style.display = 'block';
+  const sec = document.getElementById('fp-topact-section');
+  if (sec) sec.style.display = 'block';
   if (!activities?.length) {
     document.getElementById('fp-activity-list').innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">Aucune activité récente</div>`;
     return;
@@ -5948,7 +5959,7 @@ function renderFriendProfile(friend) {
   const emptyCard = (msg) => `<div style="min-width:140px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:20px 16px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted2)">${msg}</div>`;
 
   // Son top — top 6 scored games
-  const topSec = document.getElementById('fp-top-section');
+  const topSec = document.getElementById('fp-topact-section');
   const topGrid = document.getElementById('fp-top-grid');
   const topGames = [...games].filter(g=>(g.score||0)>0).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
   if (topGames.length && topGrid) {
@@ -5980,11 +5991,6 @@ function renderFriendProfile(friend) {
   const commonSec = document.getElementById('fp-common-section');
   commonSec.style.display = 'block';
   document.getElementById('fp-common-list').innerHTML = commonIdx.length ? commonIdx.map(i=>fpCommonCard(i)).join('') : emptyCard('Aucun jeu en commun');
-
-  const recoIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); return (g.score>=8&&(!gid||!myIds.has(gid)))?i:-1; }).filter(i=>i>=0);
-  const recoSec = document.getElementById('fp-reco-section');
-  recoSec.style.display = 'block';
-  document.getElementById('fp-reco-list').innerHTML = recoIdx.length ? recoIdx.map(i=>fpRecoCard(i)).join('') : emptyCard('Aucun coup de cœur');
 
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
@@ -6088,7 +6094,7 @@ async function openFriendProfile(userId) {
   _fpFriendUserId = userId;
   document.getElementById('fp-remove-btn').style.display = 'none';
   document.getElementById('screen-friend-profile').style.display = 'flex';
-  ['fp-now-section','fp-common-section','fp-reco-section','fp-activity-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  ['fp-topact-section','fp-now-section','fp-common-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-stats').innerHTML = '';
   document.getElementById('fp-platforms').style.display = 'none';
