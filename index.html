@@ -5846,7 +5846,6 @@ function fpRenderLibTab(tab) {
     'abandoned':    'var(--red)',
   };
   const tabDefs = [
-    {key:'playing-solo', label:'En cours',  match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
     {key:'finished',     label:'Finis',     match:g=>g.status==='finished'},
     {key:'platine',      label:'100%',      match:g=>g.status==='platine'},
     {key:'backlog',      label:'Backlog',   match:g=>g.status==='backlog'},
@@ -6032,7 +6031,7 @@ function renderFriendProfile(friend) {
   const libSec = document.getElementById('fp-lib-section');
   libSec.style.display = 'block';
   if (games.length) {
-    const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'common';
+    const firstTab = ['finished','platine','backlog','abandoned'].find(t => games.some(g=>g.status===t)) || 'common';
     fpRenderLibTab(firstTab);
   } else {
     document.getElementById('fp-lib-tabs').innerHTML = '';
@@ -8360,13 +8359,17 @@ async function exportTierList() {
 
 <!-- Game Pass — Catalogue complet -->
 <div id="gp-all-overlay" onclick="closeGPAll()" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
-  <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),20px)">
-    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px">
-      <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk',sans-serif">🎮 Game Pass — Catalogue complet</div>
-      <button onclick="closeGPAll()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer">✕</button>
+  <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column">
+    <div style="position:sticky;top:0;z-index:1;background:var(--s1);border-radius:24px 24px 0 0;flex-shrink:0">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 8px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px 12px">
+        <div style="font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif">🎮 Game Pass — Catalogue complet</div>
+        <button onclick="closeGPAll()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer">✕</button>
+      </div>
     </div>
-    <div id="gp-all-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 16px 16px"></div>
+    <div style="overflow-y:auto;flex:1;padding-bottom:max(env(safe-area-inset-bottom),20px)">
+      <div id="gp-all-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 16px"></div>
+    </div>
   </div>
 </div>
 
