@@ -6660,9 +6660,10 @@ function applyProfileToUI() {
       document.getElementById('view-onboarding').style.display = 'none';
       document.getElementById('view-app').style.display = 'flex';
       initApp();
-      syncFromSupabase(session.user); // background refresh
-      syncProfileToSupabase();        // ensure profile is visible in friend search
-      syncToSupabase();               // push local games to Supabase so friends can see them
+      // Push local data first, THEN pull from server — avoids race condition where
+      // syncFromSupabase would overwrite fresh local data with stale server data
+      syncProfileToSupabase();
+      syncToSupabase().then(() => syncFromSupabase(session.user));
     } else {
       // No local data → new user or returning without cache → onAuthSuccess decides
       await onAuthSuccess(session.user);
