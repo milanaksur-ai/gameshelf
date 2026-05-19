@@ -7841,9 +7841,13 @@ let _tlTiers    = {};     // { S:[], A:[], B:[], C:[], D:[], F:[] }
 let _tlSelected = null;   // id currently selected in pool
 
 function _tlCoverSrc(g) {
-  if (g.cover) return g.cover;
   if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
-  if (g.steamId) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+  if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+  if (g.cover) {
+    if (typeof g.cover === 'string' && g.cover.includes('images.igdb.com'))
+      return g.cover.replace(/\/t_[^/]+\//, '/t_cover_big/');
+    return g.cover;
+  }
   return null;
 }
 
@@ -7880,7 +7884,7 @@ function openTierList(mode, opts = {}) {
     _tlPool = GAMES.map(g => {
       const ug = userGames[g.id] || {};
       return { id:g.id, title:g.title, steamId:g.steamId||0, imageId:g.imageId||null, cover:g.cover||null, status:ug.status||g.status };
-    }).filter(g => g.status !== 'wish');
+    }).filter(g => ['finished','platine','playing-solo','playing-multi','abandoned'].includes(g.status));
   } else if (mode === 'popular') {
     _tlPool = TIERLIST_POPULAR.map(g => ({ ...g }));
   } else if (mode === 'licence') {
