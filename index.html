@@ -4109,7 +4109,7 @@ function renderProfileStats() {
       return `<div onclick="openDetail('${g.id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
-        <div style="position:absolute;top:6px;left:6px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;color:${numColor};text-shadow:0 1px 4px rgba(0,0,0,0.8)">#${i+1}</div>
+        <div style="position:absolute;top:6px;left:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:800;color:${numColor};background:rgba(0,0,0,0.55);border:0.5px solid rgba(255,255,255,0.12);backdrop-filter:blur(4px);padding:2px 6px;border-radius:8px">#${i+1}</div>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 7px">
           <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;margin-bottom:3px">${g.title}</div>
           ${g.score > 0 ? `<div style="font-size:9px;color:var(--amber);margin-bottom:${vibeChips?'3px':'0'}">★ ${g.score}/10</div>` : ''}
