@@ -3279,6 +3279,8 @@ async function syncFromSupabase(user) {
     ]);
     // Sync profile even if no games
     if (profile) {
+      const rawPlatforms = profile.platforms || [];
+      const gamepass = rawPlatforms.includes('__gp__');
       obProfile = {
         ...obProfile,
         username: profile.username || 'Gamer',
@@ -3286,12 +3288,17 @@ async function syncFromSupabase(user) {
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
-        platforms: profile.platforms || []
+        platforms: rawPlatforms.filter(p => p !== '__gp__'),
+        gamepass,
       };
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       applyProfileToUI();
+      if (gamepass) loadGamePass();
     }
-    if (!games || games.length === 0) return;
+    if (!games || games.length === 0) {
+      if (GAMES.length > 0) syncToSupabase(); // server empty → push local (first device)
+      return;
+    }
     GAMES.length = 0;
     Object.keys(userGames).forEach(k => delete userGames[k]);
     games.forEach(g => {
@@ -3342,7 +3349,9 @@ async function syncProfileToSupabase() {
       avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
       avatar_url: obProfile.avatarUrl || null,
       bio: obProfile.bio || '',
-      platforms: obProfile.platforms || [],
+      platforms: obProfile.gamepass
+        ? [...(obProfile.platforms || []).filter(p => p !== '__gp__'), '__gp__']
+        : (obProfile.platforms || []).filter(p => p !== '__gp__'),
       updated_at: new Date().toISOString()
     });
   } catch(e) { console.warn('GameShelf: profile sync failed', e); }
@@ -6835,10 +6844,9 @@ function applyProfileToUI() {
       document.getElementById('view-onboarding').style.display = 'none';
       document.getElementById('view-app').style.display = 'flex';
       initApp();
-      // Push local data first, THEN pull from server — avoids race condition where
-      // syncFromSupabase would overwrite fresh local data with stale server data
-      syncProfileToSupabase();
-      syncToSupabase().then(() => syncFromSupabase(session.user));
+      // Pull from Supabase first — server is source of truth across devices.
+      // Local cache shown immediately for speed, then updated when server responds.
+      syncFromSupabase(session.user);
     } else {
       // No local data → new user or returning without cache → onAuthSuccess decides
       await onAuthSuccess(session.user);
