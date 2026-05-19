@@ -93,7 +93,14 @@ jobs:
             // Keep a rolling window of ~30 recent additions (new ones first, then carry over previous)
             const prevIds = new Set(freshGames.map(g => g.id));
             const carried = existingNewGames.filter(g => !prevIds.has(g.id) && byId[g.id]).slice(0, 30 - freshGames.length);
-            const newGames = [...freshGames, ...carried].slice(0, 30);
+            let newGames = [...freshGames, ...carried].slice(0, 30);
+            // If newGames is too small (e.g. first run or quiet period), supplement with
+            // the most recently released games from the full sorted catalog
+            if (newGames.length < 15) {
+              const newIds = new Set(newGames.map(g => g.id));
+              const supplement = games.filter(g => !newIds.has(g.id)).slice(0, 30 - newGames.length);
+              newGames = [...newGames, ...supplement];
+            }
 
             console.log(`\nGames: ${games.length}, New this run: ${freshGames.length}, Shown as new: ${newGames.length}`);
             fs.writeFileSync('gamepass.json', JSON.stringify({ games, newGames, updatedAt: new Date().toISOString() }));
