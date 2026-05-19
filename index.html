@@ -6834,9 +6834,11 @@ function applyProfileToUI() {
       // Returning user with local data → check if account was wiped server-side
       const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
       if (!_profileCheck) {
+        // Stale local data from a different account — clear it and go through normal auth flow
         localStorage.clear();
-        await _sb.auth.signOut();
-        document.getElementById('progress-fill').style.width = '0%';
+        GAMES.length = 0;
+        Object.keys(userGames).forEach(k => delete userGames[k]);
+        await onAuthSuccess(session.user);
         return;
       }
       // Fast path: local data → launch immediately, then sync in background
@@ -6868,8 +6870,9 @@ function applyProfileToUI() {
   }
 
   // Listen for auth state changes (OAuth redirect, email confirm)
+  // TOKEN_REFRESHED intentionally excluded — token refresh must not interrupt mid-onboarding
   _sb.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
+    if (event === 'SIGNED_IN' && session) {
       const appVisible = document.getElementById('view-app').style.display === 'flex';
       if (!appVisible) await onAuthSuccess(session.user);
     }
