@@ -1159,6 +1159,18 @@ html, body {
           </div>
         </div>
       </div>
+      <!-- Game Pass toggle -->
+      <div class="field" style="margin-top:16px">
+        <div class="field-label">Abonnement <span style="font-size:11px;color:var(--muted)">(optionnel)</span></div>
+        <div id="gp-ob-opt" onclick="toggleObGamePass(this)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">
+          <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,124,16,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟩</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">Xbox Game Pass</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:2px">Afficher les jeux inclus dans l'abonnement</div>
+          </div>
+          <div id="gp-ob-check" style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--s1);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.2s"></div>
+        </div>
+      </div>
       <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep2()">Continuer →</button></div>
     </div></div>
   </div>
@@ -2145,6 +2157,18 @@ html, body {
         <!-- populated by JS -->
       </div>
     </div>
+    <!-- Game Pass -->
+    <div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Abonnement</div>
+      <div id="gp-edit-opt" onclick="toggleEditGamePass(this)" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,124,16,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟩</div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text)">Xbox Game Pass</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:2px">Afficher les jeux inclus dans l'abonnement</div>
+        </div>
+        <div id="gp-edit-check" style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--s1);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.2s"></div>
+      </div>
+    </div>
     <!-- Save -->
     <button onclick="saveEditProfile()" class="btn-primary" style="margin-top:8px">Sauvegarder</button>
   </div>
@@ -2717,7 +2741,7 @@ let addedGames = [];
 let obPickerGames = {};
 let trendingAdded = new Set();
 let obCurrentStatus = 'playing-solo';
-let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer' };
+let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer', gamepass: false };
 
 const OB_STATUS_COLORS = {
   'playing-solo':  { border: 'rgba(108,92,231,0.7)', color: '#a29bfe', bg: 'rgba(108,92,231,0.12)' },
@@ -2889,6 +2913,7 @@ async function validateStep2() {
     return;
   }
   obProfile.username = u;
+  obProfile.gamepass = document.getElementById('gp-ob-opt')?.classList.contains('sel') || false;
   await syncProfileToSupabase(); // create profile early so mid-onboarding reload doesn't sign out
   if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
   obStep(3);
@@ -2920,6 +2945,40 @@ function selectAv(el) {
   obProfile.avatarGrad = el.style.background;
 }
 function selectPlatform(el) { el.classList.toggle('sel'); }
+function toggleObGamePass(el) {
+  const check = document.getElementById('gp-ob-check');
+  const active = el.classList.toggle('sel');
+  if (active) {
+    el.style.borderColor = '#107c10';
+    el.style.background = 'rgba(16,124,16,0.08)';
+    check.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#107c10" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+    check.style.borderColor = '#107c10';
+    check.style.background = 'rgba(16,124,16,0.12)';
+  } else {
+    el.style.borderColor = 'var(--border2)';
+    el.style.background = 'var(--s2)';
+    check.innerHTML = '';
+    check.style.borderColor = 'var(--border2)';
+    check.style.background = 'var(--s1)';
+  }
+}
+function toggleEditGamePass(el) {
+  const check = document.getElementById('gp-edit-check');
+  const active = el.classList.toggle('sel');
+  if (active) {
+    el.style.borderColor = '#107c10';
+    el.style.background = 'rgba(16,124,16,0.08)';
+    check.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#107c10" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+    check.style.borderColor = '#107c10';
+    check.style.background = 'rgba(16,124,16,0.12)';
+  } else {
+    el.style.borderColor = 'var(--border2)';
+    el.style.background = 'var(--s2)';
+    check.innerHTML = '';
+    check.style.borderColor = 'var(--border2)';
+    check.style.background = 'var(--s1)';
+  }
+}
 function selectImport(type) {
   selectedImport = type;
   document.querySelectorAll('#step-3 .import-opt').forEach(o=>o.classList.remove('sel'));
@@ -5291,7 +5350,7 @@ function initApp(){
   setTimeout(() => {
     renderHomeTrending();
     renderHomeRecos();
-    loadGamePass();
+    if (obProfile.gamepass) loadGamePass();
   }, 200);
   // Check for shared tier list URL param
   const tlParam = new URLSearchParams(location.search).get('tl');
@@ -6798,6 +6857,26 @@ function openEditProfile() {
       return `<div onclick="toggleEditPlatform('${p}',this)" data-plat="${p}" style="padding:7px 14px;border-radius:20px;background:${sel?'rgba(108,92,231,0.18)':'var(--s2)'};border:0.5px solid ${sel?'var(--a)':'var(--border2)'};font-size:12px;font-weight:600;color:${sel?'var(--a)':'var(--muted2)'};cursor:pointer;transition:all 0.15s">${p}</div>`;
     }).join('');
   }
+  // Populate Game Pass toggle
+  const gpEditOpt = document.getElementById('gp-edit-opt');
+  const gpEditCheck = document.getElementById('gp-edit-check');
+  if (gpEditOpt && gpEditCheck) {
+    if (obProfile.gamepass) {
+      gpEditOpt.classList.add('sel');
+      gpEditOpt.style.borderColor = '#107c10';
+      gpEditOpt.style.background = 'rgba(16,124,16,0.08)';
+      gpEditCheck.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#107c10" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>';
+      gpEditCheck.style.borderColor = '#107c10';
+      gpEditCheck.style.background = 'rgba(16,124,16,0.12)';
+    } else {
+      gpEditOpt.classList.remove('sel');
+      gpEditOpt.style.borderColor = 'var(--border2)';
+      gpEditOpt.style.background = 'var(--s2)';
+      gpEditCheck.innerHTML = '';
+      gpEditCheck.style.borderColor = 'var(--border2)';
+      gpEditCheck.style.background = 'var(--s1)';
+    }
+  }
   modal.style.display = 'flex';
 }
 
@@ -6880,12 +6959,15 @@ async function saveEditProfile() {
       .select('id').ilike('username', name).neq('id', uid || 'none').limit(1).maybeSingle();
     if (existing) { showToast('Ce pseudo est déjà pris 😕'); return; }
   }
-  obProfile = {...obProfile, username: name, avatar, bio, platforms};
+  const gamepass = document.getElementById('gp-edit-opt')?.classList.contains('sel') || false;
+  obProfile = {...obProfile, username: name, avatar, bio, platforms, gamepass};
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   applyProfileToUI();
   closeEditProfile();
   showToast('Profil mis à jour ✓');
   syncProfileToSupabase();
+  // Show or hide GP section immediately
+  if (gamepass) { loadGamePass(); } else { const s = document.getElementById('gp-section'); if (s) s.style.display = 'none'; }
 }
 
 // ══════════════════════════════════════
