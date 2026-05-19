@@ -1592,7 +1592,7 @@ html, body {
           <button id="tab-top-btn" onclick="switchProfileTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
           <button id="tab-activity-btn" onclick="switchProfileTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
         </div>
-        <div id="tab-top" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+        <div id="tab-top" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="tab-activity" style="display:none;flex-direction:column;gap:0"></div>
       </div>
 
@@ -4179,8 +4179,7 @@ function renderTrouvailles(ugData, gamesData, containerId) {
   const rated = gamesData
     .filter(g => (ugData[g.id]?.score || 0) > 0)
     .map(g => ({ ...g, ...(ugData[g.id]||{}) }))
-    .sort((a, b) => new Date(b.ratedAt||b.id||0) - new Date(a.ratedAt||a.id||0))
-    .slice(0, 8);
+    .sort((a, b) => new Date(b.ratedAt||0) - new Date(a.ratedAt||0));
   if (!rated.length) {
     el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">Aucun jeu noté pour l\'instant</div>';
     return;
