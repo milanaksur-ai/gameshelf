@@ -1578,17 +1578,27 @@ html, body {
       <div class="sec-label">Genres favoris</div>
       <div style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="genre-stats"></div>
 
-      <!-- TOP JEUX -->
-      <div class="sec-label">Ton top</div>
-      <div id="top-games" style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+      <!-- TROUVAILLES DU MOMENT -->
+      <div style="padding:20px 16px 0" id="trouvailles-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Trouvailles du moment</div>
+        </div>
+        <div id="trouvailles-list"></div>
+      </div>
+
+      <!-- TOP / ACTIVITÉ (fusionné) -->
+      <div style="padding:0 16px 16px;margin-top:20px">
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button id="tab-top-btn" onclick="switchProfileTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
+          <button id="tab-activity-btn" onclick="switchProfileTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
+        </div>
+        <div id="tab-top" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+        <div id="tab-activity" style="display:none;flex-direction:column;gap:0"></div>
+      </div>
 
       <!-- CAPTURES D'ÉCRAN -->
       <div class="sec-label">Captures d'écran</div>
       <div id="profile-media" style="padding:0 16px 16px"></div>
-
-      <!-- FIL D'ACTIVITÉ -->
-      <div class="sec-label">Fil d'activité</div>
-      <div id="profile-activity" style="padding:0 16px;display:flex;flex-direction:column;gap:0;margin-bottom:16px"></div>
 
       <!-- CONNECTER STEAM (hidden) -->
       <div class="connect-section anim" style="animation-delay:0.2s;display:none">
@@ -1611,14 +1621,6 @@ html, body {
             <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer">Clé OpenXBL</button>
           </div>
         </div>
-      </div>
-
-      <!-- TROUVAILLES DU MOMENT -->
-      <div style="padding:20px 16px 0" id="trouvailles-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Trouvailles du moment</div>
-        </div>
-        <div id="trouvailles-list"></div>
       </div>
 
       <!-- MES TIER LISTS -->
@@ -4093,7 +4095,7 @@ function renderProfileStats() {
     .sort((a,b) => (b.score||0) - (a.score||0))
     .slice(0, 6);
   const slots = [...topGames, ...Array(Math.max(0, 6 - topGames.length)).fill(null)];
-  const topGamesEl = document.getElementById('top-games');
+  const topGamesEl = document.getElementById('tab-top');
   if (topGamesEl) {
     const src0 = topGames[0] ? coverUrl(topGames[0]) : null;
     topGamesEl.innerHTML = slots.map(g => {
@@ -4112,7 +4114,7 @@ function renderProfileStats() {
   }
 
   // Activity feed — recently finished or added
-  const activity = document.getElementById('profile-activity');
+  const activity = document.getElementById('tab-activity');
   if (activity) {
     const recent = [...all]
       .filter(g => isDone(g.status) || g.status === 'backlog')
@@ -4155,6 +4157,22 @@ function renderProfileStats() {
   }
 }
 
+function switchProfileTab(tab) {
+  const topTab = document.getElementById('tab-top');
+  const actTab = document.getElementById('tab-activity');
+  const topBtn = document.getElementById('tab-top-btn');
+  const actBtn = document.getElementById('tab-activity-btn');
+  if (tab === 'top') {
+    topTab.style.display = 'grid'; actTab.style.display = 'none';
+    topBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s';
+    actBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s';
+  } else {
+    topTab.style.display = 'none'; actTab.style.display = 'flex';
+    actBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s';
+    topBtn.style.cssText = 'padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s';
+  }
+}
+
 function renderTrouvailles(ugData, gamesData, containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
@@ -4178,32 +4196,51 @@ function renderTrouvailles(ugData, gamesData, containerId) {
     if (!groups[key]) groups[key] = [];
     groups[key].push(g);
   });
-  el.innerHTML = Object.entries(groups).map(([month, games]) => `
-    <div style="margin-bottom:16px">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:capitalize;letter-spacing:0.06em;margin-bottom:8px;padding-left:2px">${month}</div>
+  const currentMonthKey = now.toLocaleDateString('fr-FR', {month:'long'});
+  const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
+    if (a.startsWith(currentMonthKey)) return -1;
+    if (b.startsWith(currentMonthKey)) return 1;
+    return 0;
+  });
+  el.innerHTML = sortedEntries.map(([month, games]) => `
+    <div style="margin-bottom:20px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:capitalize;letter-spacing:0.08em;margin-bottom:10px;padding-left:2px;display:flex;align-items:center;gap:6px">
+        <span style="width:20px;height:1px;background:var(--border2);display:inline-block"></span>${month}<span style="flex:1;height:1px;background:var(--border2);display:inline-block"></span>
+      </div>
       ${games.map(g => {
         const src = coverUrl(g);
         const vibeKeys = _vibeArr(g.vibe);
         const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
           .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
         const review = g.notes || '';
-        const MAX = 90;
-        const short = review.length > MAX ? review.slice(0, MAX) + '…' : review;
+        const MAX = 100;
+        const needsExpand = review.length > MAX;
+        const short = needsExpand ? review.slice(0, MAX) + '…' : review;
+        const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review)}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
         const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
-        return `<div onclick="openDetail('${g.id}')" style="display:flex;gap:10px;padding:10px 12px;background:var(--s2);border-radius:12px;margin-bottom:6px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
-          ${src?`<img src="${src}" referrerpolicy="no-referrer" style="width:36px;height:50px;object-fit:cover;border-radius:6px;flex-shrink:0">` : `<div style="width:36px;height:50px;border-radius:6px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">${(g.title||'?')[0]}</div>`}
+        const accentColor = g.score >= 8 ? 'var(--amber)' : g.score >= 6 ? 'rgba(108,92,231,0.6)' : 'var(--border2)';
+        return `<div onclick="openDetail('${g.id}')" style="display:flex;gap:12px;padding:12px;background:var(--s2);border-radius:14px;margin-bottom:8px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s;position:relative;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+          <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentColor};border-radius:14px 0 0 14px"></div>
+          ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:48px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-left:4px">` : `<div style="width:48px;height:66px;border-radius:8px;background:var(--s3);flex-shrink:0;margin-left:4px;display:flex;align-items:center;justify-content:center;font-size:20px">${(g.title||'?')[0]}</div>`}
           <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
               <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
-              <div style="font-size:13px;font-weight:700;color:var(--amber);white-space:nowrap;flex-shrink:0">${scoreStr}</div>
+              <div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--amber)">${scoreStr}</div>
             </div>
-            ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${vibeChips}</div>` : ''}
-            ${short ? `<div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4">${short}</div>` : ''}
+            ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${vibeChips}</div>` : ''}
+            ${notesHtml}
           </div>
         </div>`;
       }).join('')}
     </div>
   `).join('');
+}
+
+function expandTrv(id, encodedText) {
+  const el = document.getElementById('trv-notes-' + id);
+  if (el) el.textContent = decodeURIComponent(encodedText);
+  const btn = el?.nextElementSibling;
+  if (btn && btn.tagName === 'BUTTON') btn.remove();
 }
 
 function profileGameRow(g) {
