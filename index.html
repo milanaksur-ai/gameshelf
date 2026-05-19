@@ -1374,6 +1374,7 @@ html, body {
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
           <div class="sec-label" style="padding:0">🎮 <span style="color:#107c10">Nouveautés</span> Game Pass</div>
           <div id="gp-update-label" style="font-size:10px;color:var(--muted)"></div>
+          <button onclick="openGPAll()" style="font-size:11px;font-weight:700;color:var(--a);background:none;border:none;cursor:pointer;padding:4px 0">Voir tout →</button>
         </div>
         <div id="gp-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
       </div>
@@ -1802,10 +1803,14 @@ html, body {
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
-          <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
+          <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
         </div>
       </div>
-      <!-- Son top -->
+      <!-- En ce moment -->
+      <div id="fp-now-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">EN CE MOMENT</div>
+        <div id="fp-now-list"></div>
+      </div>
       <!-- Top | Activité (toggle, comme profil utilisateur) -->
       <div id="fp-topact-section" style="display:none;margin-bottom:16px">
         <div style="display:flex;gap:6px;margin-bottom:12px">
@@ -1814,16 +1819,6 @@ html, body {
         </div>
         <div id="fp-top-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="fp-activity-list" style="display:none;flex-direction:column;gap:10px"></div>
-      </div>
-      <!-- En ce moment -->
-      <div id="fp-now-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">EN CE MOMENT</div>
-        <div id="fp-now-list"></div>
-      </div>
-      <!-- Jeux en commun -->
-      <div id="fp-common-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">JEUX EN COMMUN</div>
-        <div id="fp-common-list" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
       </div>
       <!-- Trouvailles -->
       <div id="fp-trouvailles-section" style="display:none;margin-bottom:16px">
@@ -4191,6 +4186,30 @@ function switchFriendTab(tab) {
   }
 }
 
+function openFriendShelf(type, srcEl) {
+  if (srcEl && typeof anime !== 'undefined') anime({ targets: srcEl, scale: [1, 1.06, 1], duration: 260, easing: 'easeOutBack' });
+  const filterMap = {
+    playing:  g => g.status==='playing-solo'||g.status==='playing-multi',
+    paused:   g => g.status==='paused',
+    finished: g => g.status==='finished'||g.status==='platine',
+    platine:  g => g.status==='platine',
+    backlog:  g => g.status==='backlog',
+    abandoned:g => g.status==='abandoned',
+  };
+  const labels = { playing:'En cours', paused:'En pause', finished:'Finis', platine:'100%', backlog:'Backlog', abandoned:'Abandonnés' };
+  const fn = filterMap[type] || (() => false);
+  shelfGames = _fpAllGames.map((g,i) => ({...g, _fpIdx:i})).filter(fn);
+  _friendShelfMode = true;
+  shelfSort = 'score';
+  document.getElementById('shelf-title').textContent = `${labels[type]||type} (${shelfGames.length})`;
+  document.getElementById('shelf-sort-btn').textContent = SHELF_SORT_LABELS[shelfSort];
+  renderShelfGrid();
+  const backdrop = document.getElementById('shelf-backdrop');
+  const drawer   = document.getElementById('shelf-drawer');
+  backdrop.style.display = 'block';
+  requestAnimationFrame(() => { backdrop.style.opacity = '1'; drawer.classList.add('open'); });
+}
+
 function switchProfileTab(tab) {
   const topTab = document.getElementById('tab-top');
   const actTab = document.getElementById('tab-activity');
@@ -4296,6 +4315,7 @@ let shelfGames = [];
 let shelfSort  = 'score';
 let shelfType  = '';
 let shelfExtra = '';
+let _friendShelfMode = false;
 
 const SHELF_SORT_LABELS = { score: '★ Score', year: '📅 Année', alpha: 'A–Z' };
 const SHELF_SORT_CYCLE  = ['score', 'year', 'alpha'];
@@ -4358,6 +4378,7 @@ function openShelf(type, extra) {
 }
 
 function closeShelf() {
+  _friendShelfMode = false;
   const backdrop = document.getElementById('shelf-backdrop');
   const drawer   = document.getElementById('shelf-drawer');
   drawer.classList.remove('open');
@@ -4385,12 +4406,14 @@ function renderShelfGrid() {
     return;
   }
 
+  const isFriend = _friendShelfMode;
   grid.innerHTML = sorted.map((g) => {
-    const src  = coverUrl(g);
+    const src  = isFriend ? fpCoverSrc(g) : coverUrl(g);
     const ug   = userGames[g.id] || g;
-    const dot  = STATUS_DOT_COLORS[ug.status] || '';
+    const dot  = isFriend ? '' : (STATUS_DOT_COLORS[ug.status] || '');
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
-    return `<div class="shelf-item" onclick="openDetail('${g.id}');closeShelf()">
+    const clickAct = isFriend ? `openFriendGamePopup(${g._fpIdx});closeShelf()` : `openDetail('${g.id}');closeShelf()`;
+    return `<div class="shelf-item" onclick="${clickAct}">
       <div class="shelf-cover">
         ${src ? `<div class="shelf-cover-blur" style="background-image:url('${src}')"></div>` : ''}
         ${src
@@ -5757,6 +5780,8 @@ let _fpProfile = null;
 let _fpAllGames = [];
 let _fpMyGames = {};
 let _fpActiveTab = '';
+let _fpMyIds    = new Set();
+let _fpMyTitles = new Set();
 
 const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné'};
 
@@ -5812,14 +5837,27 @@ function fpRecoCard(idx) {
 
 function fpRenderLibTab(tab) {
   _fpActiveTab = tab;
+  const TAB_COLORS = {
+    'playing-solo': 'var(--a)',
+    'finished':     'var(--green)',
+    'platine':      'var(--amber)',
+    'backlog':      'var(--muted2)',
+    'common':       '#00cec9',
+    'abandoned':    'var(--red)',
+  };
   const tabDefs = [
-    {key:'playing-solo', label:'En cours', match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
-    {key:'finished',     label:'Finis',    match:g=>g.status==='finished'},
-    {key:'platine',      label:'100%',     match:g=>g.status==='platine'},
+    {key:'playing-solo', label:'En cours',  match:g=>g.status==='playing-solo'||g.status==='playing-multi'},
+    {key:'finished',     label:'Finis',     match:g=>g.status==='finished'},
+    {key:'platine',      label:'100%',      match:g=>g.status==='platine'},
     {key:'backlog',      label:'Backlog',   match:g=>g.status==='backlog'},
-    {key:'abandoned',    label:'Abandonné',match:g=>g.status==='abandoned'},
+    {key:'common',       label:'En Commun', match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
+    {key:'abandoned',    label:'Abandonné', match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
-  document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid var(--border2);cursor:pointer;white-space:nowrap;${tab===t.key?'background:var(--a);color:#fff;border-color:var(--a)':'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`).join('');
+  document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => {
+    const color = TAB_COLORS[t.key] || 'var(--a)';
+    const active = tab === t.key;
+    return `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid ${active?color:'var(--border2)'};cursor:pointer;white-space:nowrap;${active?`background:${color};color:${t.key==='backlog'?'var(--text)':'#fff'}`:'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`;
+  }).join('');
   const def = tabDefs.find(t=>t.key===tab);
   const idxs = def ? _fpAllGames.map((g,i)=>def.match(g)?i:-1).filter(i=>i>=0) : [];
   document.getElementById('fp-lib-list').innerHTML = idxs.map(i=>fpGameRow(i)).join('');
@@ -5928,8 +5966,8 @@ function renderFriendProfile(friend) {
   const backlog = games.filter(g=>g.status==='backlog').length;
   const abandon = games.filter(g=>g.status==='abandoned').length;
   const pct = games.length ? Math.round((done/games.length)*100) : 0;
-  const statCell = (n,lb,col) => `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div></div>`;
-  const statCellSub = (n,lb,sub,col) => `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div><div style="font-size:9px;color:var(--muted);margin-top:1px">${sub}</div></div>`;
+  const statCell = (n,lb,col,type) => `<div onclick="openFriendShelf('${type}',this)" style="cursor:pointer;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div></div>`;
+  const statCellSub = (n,lb,sub,col,type) => `<div onclick="openFriendShelf('${type}',this)" style="cursor:pointer;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center"><div style="font-size:20px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${col}">${n}</div><div style="font-size:11px;color:var(--muted2);margin-top:2px">${lb}</div><div style="font-size:9px;color:var(--muted);margin-top:1px">${sub}</div></div>`;
   document.getElementById('fp-stats').innerHTML = `
     <div style="grid-column:1/-1;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:0">
       <div style="width:52px;height:52px;flex-shrink:0;position:relative">
@@ -5945,18 +5983,19 @@ function renderFriendProfile(friend) {
         <div style="font-size:11px;color:var(--muted2)">jeux au total</div>
       </div>
     </div>
-    ${statCell(playing,'En cours','var(--a)')}
-    ${statCell(paused,'En pause','var(--amber)')}
-    ${statCell(done,'Finis','var(--green)')}
-    ${statCell(platine,'100%','var(--amber)')}
-    ${statCellSub(backlog,'Backlog','à commencer','var(--muted2)')}
-    ${statCell(abandon,'Abandonnés','var(--red)')}
+    ${statCell(playing,'En cours','var(--a)','playing')}
+    ${statCell(paused,'En pause','var(--amber)','paused')}
+    ${statCell(done,'Finis','var(--green)','finished')}
+    ${statCell(platine,'100%','var(--amber)','platine')}
+    ${statCellSub(backlog,'Backlog','à commencer','var(--muted2)','backlog')}
+    ${statCell(abandon,'Abandonnés','var(--red)','abandoned')}
   `;
 
   const myIds = new Set(Object.keys(userGames));
   const myTitles = new Set(GAMES.map(g => g.title.toLowerCase().trim()));
+  _fpMyIds    = myIds;
+  _fpMyTitles = myTitles;
   const emptyRow = (msg) => `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">${msg}</div>`;
-  const emptyCard = (msg) => `<div style="min-width:140px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:20px 16px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted2)">${msg}</div>`;
 
   // Son top — top 6 scored games
   const topSec = document.getElementById('fp-topact-section');
@@ -5987,18 +6026,13 @@ function renderFriendProfile(friend) {
   nowSec.style.display = 'block';
   document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : emptyRow('Aucun jeu en cours');
 
-  const commonIdx = _fpAllGames.map((g,i)=>{ const gid=g.id||String(g.game_id||''); const byId=gid&&myIds.has(gid); const byTitle=myTitles.has(g.title.toLowerCase().trim()); return (byId||byTitle)?i:-1; }).filter(i=>i>=0);
-  const commonSec = document.getElementById('fp-common-section');
-  commonSec.style.display = 'block';
-  document.getElementById('fp-common-list').innerHTML = commonIdx.length ? commonIdx.map(i=>fpCommonCard(i)).join('') : emptyCard('Aucun jeu en commun');
-
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
 
   const libSec = document.getElementById('fp-lib-section');
   libSec.style.display = 'block';
   if (games.length) {
-    const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'finished';
+    const firstTab = ['playing-solo','finished','platine','backlog','abandoned'].find(t => t==='playing-solo' ? games.some(g=>g.status==='playing-solo'||g.status==='playing-multi') : games.some(g=>g.status===t)) || 'common';
     fpRenderLibTab(firstTab);
   } else {
     document.getElementById('fp-lib-tabs').innerHTML = '';
@@ -6094,7 +6128,7 @@ async function openFriendProfile(userId) {
   _fpFriendUserId = userId;
   document.getElementById('fp-remove-btn').style.display = 'none';
   document.getElementById('screen-friend-profile').style.display = 'flex';
-  ['fp-topact-section','fp-now-section','fp-common-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  ['fp-now-section','fp-topact-section','fp-trouvailles-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-stats').innerHTML = '';
   document.getElementById('fp-platforms').style.display = 'none';
@@ -6288,6 +6322,31 @@ function renderGPSection() {
       <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
     </div>`;
   }).join('');
+}
+
+function openGPAll() {
+  if (!_gpData?.games?.length) return;
+  const sorted = [..._gpData.games].sort((a,b) => (b.first_release_date||0) - (a.first_release_date||0));
+  document.getElementById('gp-all-grid').innerHTML = sorted.map(g => {
+    const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
+    return `<div style="cursor:pointer" onclick="openGPGame('${g.title.replace(/'/g,"\\'")}');closeGPAll()" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">
+        ${g.img ? `<img src="${g.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
+        <div style="position:absolute;bottom:4px;left:4px;background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px">GP</div>
+        ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+      </div>
+      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    </div>`;
+  }).join('');
+  const overlay = document.getElementById('gp-all-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+}
+
+function closeGPAll() {
+  const overlay = document.getElementById('gp-all-overlay');
+  overlay.style.opacity = '0';
+  setTimeout(() => { overlay.style.display = 'none'; }, 300);
 }
 
 async function openGPGame(title) {
@@ -8296,6 +8355,18 @@ async function exportTierList() {
     </div>
     <div id="wrapped-content" style="display:flex;flex-direction:column;gap:12px"></div>
     <button onclick="closeWrapped()" class="btn-primary" style="margin-top:20px">Fermer</button>
+  </div>
+</div>
+
+<!-- Game Pass — Catalogue complet -->
+<div id="gp-all-overlay" onclick="closeGPAll()" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
+  <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),20px)">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px">
+      <div style="font-size:16px;font-weight:800;font-family:'Space Grotesk',sans-serif">🎮 Game Pass — Catalogue complet</div>
+      <button onclick="closeGPAll()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer">✕</button>
+    </div>
+    <div id="gp-all-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:0 16px 16px"></div>
   </div>
 </div>
 
