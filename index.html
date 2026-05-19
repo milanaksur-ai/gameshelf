@@ -1805,6 +1805,11 @@ html, body {
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
         </div>
       </div>
+      <!-- Son top -->
+      <div id="fp-top-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">★ SON TOP</div>
+        <div id="fp-top-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
+      </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">EN CE MOMENT</div>
@@ -3264,8 +3269,14 @@ async function syncToSupabase() {
         updated_at: new Date().toISOString()
       };
     });
-    if (rows.length) {
-      await _sb.from('user_games').upsert(rows, { onConflict: 'user_id,game_id' });
+    if (!rows.length) return;
+    const { error } = await _sb.from('user_games').upsert(rows, { onConflict: 'user_id,game_id' });
+    if (error) {
+      // Fallback: retry without columns that may not exist in older schemas
+      const coreRows = rows.map(({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at }) =>
+        ({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at })
+      );
+      await _sb.from('user_games').upsert(coreRows, { onConflict: 'user_id,game_id' });
     }
   } catch(e) { console.warn('GameShelf: Supabase sync failed', e); }
 }
@@ -5423,18 +5434,18 @@ const DUMMY_FRIENDS_DATA = [
     bio: 'RPG addict · FromSouls survivor · 1200h sur Elden Ring',
     platforms: ['PC / Steam', 'Xbox Series X|S'],
     games: [
-      { id:'d1_1', game_id:'d1_1', title:'Elden Ring',         status:'platine',      score:10,  genre:'RPG',            image_id:null, vibe:['masterpiece','emotional','ambitieux'], notes:'Le jeu qui a changé ma façon de voir un open world. Chaque recoin cache quelque chose.', ratedAt:'2024-03-15T10:00:00Z' },
-      { id:'d1_2', game_id:'d1_2', title:"Baldur's Gate 3",    status:'finished',     score:9.5, genre:'RPG',            image_id:null, vibe:['masterpiece','complexe'],              notes:'Impossible de faire mieux en RPG occidental.',                                          ratedAt:'2024-11-20T10:00:00Z' },
-      { id:'d1_3', game_id:'d1_3', title:'Disco Elysium',      status:'finished',     score:10,  genre:'RPG',            image_id:null, vibe:['masterpiece','original','cinematique'], notes:'Jamais rien lu d\'aussi dense dans un jeu. Art total.',                               ratedAt:'2024-08-14T10:00:00Z' },
-      { id:'d1_4', game_id:'d1_4', title:'Hollow Knight',      status:'finished',     score:9,   genre:'Metroidvania',   image_id:null, vibe:['atmosphere','emotional'],               notes:'Atmosphère incroyable pour un indé.',                                                  ratedAt:'2024-05-01T10:00:00Z' },
-      { id:'d1_5', game_id:'d1_5', title:'Bloodborne',         status:'platine',      score:9.5, genre:'Action-RPG',     image_id:null, vibe:['masterpiece','scary','atmosphere'],     notes:'Mon FromSoft préféré avec Elden Ring.',                                                ratedAt:'2023-11-01T10:00:00Z' },
-      { id:'d1_6', game_id:'d1_6', title:'God of War Ragnarök',status:'finished',     score:9,   genre:'Action',         image_id:null, vibe:['emotional','cinematique'],              notes:null,                                                                                   ratedAt:'2024-09-20T10:00:00Z' },
-      { id:'d1_7', game_id:'d1_7', title:'Sekiro',             status:'platine',      score:9,   genre:'Action-RPG',     image_id:null, vibe:['frustrant','ambitieux'],                notes:null,                                                                                   ratedAt:'2023-12-01T10:00:00Z' },
-      { id:'d1_8', game_id:'d1_8', title:'Cyberpunk 2077',     status:'finished',     score:8,   genre:'RPG',            image_id:null, vibe:['ambitieux','atmosphere'],               notes:'Redemption arc réelle après le launch catastrophique.',                                ratedAt:'2024-02-10T10:00:00Z' },
-      { id:'d1_9', game_id:'d1_9', title:'Hades',              status:'finished',     score:9,   genre:'Roguelike',      image_id:null, vibe:['addictive','banger'],                   notes:null,                                                                                   ratedAt:'2024-04-20T10:00:00Z' },
-      { id:'d1_10',game_id:'d1_10',title:'The Witcher 3',       status:'playing-solo', score:0,   genre:'RPG',            image_id:null, vibe:null,                                     notes:null,                                                                                   ratedAt:null },
-      { id:'d1_11',game_id:'d1_11',title:'Dark Souls III',      status:'platine',      score:9,   genre:'Action-RPG',     image_id:null, vibe:['ambitieux','frustrant'],                notes:null,                                                                                   ratedAt:'2024-01-10T10:00:00Z' },
-      { id:'d1_12',game_id:'d1_12',title:'Red Dead Redemption 2',status:'backlog',    score:0,   genre:'Action',         image_id:null, vibe:null,                                     notes:null,                                                                                   ratedAt:null },
+      { id:'d1_1', game_id:'d1_1', title:'Elden Ring',         status:'platine',      score:10,  genre:'RPG',            steamId:'1245620', image_id:null, vibe:['masterpiece','emotional','ambitieux'], notes:'Le jeu qui a changé ma façon de voir un open world. Chaque recoin cache quelque chose.', ratedAt:'2024-03-15T10:00:00Z' },
+      { id:'d1_2', game_id:'d1_2', title:"Baldur's Gate 3",    status:'finished',     score:9.5, genre:'RPG',            steamId:'1086940', image_id:null, vibe:['masterpiece','complexe'],              notes:'Impossible de faire mieux en RPG occidental.',                                          ratedAt:'2024-11-20T10:00:00Z' },
+      { id:'d1_3', game_id:'d1_3', title:'Disco Elysium',      status:'finished',     score:10,  genre:'RPG',            steamId:'632470',  image_id:null, vibe:['masterpiece','original','cinematique'], notes:'Jamais rien lu d\'aussi dense dans un jeu. Art total.',                               ratedAt:'2024-08-14T10:00:00Z' },
+      { id:'d1_4', game_id:'d1_4', title:'Hollow Knight',      status:'finished',     score:9,   genre:'Metroidvania',   steamId:'367520',  image_id:null, vibe:['atmosphere','emotional'],               notes:'Atmosphère incroyable pour un indé.',                                                  ratedAt:'2024-05-01T10:00:00Z' },
+      { id:'d1_5', game_id:'d1_5', title:'Bloodborne',         status:'platine',      score:9.5, genre:'Action-RPG',     steamId:null,      image_id:null, vibe:['masterpiece','scary','atmosphere'],     notes:'Mon FromSoft préféré avec Elden Ring.',                                                ratedAt:'2023-11-01T10:00:00Z' },
+      { id:'d1_6', game_id:'d1_6', title:'God of War Ragnarök',status:'finished',     score:9,   genre:'Action',         steamId:'2322010', image_id:null, vibe:['emotional','cinematique'],              notes:null,                                                                                   ratedAt:'2024-09-20T10:00:00Z' },
+      { id:'d1_7', game_id:'d1_7', title:'Sekiro',             status:'platine',      score:9,   genre:'Action-RPG',     steamId:'814380',  image_id:null, vibe:['frustrant','ambitieux'],                notes:null,                                                                                   ratedAt:'2023-12-01T10:00:00Z' },
+      { id:'d1_8', game_id:'d1_8', title:'Cyberpunk 2077',     status:'finished',     score:8,   genre:'RPG',            steamId:'1091500', image_id:null, vibe:['ambitieux','atmosphere'],               notes:'Redemption arc réelle après le launch catastrophique.',                                ratedAt:'2024-02-10T10:00:00Z' },
+      { id:'d1_9', game_id:'d1_9', title:'Hades',              status:'finished',     score:9,   genre:'Roguelike',      steamId:'1145360', image_id:null, vibe:['addictive','banger'],                   notes:null,                                                                                   ratedAt:'2024-04-20T10:00:00Z' },
+      { id:'d1_10',game_id:'d1_10',title:'The Witcher 3',       status:'playing-solo', score:0,   genre:'RPG',            steamId:'292030',  image_id:null, vibe:null,                                     notes:null,                                                                                   ratedAt:null },
+      { id:'d1_11',game_id:'d1_11',title:'Dark Souls III',      status:'platine',      score:9,   genre:'Action-RPG',     steamId:'374320',  image_id:null, vibe:['ambitieux','frustrant'],                notes:null,                                                                                   ratedAt:'2024-01-10T10:00:00Z' },
+      { id:'d1_12',game_id:'d1_12',title:'Red Dead Redemption 2',status:'backlog',    score:0,   genre:'Action',         steamId:'1174180', image_id:null, vibe:null,                                     notes:null,                                                                                   ratedAt:null },
     ]
   },
   {
@@ -5445,15 +5456,15 @@ const DUMMY_FRIENDS_DATA = [
     bio: 'Indie & cozy games only ✨ Switch main',
     platforms: ['Switch', 'PC / Steam'],
     games: [
-      { id:'d2_1', game_id:'d2_1', title:'Celeste',        status:'platine',      score:10,  genre:'Platformer',   image_id:null, vibe:['masterpiece','emotional','hiddengem'], notes:'Le meilleur jeu de plateforme jamais fait. La narration à travers le gameplay c\'est quelque chose.',  ratedAt:'2024-04-10T10:00:00Z' },
-      { id:'d2_2', game_id:'d2_2', title:'Hollow Knight',  status:'finished',     score:9.5, genre:'Metroidvania',  image_id:null, vibe:['atmosphere','emotional','ambitieux'], notes:null,                                                                                              ratedAt:'2024-03-20T10:00:00Z' },
-      { id:'d2_3', game_id:'d2_3', title:'Spiritfarer',    status:'finished',     score:9,   genre:'Adventure',     image_id:null, vibe:['emotional','relaxing','cinematique'], notes:'Pleurée à la fin. Beau et triste à la fois.',                                                      ratedAt:'2024-07-05T10:00:00Z' },
-      { id:'d2_4', game_id:'d2_4', title:'A Short Hike',   status:'finished',     score:9,   genre:'Adventure',     image_id:null, vibe:['relaxing','short','hiddengem'],        notes:'Parfait pour une après-midi pluvieuse.',                                                          ratedAt:'2024-06-15T10:00:00Z' },
-      { id:'d2_5', game_id:'d2_5', title:'Hades',          status:'finished',     score:9,   genre:'Roguelike',     image_id:null, vibe:['addictive','ost','banger'],            notes:"L'OST tourne en boucle dans ma tête depuis des semaines.",                                         ratedAt:'2024-09-12T10:00:00Z' },
-      { id:'d2_6', game_id:'d2_6', title:'Unpacking',      status:'finished',     score:8,   genre:'Puzzle',        image_id:null, vibe:['relaxing','short','ost'],              notes:null,                                                                                              ratedAt:'2024-08-22T10:00:00Z' },
-      { id:'d2_7', game_id:'d2_7', title:'Stardew Valley', status:'playing-solo', score:0,   genre:'Simulation',    image_id:null, vibe:null,                                    notes:null,                                                                                              ratedAt:null },
-      { id:'d2_8', game_id:'d2_8', title:'Disco Elysium',  status:'backlog',      score:0,   genre:'RPG',           image_id:null, vibe:null,                                    notes:null,                                                                                              ratedAt:null },
-      { id:'d2_9', game_id:'d2_9', title:'Animal Crossing',status:'abandoned',    score:5,   genre:'Simulation',    image_id:null, vibe:['meh'],                                 notes:'Pas accroché plus de 10h.',                                                                       ratedAt:'2024-01-08T10:00:00Z' },
+      { id:'d2_1', game_id:'d2_1', title:'Celeste',        status:'platine',      score:10,  genre:'Platformer',   steamId:'504230',  image_id:null, vibe:['masterpiece','emotional','hiddengem'], notes:'Le meilleur jeu de plateforme jamais fait. La narration à travers le gameplay c\'est quelque chose.',  ratedAt:'2024-04-10T10:00:00Z' },
+      { id:'d2_2', game_id:'d2_2', title:'Hollow Knight',  status:'finished',     score:9.5, genre:'Metroidvania',  steamId:'367520',  image_id:null, vibe:['atmosphere','emotional','ambitieux'], notes:null,                                                                                              ratedAt:'2024-03-20T10:00:00Z' },
+      { id:'d2_3', game_id:'d2_3', title:'Spiritfarer',    status:'finished',     score:9,   genre:'Adventure',     steamId:'972660',  image_id:null, vibe:['emotional','relaxing','cinematique'], notes:'Pleurée à la fin. Beau et triste à la fois.',                                                      ratedAt:'2024-07-05T10:00:00Z' },
+      { id:'d2_4', game_id:'d2_4', title:'A Short Hike',   status:'finished',     score:9,   genre:'Adventure',     steamId:'1055540', image_id:null, vibe:['relaxing','short','hiddengem'],        notes:'Parfait pour une après-midi pluvieuse.',                                                          ratedAt:'2024-06-15T10:00:00Z' },
+      { id:'d2_5', game_id:'d2_5', title:'Hades',          status:'finished',     score:9,   genre:'Roguelike',     steamId:'1145360', image_id:null, vibe:['addictive','ost','banger'],            notes:"L'OST tourne en boucle dans ma tête depuis des semaines.",                                         ratedAt:'2024-09-12T10:00:00Z' },
+      { id:'d2_6', game_id:'d2_6', title:'Unpacking',      status:'finished',     score:8,   genre:'Puzzle',        steamId:'1135690', image_id:null, vibe:['relaxing','short','ost'],              notes:null,                                                                                              ratedAt:'2024-08-22T10:00:00Z' },
+      { id:'d2_7', game_id:'d2_7', title:'Stardew Valley', status:'playing-solo', score:0,   genre:'Simulation',    steamId:'413150',  image_id:null, vibe:null,                                    notes:null,                                                                                              ratedAt:null },
+      { id:'d2_8', game_id:'d2_8', title:'Disco Elysium',  status:'backlog',      score:0,   genre:'RPG',           steamId:'632470',  image_id:null, vibe:null,                                    notes:null,                                                                                              ratedAt:null },
+      { id:'d2_9', game_id:'d2_9', title:'Animal Crossing',status:'abandoned',    score:5,   genre:'Simulation',    steamId:null,      image_id:null, vibe:['meh'],                                 notes:'Pas accroché plus de 10h.',                                                                       ratedAt:'2024-01-08T10:00:00Z' },
     ]
   },
   {
@@ -5464,16 +5475,16 @@ const DUMMY_FRIENDS_DATA = [
     bio: 'FPS / compétitif · ex-speedrunner CS · Plat hunter',
     platforms: ['PC / Steam', 'PlayStation'],
     games: [
-      { id:'d3_1', game_id:'d3_1', title:'The Last of Us Part I',  status:'platine',      score:10,  genre:'Action-Adventure', image_id:null, vibe:['masterpiece','emotional','cinematique'], notes:"Aucun jeu m'a autant claqué la gueule narrative. Irréprochable.",              ratedAt:'2024-05-18T10:00:00Z' },
-      { id:'d3_2', game_id:'d3_2', title:'Resident Evil 4 Remake', status:'finished',     score:9,   genre:'Survival Horror',  image_id:null, vibe:['banger','scary','dynamique'],             notes:'Le remake qu\'on méritait. Leon W.',                                          ratedAt:'2024-07-30T10:00:00Z' },
-      { id:'d3_3', game_id:'d3_3', title:'Returnal',               status:'finished',     score:9,   genre:'Roguelike',        image_id:null, vibe:['frustrant','ambitieux','scary'],           notes:'Frustrant comme un fromsoft mais avec un gunplay ouf.',                       ratedAt:'2024-10-10T10:00:00Z' },
-      { id:'d3_4', game_id:'d3_4', title:'God of War Ragnarök',    status:'platine',      score:9,   genre:'Action',           image_id:null, vibe:['emotional','ambitieux','cinematique'],     notes:null,                                                                          ratedAt:'2024-02-14T10:00:00Z' },
-      { id:'d3_5', game_id:'d3_5', title:'Hades',                  status:'finished',     score:8.5, genre:'Roguelike',        image_id:null, vibe:['addictive','dynamique'],                   notes:null,                                                                          ratedAt:'2024-06-01T10:00:00Z' },
-      { id:'d3_6', game_id:'d3_6', title:'Dead Cells',             status:'finished',     score:8.5, genre:'Roguelike',        image_id:null, vibe:['dynamique','addictive'],                   notes:null,                                                                          ratedAt:'2024-03-05T10:00:00Z' },
-      { id:'d3_7', game_id:'d3_7', title:'Cyberpunk 2077',         status:'finished',     score:8,   genre:'RPG',              image_id:null, vibe:['atmosphere','ambitieux'],                  notes:null,                                                                          ratedAt:'2024-04-25T10:00:00Z' },
-      { id:'d3_8', game_id:'d3_8', title:'Valorant',               status:'playing-multi',score:0,   genre:'FPS',              image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
-      { id:'d3_9', game_id:'d3_9', title:'Baldur\'s Gate 3',       status:'backlog',      score:0,   genre:'RPG',              image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
-      { id:'d3_10',game_id:'d3_10',title:'Spider-Man 2',            status:'backlog',      score:0,   genre:'Action',           image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
+      { id:'d3_1', game_id:'d3_1', title:'The Last of Us Part I',  status:'platine',      score:10,  genre:'Action-Adventure', steamId:'1888930', image_id:null, vibe:['masterpiece','emotional','cinematique'], notes:"Aucun jeu m'a autant claqué la gueule narrative. Irréprochable.",              ratedAt:'2024-05-18T10:00:00Z' },
+      { id:'d3_2', game_id:'d3_2', title:'Resident Evil 4 Remake', status:'finished',     score:9,   genre:'Survival Horror',  steamId:'2050650', image_id:null, vibe:['banger','scary','dynamique'],             notes:'Le remake qu\'on méritait. Leon W.',                                          ratedAt:'2024-07-30T10:00:00Z' },
+      { id:'d3_3', game_id:'d3_3', title:'Returnal',               status:'finished',     score:9,   genre:'Roguelike',        steamId:'1649240', image_id:null, vibe:['frustrant','ambitieux','scary'],           notes:'Frustrant comme un fromsoft mais avec un gunplay ouf.',                       ratedAt:'2024-10-10T10:00:00Z' },
+      { id:'d3_4', game_id:'d3_4', title:'God of War Ragnarök',    status:'platine',      score:9,   genre:'Action',           steamId:'2322010', image_id:null, vibe:['emotional','ambitieux','cinematique'],     notes:null,                                                                          ratedAt:'2024-02-14T10:00:00Z' },
+      { id:'d3_5', game_id:'d3_5', title:'Hades',                  status:'finished',     score:8.5, genre:'Roguelike',        steamId:'1145360', image_id:null, vibe:['addictive','dynamique'],                   notes:null,                                                                          ratedAt:'2024-06-01T10:00:00Z' },
+      { id:'d3_6', game_id:'d3_6', title:'Dead Cells',             status:'finished',     score:8.5, genre:'Roguelike',        steamId:'588650',  image_id:null, vibe:['dynamique','addictive'],                   notes:null,                                                                          ratedAt:'2024-03-05T10:00:00Z' },
+      { id:'d3_7', game_id:'d3_7', title:'Cyberpunk 2077',         status:'finished',     score:8,   genre:'RPG',              steamId:'1091500', image_id:null, vibe:['atmosphere','ambitieux'],                  notes:null,                                                                          ratedAt:'2024-04-25T10:00:00Z' },
+      { id:'d3_8', game_id:'d3_8', title:'Valorant',               status:'playing-multi',score:0,   genre:'FPS',              steamId:null,      image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
+      { id:'d3_9', game_id:'d3_9', title:'Baldur\'s Gate 3',       status:'backlog',      score:0,   genre:'RPG',              steamId:'1086940', image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
+      { id:'d3_10',game_id:'d3_10',title:'Spider-Man 2',            status:'backlog',      score:0,   genre:'Action',           steamId:'2119490', image_id:null, vibe:null,                                        notes:null,                                                                          ratedAt:null },
     ]
   }
 ];
@@ -5936,6 +5947,30 @@ function renderFriendProfile(friend) {
   const emptyRow = (msg) => `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">${msg}</div>`;
   const emptyCard = (msg) => `<div style="min-width:140px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:20px 16px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted2)">${msg}</div>`;
 
+  // Son top — top 6 scored games
+  const topSec = document.getElementById('fp-top-section');
+  const topGrid = document.getElementById('fp-top-grid');
+  const topGames = [...games].filter(g=>(g.score||0)>0).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
+  if (topGames.length && topGrid) {
+    topSec.style.display = 'block';
+    const topSlots = [...topGames, ...Array(Math.max(0,6-topGames.length)).fill(null)];
+    topGrid.innerHTML = topSlots.map((g,i) => {
+      if (!g) return `<div style="background:var(--s2);border:0.5px dashed var(--border);border-radius:12px;aspect-ratio:3/4"></div>`;
+      const gi = _fpAllGames.indexOf(g);
+      const src = fpCoverSrc(g);
+      const numColor = i===0?'var(--amber)':i===1?'#b0bec5':i===2?'#cd7f32':'rgba(255,255,255,0.5)';
+      return `<div onclick="openFriendGamePopup(${gi})" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
+        ${src?`<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--muted)">${(g.title||'?')[0]}</div>`}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
+        <div style="position:absolute;top:5px;left:5px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:800;color:${numColor};background:rgba(0,0,0,0.55);border:0.5px solid rgba(255,255,255,0.12);padding:2px 5px;border-radius:6px">#${i+1}</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:5px 6px">
+          <div style="font-size:9px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:1px">${g.title}</div>
+          ${g.score?`<div style="font-size:9px;color:var(--amber)">★ ${g.score}/10</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  } else if (topSec) topSec.style.display = 'none';
+
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
   nowSec.style.display = 'block';
@@ -5989,9 +6024,10 @@ async function openFriendGamePopup(idx) {
           ${g.hours > 0 ? `<span style="font-size:11px;color:var(--muted2)">⏱ ${g.hours}h</span>` : ''}
           ${rank ? `<span style="font-size:10px;font-weight:700;background:rgba(108,92,231,0.15);color:var(--a);border-radius:10px;padding:2px 7px">${rank.emoji} ${rank.label}</span>` : ''}
         </div>
-        <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted2)">${profileName} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score ? ` <span style="color:var(--amber);font-weight:700">★${g.score}</span>` : ''}</div>
+        <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted2)">${profileName} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score ? ` <span style="color:var(--amber);font-weight:700">★${g.score}/10</span>` : ''}</div>
       </div>
     </div>
+    ${(()=>{const vibeKeys=_vibeArr(g.vibe);const chips=vibeKeys.map(k=>VIBES.find(v=>v.key===k)).filter(Boolean).map(v=>`<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');return chips?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${chips}</div>`:''})()}
     ${mine ? `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span style="color:var(--muted2)">Toi : </span><span style="font-weight:600">${FP_SL[mine.status]||mine.status}</span>${mine.score ? `<span style="color:var(--amber);font-weight:700"> · ★${mine.score}</span>` : ''}</div>` : `<div style="font-size:12px;color:var(--muted2);font-style:italic;margin-bottom:12px">Pas dans ta bibliothèque</div>`}
     ${g.notes ? `<div style="border-left:3px solid var(--a);border-radius:0 10px 10px 0;background:rgba(108,92,231,0.07);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${g.notes}"</div>` : ''}
     ${screenshotHtml}
