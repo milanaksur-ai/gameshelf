@@ -7871,6 +7871,33 @@ let _tlReadOnly     = false;
 let _tlMyLists      = JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]');
 let _tlSearchTimer  = null;
 let _tlShareUrl     = '';
+let _tlCoverCache   = {};
+try { _tlCoverCache = JSON.parse(localStorage.getItem('gs_tl_covers') || '{}'); } catch(e) {}
+
+async function _tlEnrichCovers() {
+  const missing = _tlPool.filter(g => !g.imageId && !(g.steamId && g.steamId > 0));
+  if (!missing.length) return;
+  for (const g of missing) {
+    if (!document.getElementById('tierlist-overlay')?.classList.contains('open')) return;
+    const cacheKey = g.id || g.title;
+    if (_tlCoverCache[cacheKey]) {
+      g.imageId = _tlCoverCache[cacheKey];
+      renderTierListPool();
+      continue;
+    }
+    try {
+      const data = await igdbFetch('search', { query: g.title, limit: 3 });
+      const match = (data || []).map(mapIgdbGame).find(r => r.imageId);
+      if (match?.imageId) {
+        g.imageId = match.imageId;
+        _tlCoverCache[cacheKey] = match.imageId;
+        localStorage.setItem('gs_tl_covers', JSON.stringify(_tlCoverCache));
+        renderTierListPool();
+        renderTierListTiers();
+      }
+    } catch(e) {}
+  }
+}
 
 function openTierList(mode, opts = {}) {
   _tlMode      = mode;
@@ -7915,6 +7942,7 @@ function openTierList(mode, opts = {}) {
   document.getElementById('tierlist-overlay').classList.add('open');
   renderTierListTiers();
   renderTierListPool();
+  if (mode !== 'library' && mode !== 'custom') _tlEnrichCovers();
 }
 
 function openNewTierListModal() {
