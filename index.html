@@ -4098,16 +4098,22 @@ function renderProfileStats() {
   const topGamesEl = document.getElementById('tab-top');
   if (topGamesEl) {
     const src0 = topGames[0] ? coverUrl(topGames[0]) : null;
-    topGamesEl.innerHTML = slots.map(g => {
+    topGamesEl.innerHTML = slots.map((g, i) => {
       if (!g) return `<div style="background:var(--s2);border:0.5px dashed var(--border);border-radius:12px;aspect-ratio:3/4;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px"><div style="font-size:20px;opacity:0.2">🎮</div><div style="font-size:10px;color:var(--muted);opacity:0.5">Aucun jeu</div></div>`;
       const src = coverUrl(g);
       const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const vibeKeys = _vibeArr(userGames[g.id]?.vibe).slice(0, 2);
+      const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
+        .map(v => `<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;white-space:nowrap">${v.label}</span>`).join('');
+      const numColor = i === 0 ? 'var(--amber)' : i === 1 ? '#b0bec5' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.5)';
       return `<div onclick="openDetail('${g.id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.85) 0%,transparent 50%)"></div>
-        <div style="position:absolute;bottom:0;left:0;right:0;padding:8px">
-          <div style="font-size:11px;font-weight:700;color:#fff;line-height:1.2;text-overflow:ellipsis;overflow:hidden;white-space:nowrap">${g.title}</div>
-          ${g.score > 0 ? `<div style="font-size:10px;color:var(--amber)">★ ${g.score}/10</div>` : ''}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
+        <div style="position:absolute;top:6px;left:6px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;color:${numColor};text-shadow:0 1px 4px rgba(0,0,0,0.8)">#${i+1}</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 7px">
+          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;margin-bottom:3px">${g.title}</div>
+          ${g.score > 0 ? `<div style="font-size:9px;color:var(--amber);margin-bottom:${vibeChips?'3px':'0'}">★ ${g.score}/10</div>` : ''}
+          ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:2px">${vibeChips}</div>` : ''}
         </div>
       </div>`;
     }).join('');
