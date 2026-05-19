@@ -3279,6 +3279,7 @@ async function syncFromSupabase(user) {
     // Sync profile even if no games
     if (profile) {
       obProfile = {
+        ...obProfile,
         username: profile.username || 'Gamer',
         avatar: profile.avatar || '🎮',
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
