@@ -6826,6 +6826,15 @@ function applyProfileToUI() {
     try { const p = JSON.parse(savedProfile); obProfile = {...obProfile, ...p}; } catch(e) {}
   }
 
+  // Register BEFORE any await — Supabase fires SIGNED_IN from the OAuth hash
+  // asynchronously during initialisation; if we register late we miss it entirely.
+  _sb.auth.onAuthStateChange(async (event, session) => {
+    if (event === 'SIGNED_IN' && session) {
+      const appVisible = document.getElementById('view-app').style.display === 'flex';
+      if (!appVisible) await onAuthSuccess(session.user);
+    }
+  });
+
   const { data: { session } } = await _sb.auth.getSession();
 
   if (session) {
@@ -6854,29 +6863,13 @@ function applyProfileToUI() {
       await onAuthSuccess(session.user);
     }
   } else {
-    // Handle OAuth redirect (hash or query contains access_token)
-    const hash = window.location.hash;
-    if (hash && hash.includes('access_token')) {
-      // Supabase handles this via onAuthStateChange
-      const { data: { session: s2 } } = await _sb.auth.getSession();
-      if (s2) { await onAuthSuccess(s2.user); return; }
-    }
-    // No session → clear any stale game data so a new user gets a clean start
+    // No active session — OAuth redirect handled via onAuthStateChange above
     localStorage.removeItem('gs_games');
     localStorage.removeItem('gs_userGames');
     GAMES.length = 0;
     Object.keys(userGames).forEach(k => delete userGames[k]);
     document.getElementById('progress-fill').style.width = '0%';
   }
-
-  // Listen for auth state changes (OAuth redirect, email confirm)
-  // TOKEN_REFRESHED intentionally excluded — token refresh must not interrupt mid-onboarding
-  _sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
-      const appVisible = document.getElementById('view-app').style.display === 'flex';
-      if (!appVisible) await onAuthSuccess(session.user);
-    }
-  });
 })();
 
 // ══════════════════════════════════════
