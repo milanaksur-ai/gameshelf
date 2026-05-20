@@ -3231,19 +3231,22 @@ function refreshViews() {
   });
 }
 
-// ── localStorage persistence ──────────────────────────────
-let _syncTimer;
+// ── localStorage persistence + immediate Supabase sync ───
+let _syncInFlight = false;
+let _syncQueued   = false;
+
 function saveToStorage() {
   try {
-    localStorage.setItem('gs_games', JSON.stringify(GAMES));
+    localStorage.setItem('gs_games',     JSON.stringify(GAMES));
     localStorage.setItem('gs_userGames', JSON.stringify(userGames));
   } catch(e) { console.warn('GameShelf: storage save failed', e); }
-  // Debounced Supabase sync (2 s delay to batch rapid changes)
-  clearTimeout(_syncTimer);
-  _syncTimer = setTimeout(syncToSupabase, 2000);
+  syncToSupabase();
 }
 
 async function syncToSupabase() {
+  // Queue at most one pending sync; if one is already in-flight just flag it
+  if (_syncInFlight) { _syncQueued = true; return; }
+  _syncInFlight = true;
   try {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
@@ -3276,6 +3279,10 @@ async function syncToSupabase() {
       await _sb.from('user_games').upsert(coreRows, { onConflict: 'user_id,game_id' });
     }
   } catch(e) { console.warn('GameShelf: Supabase sync failed', e); }
+  finally {
+    _syncInFlight = false;
+    if (_syncQueued) { _syncQueued = false; syncToSupabase(); }
+  }
 }
 
 async function syncFromSupabase(user) {
@@ -3389,6 +3396,8 @@ async function forceRefresh() {
 
 async function logoutUser() {
   if (!confirm('Se déconnecter de GameShelf ?')) return;
+  // Flush any pending data before signing out so nothing is lost
+  await syncToSupabase();
   await _sb.auth.signOut();
   ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
   location.reload();
