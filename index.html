@@ -4576,8 +4576,8 @@ function recoOpenDetail(id) {
   }
   if (!GAMES.find(x => x.id === id)) {
     _tempRecoId = id;
-    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+    GAMES.push({...g, status: null, score:0, notes:'', hours:0});
+    userGames[id] = {status: null, score:0, notes:'', hours:0, vibe: null, ratedAt: null, platform: null};
   } else {
     _tempRecoId = null;
   }
@@ -6429,9 +6429,17 @@ async function openGPGame(title) {
   const results = await igdbSearch(clean, 5);
   const match = results.find(g => _normGP(g.title) === _normGP(clean)) || results[0];
   if (!match) { showToast('Jeu introuvable'); return; }
+  if (_tempRecoId && _tempRecoId !== match.id) {
+    const prevIdx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (prevIdx >= 0) GAMES.splice(prevIdx, 1);
+    delete userGames[_tempRecoId];
+  }
   if (!GAMES.find(g => g.id === match.id)) {
-    GAMES.push({ ...match, status: 'wish', score: 0, notes: '', hours: 0 });
-    userGames[match.id] = { status: 'wish', score: 0, notes: '', hours: 0 };
+    _tempRecoId = match.id;
+    GAMES.push({ ...match, status: null, score: 0, notes: '', hours: 0 });
+    userGames[match.id] = { status: null, score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null };
+  } else {
+    _tempRecoId = null;
   }
   openDetail(match.id);
 }
@@ -6464,9 +6472,17 @@ async function renderHomeTrending(refresh = false) {
 function trendingOpenDetail(id) {
   const cached = _trendingCache?.find(x => x.id === id);
   if (!cached) return;
+  if (_tempRecoId && _tempRecoId !== id) {
+    const prevIdx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (prevIdx >= 0) GAMES.splice(prevIdx, 1);
+    delete userGames[_tempRecoId];
+  }
   if (!GAMES.find(x => x.id === id)) {
-    GAMES.push({...cached, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+    _tempRecoId = id;
+    GAMES.push({...cached, status: null, score:0, notes:'', hours:0});
+    userGames[id] = {status: null, score:0, notes:'', hours:0, vibe: null, ratedAt: null, platform: null};
+  } else {
+    _tempRecoId = null;
   }
   openDetail(id);
 }
