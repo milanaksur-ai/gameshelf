@@ -2857,10 +2857,11 @@ async function onAuthSuccess(user) {
   if (_authInProgress) return;
   _authInProgress = true;
   try {
-    const [{ data: profile }, { data: games }] = await Promise.all([
+    const [{ data: profile, error: profileErr }, { data: games }] = await Promise.all([
       _sb.from('profiles').select('*').eq('id', user.id).maybeSingle(),
       _sb.from('user_games').select('*').eq('user_id', user.id)
     ]);
+    if (profileErr) throw profileErr;
     if (profile) {
       GAMES.length = 0;
       Object.keys(userGames).forEach(k => delete userGames[k]);
@@ -2877,13 +2878,15 @@ async function onAuthSuccess(user) {
           gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
         }
       });
+      const rawPlatforms = profile.platforms || [];
       obProfile = {
         username: profile.username || 'Gamer',
         avatar: profile.avatar || '🎮',
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
-        platforms: profile.platforms || []
+        platforms: rawPlatforms.filter(p => p !== '__gp__'),
+        gamepass: rawPlatforms.includes('__gp__'),
       };
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       saveToStorage();
@@ -2891,6 +2894,10 @@ async function onAuthSuccess(user) {
     } else {
       obStep(2);
     }
+  } catch(e) {
+    console.error('GameShelf: onAuthSuccess error', e);
+    // Fall back to onboarding so the user isn't stuck on the login screen
+    obStep(2);
   } finally {
     _authInProgress = false;
   }
@@ -3782,9 +3789,11 @@ function clearScore() {
   ug.score = 0;
   ug.vibe = null;
   ug.ratedAt = null;
+  currentGame.score = 0;
   renderStars(0, ug.status);
   updateScoreDisplay(0, ug.status);
   renderVibe(null, false);
+  saveToStorage();
 }
 
 function renderStatus(s) {
@@ -3831,6 +3840,8 @@ function saveGame() {
   const h = parseInt(document.getElementById('hours-input').value) || 0;
   ug.hours = h;
   currentGame.hours = h;
+  currentGame.score = ug.score;
+  currentGame.notes = ug.notes;
   _tempRecoId = null;
   renderGameGrid();
   renderFeed();
