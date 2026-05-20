@@ -2873,7 +2873,7 @@ async function onAuthSuccess(user) {
           meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
           hours: g.hours || 0
         });
-        userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null };
+        userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null };
         if (g.screenshots?.length) {
           gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
         }
@@ -3274,14 +3274,15 @@ async function _execSync() {
         screenshots: (gameMedia[String(g.id)] || []).map(m => m.url),
         vibe: ug.vibe || null,
         rated_at: ug.ratedAt || null,
+        platform: ug.platform || null,
         updated_at: new Date().toISOString()
       };
     });
     if (!rows.length) return;
     const { error } = await _sb.from('user_games').upsert(rows, { onConflict: 'user_id,game_id' });
     if (error) {
-      const coreRows = rows.map(({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at }) =>
-        ({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at })
+      const coreRows = rows.map(({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at, vibe, rated_at }) =>
+        ({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at, vibe, rated_at })
       );
       await _sb.from('user_games').upsert(coreRows, { onConflict: 'user_id,game_id' });
     }
@@ -3339,7 +3340,7 @@ async function syncFromSupabase(user) {
         meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
         hours: g.hours || 0
       });
-      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null };
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null };
       if (g.screenshots?.length) {
         gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
       }
@@ -5849,12 +5850,19 @@ function fpGameRow(idx) {
   const g = _fpAllGames[idx];
   const gid = g.id || String(g.game_id || '');
   const mine = gid ? (_fpMyGames[gid] || null) : null;
+  const vibeKeys = _vibeArr(g.vibe);
+  const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
+    .map(v => `<span style="font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
+  const platBadge = g.platform
+    ? `<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[g.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 5px">${g.platform.toUpperCase()}</span>`
+    : '';
   return `<div onclick="openFriendGamePopup(${idx})" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;margin-bottom:8px;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
     ${fpCover(g,44,56,8)}
     <div style="flex:1;min-width:0">
       <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
       <div style="font-size:12px;color:var(--muted2);margin-top:2px">${FP_SL[g.status]||g.status}${g.score?` · <span style="color:var(--amber);font-weight:700">★${g.score}</span>`:''}</div>
       ${mine ? `<div style="font-size:11px;color:var(--muted2);margin-top:1px">Toi : ${FP_SL[mine.status]||''}${mine.score?` · <span style="color:var(--amber)">★${mine.score}</span>`:''}</div>` : ''}
+      ${(platBadge || vibeChips) ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${platBadge}${vibeChips}</div>` : ''}
     </div>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><path d="m9 18 6-6-6-6"/></svg>
   </div>`;
