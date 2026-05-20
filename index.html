@@ -7262,7 +7262,7 @@ async function handleAvatarUpload(input, previewId = 'avatar-upload-preview', gr
     });
     showToast('Photo importée ✓');
   } catch (e) {
-    showToast('Erreur upload 😕');
+    showToast('Erreur upload : ' + (e?.message || e?.error_description || JSON.stringify(e)));
     console.error(e);
   }
 }
