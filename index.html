@@ -3234,19 +3234,26 @@ function refreshViews() {
 // ── localStorage persistence + immediate Supabase sync ───
 let _syncInFlight = false;
 let _syncQueued   = false;
+let _syncPromise  = Promise.resolve(); // always holds the latest in-flight promise
 
 function saveToStorage() {
   try {
     localStorage.setItem('gs_games',     JSON.stringify(GAMES));
     localStorage.setItem('gs_userGames', JSON.stringify(userGames));
   } catch(e) { console.warn('GameShelf: storage save failed', e); }
-  syncToSupabase();
+  _triggerSync();
 }
 
-async function syncToSupabase() {
-  // Queue at most one pending sync; if one is already in-flight just flag it
+function _triggerSync() {
   if (_syncInFlight) { _syncQueued = true; return; }
   _syncInFlight = true;
+  _syncPromise = _execSync().finally(() => {
+    _syncInFlight = false;
+    if (_syncQueued) { _syncQueued = false; _triggerSync(); }
+  });
+}
+
+async function _execSync() {
   try {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
@@ -3272,18 +3279,16 @@ async function syncToSupabase() {
     if (!rows.length) return;
     const { error } = await _sb.from('user_games').upsert(rows, { onConflict: 'user_id,game_id' });
     if (error) {
-      // Fallback: retry without columns that may not exist in older schemas
       const coreRows = rows.map(({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at }) =>
         ({ user_id, game_id, title, status, score, notes, year, genre, cover, image_id, platforms, steam_id, hours, updated_at })
       );
       await _sb.from('user_games').upsert(coreRows, { onConflict: 'user_id,game_id' });
     }
   } catch(e) { console.warn('GameShelf: Supabase sync failed', e); }
-  finally {
-    _syncInFlight = false;
-    if (_syncQueued) { _syncQueued = false; syncToSupabase(); }
-  }
 }
+
+// Public — awaitable; callers that just want to trigger don't need to await
+function syncToSupabase() { _triggerSync(); return _syncPromise; }
 
 async function syncFromSupabase(user) {
   try {
@@ -3396,8 +3401,8 @@ async function forceRefresh() {
 
 async function logoutUser() {
   if (!confirm('Se déconnecter de GameShelf ?')) return;
-  // Flush any pending data before signing out so nothing is lost
-  await syncToSupabase();
+  // Wait for any in-flight sync to finish — location.reload() would kill the request otherwise
+  await _syncPromise;
   await _sb.auth.signOut();
   ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
   location.reload();
@@ -3773,9 +3778,11 @@ function renderStars(cur, status, doAnim = false) {
       const ug = userGames[currentGame.id];
       ug.score = isHalf ? i - 0.5 : i;
       ug.ratedAt = new Date().toISOString();
+      currentGame.score = ug.score;
       renderVibe(ug.vibe, ug.score > 0);
       renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
+      saveToStorage();
     };
     row.appendChild(b);
   }
