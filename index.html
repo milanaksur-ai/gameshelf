@@ -6915,9 +6915,10 @@ function applyProfileToUI() {
   if (session) {
     const hasLocal = loadFromStorage();
     if (hasLocal) {
-      // Guard against cross-account data leakage: if cache belongs to a different user, discard it
+      // Guard against cross-account data leakage.
+      // If gs_user_id is not set (pre-fix session) or belongs to a different user, discard cache.
       const localUserId = localStorage.getItem('gs_user_id');
-      if (localUserId && localUserId !== session.user.id) {
+      if (localUserId !== session.user.id) {
         localStorage.clear();
         GAMES.length = 0;
         Object.keys(userGames).forEach(k => delete userGames[k]);
