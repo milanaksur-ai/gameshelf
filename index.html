@@ -7238,20 +7238,19 @@ function selectEditAvatar(av, el) {
 async function handleAvatarUpload(input, previewId = 'avatar-upload-preview', gridId = 'edit-avatar-grid') {
   const file = input.files[0];
   if (!file) return;
-  const { data: { session } } = await _sb.auth.getSession();
-  if (!session) { showToast('Connecte-toi pour uploader une photo'); return; }
-  const uid = session.user.id;
-  showToast('Upload en cours…');
+  showToast('Compression…');
   try {
-    const compressed = await compressImage(file, 400, 0.85);
-    const { error } = await _sb.storage.from('screenshots').upload(`${uid}/avatar.jpg`, compressed, { upsert: true, contentType: 'image/jpeg' });
-    if (error) throw error;
-    const { data: { publicUrl } } = _sb.storage.from('screenshots').getPublicUrl(`${uid}/avatar.jpg`);
-    const urlWithBust = publicUrl + '?t=' + Date.now();
-    obProfile.avatarUrl = urlWithBust;
+    const blob = await compressImage(file, 400, 0.8);
+    const dataUrl = await new Promise((res, rej) => {
+      const fr = new FileReader();
+      fr.onload = () => res(fr.result);
+      fr.onerror = rej;
+      fr.readAsDataURL(blob);
+    });
+    obProfile.avatarUrl = dataUrl;
     const preview = document.getElementById(previewId);
     if (preview) {
-      preview.innerHTML = `<img src="${urlWithBust}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%">`;
+      preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%">`;
       preview.style.background = 'transparent';
     }
     const banner = document.getElementById('avatar-upload-banner');
@@ -7262,7 +7261,7 @@ async function handleAvatarUpload(input, previewId = 'avatar-upload-preview', gr
     });
     showToast('Photo importée ✓');
   } catch (e) {
-    showToast('Erreur upload : ' + (e?.message || e?.error_description || JSON.stringify(e)));
+    showToast('Erreur : ' + (e?.message || e));
     console.error(e);
   }
 }
