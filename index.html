@@ -2863,6 +2863,8 @@ async function onAuthSuccess(user) {
     ]);
     if (profileErr) throw profileErr;
     if (profile) {
+      // Auto-created Supabase profile (trigger) has no username → new user, show onboarding
+      if (!profile.username) { obStep(2); return; }
       GAMES.length = 0;
       Object.keys(userGames).forEach(k => delete userGames[k]);
       (games || []).forEach(g => {
@@ -2888,6 +2890,7 @@ async function onAuthSuccess(user) {
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass: rawPlatforms.includes('__gp__'),
       };
+      localStorage.setItem('gs_user_id', user.id);
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       saveToStorage();
       launchApp();
@@ -3409,7 +3412,7 @@ function loadFromStorage() {
 }
 function disconnectApp() {
   if (!confirm('Réinitialiser GameShelf ? Toutes tes données seront effacées.')) return;
-  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen'].forEach(k => localStorage.removeItem(k));
+  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_user_id'].forEach(k => localStorage.removeItem(k));
   _sb.auth.signOut().finally(() => location.reload());
 }
 
@@ -3426,7 +3429,7 @@ async function logoutUser() {
   // Wait for any in-flight sync to finish — location.reload() would kill the request otherwise
   await _syncPromise;
   await _sb.auth.signOut();
-  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty'].forEach(k => localStorage.removeItem(k));
+  ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
   location.reload();
 }
 
@@ -6912,6 +6915,15 @@ function applyProfileToUI() {
   if (session) {
     const hasLocal = loadFromStorage();
     if (hasLocal) {
+      // Guard against cross-account data leakage: if cache belongs to a different user, discard it
+      const localUserId = localStorage.getItem('gs_user_id');
+      if (localUserId && localUserId !== session.user.id) {
+        localStorage.clear();
+        GAMES.length = 0;
+        Object.keys(userGames).forEach(k => delete userGames[k]);
+        await onAuthSuccess(session.user);
+        return;
+      }
       // Returning user with local data → check if account was wiped server-side
       const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
       if (!_profileCheck) {
