@@ -2863,8 +2863,8 @@ async function onAuthSuccess(user) {
     ]);
     if (profileErr) throw profileErr;
     if (profile) {
-      // Auto-created Supabase profile (trigger) has no username → new user, show onboarding
-      if (!profile.username) { obStep(2); return; }
+      // Profile not properly set up (trigger auto-created, or username is default) → onboarding
+      if (!profile.onboarding_done) { obStep(2); return; }
       GAMES.length = 0;
       Object.keys(userGames).forEach(k => delete userGames[k]);
       (games || []).forEach(g => {
@@ -3396,6 +3396,7 @@ async function syncProfileToSupabase() {
       platforms: obProfile.gamepass
         ? [...(obProfile.platforms || []).filter(p => p !== '__gp__'), '__gp__']
         : (obProfile.platforms || []).filter(p => p !== '__gp__'),
+      onboarding_done: true,
       updated_at: new Date().toISOString()
     });
   } catch(e) { console.warn('GameShelf: profile sync failed', e); }
@@ -6948,7 +6949,12 @@ function applyProfileToUI() {
       await onAuthSuccess(session.user);
     }
   } else {
-    // No active session — OAuth redirect handled via onAuthStateChange above
+    // No active session
+    // Detect a failed OAuth redirect (Supabase returns error params in URL)
+    const _oauthErr = new URLSearchParams(window.location.search).get('error_description')
+      || new URLSearchParams(window.location.hash.slice(1)).get('error_description');
+    if (_oauthErr) showToast('Connexion échouée : ' + decodeURIComponent(_oauthErr));
+
     localStorage.removeItem('gs_games');
     localStorage.removeItem('gs_userGames');
     GAMES.length = 0;
