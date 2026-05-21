@@ -6960,7 +6960,7 @@ function applyProfileToUI() {
       // If gs_user_id is not set (pre-fix session) or belongs to a different user, discard cache.
       const localUserId = localStorage.getItem('gs_user_id');
       if (localUserId !== session.user.id) {
-        localStorage.clear();
+        ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
         GAMES.length = 0;
         Object.keys(userGames).forEach(k => delete userGames[k]);
         await onAuthSuccess(session.user);
@@ -6970,7 +6970,7 @@ function applyProfileToUI() {
       const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
       if (!_profileCheck) {
         // Stale local data from a different account — clear it and go through normal auth flow
-        localStorage.clear();
+        ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
         GAMES.length = 0;
         Object.keys(userGames).forEach(k => delete userGames[k]);
         await onAuthSuccess(session.user);
