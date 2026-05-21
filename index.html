@@ -2243,11 +2243,22 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 // Platform abbreviation colours
 const PLAT_COLORS = {
-  'PC':          '#6b7280', 'Mac':      '#6b7280', 'Linux':    '#6b7280',
+  'PC':          '#6b7280', 'PC / Steam': '#6b7280', 'Mac': '#6b7280', 'Linux': '#6b7280',
+  'PS1':         '#003087', 'PS2':      '#003087', 'PS3':      '#003087',
   'PS4':         '#003087', 'PS5':      '#003087',
-  'XBO':         '#107c10', 'XONE':     '#107c10', 'XBSX':     '#107c10', 'Series X|S': '#107c10', 'Xbox Series X': '#107c10',
-  'Switch':      '#e4000f', 'NSW':      '#e4000f', 'Switch 2': '#e4000f',   'NSW2':    '#e4000f',
+  'PSP':         '#003087', 'PS Vita':  '#003087',
+  'XBO':         '#107c10', 'XONE':     '#107c10', 'Xbox One': '#107c10',
+  'Xbox':        '#107c10', 'Xbox 360': '#107c10',
+  'XBSX':        '#107c10', 'Series X|S': '#107c10', 'Xbox Series X|S': '#107c10', 'Xbox Series X': '#107c10',
+  'Switch':      '#e4000f', 'NSW':      '#e4000f', 'Switch 2': '#e4000f', 'NSW2': '#e4000f',
+  'Wii':         '#e4000f', 'Wii U':    '#e4000f', 'GameCube': '#e4000f', 'N64':  '#e4000f',
+  '3DS':         '#e4000f', 'DS':       '#e4000f', 'Game Boy Advance': '#e4000f',
   'iOS':         '#5856d6', 'Android':  '#3ddc84',
+};
+const PLAT_LABELS = {
+  'XONE': 'Xbox One', 'XBO': 'Xbox One',
+  'XBSX': 'Series X|S',
+  'NSW':  'Switch',   'NSW2': 'Switch 2',
 };
 
 function mapIgdbGame(g) {
@@ -2283,7 +2294,7 @@ function renderPlatforms(platforms = []) {
   return `<div class="plat-badges">${
     platforms.slice(0, 5).map(p => {
       const color = PLAT_COLORS[p] || 'rgba(255,255,255,0.12)';
-      return `<span class="plat-badge" style="background:${color}">${p}</span>`;
+      return `<span class="plat-badge" style="background:${color}">${PLAT_LABELS[p] || p}</span>`;
     }).join('')
   }</div>`;
 }
@@ -3735,7 +3746,7 @@ function renderDetailPlatforms(g) {
     return `<span onclick="selectPlayedPlatform('${g.id}','${p}')"
       style="background:${bg};border:1.5px solid ${border};border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:${textColor};cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px"
       ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
-      ${active ? '<span style="font-size:10px">✓</span>' : ''} ${p}
+      ${active ? '<span style="font-size:10px">✓</span>' : ''} ${PLAT_LABELS[p] || p}
     </span>`;
   }).join('');
 }
@@ -3750,29 +3761,29 @@ function selectPlayedPlatform(gameId, p) {
 }
 
 const VIBES = [
-  { key:'masterpiece',  label:'💎 Chef-d\'œuvre',      group:'qualite' },
-  { key:'hiddengem',    label:'🌟 Pépite cachée',       group:'qualite' },
-  { key:'banger',       label:'🔥 Banger',              group:'qualite' },
-  { key:'meh',          label:'😐 Bof',                 group:'qualite' },
-  { key:'avoid',        label:'💩 À éviter',            group:'qualite' },
-  { key:'value',        label:'💸 Rapport qualité/prix',group:'qualite' },
-  { key:'unexpected',   label:'🧠 Inattendu',           group:'feeling' },
-  { key:'atmosphere',   label:'🌑 Atmosphère unique',   group:'feeling' },
-  { key:'emotional',    label:'❤️ Prend aux tripes',    group:'feeling' },
-  { key:'addictive',    label:'🔁 Addictif',            group:'feeling' },
-  { key:'short',        label:'🎯 Expérience courte',   group:'feeling' },
-  { key:'scary',        label:'😱 Effrayant',           group:'feeling' },
-  { key:'relaxing',     label:'🧘 Relaxant',            group:'feeling' },
-  { key:'ost',          label:'🎵 OST de fou',          group:'feeling' },
-  { key:'indigeste',    label:'📚 Indigeste',           group:'style' },
-  { key:'dynamique',    label:'⚡ Dynamique',           group:'style' },
-  { key:'slow',         label:'🐢 Lent à démarrer',     group:'style' },
-  { key:'complexe',     label:'🧩 Complexe',            group:'style' },
-  { key:'dejante',      label:'🎪 Déjanté',             group:'style' },
-  { key:'ambitieux',    label:'🏔️ Ambitieux',           group:'style' },
-  { key:'original',     label:'💡 Original',            group:'style' },
-  { key:'cinematique',  label:'🎬 Cinématique',         group:'style' },
-  { key:'frustrant',    label:'😤 Frustrant',           group:'style' },
+  { key:'masterpiece',  label:'💎 Chef-d\'œuvre',      tone:'pos' },
+  { key:'hiddengem',    label:'🌟 Pépite cachée',       tone:'pos' },
+  { key:'banger',       label:'🔥 Banger',              tone:'pos' },
+  { key:'value',        label:'💸 Rapport qualité/prix',tone:'pos' },
+  { key:'unexpected',   label:'🧠 Inattendu',           tone:'pos' },
+  { key:'atmosphere',   label:'🌑 Atmosphère unique',   tone:'pos' },
+  { key:'emotional',    label:'❤️ Prend aux tripes',    tone:'pos' },
+  { key:'addictive',    label:'🔁 Addictif',            tone:'pos' },
+  { key:'relaxing',     label:'🧘 Relaxant',            tone:'pos' },
+  { key:'ost',          label:'🎵 OST de fou',          tone:'pos' },
+  { key:'dynamique',    label:'⚡ Dynamique',           tone:'pos' },
+  { key:'ambitieux',    label:'🏔️ Ambitieux',           tone:'pos' },
+  { key:'original',     label:'💡 Original',            tone:'pos' },
+  { key:'cinematique',  label:'🎬 Cinématique',         tone:'pos' },
+  { key:'dejante',      label:'🎪 Déjanté',             tone:'pos' },
+  { key:'short',        label:'🎯 Expérience courte',   tone:'pos' },
+  { key:'meh',          label:'😐 Bof',                 tone:'neg' },
+  { key:'avoid',        label:'💩 À éviter',            tone:'neg' },
+  { key:'frustrant',    label:'😤 Frustrant',           tone:'neg' },
+  { key:'slow',         label:'🐢 Lent à démarrer',     tone:'neg' },
+  { key:'indigeste',    label:'📚 Indigeste',           tone:'neg' },
+  { key:'complexe',     label:'🧩 Complexe',            tone:'neg' },
+  { key:'scary',        label:'😱 Effrayant',           tone:'neg' },
 ];
 
 function _vibeArr(v) {
@@ -3786,10 +3797,17 @@ function renderVibe(curVibe, hasScore) {
   if (!hasScore) { row.style.display = 'none'; return; }
   row.style.display = 'flex';
   const sel = _vibeArr(curVibe);
-  row.innerHTML = VIBES.map(v => {
+  const chip = v => {
     const active = sel.includes(v.key);
     return `<button onclick="setVibe('${v.key}')" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:0.5px solid ${active?'var(--a)':'var(--border2)'};background:${active?'rgba(108,92,231,0.2)':'var(--s2)'};color:${active?'var(--a)':'var(--muted2)'};cursor:pointer;white-space:nowrap;transition:all 0.15s">${v.label}</button>`;
-  }).join('');
+  };
+  const pos = VIBES.filter(v => v.tone === 'pos');
+  const neg = VIBES.filter(v => v.tone === 'neg');
+  row.innerHTML =
+    `<div style="font-size:10px;font-weight:700;color:#00b894;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-bottom:2px">Points forts</div>` +
+    pos.map(chip).join('') +
+    `<div style="font-size:10px;font-weight:700;color:#d63031;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-top:8px;margin-bottom:2px">Points faibles</div>` +
+    neg.map(chip).join('');
 }
 function setVibe(vibe) {
   if (!currentGame) return;
@@ -7157,7 +7175,13 @@ function closeLightbox() { document.getElementById('lightbox').style.display = '
 // EDIT PROFILE
 // ══════════════════════════════════════
 const EDIT_AVATARS = ['🎮','🕹️','👾','🎯','🏆','⚔️','🛡️','🚀','🔥','💎','🌟','🎲'];
-const EDIT_PLATFORMS = ['PC','PS5','PS4','Xbox Series X|S','Switch','iOS','Android'];
+const EDIT_PLATFORMS = [
+  'PC / Steam', 'iOS', 'Android',
+  'PS5', 'PS4', 'PS3', 'PS2', 'PS1', 'PS Vita', 'PSP',
+  'Xbox Series X|S', 'Xbox One', 'Xbox 360', 'Xbox',
+  'Switch 2', 'Switch', 'Wii U', 'Wii', 'GameCube', 'N64',
+  '3DS', 'DS', 'Game Boy Advance',
+];
 
 function openEditProfile() {
   const modal = document.getElementById('edit-profile-modal');
@@ -7779,10 +7803,7 @@ function showQuizResults() {
       <button id="quiz-publish-btn" onclick="publishQuizResult()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;margin-bottom:10px">
         📢 Publier dans mon feed
       </button>
-      <div style="display:flex;gap:10px;width:100%">
-        <button onclick="closeQuiz()" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
-        <button onclick="closeQuiz()" style="flex:1;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
-      </div>
+      <button onclick="closeQuiz()" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
     </div>`;
 }
 
