@@ -5747,7 +5747,6 @@ function renderSocialScreen(uid) {
 
 async function searchUsers(q) {
   const resultsEl = document.getElementById('friend-search-results');
-  // Strip leading @ if user types it
   const cleanQ = q.startsWith('@') ? q.slice(1) : q;
   if (!cleanQ || cleanQ.length < 2) { resultsEl.style.display = 'none'; return; }
   const { data: { session } } = await _sb.auth.getSession();
@@ -5757,16 +5756,17 @@ async function searchUsers(q) {
     return;
   }
   const uid = session.user.id;
-  const { data, error } = await _sb.from('profiles').select('*')
+  const { data, error } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,avatar_url,bio')
     .ilike('username', '%' + cleanQ + '%').neq('id', uid).limit(6);
+  console.log('[searchUsers]', { q: cleanQ, uid, data, error });
   if (error) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = '<div style="padding:14px 16px;font-size:12px;color:var(--red)">Erreur: ' + error.message + '</div>';
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:12px;color:var(--red)">Erreur: ${error.message} (${error.code})</div>`;
     return;
   }
   if (!data || !data.length) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Aucun résultat pour "${cleanQ}"</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Aucun résultat pour "${cleanQ}"<br><span style="font-size:11px;color:var(--muted)">uid: ${uid.slice(0,8)}…</span></div>`;
     return;
   }
   resultsEl.style.display = 'block';
