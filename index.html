@@ -3975,7 +3975,7 @@ function removeGame(id) {
   const modal = document.getElementById('confirm-modal');
   modal.style.display = 'flex';
 }
-function confirmRemoveGame() {
+async function confirmRemoveGame() {
   const id = _pendingRemoveId;
   if (!id) return;
   closeConfirmModal();
@@ -3986,6 +3986,8 @@ function confirmRemoveGame() {
   delete userGames[id];
   filterGames(); renderFeed(); renderProfileStats();
   saveToStorage();
+  const { data: { session } } = await _sb.auth.getSession();
+  if (session) _sb.from('user_games').delete().eq('user_id', session.user.id).eq('game_id', String(id)).then();
   showToast(`${title} retiré`);
 }
 function closeConfirmModal() {
