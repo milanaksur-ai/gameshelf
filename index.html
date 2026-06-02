@@ -1191,26 +1191,9 @@ html, body {
     </div></div>
   </div>
 
-  <!-- STEP 2b : COLOR PICKER -->
-  <div class="step" id="step-2b">
-    <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
-    <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 3 sur 6</div>
-      <div class="step-title">Ta <span>couleur</span></div>
-      <p class="step-sub">Elle apparaît autour de ton avatar chez tes amis.</p>
-      <div style="display:flex;justify-content:center;margin-bottom:24px">
-        <div id="ob-color-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;flex-shrink:0;border:3px solid #6c5ce7;box-shadow:0 0 0 4px rgba(108,92,231,0.25),0 4px 20px rgba(108,92,231,0.35)">🎮</div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px" id="ob-color-grid">
-        <!-- filled by JS -->
-      </div>
-      <button class="btn-primary" onclick="validateColor()">Continuer →</button>
-    </div></div>
-  </div>
-
   <!-- STEP 3 : IMPORT -->
   <div class="step" id="step-3">
-    <button class="back-btn" onclick="obStep('2b')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 3 sur 5</div>
       <div class="step-title">Importe tes <span>jeux</span></div>
@@ -2217,13 +2200,6 @@ html, body {
         <div id="gp-edit-check" style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--s1);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.2s"></div>
       </div>
     </div>
-    <!-- Profile color -->
-    <div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Couleur de profil</div>
-      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px" id="edit-color-grid">
-        <!-- populated by JS -->
-      </div>
-    </div>
     <!-- Save -->
     <button onclick="saveEditProfile()" class="btn-primary" style="margin-top:8px">Sauvegarder</button>
   </div>
@@ -2807,14 +2783,7 @@ let addedGames = [];
 let obPickerGames = {};
 let trendingAdded = new Set();
 let obCurrentStatus = 'playing-solo';
-let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer', gamepass: false, color: '#6c5ce7' };
-
-const PROFILE_COLORS = [
-  '#6c5ce7','#a29bfe','#fd79a8','#e84393',
-  '#e17055','#fd4e3c','#fdcb6e','#f39c12',
-  '#00b894','#55efc4','#1abc9c','#00cec9',
-  '#0984e3','#2980b9','#8e44ad','#636e72',
-];
+let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer', gamepass: false };
 
 const OB_STATUS_COLORS = {
   'playing-solo':  { border: 'rgba(108,92,231,0.7)', color: '#a29bfe', bg: 'rgba(108,92,231,0.12)' },
@@ -2839,10 +2808,10 @@ function setObTab(status, btn) {
   // Clear search & results to avoid confusion
   if (input && input.value) { input.value = ''; searchGames(''); }
 }
-const OB_PROGRESS = { '0':0,'1':18,'2':36,'2b':46,'3':56,'3b':64,'3c':76,'3d':82,'4':100 };
+const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':75,'3d':80,'4':100 };
 
 function obStep(target) {
-  const ids = ['0','1','2','2b','3','3b','3c','3d','4'];
+  const ids = ['0','1','2','3','3b','3c','3d','4'];
   const cur = ids.find(id => document.getElementById('step-'+id)?.classList.contains('active'));
   const curIdx = ids.indexOf(String(cur));
   const nxtIdx = ids.indexOf(String(target));
@@ -2963,7 +2932,6 @@ async function onAuthSuccess(user) {
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
-        color: profile.profile_color || '#6c5ce7',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass: rawPlatforms.includes('__gp__'),
       };
@@ -3000,52 +2968,6 @@ async function validateStep2() {
   obProfile.gamepass = document.getElementById('gp-ob-opt')?.classList.contains('sel') || false;
   await syncProfileToSupabase(); // create profile early so mid-onboarding reload doesn't sign out
   if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
-  _renderObColorGrid();
-  obStep('2b');
-}
-
-function _renderObColorGrid() {
-  const grid = document.getElementById('ob-color-grid');
-  if (!grid) return;
-  const sel = obProfile.color || '#6c5ce7';
-  grid.innerHTML = PROFILE_COLORS.map(c => `
-    <div onclick="selectObColor('${c}',this)" data-c="${c}" style="width:100%;aspect-ratio:1;border-radius:50%;background:${c};cursor:pointer;box-sizing:border-box;border:3px solid ${c === sel ? '#fff' : 'transparent'};outline:3px solid ${c === sel ? c : 'transparent'};transition:all 0.18s"></div>
-  `).join('');
-  const prev = document.getElementById('ob-color-preview');
-  if (prev) {
-    prev.style.border = `3px solid ${sel}`;
-    prev.style.boxShadow = `0 0 0 4px ${sel}40,0 4px 20px ${sel}60`;
-    if (obProfile.avatarUrl) {
-      prev.innerHTML = `<img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
-      prev.style.background = 'transparent';
-    } else {
-      prev.innerHTML = obProfile.avatar || '🎮';
-      prev.style.background = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-    }
-  }
-}
-
-function selectObColor(color, el) {
-  obProfile.color = color;
-  document.querySelectorAll('#ob-color-grid [data-c]').forEach(d => {
-    const c = d.dataset.c;
-    d.style.border = c === color ? '3px solid #fff' : '3px solid transparent';
-    d.style.outline = c === color ? `3px solid ${c}` : '3px solid transparent';
-  });
-  const prev = document.getElementById('ob-color-preview');
-  if (prev) {
-    prev.style.border = `3px solid ${color}`;
-    prev.style.boxShadow = `0 0 0 4px ${color}40,0 4px 20px ${color}60`;
-    if (obProfile.avatarUrl) {
-      prev.innerHTML = `<img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
-    } else {
-      prev.innerHTML = obProfile.avatar || '🎮';
-      prev.style.background = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-    }
-  }
-}
-
-function validateColor() {
   obStep(3);
 }
 function validateStep3() {
@@ -3449,7 +3371,6 @@ async function syncFromSupabase(user) {
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
-        color: profile.profile_color || '#6c5ce7',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass,
       };
@@ -3519,7 +3440,6 @@ async function syncProfileToSupabase() {
       avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
       avatar_url: obProfile.avatarUrl || null,
       bio: obProfile.bio || '',
-      profile_color: obProfile.color || '#6c5ce7',
       platforms: obProfile.gamepass
         ? [...(obProfile.platforms || []).filter(p => p !== '__gp__'), '__gp__']
         : (obProfile.platforms || []).filter(p => p !== '__gp__'),
@@ -6191,7 +6111,6 @@ function renderFriendProfile(friend) {
   _fpMyGames = userGames;
   document.getElementById('fp-title').textContent = friend.username;
   const av = document.getElementById('fp-avatar');
-  const fpCol = friend.profile_color || '#6c5ce7';
   if (friend.avatar_url) {
     av.innerHTML = `<img src="${friend.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${friend.avatar||'🎮'}';this.remove()">`;
     av.style.background = 'transparent';
@@ -6199,8 +6118,8 @@ function renderFriendProfile(friend) {
     av.textContent = friend.avatar || '🎮';
     av.style.background = friend.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
   }
-  av.style.border = `3px solid ${fpCol}`;
-  av.style.boxShadow = `0 0 0 4px ${fpCol}30,0 4px 24px ${fpCol}50`;
+  av.style.border = '';
+  av.style.boxShadow = '0 4px 20px rgba(0,0,0,0.4)';
   document.getElementById('fp-name').textContent = friend.username || '';
   document.getElementById('fp-handle').textContent = '@' + (friend.username||'').toLowerCase().replace(/\s+/g,'');
   document.getElementById('fp-bio').textContent = friend.bio || '';
@@ -6422,7 +6341,6 @@ async function openFriendProfile(userId) {
     avatar: profile.avatar || '🎮',
     avatar_grad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
     avatar_url: profile.avatar_url || null,
-    profile_color: profile.profile_color || '#6c5ce7',
     bio: profile.bio || '',
     platforms: profile.platforms || [],
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
@@ -6457,7 +6375,7 @@ async function loadFriendActivity(friendIds) {
   if (!data || !data.length) return;
 
   // Get profiles for these users
-  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,profile_color').in('id', friendIds);
+  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad').in('id', friendIds);
   const profileMap = {};
   (profiles||[]).forEach(p => profileMap[p.id] = p);
 
@@ -6480,10 +6398,9 @@ async function loadFriendActivity(friendIds) {
     const ago = timeAgo(item.updated_at);
     const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
     const av = p.avatar || '🎮';
-    const pCol = p.profile_color || '#6c5ce7';
     const cover = src
-      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${pCol};box-shadow:0 0 0 2px ${pCol}40;background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid ${pCol};box-shadow:0 0 0 2px ${pCol}40;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
+      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2);background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
       ${cover}
       <div style="flex:1;min-width:0">
@@ -7075,11 +6992,8 @@ function applyProfileToUI() {
   const nm = obProfile.username || 'Gamer';
   const grad = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
   const url  = obProfile.avatarUrl || null;
-  const col  = obProfile.color || '#6c5ce7';
   _setAvatarEl(document.getElementById('app-profile-av'), av, grad, url);
   _setAvatarEl(document.getElementById('app-avatar-btn'), av, grad, url);
-  const avEl = document.getElementById('app-profile-av');
-  if (avEl) { avEl.style.border = `3px solid ${col}`; avEl.style.boxShadow = `0 0 0 4px ${col}30,0 4px 24px ${col}50`; }
   const nameEl = document.getElementById('app-profile-name');
   const hdlEl  = document.getElementById('app-profile-handle');
   if (nameEl) nameEl.textContent = nm;
@@ -7404,26 +7318,7 @@ function openEditProfile() {
       gpEditCheck.style.background = 'var(--s1)';
     }
   }
-  // Populate color grid
-  const colorGrid = document.getElementById('edit-color-grid');
-  const currentColor = obProfile.color || '#6c5ce7';
-  if (colorGrid) {
-    colorGrid.innerHTML = PROFILE_COLORS.map(c => `
-      <div onclick="selectEditColor('${c}',this)" data-col="${c}" style="aspect-ratio:1;border-radius:50%;background:${c};cursor:pointer;box-sizing:border-box;border:3px solid ${c === currentColor ? '#fff' : 'transparent'};outline:3px solid ${c === currentColor ? c : 'transparent'};transition:all 0.18s"></div>
-    `).join('');
-  }
   modal.style.display = 'flex';
-}
-
-function selectEditColor(color, el) {
-  document.querySelectorAll('#edit-color-grid [data-col]').forEach(d => {
-    const c = d.dataset.col;
-    d.style.border = c === color ? '3px solid #fff' : '3px solid transparent';
-    d.style.outline = c === color ? `3px solid ${c}` : '3px solid transparent';
-  });
-  // Live-update the avatar preview with new color ring
-  const prev = document.getElementById('avatar-upload-preview');
-  if (prev) { prev.style.border = `3px solid ${color}`; prev.style.boxShadow = `0 0 0 4px ${color}40`; }
 }
 
 function selectEditAvatar(av, el) {
@@ -7518,9 +7413,7 @@ async function saveEditProfile() {
     if (existing) { showToast('Ce pseudo est déjà pris 😕'); return; }
   }
   const gamepass = document.getElementById('gp-edit-opt')?.classList.contains('sel') || false;
-  const selColorEl = document.querySelector('#edit-color-grid [data-col][style*="solid #fff"]');
-  const color = selColorEl ? selColorEl.dataset.col : (obProfile.color || '#6c5ce7');
-  obProfile = {...obProfile, username: name, avatar, bio, platforms, gamepass, color};
+  obProfile = {...obProfile, username: name, avatar, bio, platforms, gamepass};
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   applyProfileToUI();
   closeEditProfile();
