@@ -2217,6 +2217,13 @@ html, body {
         <div id="gp-edit-check" style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--s1);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.2s"></div>
       </div>
     </div>
+    <!-- Profile color -->
+    <div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">Couleur de profil</div>
+      <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:10px" id="edit-color-grid">
+        <!-- populated by JS -->
+      </div>
+    </div>
     <!-- Save -->
     <button onclick="saveEditProfile()" class="btn-primary" style="margin-top:8px">Sauvegarder</button>
   </div>
@@ -7397,7 +7404,26 @@ function openEditProfile() {
       gpEditCheck.style.background = 'var(--s1)';
     }
   }
+  // Populate color grid
+  const colorGrid = document.getElementById('edit-color-grid');
+  const currentColor = obProfile.color || '#6c5ce7';
+  if (colorGrid) {
+    colorGrid.innerHTML = PROFILE_COLORS.map(c => `
+      <div onclick="selectEditColor('${c}',this)" data-col="${c}" style="aspect-ratio:1;border-radius:50%;background:${c};cursor:pointer;box-sizing:border-box;border:3px solid ${c === currentColor ? '#fff' : 'transparent'};outline:3px solid ${c === currentColor ? c : 'transparent'};transition:all 0.18s"></div>
+    `).join('');
+  }
   modal.style.display = 'flex';
+}
+
+function selectEditColor(color, el) {
+  document.querySelectorAll('#edit-color-grid [data-col]').forEach(d => {
+    const c = d.dataset.col;
+    d.style.border = c === color ? '3px solid #fff' : '3px solid transparent';
+    d.style.outline = c === color ? `3px solid ${c}` : '3px solid transparent';
+  });
+  // Live-update the avatar preview with new color ring
+  const prev = document.getElementById('avatar-upload-preview');
+  if (prev) { prev.style.border = `3px solid ${color}`; prev.style.boxShadow = `0 0 0 4px ${color}40`; }
 }
 
 function selectEditAvatar(av, el) {
@@ -7492,7 +7518,9 @@ async function saveEditProfile() {
     if (existing) { showToast('Ce pseudo est déjà pris 😕'); return; }
   }
   const gamepass = document.getElementById('gp-edit-opt')?.classList.contains('sel') || false;
-  obProfile = {...obProfile, username: name, avatar, bio, platforms, gamepass};
+  const selColorEl = document.querySelector('#edit-color-grid [data-col][style*="solid #fff"]');
+  const color = selColorEl ? selColorEl.dataset.col : (obProfile.color || '#6c5ce7');
+  obProfile = {...obProfile, username: name, avatar, bio, platforms, gamepass, color};
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   applyProfileToUI();
   closeEditProfile();
