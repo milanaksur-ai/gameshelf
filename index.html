@@ -6296,7 +6296,11 @@ async function openFriendGamePopup(idx) {
     ${mine ? `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span style="color:var(--muted2)">Toi : </span><span style="font-weight:600">${FP_SL[mine.status]||mine.status}</span>${mine.score ? `<span style="color:var(--amber);font-weight:700"> · ★${mine.score}</span>` : ''}</div>` : `<div style="font-size:12px;color:var(--muted2);font-style:italic;margin-bottom:12px">Pas dans ta bibliothèque</div>`}
     ${g.notes ? `<div style="border-left:3px solid var(--a);border-radius:0 10px 10px 0;background:rgba(108,92,231,0.07);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${g.notes}"</div>` : ''}
     ${screenshotHtml}
-    <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);margin-top:4px">Fermer</button>`;
+    ${mine
+      ? `<button onclick="closeFriendGamePopup();openDetail('${gid}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
+      : `<button onclick="addFromFriendLibrary('${encodeURIComponent(g.title)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">➕ Ajouter à ma liste</button>`
+    }
+    <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);margin-top:8px">Fermer</button>`;
   }
 
   el.innerHTML = buildHtml('<div style="height:24px"></div>');
@@ -6323,6 +6327,15 @@ async function openFriendGamePopup(idx) {
   el.innerHTML = buildHtml(screenshotHtml);
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
+function addFromFriendLibrary(encodedTitle) {
+  const title = decodeURIComponent(encodedTitle);
+  closeFriendGamePopup();
+  openAddModal();
+  setTimeout(() => {
+    const searchEl = document.getElementById('ldisc-search');
+    if (searchEl) { searchEl.value = title; ldiscSearch(title); }
+  }, 150);
+}
 
 let _fpFriendshipId = null;
 let _fpFriendUserId = null;
