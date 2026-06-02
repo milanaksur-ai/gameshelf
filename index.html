@@ -1191,9 +1191,26 @@ html, body {
     </div></div>
   </div>
 
+  <!-- STEP 2b : COLOR PICKER -->
+  <div class="step" id="step-2b">
+    <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+    <div class="step-scroll"><div class="step-pad">
+      <div class="step-tag">Étape 3 sur 6</div>
+      <div class="step-title">Ta <span>couleur</span></div>
+      <p class="step-sub">Elle apparaît autour de ton avatar chez tes amis.</p>
+      <div style="display:flex;justify-content:center;margin-bottom:24px">
+        <div id="ob-color-preview" style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;flex-shrink:0;border:3px solid #6c5ce7;box-shadow:0 0 0 4px rgba(108,92,231,0.25),0 4px 20px rgba(108,92,231,0.35)">🎮</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px" id="ob-color-grid">
+        <!-- filled by JS -->
+      </div>
+      <button class="btn-primary" onclick="validateColor()">Continuer →</button>
+    </div></div>
+  </div>
+
   <!-- STEP 3 : IMPORT -->
   <div class="step" id="step-3">
-    <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
+    <button class="back-btn" onclick="obStep('2b')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 3 sur 5</div>
       <div class="step-title">Importe tes <span>jeux</span></div>
@@ -1598,7 +1615,7 @@ html, body {
       <!-- TROUVAILLES DU MOMENT -->
       <div style="padding:20px 16px 0" id="trouvailles-section">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Trouvailles du moment</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Les avis récents</div>
         </div>
         <div id="trouvailles-list"></div>
       </div>
@@ -1796,6 +1813,8 @@ html, body {
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Activité récente</div>
           <div id="social-activity-list"></div>
         </div>
+        <!-- Demo profiles (examples) -->
+        <div id="social-demo-profiles" style="margin-top:24px"></div>
       </div>
     </div>
   </div>
@@ -1817,14 +1836,14 @@ html, body {
           <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
           <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:8px"></div>
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
-          <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px"></div>
-          <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:14px"></div>
+          <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
+          <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
         </div>
       </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">EN CE MOMENT</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">JEUX EN COURS</div>
         <div id="fp-now-list"></div>
       </div>
       <!-- Top | Activité (toggle, comme profil utilisateur) -->
@@ -1838,7 +1857,7 @@ html, body {
       </div>
       <!-- Trouvailles -->
       <div id="fp-trouvailles-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">✦ TROUVAILLES DU MOMENT</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">✦ LES AVIS RÉCENTS</div>
         <div id="fp-trouvailles-list"></div>
       </div>
       <!-- Sa bibliothèque -->
@@ -1847,6 +1866,19 @@ html, body {
         <div id="fp-lib-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px"></div>
         <div id="fp-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
+    </div>
+  </div>
+  <!-- Friend full library modal -->
+  <div id="fp-lib-modal" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column">
+    <div style="padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
+      <button onclick="document.getElementById('fp-lib-modal').style.display='none'" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div id="fp-lib-modal-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1">Bibliothèque complète</div>
+    </div>
+    <div class="scroll-area" style="padding:12px 16px calc(20px + env(safe-area-inset-bottom))">
+      <div id="fp-lib-modal-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px"></div>
+      <div id="fp-lib-modal-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
   <!-- Friend game popup overlay -->
@@ -2768,7 +2800,14 @@ let addedGames = [];
 let obPickerGames = {};
 let trendingAdded = new Set();
 let obCurrentStatus = 'playing-solo';
-let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer', gamepass: false };
+let obProfile = { avatar: '🎮', avatarGrad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', username: 'Gamer', gamepass: false, color: '#6c5ce7' };
+
+const PROFILE_COLORS = [
+  '#6c5ce7','#a29bfe','#fd79a8','#e84393',
+  '#e17055','#fd4e3c','#fdcb6e','#f39c12',
+  '#00b894','#55efc4','#1abc9c','#00cec9',
+  '#0984e3','#2980b9','#8e44ad','#636e72',
+];
 
 const OB_STATUS_COLORS = {
   'playing-solo':  { border: 'rgba(108,92,231,0.7)', color: '#a29bfe', bg: 'rgba(108,92,231,0.12)' },
@@ -2793,10 +2832,10 @@ function setObTab(status, btn) {
   // Clear search & results to avoid confusion
   if (input && input.value) { input.value = ''; searchGames(''); }
 }
-const OB_PROGRESS = { '0':0,'1':18,'2':36,'3':54,'3b':62,'3c':75,'3d':80,'4':100 };
+const OB_PROGRESS = { '0':0,'1':18,'2':36,'2b':46,'3':56,'3b':64,'3c':76,'3d':82,'4':100 };
 
 function obStep(target) {
-  const ids = ['0','1','2','3','3b','3c','3d','4'];
+  const ids = ['0','1','2','2b','3','3b','3c','3d','4'];
   const cur = ids.find(id => document.getElementById('step-'+id)?.classList.contains('active'));
   const curIdx = ids.indexOf(String(cur));
   const nxtIdx = ids.indexOf(String(target));
@@ -2917,6 +2956,7 @@ async function onAuthSuccess(user) {
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
+        color: profile.profile_color || '#6c5ce7',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass: rawPlatforms.includes('__gp__'),
       };
@@ -2953,6 +2993,52 @@ async function validateStep2() {
   obProfile.gamepass = document.getElementById('gp-ob-opt')?.classList.contains('sel') || false;
   await syncProfileToSupabase(); // create profile early so mid-onboarding reload doesn't sign out
   if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
+  _renderObColorGrid();
+  obStep('2b');
+}
+
+function _renderObColorGrid() {
+  const grid = document.getElementById('ob-color-grid');
+  if (!grid) return;
+  const sel = obProfile.color || '#6c5ce7';
+  grid.innerHTML = PROFILE_COLORS.map(c => `
+    <div onclick="selectObColor('${c}',this)" data-c="${c}" style="width:100%;aspect-ratio:1;border-radius:50%;background:${c};cursor:pointer;box-sizing:border-box;border:3px solid ${c === sel ? '#fff' : 'transparent'};outline:3px solid ${c === sel ? c : 'transparent'};transition:all 0.18s"></div>
+  `).join('');
+  const prev = document.getElementById('ob-color-preview');
+  if (prev) {
+    prev.style.border = `3px solid ${sel}`;
+    prev.style.boxShadow = `0 0 0 4px ${sel}40,0 4px 20px ${sel}60`;
+    if (obProfile.avatarUrl) {
+      prev.innerHTML = `<img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+      prev.style.background = 'transparent';
+    } else {
+      prev.innerHTML = obProfile.avatar || '🎮';
+      prev.style.background = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+    }
+  }
+}
+
+function selectObColor(color, el) {
+  obProfile.color = color;
+  document.querySelectorAll('#ob-color-grid [data-c]').forEach(d => {
+    const c = d.dataset.c;
+    d.style.border = c === color ? '3px solid #fff' : '3px solid transparent';
+    d.style.outline = c === color ? `3px solid ${c}` : '3px solid transparent';
+  });
+  const prev = document.getElementById('ob-color-preview');
+  if (prev) {
+    prev.style.border = `3px solid ${color}`;
+    prev.style.boxShadow = `0 0 0 4px ${color}40,0 4px 20px ${color}60`;
+    if (obProfile.avatarUrl) {
+      prev.innerHTML = `<img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+    } else {
+      prev.innerHTML = obProfile.avatar || '🎮';
+      prev.style.background = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+    }
+  }
+}
+
+function validateColor() {
   obStep(3);
 }
 function validateStep3() {
@@ -3356,6 +3442,7 @@ async function syncFromSupabase(user) {
         avatarGrad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
         avatarUrl: profile.avatar_url || null,
         bio: profile.bio || '',
+        color: profile.profile_color || '#6c5ce7',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass,
       };
@@ -3425,6 +3512,7 @@ async function syncProfileToSupabase() {
       avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
       avatar_url: obProfile.avatarUrl || null,
       bio: obProfile.bio || '',
+      profile_color: obProfile.color || '#6c5ce7',
       platforms: obProfile.gamepass
         ? [...(obProfile.platforms || []).filter(p => p !== '__gp__'), '__gp__']
         : (obProfile.platforms || []).filter(p => p !== '__gp__'),
@@ -4343,66 +4431,88 @@ function switchProfileTab(tab) {
   }
 }
 
+function _trvGameCard(g, containerId) {
+  const src = (typeof coverUrl === 'function') ? coverUrl(g) : null;
+  const vibeKeys = (typeof _vibeArr === 'function') ? _vibeArr(g.vibe) : [];
+  const vibeChips = vibeKeys.map(k => (typeof VIBES !== 'undefined' ? VIBES : []).find(v => v.key === k)).filter(Boolean)
+    .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
+  const review = g.notes || '';
+  const MAX = 100;
+  const needsExpand = review.length > MAX;
+  const short = needsExpand ? review.slice(0, MAX) + '…' : review;
+  const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review)}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
+  const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
+  const accentColor = g.score >= 8 ? 'var(--amber)' : g.score >= 6 ? 'rgba(108,92,231,0.6)' : 'var(--border2)';
+  const clickFn = containerId.startsWith('fp-') ? `openFriendGamePopup` : `openDetail`;
+  const clickArg = containerId.startsWith('fp-') ? (() => { const idx = (typeof _fpAllGames !== 'undefined' ? _fpAllGames : []).findIndex(x => String(x.id||x.game_id||'') === String(g.id||'')); return idx >= 0 ? idx : "'" + g.id + "'"; })() : `'${g.id}'`;
+  const onclickAttr = containerId.startsWith('fp-') ? `openFriendGamePopup(${typeof _fpAllGames !== 'undefined' ? _fpAllGames.findIndex(x=>String(x.id||x.game_id||'')===String(g.id||'')) : -1})` : `openDetail('${g.id}')`;
+  return `<div onclick="${onclickAttr}" style="display:flex;gap:12px;padding:12px;background:var(--s2);border-radius:14px;margin-bottom:8px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s;position:relative;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentColor};border-radius:14px 0 0 14px"></div>
+    ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:48px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-left:4px">` : `<div style="width:48px;height:66px;border-radius:8px;background:var(--s3);flex-shrink:0;margin-left:4px;display:flex;align-items:center;justify-content:center;font-size:20px">${(g.title||'?')[0]}</div>`}
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+        <div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--amber)">${scoreStr}</div>
+      </div>
+      ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${vibeChips}</div>` : ''}
+      ${notesHtml}
+    </div>
+  </div>`;
+}
+
+function _trvExpandMonth(monthId, encodedGames, containerId) {
+  const wrap = document.getElementById(monthId);
+  if (!wrap) return;
+  const games = JSON.parse(decodeURIComponent(encodedGames));
+  const moreEl = document.getElementById(monthId + '-more');
+  if (moreEl) moreEl.remove();
+  const btnEl = document.getElementById(monthId + '-btn');
+  if (btnEl) btnEl.remove();
+  games.forEach(g => { wrap.insertAdjacentHTML('beforeend', _trvGameCard(g, containerId)); });
+}
+
 function renderTrouvailles(ugData, gamesData, containerId) {
   const el = document.getElementById(containerId);
   if (!el) return;
+  const now = new Date();
+  const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const rated = gamesData
-    .filter(g => (ugData[g.id]?.score || 0) > 0)
+    .filter(g => {
+      if (!((ugData[g.id]?.score || g.score || 0) > 0)) return false;
+      if (!g.ratedAt) return false;
+      const d = new Date(g.ratedAt);
+      return d >= twoMonthsAgo;
+    })
     .map(g => ({ ...g, ...(ugData[g.id]||{}) }))
-    .sort((a, b) => new Date(b.ratedAt||0) - new Date(a.ratedAt||0));
+    .sort((a, b) => new Date(b.ratedAt) - new Date(a.ratedAt));
   if (!rated.length) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">Aucun jeu noté pour l\'instant</div>';
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px 0">Aucun avis récent</div>';
     return;
   }
   const groups = {};
-  const now = new Date();
   rated.forEach(g => {
-    const d = g.ratedAt ? new Date(g.ratedAt) : null;
-    const key = d ? (d.getFullYear() === now.getFullYear()
+    const d = new Date(g.ratedAt);
+    const key = d.getFullYear() === now.getFullYear()
       ? d.toLocaleDateString('fr-FR',{month:'long'})
-      : d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'}))
-      : 'Récemment';
+      : d.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
     if (!groups[key]) groups[key] = [];
     groups[key].push(g);
   });
-  const currentMonthKey = now.toLocaleDateString('fr-FR', {month:'long'});
-  const sortedEntries = Object.entries(groups).sort(([a], [b]) => {
-    if (a.startsWith(currentMonthKey)) return -1;
-    if (b.startsWith(currentMonthKey)) return 1;
-    return 0;
-  });
-  el.innerHTML = sortedEntries.map(([month, games]) => `
-    <div style="margin-bottom:20px">
+  const sortedEntries = Object.entries(groups).sort(([, ga], [, gb]) => new Date(gb[0].ratedAt) - new Date(ga[0].ratedAt));
+  const LIMIT = 3;
+  el.innerHTML = sortedEntries.map(([month, games], mi) => {
+    const shown = games.slice(0, LIMIT);
+    const hidden = games.slice(LIMIT);
+    const monthId = `trv-month-${containerId}-${mi}`;
+    const moreHtml = hidden.length ? `<div id="${monthId}-more"></div><button id="${monthId}-btn" onclick="_trvExpandMonth('${monthId}-more','${encodeURIComponent(JSON.stringify(hidden))}','${containerId}');document.getElementById('${monthId}-btn').remove()" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:2px;margin-bottom:8px">Afficher plus (${hidden.length})</button>` : '';
+    return `<div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:capitalize;letter-spacing:0.08em;margin-bottom:10px;padding-left:2px;display:flex;align-items:center;gap:6px">
         <span style="width:20px;height:1px;background:var(--border2);display:inline-block"></span>${month}<span style="flex:1;height:1px;background:var(--border2);display:inline-block"></span>
       </div>
-      ${games.map(g => {
-        const src = coverUrl(g);
-        const vibeKeys = _vibeArr(g.vibe);
-        const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
-          .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
-        const review = g.notes || '';
-        const MAX = 100;
-        const needsExpand = review.length > MAX;
-        const short = needsExpand ? review.slice(0, MAX) + '…' : review;
-        const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review)}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
-        const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
-        const accentColor = g.score >= 8 ? 'var(--amber)' : g.score >= 6 ? 'rgba(108,92,231,0.6)' : 'var(--border2)';
-        return `<div onclick="openDetail('${g.id}')" style="display:flex;gap:12px;padding:12px;background:var(--s2);border-radius:14px;margin-bottom:8px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s;position:relative;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
-          <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentColor};border-radius:14px 0 0 14px"></div>
-          ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:48px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-left:4px">` : `<div style="width:48px;height:66px;border-radius:8px;background:var(--s3);flex-shrink:0;margin-left:4px;display:flex;align-items:center;justify-content:center;font-size:20px">${(g.title||'?')[0]}</div>`}
-          <div style="flex:1;min-width:0">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
-              <div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--amber)">${scoreStr}</div>
-            </div>
-            ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${vibeChips}</div>` : ''}
-            ${notesHtml}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-  `).join('');
+      <div id="${monthId}">${shown.map(g => _trvGameCard(g, containerId)).join('')}</div>
+      ${moreHtml}
+    </div>`;
+  }).join('');
 }
 
 function expandTrv(id, encodedText) {
@@ -5745,9 +5855,10 @@ function renderSocialScreen(uid) {
   } else {
     friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px">Cherche des amis par pseudo ci-dessus</div>`;
   }
-  // Always append dummy friends for preview
-  friendsList.innerHTML += `
-    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:16px 0 8px;opacity:0.6">Exemples de profils</div>
+  // Demo profiles at the bottom of the social screen
+  const demoEl = document.getElementById('social-demo-profiles');
+  if (demoEl) demoEl.innerHTML = `
+    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;opacity:0.6">Exemples de profils</div>
     ${DUMMY_FRIENDS_DATA.map(d => `
       <div onclick="openFriendProfile('${d.id}')" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s;opacity:0.75" ontouchstart="this.style.opacity=.5" ontouchend="this.style.opacity=.75">
         <div style="width:44px;height:44px;border-radius:50%;background:${d.avatar_grad};font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${d.avatar}</div>
@@ -5958,7 +6069,7 @@ function fpRecoCard(idx) {
   </div>`;
 }
 
-function fpRenderLibTab(tab) {
+function fpRenderLibTab(tab, inModal) {
   _fpActiveTab = tab;
   const TAB_COLORS = {
     'playing-solo': 'var(--a)',
@@ -5975,14 +6086,30 @@ function fpRenderLibTab(tab) {
     {key:'common',       label:'En Commun', match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
     {key:'abandoned',    label:'Abandonné', match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
-  document.getElementById('fp-lib-tabs').innerHTML = tabDefs.map(t => {
+  const tabsEl = inModal ? document.getElementById('fp-lib-modal-tabs') : document.getElementById('fp-lib-tabs');
+  const listEl = inModal ? document.getElementById('fp-lib-modal-list') : document.getElementById('fp-lib-list');
+  if (!tabsEl || !listEl) return;
+  tabsEl.innerHTML = tabDefs.map(t => {
     const color = TAB_COLORS[t.key] || 'var(--a)';
     const active = tab === t.key;
-    return `<button onclick="fpRenderLibTab('${t.key}')" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid ${active?color:'var(--border2)'};cursor:pointer;white-space:nowrap;${active?`background:${color};color:${t.key==='backlog'?'var(--text)':'#fff'}`:'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`;
+    return `<button onclick="fpRenderLibTab('${t.key}',${inModal?'true':'false'})" style="flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;border:0.5px solid ${active?color:'var(--border2)'};cursor:pointer;white-space:nowrap;${active?`background:${color};color:${t.key==='backlog'?'var(--text)':'#fff'}`:'background:var(--s2);color:var(--muted2)'};">${t.label}</button>`;
   }).join('');
   const def = tabDefs.find(t=>t.key===tab);
   const idxs = def ? _fpAllGames.map((g,i)=>def.match(g)?i:-1).filter(i=>i>=0) : [];
-  document.getElementById('fp-lib-list').innerHTML = idxs.map(i=>fpGameRow(i)).join('');
+  const LIMIT = 8;
+  if (!inModal && idxs.length > LIMIT) {
+    listEl.innerHTML = idxs.slice(0,LIMIT).map(i=>fpGameRow(i)).join('') +
+      `<button onclick="openFriendLibModal('${tab}')" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:4px">Afficher plus (${idxs.length - LIMIT} de plus)</button>`;
+  } else {
+    listEl.innerHTML = idxs.map(i=>fpGameRow(i)).join('');
+  }
+}
+
+function openFriendLibModal(tab) {
+  const modal = document.getElementById('fp-lib-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  fpRenderLibTab(tab || _fpActiveTab, true);
 }
 
 const FP_GENRE_COLORS = {
@@ -6057,8 +6184,16 @@ function renderFriendProfile(friend) {
   _fpMyGames = userGames;
   document.getElementById('fp-title').textContent = friend.username;
   const av = document.getElementById('fp-avatar');
-  av.textContent = friend.avatar || '🎮';
-  av.style.background = friend.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  const fpCol = friend.profile_color || '#6c5ce7';
+  if (friend.avatar_url) {
+    av.innerHTML = `<img src="${friend.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${friend.avatar||'🎮'}';this.remove()">`;
+    av.style.background = 'transparent';
+  } else {
+    av.textContent = friend.avatar || '🎮';
+    av.style.background = friend.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  }
+  av.style.border = `3px solid ${fpCol}`;
+  av.style.boxShadow = `0 0 0 4px ${fpCol}30,0 4px 24px ${fpCol}50`;
   document.getElementById('fp-name').textContent = friend.username || '';
   document.getElementById('fp-handle').textContent = '@' + (friend.username||'').toLowerCase().replace(/\s+/g,'');
   document.getElementById('fp-bio').textContent = friend.bio || '';
@@ -6076,7 +6211,7 @@ function renderFriendProfile(friend) {
 
   const platEl = document.getElementById('fp-platforms');
   if (friend.platforms?.length) {
-    platEl.innerHTML = friend.platforms.map(p => { const c=(typeof PLAT_COLORS!=='undefined'&&PLAT_COLORS[p])||'#6b7280'; return `<span style="background:${c}22;border:1px solid ${c}55;border-radius:8px;padding:3px 9px;font-size:11px;font-weight:600;color:${c}">${p}</span>`; }).join('');
+    platEl.innerHTML = friend.platforms.filter(p => p !== '__gp__').map(p => `<span style="background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:3px 9px;font-size:11px;font-weight:600;color:var(--a)">${p}</span>`).join('');
     platEl.style.display = 'flex';
   } else platEl.style.display = 'none';
 
@@ -6279,6 +6414,8 @@ async function openFriendProfile(userId) {
     username: profile.username || 'Gamer',
     avatar: profile.avatar || '🎮',
     avatar_grad: profile.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+    avatar_url: profile.avatar_url || null,
+    profile_color: profile.profile_color || '#6c5ce7',
     bio: profile.bio || '',
     platforms: profile.platforms || [],
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
@@ -6313,7 +6450,7 @@ async function loadFriendActivity(friendIds) {
   if (!data || !data.length) return;
 
   // Get profiles for these users
-  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad').in('id', friendIds);
+  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,profile_color').in('id', friendIds);
   const profileMap = {};
   (profiles||[]).forEach(p => profileMap[p.id] = p);
 
@@ -6336,9 +6473,10 @@ async function loadFriendActivity(friendIds) {
     const ago = timeAgo(item.updated_at);
     const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
     const av = p.avatar || '🎮';
+    const pCol = p.profile_color || '#6c5ce7';
     const cover = src
-      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--a2);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid var(--a2);background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
+      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${pCol};box-shadow:0 0 0 2px ${pCol}40;background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid ${pCol};box-shadow:0 0 0 2px ${pCol}40;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
       ${cover}
       <div style="flex:1;min-width:0">
@@ -6930,8 +7068,11 @@ function applyProfileToUI() {
   const nm = obProfile.username || 'Gamer';
   const grad = obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
   const url  = obProfile.avatarUrl || null;
+  const col  = obProfile.color || '#6c5ce7';
   _setAvatarEl(document.getElementById('app-profile-av'), av, grad, url);
   _setAvatarEl(document.getElementById('app-avatar-btn'), av, grad, url);
+  const avEl = document.getElementById('app-profile-av');
+  if (avEl) { avEl.style.border = `3px solid ${col}`; avEl.style.boxShadow = `0 0 0 4px ${col}30,0 4px 24px ${col}50`; }
   const nameEl = document.getElementById('app-profile-name');
   const hdlEl  = document.getElementById('app-profile-handle');
   if (nameEl) nameEl.textContent = nm;
