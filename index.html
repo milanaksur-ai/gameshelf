@@ -1350,7 +1350,7 @@ html, body {
         </button>
         <button class="bracket-launch-btn" onclick="showTirageIntroIfNeeded()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
-          ⚡ Le Tirage
+          🎲 Tire-moi un jeu !
         </button>
       </div>
 
@@ -3996,6 +3996,15 @@ function filterGames(){
   });
   renderGameGrid(filtered);
   document.getElementById('lib-count').textContent=filtered.length+' jeux';
+  if (currentFilter === 'playing' && filtered.length === 0 && !q) {
+    const grid = document.getElementById('game-grid');
+    if (grid) grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:14px">🎮</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">Rien en cours…</div>
+      <div style="font-size:13px;color:var(--muted2);margin-bottom:20px">Ton backlog a sûrement une pépite qui t'attend.</div>
+      <button onclick="showTirageIntroIfNeeded()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px 24px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">🎲 Tire-moi un jeu !</button>
+    </div>`;
+  }
 }
 
 let _pendingRemoveId = null;
@@ -4849,7 +4858,13 @@ function renderFeed(){
   }
 
   const playingEl = document.getElementById('playing-slots');
-  if (playingEl) playingEl.innerHTML = playingAll.map((g,i) => slotCard(g,i)).join('') || `<div style="padding:8px 0;font-size:13px;color:var(--muted)">Aucun jeu en cours — ajoute-en un !</div>`;
+  if (playingEl) playingEl.innerHTML = playingAll.map((g,i) => slotCard(g,i)).join('') || `<div style="margin:4px 0 8px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:16px;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">Rien en cours…</div>
+      <div style="font-size:11px;color:var(--muted2)">Ton backlog a sûrement une pépite</div>
+    </div>
+    <button onclick="showTirageIntroIfNeeded()" style="flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:9px 14px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap">🎲 Tire-moi un jeu !</button>
+  </div>`;
 
   // Update count labels
 
@@ -8598,29 +8613,29 @@ async function exportTierList() {
 
 <div id="tirage-intro" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:0">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:28px 24px calc(32px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1)">
-    <div style="text-align:center;font-size:36px;margin-bottom:10px">⚡</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:6px">Le Tirage</div>
-    <div style="font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px">Tu as des jeux qui traînent dans ta bibliothèque ? Le Tirage t'aide à choisir lequel lancer enfin — qu'ils soient en pause ou jamais commencés.</div>
+    <div style="text-align:center;font-size:36px;margin-bottom:10px">🎲</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;text-align:center;margin-bottom:6px">Tire-moi un jeu !</div>
+    <div style="font-size:13px;color:var(--muted2);text-align:center;margin-bottom:20px">T'as rien à te mettre sous la dent ? Pas de panique — ton backlog cache sûrement une pépite. On va en tirer une pour toi.</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
         <div style="font-size:26px;flex-shrink:0">🎮 vs 🎮</div>
         <div>
           <div style="font-size:13px;font-weight:700;margin-bottom:2px">Duel</div>
-          <div style="font-size:12px;color:var(--muted2)">2 jeux de ta liste s'affrontent — en pause ou à commencer</div>
+          <div style="font-size:12px;color:var(--muted2)">Tes jeux en pause et à commencer s'affrontent deux par deux</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
         <div style="font-size:26px;flex-shrink:0">👆</div>
         <div>
           <div style="font-size:13px;font-weight:700;margin-bottom:2px">Vote</div>
-          <div style="font-size:12px;color:var(--muted2)">Tap sur celui que tu as le plus envie de jouer maintenant</div>
+          <div style="font-size:12px;color:var(--muted2)">Tape sur celui que tu as le plus envie de lancer ce soir</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border-radius:14px;padding:14px">
         <div style="font-size:26px;flex-shrink:0">🏆</div>
         <div>
           <div style="font-size:13px;font-weight:700;margin-bottom:2px">Le verdict</div>
-          <div style="font-size:12px;color:var(--muted2)">Le gagnant = le jeu que tu vas enfin finir !</div>
+          <div style="font-size:12px;color:var(--muted2)">Le champion, c'est le jeu que tu vas jouer ce soir !</div>
         </div>
       </div>
     </div>
