@@ -5760,6 +5760,16 @@ async function loadSocialScreen() {
   }
 }
 
+function _friendAvHtml(p, size) {
+  const s = size || 44;
+  const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+  const av   = p.avatar || '🎮';
+  const url  = p.avatar_url || null;
+  const base = `width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;overflow:hidden;`;
+  if (url) return `<div style="${base}background:${grad}"><img src="${url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${av}';this.parentElement.style.background='${grad}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='${Math.round(s*0.45)}px'"></div>`;
+  return `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px">${av}</div>`;
+}
+
 function renderSocialScreen(uid) {
   // Pending section
   const pendingEl = document.getElementById('social-pending');
@@ -5771,7 +5781,7 @@ function renderSocialScreen(uid) {
     badge.textContent = `${_socialPending.length} demande${_socialPending.length > 1 ? 's' : ''}`;
     pendingList.innerHTML = _socialPending.map(r => `
       <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
-        <div style="width:40px;height:40px;border-radius:50%;background:${r.profile?.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${r.profile?.avatar||'🎮'}</div>
+        ${_friendAvHtml(r.profile||{},40)}
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:14px">${r.profile?.username||'Gamer'}</div>
           <div style="font-size:11px;color:var(--muted2)">veut être ton ami</div>
@@ -5789,7 +5799,7 @@ function renderSocialScreen(uid) {
   if (_socialFriends.length) {
     friendsList.innerHTML = _socialFriends.map(p => `
       <div onclick="openFriendProfile('${p.id}')" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
-        <div style="width:44px;height:44px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+        ${_friendAvHtml(p,44)}
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:14px">${p.username||'Gamer'}</div>
           <div style="font-size:11px;color:var(--muted2)">@${(p.username||'gamer').toLowerCase().replace(/\s+/g,'')}</div>
@@ -6392,7 +6402,7 @@ async function loadFriendActivity(friendIds) {
   if (!data || !data.length) return;
 
   // Get profiles for these users
-  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad').in('id', friendIds);
+  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,avatar_url').in('id', friendIds);
   const profileMap = {};
   (profiles||[]).forEach(p => profileMap[p.id] = p);
 
@@ -6413,13 +6423,11 @@ async function loadFriendActivity(friendIds) {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     const ago = timeAgo(item.updated_at);
-    const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-    const av = p.avatar || '🎮';
-    const cover = src
-      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : `<div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;border:2px solid var(--border2);background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px">${av}</div>`;
+    const bubble = src
+      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : _friendAvHtml({...p, avatar_url: p.avatar_url||null}, 44);
     return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-      ${cover}
+      ${bubble}
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
@@ -6430,13 +6438,11 @@ async function loadFriendActivity(friendIds) {
   if (homeList) homeList.innerHTML = data.slice(0,3).map(item => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
-    const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-    const av = p.avatar || '🎮';
-    const cover = src
-      ? `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--a);background:${grad}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : `<div style="width:34px;height:34px;border-radius:50%;flex-shrink:0;border:2px solid var(--a);background:${grad};display:flex;align-items:center;justify-content:center;font-size:14px">${av}</div>`;
+    const bubble = src
+      ? `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
+      : _friendAvHtml({...p, avatar_url: p.avatar_url||null}, 34);
     return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      ${cover}
+      ${bubble}
       <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
     </div>`;
   }).join('');
