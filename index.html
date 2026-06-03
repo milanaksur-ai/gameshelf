@@ -1552,7 +1552,7 @@ html, body {
         <div class="comp-stats">
           <div class="comp-total" id="stat-total">0</div>
           <div class="comp-total-label">jeux au total</div>
-          <div style="font-size:11px;color:var(--amber);margin-top:4px;font-weight:600" id="stat-hours-total"></div>
+
           <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em">✦ Mon récap</button>
         </div>
       </div>
@@ -1728,14 +1728,15 @@ html, body {
 
         <!-- HEURES JOUÉES -->
         <div style="margin-bottom:20px">
-          <div class="rating-label" style="margin-bottom:8px">Heures jouées</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <input type="number" id="hours-input" min="0" max="9999" placeholder="0"
-              style="width:90px;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px 12px;font-size:16px;font-weight:700;color:var(--text);outline:none;text-align:center"
-              oninput="updateHoursRank(this.value);document.getElementById('hours-ttb-hint').style.display='none'">
-            <span style="font-size:13px;color:var(--muted2)">h jouées</span>
+          <div class="rating-label" style="margin-bottom:10px">Temps de jeu</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="selectHoursRange(5,this)" data-hours="5" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">&lt; 10h</button>
+            <button onclick="selectHoursRange(30,this)" data-hours="30" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">10–50h</button>
+            <button onclick="selectHoursRange(75,this)" data-hours="75" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">50–100h</button>
+            <button onclick="selectHoursRange(200,this)" data-hours="200" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">100h+</button>
           </div>
-          <div id="hours-ttb-hint" style="display:none;margin-top:6px;font-size:11px;color:var(--amber);opacity:0.8">⏱ Durée moyenne IGDB — modifie si besoin</div>
+          <input type="hidden" id="hours-input" value="">
+          <div id="hours-ttb-hint" style="display:none;margin-top:8px;font-size:11px;color:var(--amber);opacity:0.8">⏱ Estimé d'après IGDB</div>
           <div id="hours-rank-display" style="margin-top:8px;font-size:12px;color:var(--muted2);display:none"></div>
         </div>
 
@@ -3589,12 +3590,38 @@ function isDone(status) {
 
 function hoursRank(h) {
   if (!h || h <= 0) return null;
-  if (h < 5)   return { emoji:'🌱', label:'Découverte' };
-  if (h < 20)  return { emoji:'🎮', label:'Premier run' };
-  if (h < 50)  return { emoji:'🔥', label:'Bien joué' };
-  if (h < 100) return { emoji:'💯', label:'Hardcore' };
-  if (h < 300) return { emoji:'😤', label:'No life assumé' };
-  return { emoji:'🏆', label:'Légendaire' };
+  if (h < 10)  return { emoji:'🌱', label:'Découverte' };
+  if (h < 50)  return { emoji:'🎮', label:'Quelques sessions' };
+  if (h < 100) return { emoji:'🔥', label:'Bien joué' };
+  return { emoji:'💯', label:'No life assumé' };
+}
+function hoursToRange(h) {
+  if (!h || h <= 0) return 0;
+  if (h < 10) return 5;
+  if (h < 50) return 30;
+  if (h < 100) return 75;
+  return 200;
+}
+function selectHoursRange(val, btn) {
+  const inp = document.getElementById('hours-input');
+  const alreadySelected = inp && inp.value === String(val);
+  document.querySelectorAll('.hours-range-btn').forEach(b => {
+    b.style.background = 'var(--s2)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = 'var(--muted2)';
+  });
+  if (alreadySelected) {
+    if (inp) inp.value = '';
+    updateHoursRank(0);
+    return;
+  }
+  if (btn) {
+    btn.style.background = 'rgba(108,92,231,0.15)';
+    btn.style.borderColor = 'var(--a)';
+    btn.style.color = 'var(--a)';
+  }
+  if (inp) inp.value = val;
+  updateHoursRank(val);
 }
 function updateHoursRank(val) {
   const el = document.getElementById('hours-rank-display');
@@ -3663,8 +3690,14 @@ function openDetail(gameId) {
   updateScoreDisplay(ug.score, ug.status);
   renderStatus(ug.status);
   document.getElementById('notes-input').value = ug.notes||'';
-  document.getElementById('hours-input').value = ug.hours || g.hours || '';
-  updateHoursRank(ug.hours || g.hours || 0);
+  const _hVal = hoursToRange(ug.hours || g.hours || 0);
+  document.getElementById('hours-input').value = _hVal || '';
+  document.querySelectorAll('.hours-range-btn').forEach(b => {
+    const bv = parseInt(b.dataset.hours);
+    if (_hVal > 0 && bv === _hVal) { b.style.background = 'rgba(108,92,231,0.15)'; b.style.borderColor = 'var(--a)'; b.style.color = 'var(--a)'; }
+    else { b.style.background = 'var(--s2)'; b.style.borderColor = 'var(--border2)'; b.style.color = 'var(--muted2)'; }
+  });
+  updateHoursRank(_hVal);
   const _ttbHint = document.getElementById('hours-ttb-hint');
   if (_ttbHint) _ttbHint.style.display = 'none';
   // Platform badges
@@ -3952,8 +3985,8 @@ function setStatus(s) {
     // Pre-fill hours from IGDB time_to_beat if user hasn't entered anything
     const hoursInput = document.getElementById('hours-input');
     if (hoursInput && !parseInt(hoursInput.value) && currentGame.timeToBeat > 0) {
-      hoursInput.value = currentGame.timeToBeat;
-      updateHoursRank(currentGame.timeToBeat);
+      const rangeVal = hoursToRange(currentGame.timeToBeat);
+      selectHoursRange(rangeVal, document.querySelector(`.hours-range-btn[data-hours="${rangeVal}"]`));
       const hint = document.getElementById('hours-ttb-hint');
       if (hint) hint.style.display = 'block';
     }
@@ -4177,9 +4210,7 @@ function renderProfileStats() {
   const isProfileVisible = appCurrentScreen === 'profile';
   const setStat = (el, n) => { if (!el) return; isProfileVisible ? _countUp(el, n) : (el.textContent = n); };
   setStat(document.getElementById('stat-total'),    total + wish);
-  const totalHours = all.reduce((s, g) => s + (userGames[g.id]?.hours || g.hours || 0), 0);
-  const hoursEl = document.getElementById('stat-hours-total');
-  if (hoursEl) hoursEl.textContent = totalHours > 0 ? `⏱ ${totalHours}h jouées` : '';
+
   setStat(document.getElementById('stat-playing'),   playing);
   setStat(document.getElementById('stat-paused'),    paused);
   setStat(document.getElementById('stat-finished'),  finished);
@@ -4758,7 +4789,7 @@ function renderGameGrid(games=GAMES){
       <div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div>
       <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">
         ${ug.platform?`<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[ug.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 6px">${ug.platform}</span>`:''}
-        ${(ug.hours||g.hours)>0?`<span style="font-size:10px;color:var(--muted)">⏱ ${ug.hours||g.hours}h</span>`:''}
+        ${(()=>{const _hr=hoursRank(ug.hours||g.hours);return _hr?`<span style="font-size:9px;font-weight:700;color:var(--a);opacity:0.85">${_hr.emoji}</span>`:''})()}
         ${isOnGamePass(g.title)?`<span class="gp-badge">GAME PASS</span>`:''}
       </div>
       ${quickActionBtn(g.id, ug.status)}
@@ -6286,7 +6317,6 @@ async function openFriendGamePopup(idx) {
         <div style="font-size:17px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2;margin-bottom:6px">${g.title}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
           ${platColor ? `<span style="font-size:10px;font-weight:700;background:${platColor};color:#fff;border-radius:4px;padding:2px 7px">${g.platform}</span>` : ''}
-          ${g.hours > 0 ? `<span style="font-size:11px;color:var(--muted2)">⏱ ${g.hours}h</span>` : ''}
           ${rank ? `<span style="font-size:10px;font-weight:700;background:rgba(108,92,231,0.15);color:var(--a);border-radius:10px;padding:2px 7px">${rank.emoji} ${rank.label}</span>` : ''}
         </div>
         <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted2)">${profileName} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score ? ` <span style="color:var(--amber);font-weight:700">★${g.score}/10</span>` : ''}</div>
