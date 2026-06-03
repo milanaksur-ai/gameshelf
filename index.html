@@ -4664,9 +4664,11 @@ function renderTrouvailles(ugData, gamesData, containerId) {
   const twoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const rated = gamesData
     .filter(g => {
-      if (!((ugData[g.id]?.score || g.score || 0) > 0)) return false;
-      if (!g.ratedAt) return false;
-      const d = new Date(g.ratedAt);
+      const ug = ugData[g.id] || {};
+      if (!((ug.score || g.score || 0) > 0)) return false;
+      const ratedAt = ug.ratedAt || g.ratedAt;
+      if (!ratedAt) return false;
+      const d = new Date(ratedAt);
       return d >= twoMonthsAgo;
     })
     .map(g => ({ ...g, ...(ugData[g.id]||{}) }))
