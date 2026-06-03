@@ -1765,6 +1765,33 @@ html, body {
             </div>
           </div>
 
+          <!-- Partager + Export -->
+          <div style="border-top:0.5px solid var(--border);padding-top:20px;margin-top:20px;display:flex;flex-direction:column;gap:8px">
+            <button onclick="shareApp()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+              <div style="font-size:20px">🔗</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Partager GameShelf</div>
+                <div style="font-size:11px;color:var(--muted2);margin-top:1px">Inviter un ami à rejoindre</div>
+              </div>
+            </button>
+            <button onclick="exportLibrary()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+              <div style="font-size:20px">📊</div>
+              <div style="flex:1">
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Exporter ma bibliothèque</div>
+                <div style="font-size:11px;color:var(--muted2);margin-top:1px">Télécharger en CSV</div>
+              </div>
+            </button>
+          </div>
+
+          <!-- À propos -->
+          <div style="border-top:0.5px solid var(--border);padding-top:20px;margin-top:20px;text-align:center">
+            <div style="font-size:22px;margin-bottom:8px">🎮</div>
+            <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.0</div>
+            <div style="font-size:12px;color:var(--muted2);margin-bottom:14px">Fait avec passion par Milan</div>
+            <button onclick="openPrivacyModal()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px">Mentions légales &amp; Confidentialité</button>
+          </div>
+
         </div>
       </div>
     </div>
@@ -2297,6 +2324,42 @@ html, body {
     </div>
     <!-- Save -->
     <button onclick="saveEditProfile()" class="btn-primary" style="margin-top:8px">Sauvegarder</button>
+  </div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div id="privacy-modal" onclick="if(event.target===this)closePrivacyModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">Mentions légales & Confidentialité</div>
+      <button onclick="closePrivacyModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.7;display:flex;flex-direction:column;gap:16px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Responsable</div>
+        <div>GameShelf est une application personnelle développée par Milan. Pour toute question : via le formulaire de feedback dans les paramètres.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Données collectées</div>
+        <div>Lors de l'inscription, nous collectons ton adresse email et les informations de profil que tu renseignes (pseudo, avatar). L'utilisation de l'app génère des données liées à ta bibliothèque de jeux (statuts, notes, temps de jeu, captures d'écran).</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Utilisation</div>
+        <div>Ces données servent uniquement à faire fonctionner l'application — afficher ta bibliothèque, synchroniser entre appareils, et partager avec tes amis les infos que tu choisis de rendre visibles.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Hébergement</div>
+        <div>Les données sont stockées sur <strong>Supabase</strong> (infrastructure cloud conforme RGPD, serveurs en Europe). Les images sont stockées dans Supabase Storage.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Tes droits</div>
+        <div>Tu peux à tout moment exporter tes données (bouton "Exporter ma bibliothèque"), modifier tes informations de profil, ou supprimer ton compte en vidant ta bibliothèque et en nous contactant via le feedback.</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Cookies</div>
+        <div>L'app n'utilise pas de cookies de tracking. Un token d'authentification est stocké localement pour maintenir ta session.</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -3575,6 +3638,37 @@ function disconnectApp() {
   _sb.auth.signOut().finally(() => location.reload());
 }
 
+function shareApp() {
+  const url = window.location.origin;
+  if (navigator.share) {
+    navigator.share({ title: 'GameShelf', text: 'Suis et partage ta bibliothèque de jeux avec tes amis 🎮', url });
+  } else {
+    navigator.clipboard.writeText(url).then(() => showToast('Lien copié !')).catch(() => showToast(url));
+  }
+}
+function exportLibrary() {
+  const STATUS_LABELS = { playing:'En cours', paused:'En pause', finished:'Terminé', platine:'100%', backlog:'Backlog', abandoned:'Abandonné', wish:'Envie' };
+  const rows = [['Titre','Statut','Note /10','Plateforme','Temps de jeu','Vibes','Notes perso']];
+  GAMES.forEach(g => {
+    const ug = userGames[g.id] || {};
+    if (!ug.status) return;
+    const rank = hoursRank(ug.hours || g.hours);
+    const vibes = ug.vibe ? (Array.isArray(ug.vibe) ? ug.vibe : [ug.vibe]).join(', ') : '';
+    rows.push([g.title, STATUS_LABELS[ug.status]||ug.status, ug.score||'', ug.platform||'', rank?rank.label:'', vibes, ug.notes||'']);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], { type:'text/csv;charset=utf-8' });
+  const a = Object.assign(document.createElement('a'), { href:URL.createObjectURL(blob), download:'gameshelf-bibliotheque.csv' });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function openPrivacyModal() {
+  const m = document.getElementById('privacy-modal');
+  if (m) { m.style.display = 'flex'; }
+}
+function closePrivacyModal() {
+  const m = document.getElementById('privacy-modal');
+  if (m) m.style.display = 'none';
+}
 function toggleSettingsPanel(header) {
   const panel = document.getElementById('settings-panel');
   const chevron = header.querySelector('.settings-chevron');
