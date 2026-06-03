@@ -1730,10 +1730,10 @@ html, body {
         <div style="margin-bottom:20px">
           <div class="rating-label" style="margin-bottom:10px">Temps de jeu</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="selectHoursRange(5,this)" data-hours="5" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🌱 Découverte</button>
-            <button onclick="selectHoursRange(30,this)" data-hours="30" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🎮 Quelques sessions</button>
-            <button onclick="selectHoursRange(75,this)" data-hours="75" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🔥 Bien joué</button>
-            <button onclick="selectHoursRange(200,this)" data-hours="200" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">💯 No life assumé</button>
+            <button onclick="selectHoursRange(3,this)" data-hours="3" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🌱 Découvert</button>
+            <button onclick="selectHoursRange(10,this)" data-hours="10" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🎮 Joué</button>
+            <button onclick="selectHoursRange(50,this)" data-hours="50" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">🔥 Maîtrisé</button>
+            <button onclick="selectHoursRange(200,this)" data-hours="200" class="hours-range-btn" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:700;color:var(--muted2);cursor:pointer;transition:all 0.15s">💯 Obsédé</button>
           </div>
           <input type="hidden" id="hours-input" value="">
           <div id="hours-ttb-hint" style="display:none;margin-top:8px;font-size:11px;color:var(--amber);opacity:0.8">⏱ Estimé d'après IGDB</div>
@@ -3589,16 +3589,16 @@ function isDone(status) {
 
 function hoursRank(h) {
   if (!h || h <= 0) return null;
-  if (h < 10)  return { emoji:'🌱', label:'Découverte' };
-  if (h < 50)  return { emoji:'🎮', label:'Quelques sessions' };
-  if (h < 100) return { emoji:'🔥', label:'Bien joué' };
-  return { emoji:'💯', label:'No life assumé' };
+  if (h < 5)   return { emoji:'🌱', label:'Découvert' };
+  if (h < 15)  return { emoji:'🎮', label:'Joué' };
+  if (h < 100) return { emoji:'🔥', label:'Maîtrisé' };
+  return { emoji:'💯', label:'Obsédé' };
 }
 function hoursToRange(h) {
   if (!h || h <= 0) return 0;
-  if (h < 10) return 5;
-  if (h < 50) return 30;
-  if (h < 100) return 75;
+  if (h < 5)   return 3;
+  if (h < 15)  return 10;
+  if (h < 100) return 50;
   return 200;
 }
 function selectHoursRange(val, btn) {
