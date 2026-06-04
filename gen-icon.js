@@ -6,52 +6,58 @@ const iconSvg = (padding = 0) => {
   const scale = 1 - (padding / 320);
   const cx = 256, cy = 256;
 
-  // Bookcase dimensions
-  const bw = 320 * scale;  // total width
-  const bh = 280 * scale;  // total height
+  const bw = 320 * scale;
+  const bh = 280 * scale;
   const bx = cx - bw / 2;
   const by = cy - bh / 2 + 10;
 
-  const post = 22 * scale;       // post thickness
-  const shelf = 20 * scale;      // shelf thickness
-  const midY = by + bh * 0.48;   // middle shelf y
+  const post  = 22 * scale;
+  const shelf = 20 * scale;
+  const midY  = by + bh * 0.48;
 
-  // Books top shelf (between posts, above midY)
-  const innerX = bx + post;
-  const innerW = bw - post * 2;
-  const topFloor = midY;
-  const topCeil = by;
-  const topInnerH = topFloor - topCeil - shelf;
+  const innerX     = bx + post;
+  const innerW     = bw - post * 2;
+  const topFloor   = midY;
+  const topInnerH  = topFloor - by - shelf;
+  const botFloor   = by + bh - shelf;
+  const botInnerH  = botFloor - (midY + shelf);
 
-  // 2 books on top shelf (right-aligned like the reference)
-  const bk = [
-    { w: 54*scale, h: topInnerH * 0.80 },
-    { w: 46*scale, h: topInnerH * 0.95 },
+  // Top shelf: 2 books right-aligned, colored
+  const topBookDefs = [
+    { w: 54*scale, h: topInnerH * 0.82, fill: '#c8c2ff' },
+    { w: 46*scale, h: topInnerH * 0.97, fill: '#ffffff' },
   ];
-  let bookX = innerX + innerW - bk.reduce((a,b)=>a+b.w,0) - 16*scale;
+  let bookX = innerX + innerW - topBookDefs.reduce((a,b)=>a+b.w,0) - 14*scale;
   let topBooks = '';
-  bk.forEach(b => {
+  topBookDefs.forEach(b => {
     const bky = topFloor - b.h;
-    topBooks += `<rect x="${bookX.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="white"/>`;
+    topBooks += `<rect x="${bookX.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="${b.fill}"/>`;
+    // subtle spine line
+    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(0,0,0,0.1)"/>`;
     bookX += b.w + 10*scale;
   });
 
-  // 3 books on bottom shelf (left-aligned)
-  const botFloor = by + bh - shelf;
-  const botCeil = midY + shelf;
-  const botInnerH = botFloor - botCeil;
-  const bk2 = [
-    { w: 50*scale, h: botInnerH * 0.88 },
-    { w: 44*scale, h: botInnerH * 0.72 },
-    { w: 50*scale, h: botInnerH * 0.82 },
+  // Bottom shelf: 3 books left-aligned, colored
+  const botBookDefs = [
+    { w: 50*scale, h: botInnerH * 0.90, fill: '#ffffff' },
+    { w: 44*scale, h: botInnerH * 0.72, fill: '#ffb3d1' },
+    { w: 52*scale, h: botInnerH * 0.84, fill: '#c8c2ff' },
   ];
-  let bookX2 = innerX + 16*scale;
+  let bookX2 = innerX + 14*scale;
   let botBooks = '';
-  bk2.forEach(b => {
+  botBookDefs.forEach(b => {
     const bky = botFloor - b.h;
-    botBooks += `<rect x="${bookX2.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="white"/>`;
+    botBooks += `<rect x="${bookX2.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="${b.fill}"/>`;
+    botBooks += `<rect x="${(bookX2+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(0,0,0,0.1)"/>`;
     bookX2 += b.w + 10*scale;
   });
+
+  // Sparkle dots (top-left and top-right of icon, outside bookcase)
+  const spark = `
+    <circle cx="${(bx+bw+28).toFixed(1)}" cy="${(by+10).toFixed(1)}" r="${(9*scale).toFixed(1)}" fill="rgba(255,255,255,0.5)"/>
+    <circle cx="${(bx+bw+52).toFixed(1)}" cy="${(by+38).toFixed(1)}" r="${(5*scale).toFixed(1)}" fill="rgba(255,255,255,0.3)"/>
+    <circle cx="${(bx-24).toFixed(1)}"    cy="${(by+24).toFixed(1)}" r="${(6*scale).toFixed(1)}" fill="rgba(255,255,255,0.35)"/>
+    <circle cx="${(bx-46).toFixed(1)}"    cy="${(by+54).toFixed(1)}" r="${(4*scale).toFixed(1)}" fill="rgba(255,255,255,0.2)"/>`;
 
   return `
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
@@ -60,29 +66,40 @@ const iconSvg = (padding = 0) => {
       <stop offset="0%" stop-color="#5a4fcf"/>
       <stop offset="100%" stop-color="#e8639a"/>
     </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="sh">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="rgba(0,0,0,0.35)"/>
+    </filter>
   </defs>
 
   <!-- Background -->
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <!-- Books (behind posts) -->
+  <!-- Glow halo behind bookcase -->
+  <rect x="${(bx-10).toFixed(1)}" y="${(by-10).toFixed(1)}" width="${(bw+20).toFixed(1)}" height="${(bh+20).toFixed(1)}" rx="26" fill="rgba(255,255,255,0.12)" filter="url(#glow)"/>
+
+  <!-- Dark inner compartments (depth) -->
+  <rect x="${(innerX).toFixed(1)}"        y="${(by+shelf).toFixed(1)}"       width="${innerW.toFixed(1)}" height="${(topInnerH).toFixed(1)}" fill="rgba(0,0,0,0.18)"/>
+  <rect x="${(innerX).toFixed(1)}"        y="${(midY+shelf).toFixed(1)}"     width="${innerW.toFixed(1)}" height="${(botInnerH).toFixed(1)}" fill="rgba(0,0,0,0.15)"/>
+
+  <!-- Books -->
   ${topBooks}
   ${botBooks}
 
-  <!-- Left post -->
-  <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${post.toFixed(1)}" height="${bh.toFixed(1)}" rx="11" fill="white"/>
+  <!-- Bookcase frame with drop shadow -->
+  <g filter="url(#sh)">
+    <rect x="${bx.toFixed(1)}"             y="${by.toFixed(1)}"              width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"  rx="11" fill="white"/>
+    <rect x="${(bx+bw-post).toFixed(1)}"   y="${by.toFixed(1)}"              width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"  rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"             y="${by.toFixed(1)}"              width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"             y="${midY.toFixed(1)}"            width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"             y="${(by+bh-shelf).toFixed(1)}"   width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+  </g>
 
-  <!-- Right post -->
-  <rect x="${(bx+bw-post).toFixed(1)}" y="${by.toFixed(1)}" width="${post.toFixed(1)}" height="${bh.toFixed(1)}" rx="11" fill="white"/>
-
-  <!-- Top shelf -->
-  <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
-
-  <!-- Middle shelf -->
-  <rect x="${bx.toFixed(1)}" y="${midY.toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
-
-  <!-- Bottom shelf -->
-  <rect x="${bx.toFixed(1)}" y="${(by+bh-shelf).toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+  <!-- Sparkles -->
+  ${spark}
 </svg>
 `;
 };
