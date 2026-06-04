@@ -1052,6 +1052,11 @@ html, body {
 </head>
 <body>
 
+<!-- OFFLINE BANNER -->
+<div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;border-bottom:1px solid rgba(255,82,82,0.4);padding:10px 16px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,82,82,0.9);letter-spacing:0.04em">
+  📡 Pas de connexion — tes modifications seront synchronisées dès le retour
+</div>
+
 <!-- ████████████████ ONBOARDING ████████████████ -->
 <div id="view-onboarding">
 <div id="ob-shell">
@@ -1750,6 +1755,9 @@ html, body {
           <!-- Zone danger -->
           <div style="border-top:0.5px solid var(--border);padding-top:20px">
             <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px">Zone danger</div>
+            <div style="margin-bottom:8px">
+              <button onclick="startFeatureTour(true)" style="background:none;border:0.5px solid rgba(255,82,82,0.25);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7">🎯 Relancer le tour des features</button>
+            </div>
             <div style="display:flex;flex-direction:column;gap:8px">
               <div>
                 <button onclick="clearLibrary()" style="background:none;border:0.5px solid rgba(255,82,82,0.25);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7">Vider la bibliothèque</button>
@@ -1877,7 +1885,10 @@ html, body {
           <div id="similar-list" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
         </div>
 
-        <button class="save-btn" onclick="saveGame()">Sauvegarder</button>
+        <div style="display:flex;gap:10px;padding:0 0 8px">
+          <button class="save-btn" onclick="saveGame()" style="flex:1">Sauvegarder</button>
+          <button onclick="shareGame()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:0 16px;font-size:18px;cursor:pointer;flex-shrink:0" title="Partager">🔗</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2360,6 +2371,29 @@ html, body {
         <div>L'app n'utilise pas de cookies de tracking. Un token d'authentification est stocké localement pour maintenir ta session.</div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- FEATURE TOUR -->
+<div id="feature-tour" style="display:none;position:fixed;inset:0;z-index:980;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:32px 24px calc(32px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+    <div id="tour-slide" style="min-height:180px;display:flex;flex-direction:column;align-items:center;text-align:center"></div>
+    <div id="tour-dots" style="display:flex;justify-content:center;gap:6px;margin:24px 0 20px"></div>
+    <div style="display:flex;gap:10px">
+      <button onclick="closeTour()" style="flex:1;background:none;border:0.5px solid var(--border2);border-radius:14px;padding:13px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer">Passer</button>
+      <button id="tour-next-btn" onclick="nextTourStep()" style="flex:2;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif">Suivant →</button>
+    </div>
+  </div>
+</div>
+
+<!-- REVIEW PROMPT -->
+<div id="review-prompt" onclick="if(event.target===this)closeReviewPrompt()" style="display:none;position:fixed;inset:0;z-index:975;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px;padding:28px 24px;max-width:340px;width:100%;text-align:center;animation:fadeIn 0.25s ease">
+    <div style="font-size:40px;margin-bottom:12px">⭐</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Tu apprécies GameShelf ?</div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.55;margin-bottom:22px">Un petit avis sur le Play Store, ça nous aide vraiment à grandir 🙏</div>
+    <button onclick="openStoreReview()" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:10px">Laisser un avis ⭐</button>
+    <button onclick="closeReviewPrompt()" style="width:100%;background:none;border:none;font-size:13px;color:var(--muted2);cursor:pointer;padding:6px">Plus tard</button>
   </div>
 </div>
 
@@ -3669,6 +3703,117 @@ function closePrivacyModal() {
   const m = document.getElementById('privacy-modal');
   if (m) m.style.display = 'none';
 }
+// ── OFFLINE INDICATOR ───────────────────────────────────────────
+function _updateOfflineBanner() {
+  const b = document.getElementById('offline-banner');
+  if (!b) return;
+  b.style.display = navigator.onLine ? 'none' : 'block';
+}
+window.addEventListener('online',  _updateOfflineBanner);
+window.addEventListener('offline', _updateOfflineBanner);
+_updateOfflineBanner();
+
+// ── PULL TO REFRESH ─────────────────────────────────────────────
+function initPullToRefresh(scrollEl, onRefresh) {
+  if (!scrollEl) return;
+  const THRESHOLD = 72;
+  let startY = 0, curY = 0, active = false;
+  let ind = document.createElement('div');
+  ind.style.cssText = 'position:absolute;top:-44px;left:0;right:0;display:flex;align-items:center;justify-content:center;height:44px;font-size:20px;transition:opacity 0.2s;opacity:0;pointer-events:none';
+  ind.textContent = '↓';
+  scrollEl.style.position = 'relative';
+  scrollEl.prepend(ind);
+
+  scrollEl.addEventListener('touchstart', e => {
+    if (scrollEl.scrollTop === 0) { startY = e.touches[0].clientY; active = true; }
+  }, { passive: true });
+  scrollEl.addEventListener('touchmove', e => {
+    if (!active) return;
+    curY = e.touches[0].clientY;
+    const dy = Math.max(0, curY - startY);
+    const pct = Math.min(dy / THRESHOLD, 1);
+    ind.style.opacity = pct;
+    ind.textContent = dy > THRESHOLD ? '🔄' : '↓';
+  }, { passive: true });
+  scrollEl.addEventListener('touchend', () => {
+    if (!active) return;
+    active = false;
+    ind.style.opacity = '0';
+    if ((curY - startY) > THRESHOLD) { ind.textContent = '🔄'; onRefresh(); setTimeout(() => { ind.textContent = '↓'; }, 1000); }
+    startY = 0; curY = 0;
+  });
+}
+
+// ── FEATURE TOUR ────────────────────────────────────────────────
+const TOUR_SLIDES = [
+  { emoji:'🎮', title:'Ta bibliothèque', desc:'Classe tes jeux par statut — en cours, terminé, backlog… Note-les sur 10 et retrouve-les en un coup d\'œil.' },
+  { emoji:'✨', title:'Les Vibes', desc:'Tague l\'ambiance d\'un jeu : chill, intense, narratif, défouloir… C\'est aussi utilisé pour filtrer le tirage.' },
+  { emoji:'👥', title:'Social', desc:'Cherche tes amis par pseudo, vois leur bibliothèque et découvre leurs coups de cœur directement depuis leur profil.' },
+  { emoji:'🎲', title:'Tire-moi un jeu !', desc:'Tu sais plus quoi jouer ? On tire un jeu au sort dans ton backlog. Filtre par plateforme, durée ou ambiance.' },
+];
+let _tourStep = 0;
+
+function startFeatureTour(force) {
+  if (!force && localStorage.getItem('gs_tour_done')) return;
+  _tourStep = 0;
+  _renderTourSlide();
+  document.getElementById('feature-tour').style.display = 'flex';
+}
+function _renderTourSlide() {
+  const s = TOUR_SLIDES[_tourStep];
+  const total = TOUR_SLIDES.length;
+  document.getElementById('tour-slide').innerHTML = `
+    <div style="font-size:56px;margin-bottom:16px;line-height:1">${s.emoji}</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;color:var(--text)">${s.title}</div>
+    <div style="font-size:14px;color:var(--muted2);line-height:1.6;max-width:280px">${s.desc}</div>`;
+  document.getElementById('tour-dots').innerHTML = Array.from({length:total}, (_,i) =>
+    `<div style="width:${i===_tourStep?20:6}px;height:6px;border-radius:3px;background:${i===_tourStep?'var(--a)':'var(--border2)'};transition:all 0.25s"></div>`
+  ).join('');
+  document.getElementById('tour-next-btn').textContent = _tourStep === total-1 ? 'C\'est parti ! 🚀' : 'Suivant →';
+}
+function nextTourStep() {
+  if (_tourStep < TOUR_SLIDES.length - 1) { _tourStep++; _renderTourSlide(); }
+  else { closeTour(); }
+}
+function closeTour() {
+  document.getElementById('feature-tour').style.display = 'none';
+  localStorage.setItem('gs_tour_done', '1');
+}
+
+// ── REVIEW PROMPT ────────────────────────────────────────────────
+function checkReviewPrompt() {
+  if (localStorage.getItem('gs_review_asked')) return;
+  if (!localStorage.getItem('gs_first_open')) {
+    localStorage.setItem('gs_first_open', Date.now());
+    return;
+  }
+  const daysSince = (Date.now() - parseInt(localStorage.getItem('gs_first_open'))) / 86400000;
+  if (daysSince >= 7) setTimeout(() => { document.getElementById('review-prompt').style.display='flex'; }, 3000);
+}
+function closeReviewPrompt() {
+  document.getElementById('review-prompt').style.display = 'none';
+  localStorage.setItem('gs_review_asked', '1');
+}
+function openStoreReview() {
+  window.open('https://play.google.com/store/apps/details?id=PLACEHOLDER', '_blank');
+  closeReviewPrompt();
+}
+
+// ── SHARE GAME ───────────────────────────────────────────────────
+function shareGame() {
+  if (!currentGame) return;
+  const ug = userGames[currentGame.id] || {};
+  const score = ug.score ? ` · ${ug.score}/10 ⭐` : '';
+  const status = FP_SL?.[ug.status] ? ` (${FP_SL[ug.status]})` : '';
+  const text = `${currentGame.title}${status}${score} — sur GameShelf`;
+  const url = window.location.origin;
+  if (navigator.share) {
+    navigator.share({ title: currentGame.title, text, url }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(`${text}\n${url}`).then(() => showToast('Lien copié !')).catch(() => {});
+  }
+}
+
 function toggleSettingsPanel(header) {
   const panel = document.getElementById('settings-panel');
   const chevron = header.querySelector('.settings-chevron');
@@ -5869,6 +6014,18 @@ function initApp(){
   // Check for shared tier list URL param
   const tlParam = new URLSearchParams(location.search).get('tl');
   if (tlParam) setTimeout(() => loadSharedTierList(tlParam), 600);
+
+  // Pull to refresh on feed and library
+  setTimeout(() => {
+    initPullToRefresh(document.querySelector('#screen-feed .scroll-area'), () => { renderFeed(); loadHomeActivityFeed(); showToast('Actualisé'); });
+    initPullToRefresh(document.querySelector('#screen-library .scroll-area, #screen-library > .scroll-area'), () => { filterGames(); showToast('Actualisé'); });
+  }, 500);
+
+  // Feature tour (first time only)
+  setTimeout(() => startFeatureTour(false), 800);
+
+  // Review prompt (after 7 days)
+  checkReviewPrompt();
 }
 
 // ══════════════════════════════════════
