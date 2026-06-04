@@ -1,8 +1,8 @@
 [{
-  "relation": ["delegate_permission/common.handle_all_urls"],
-  "target": {
-    "namespace": "android_app",
-    "package_name": "com.gameshelf.app",
-    "sha256_cert_fingerprints": ["FILL_AFTER_PWABUILDER"]
-  }
-}]
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.vercel.gameshelf_seven.twa",
+        "sha256_cert_fingerprints": ["62:BF:48:63:2A:6A:29:4D:10:AF:F0:47:F5:CB:5B:CA:3D:DD:96:42:4F:24:8F:5B:A4:DC:19:A8:5B:BA:06:EB"]
+      }
+    }]
