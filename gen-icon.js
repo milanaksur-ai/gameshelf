@@ -3,41 +3,54 @@ const fs = require('fs');
 const path = require('path');
 
 const iconSvg = (padding = 0) => {
-  const s = 1 - padding / 256; // scale factor for maskable
+  const scale = 1 - (padding / 320);
   const cx = 256, cy = 256;
 
-  // Shelf plank: centered, bold white
-  const shelfY = 308;
-  const shelfW = 360 * s;
-  const shelfH = 26;
-  const shelfX = cx - shelfW / 2;
+  // Bookcase dimensions
+  const bw = 320 * scale;  // total width
+  const bh = 280 * scale;  // total height
+  const bx = cx - bw / 2;
+  const by = cy - bh / 2 + 10;
 
-  // Legs under shelf
-  const legW = 18 * s;
-  const legH = 52 * s;
-  const legY = shelfY + shelfH;
+  const post = 22 * scale;       // post thickness
+  const shelf = 20 * scale;      // shelf thickness
+  const midY = by + bh * 0.48;   // middle shelf y
 
-  // 4 game spines standing on shelf
-  const spines = [
-    { w: 58, h: 148, color: '#ffffff', opacity: 1.0 },
-    { w: 52, h: 118, color: '#c8c2ff', opacity: 0.95 },
-    { w: 58, h: 162, color: '#ffffff', opacity: 0.88 },
-    { w: 48, h: 110, color: '#ffb3d1', opacity: 0.9 },
+  // Books top shelf (between posts, above midY)
+  const innerX = bx + post;
+  const innerW = bw - post * 2;
+  const topFloor = midY;
+  const topCeil = by;
+  const topInnerH = topFloor - topCeil - shelf;
+
+  // 2 books on top shelf (right-aligned like the reference)
+  const bk = [
+    { w: 54*scale, h: topInnerH * 0.80 },
+    { w: 46*scale, h: topInnerH * 0.95 },
   ];
-  const gap = 16 * s;
-  const totalW = spines.reduce((a, sp) => a + sp.w * s, 0) + gap * (spines.length - 1);
-  let spineX = cx - totalW / 2;
+  let bookX = innerX + innerW - bk.reduce((a,b)=>a+b.w,0) - 16*scale;
+  let topBooks = '';
+  bk.forEach(b => {
+    const bky = topFloor - b.h;
+    topBooks += `<rect x="${bookX.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="white"/>`;
+    bookX += b.w + 10*scale;
+  });
 
-  let spinesHtml = '';
-  spines.forEach((sp, i) => {
-    const sw = sp.w * s;
-    const sh = sp.h * s;
-    const sy = shelfY - sh;
-    spinesHtml += `
-      <rect x="${spineX.toFixed(1)}" y="${sy.toFixed(1)}" width="${sw.toFixed(1)}" height="${sh.toFixed(1)}" rx="9" fill="${sp.color}" opacity="${sp.opacity}"/>
-      <rect x="${(spineX + sw*0.15).toFixed(1)}" y="${(sy + sh*0.12).toFixed(1)}" width="${(sw*0.7).toFixed(1)}" height="${(sh*0.1).toFixed(1)}" rx="3" fill="rgba(0,0,0,0.08)"/>
-      <rect x="${(spineX + sw*0.15).toFixed(1)}" y="${(sy + sh*0.25).toFixed(1)}" width="${(sw*0.5).toFixed(1)}" height="${(sh*0.07).toFixed(1)}" rx="2" fill="rgba(0,0,0,0.05)"/>`;
-    spineX += sw + gap;
+  // 3 books on bottom shelf (left-aligned)
+  const botFloor = by + bh - shelf;
+  const botCeil = midY + shelf;
+  const botInnerH = botFloor - botCeil;
+  const bk2 = [
+    { w: 50*scale, h: botInnerH * 0.88 },
+    { w: 44*scale, h: botInnerH * 0.72 },
+    { w: 50*scale, h: botInnerH * 0.82 },
+  ];
+  let bookX2 = innerX + 16*scale;
+  let botBooks = '';
+  bk2.forEach(b => {
+    const bky = botFloor - b.h;
+    botBooks += `<rect x="${bookX2.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="white"/>`;
+    bookX2 += b.w + 10*scale;
   });
 
   return `
@@ -47,23 +60,29 @@ const iconSvg = (padding = 0) => {
       <stop offset="0%" stop-color="#5a4fcf"/>
       <stop offset="100%" stop-color="#e8639a"/>
     </linearGradient>
-    <filter id="sh">
-      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="rgba(0,0,0,0.28)"/>
-    </filter>
   </defs>
 
   <!-- Background -->
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <!-- Game spines -->
-  ${spinesHtml}
+  <!-- Books (behind posts) -->
+  ${topBooks}
+  ${botBooks}
 
-  <!-- Shelf plank -->
-  <rect x="${shelfX.toFixed(1)}" y="${shelfY}" width="${shelfW.toFixed(1)}" height="${shelfH}" rx="13" fill="white" filter="url(#sh)"/>
+  <!-- Left post -->
+  <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${post.toFixed(1)}" height="${bh.toFixed(1)}" rx="11" fill="white"/>
 
-  <!-- Shelf legs -->
-  <rect x="${(cx - shelfW/2 + 28*s).toFixed(1)}" y="${legY}" width="${legW.toFixed(1)}" height="${legH.toFixed(1)}" rx="9" fill="rgba(255,255,255,0.75)"/>
-  <rect x="${(cx + shelfW/2 - 28*s - legW).toFixed(1)}" y="${legY}" width="${legW.toFixed(1)}" height="${legH.toFixed(1)}" rx="9" fill="rgba(255,255,255,0.75)"/>
+  <!-- Right post -->
+  <rect x="${(bx+bw-post).toFixed(1)}" y="${by.toFixed(1)}" width="${post.toFixed(1)}" height="${bh.toFixed(1)}" rx="11" fill="white"/>
+
+  <!-- Top shelf -->
+  <rect x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+
+  <!-- Middle shelf -->
+  <rect x="${bx.toFixed(1)}" y="${midY.toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+
+  <!-- Bottom shelf -->
+  <rect x="${bx.toFixed(1)}" y="${(by+bh-shelf).toFixed(1)}" width="${bw.toFixed(1)}" height="${shelf.toFixed(1)}" rx="11" fill="white"/>
 </svg>
 `;
 };
