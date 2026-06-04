@@ -427,6 +427,8 @@ html, body {
 @keyframes screenSlideIn { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
 .screen.active           { animation: screenFadeIn  0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
 #screen-detail.active    { animation: screenSlideIn 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes tourPulse { 0%,100%{box-shadow:0 0 0 3px var(--a),0 0 0 7px rgba(108,92,231,0.25)} 50%{box-shadow:0 0 0 3px var(--a),0 0 0 14px rgba(108,92,231,0.08)} }
+.tour-spot { animation:tourPulse 1.6s ease-in-out infinite!important; position:relative; z-index:981!important; }
 
 /* ══════════════════════════════════════
    NAV INDICATOR
@@ -2375,10 +2377,10 @@ html, body {
 </div>
 
 <!-- FEATURE TOUR -->
-<div id="feature-tour" style="display:none;position:fixed;inset:0;z-index:980;background:rgba(0,0,0,0.5);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center">
-  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px 24px 0 0;padding:32px 24px calc(32px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-    <div id="tour-slide" style="min-height:180px;display:flex;flex-direction:column;align-items:center;text-align:center"></div>
-    <div id="tour-dots" style="display:flex;justify-content:center;gap:6px;margin:24px 0 20px"></div>
+<div id="feature-tour" style="display:none;position:fixed;inset:0;z-index:980;align-items:flex-end;justify-content:center;pointer-events:none">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-top:2px solid var(--a);border-radius:24px 24px 0 0;padding:28px 24px calc(28px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1);pointer-events:all;box-shadow:0 -8px 40px rgba(0,0,0,0.4)">
+    <div id="tour-slide" style="min-height:160px;display:flex;flex-direction:column;align-items:center;text-align:center"></div>
+    <div id="tour-dots" style="display:flex;justify-content:center;gap:6px;margin:20px 0 18px"></div>
     <div style="display:flex;gap:10px">
       <button onclick="closeTour()" style="flex:1;background:none;border:0.5px solid var(--border2);border-radius:14px;padding:13px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer">Passer</button>
       <button id="tour-next-btn" onclick="nextTourStep()" style="flex:2;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif">Suivant →</button>
@@ -3749,26 +3751,52 @@ function initPullToRefresh(scrollEl, onRefresh) {
 
 // ── FEATURE TOUR ────────────────────────────────────────────────
 const TOUR_SLIDES = [
-  { emoji:'🎮', title:'Ta bibliothèque', desc:'Classe tes jeux par statut — en cours, terminé, backlog… Note-les sur 10 et retrouve-les en un coup d\'œil.' },
-  { emoji:'✨', title:'Les Vibes', desc:'Tague l\'ambiance d\'un jeu : chill, intense, narratif, défouloir… C\'est aussi utilisé pour filtrer le tirage.' },
-  { emoji:'👥', title:'Social', desc:'Cherche tes amis par pseudo, vois leur bibliothèque et découvre leurs coups de cœur directement depuis leur profil.' },
-  { emoji:'🎲', title:'Tire-moi un jeu !', desc:'Tu sais plus quoi jouer ? On tire un jeu au sort dans ton backlog. Filtre par plateforme, durée ou ambiance.' },
+  {
+    emoji:'🎮', title:'Ta bibliothèque',
+    desc:'Classe tes jeux par statut — en cours, terminé, backlog… Note-les sur 10 et retrouve-les en un coup d\'œil.',
+    onEnter: () => appGoTo('library')
+  },
+  {
+    emoji:'✨', title:'Les Vibes',
+    desc:'Tague l\'ambiance d\'un jeu : chill, intense, narratif, défouloir… Utile aussi pour filtrer le tirage.',
+    onEnter: () => { appGoTo('library'); const g = GAMES[0]; if (g) setTimeout(() => openDetail(g.id), 200); }
+  },
+  {
+    emoji:'👥', title:'Social',
+    desc:'Cherche tes amis par pseudo, vois leur bibliothèque et découvre leurs coups de cœur.',
+    onEnter: () => { _tourClearSpot(); appGoTo('social'); }
+  },
+  {
+    emoji:'🎲', title:'Tire-moi un jeu !',
+    desc:'Tu sais plus quoi jouer ? On tire un jeu au sort dans ton backlog. Filtre par plateforme, durée ou ambiance.',
+    onEnter: () => { appGoTo('feed'); setTimeout(() => _tourSpotElement('.bracket-launch-btn'), 350); }
+  },
 ];
 let _tourStep = 0;
+
+function _tourSpotElement(selector) {
+  _tourClearSpot();
+  const el = document.querySelector(selector);
+  if (el) el.classList.add('tour-spot');
+}
+function _tourClearSpot() {
+  document.querySelectorAll('.tour-spot').forEach(el => el.classList.remove('tour-spot'));
+}
 
 function startFeatureTour(force) {
   if (!force && localStorage.getItem('gs_tour_done')) return;
   _tourStep = 0;
-  _renderTourSlide();
+  _renderTourSlide(true);
   document.getElementById('feature-tour').style.display = 'flex';
 }
-function _renderTourSlide() {
+function _renderTourSlide(isFirst) {
   const s = TOUR_SLIDES[_tourStep];
   const total = TOUR_SLIDES.length;
+  if (s.onEnter) s.onEnter();
   document.getElementById('tour-slide').innerHTML = `
-    <div style="font-size:56px;margin-bottom:16px;line-height:1">${s.emoji}</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:10px;color:var(--text)">${s.title}</div>
-    <div style="font-size:14px;color:var(--muted2);line-height:1.6;max-width:280px">${s.desc}</div>`;
+    <div style="font-size:52px;margin-bottom:14px;line-height:1">${s.emoji}</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:8px;color:var(--text)">${s.title}</div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.6;max-width:280px">${s.desc}</div>`;
   document.getElementById('tour-dots').innerHTML = Array.from({length:total}, (_,i) =>
     `<div style="width:${i===_tourStep?20:6}px;height:6px;border-radius:3px;background:${i===_tourStep?'var(--a)':'var(--border2)'};transition:all 0.25s"></div>`
   ).join('');
@@ -3781,6 +3809,8 @@ function nextTourStep() {
 function closeTour() {
   document.getElementById('feature-tour').style.display = 'none';
   localStorage.setItem('gs_tour_done', '1');
+  _tourClearSpot();
+  appGoTo('feed');
 }
 
 // ── REVIEW PROMPT ────────────────────────────────────────────────
