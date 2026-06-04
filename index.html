@@ -3759,7 +3759,11 @@ const TOUR_SLIDES = [
   {
     emoji:'✨', title:'Les Vibes',
     desc:'Tague l\'ambiance d\'un jeu : chill, intense, narratif, défouloir… Utile aussi pour filtrer le tirage.',
-    onEnter: () => { appGoTo('library'); const g = GAMES[0]; if (g) setTimeout(() => openDetail(g.id), 200); }
+    onEnter: () => {
+      appGoTo('library');
+      const g = GAMES.find(g => userGames[g.id]?.status);
+      if (g) setTimeout(() => openDetail(g.id), 200);
+    }
   },
   {
     emoji:'👥', title:'Social',
