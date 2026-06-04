@@ -1825,7 +1825,7 @@ html, body {
           <div class="score-card" style="flex:1.4">
             <div class="score-card-label">Ma note</div>
             <div class="score-card-val" id="my-score-display" style="color:var(--amber)">—</div>
-            <div id="score-temp-label" style="font-size:10px;margin-top:2px;display:none;color:var(--green)">provisoire</div>
+            <div id="score-temp-label" style="display:none"></div>
           </div>
           <div class="score-card" style="flex:1">
             <div class="score-card-label">Metacritic</div>
@@ -5329,7 +5329,7 @@ function renderFeed(){
       </div>
       <div class="now-info">
         <div class="now-title">${g.title}</div>
-        <div class="now-sub">${g.genre}${ug.score > 0 ? ' · ★ '+ug.score+'/10'+(isPlaying(ug.status)?' <span style="color:var(--green);font-size:10px">provisoire</span>':'') : ''}${ug.endless ? ' · <span style="color:var(--a2)">∞</span>' : ''}</div>
+        <div class="now-sub">${g.genre}${ug.score > 0 ? ' · ★ '+ug.score+'/10' : ''}${ug.endless ? ' · <span style="color:var(--a2)">∞</span>' : ''}</div>
       </div>
     </div>`;
   }
