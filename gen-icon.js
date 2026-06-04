@@ -22,32 +22,38 @@ const iconSvg = (padding = 0) => {
   const botFloor   = by + bh - shelf;
   const botInnerH  = botFloor - (midY + shelf);
 
-  // Top shelf: 2 books right-aligned, colored
+  // Top shelf: 3 books, filling more space
   const topBookDefs = [
-    { w: 54*scale, h: topInnerH * 0.82, fill: '#6c5ce7' },
-    { w: 46*scale, h: topInnerH * 0.97, fill: '#ffffff' },
+    { w: 48*scale, h: topInnerH * 0.78, fill: '#a29bfe' },
+    { w: 52*scale, h: topInnerH * 0.97, fill: '#6c5ce7' },
+    { w: 44*scale, h: topInnerH * 0.85, fill: '#ffffff' },
   ];
-  let bookX = innerX + innerW - topBookDefs.reduce((a,b)=>a+b.w,0) - 14*scale;
+  const topTotalW = topBookDefs.reduce((a,b)=>a+b.w,0) + 10*scale*2;
+  let bookX = innerX + (innerW - topTotalW) / 2;
   let topBooks = '';
   topBookDefs.forEach(b => {
     const bky = topFloor - b.h;
     topBooks += `<rect x="${bookX.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="${b.fill}"/>`;
-    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(255,255,255,0.18)"/>`;
+    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(255,255,255,0.2)"/>`;
+    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+20).toFixed(1)}" width="${(b.w-18).toFixed(1)}" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>`;
     bookX += b.w + 10*scale;
   });
 
-  // Bottom shelf: 3 books left-aligned, colored
+  // Bottom shelf: 4 books, filling more space
   const botBookDefs = [
-    { w: 50*scale, h: botInnerH * 0.90, fill: '#ffffff' },
-    { w: 44*scale, h: botInnerH * 0.72, fill: '#fd79a8' },
-    { w: 52*scale, h: botInnerH * 0.84, fill: '#6c5ce7' },
+    { w: 44*scale, h: botInnerH * 0.88, fill: '#ffffff' },
+    { w: 40*scale, h: botInnerH * 0.70, fill: '#fd79a8' },
+    { w: 44*scale, h: botInnerH * 0.92, fill: '#6c5ce7' },
+    { w: 38*scale, h: botInnerH * 0.76, fill: '#a29bfe' },
   ];
-  let bookX2 = innerX + 14*scale;
+  const botTotalW = botBookDefs.reduce((a,b)=>a+b.w,0) + 10*scale*3;
+  let bookX2 = innerX + (innerW - botTotalW) / 2;
   let botBooks = '';
   botBookDefs.forEach(b => {
     const bky = botFloor - b.h;
     botBooks += `<rect x="${bookX2.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="${b.fill}"/>`;
-    botBooks += `<rect x="${(bookX2+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(0,0,0,0.1)"/>`;
+    botBooks += `<rect x="${(bookX2+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(255,255,255,0.2)"/>`;
+    botBooks += `<rect x="${(bookX2+6).toFixed(1)}" y="${(bky+20).toFixed(1)}" width="${(b.w-18).toFixed(1)}" height="4" rx="2" fill="rgba(255,255,255,0.1)"/>`;
     bookX2 += b.w + 10*scale;
   });
 
@@ -91,9 +97,15 @@ const iconSvg = (padding = 0) => {
   <!-- Center radial glow -->
   <rect width="512" height="512" fill="url(#centerGlow)"/>
 
-  <!-- Dark inner compartments (#080810 — app background color) -->
-  <rect x="${(innerX).toFixed(1)}"   y="${(by+shelf).toFixed(1)}"   width="${innerW.toFixed(1)}" height="${(topInnerH).toFixed(1)}" fill="#080810"/>
-  <rect x="${(innerX).toFixed(1)}"   y="${(midY+shelf).toFixed(1)}" width="${innerW.toFixed(1)}" height="${(botInnerH).toFixed(1)}" fill="#080810"/>
+  <!-- Compartment backgrounds: dark purple gradient, not pure black -->
+  <defs>
+    <linearGradient id="compartment" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1c0f42"/>
+      <stop offset="100%" stop-color="#0d0825"/>
+    </linearGradient>
+  </defs>
+  <rect x="${(innerX).toFixed(1)}"   y="${(by+shelf).toFixed(1)}"   width="${innerW.toFixed(1)}" height="${(topInnerH).toFixed(1)}" fill="url(#compartment)"/>
+  <rect x="${(innerX).toFixed(1)}"   y="${(midY+shelf).toFixed(1)}" width="${innerW.toFixed(1)}" height="${(botInnerH).toFixed(1)}" fill="url(#compartment)"/>
 
   <!-- Purple books with glow -->
   <g filter="url(#bookglow)">
