@@ -24,7 +24,7 @@ const iconSvg = (padding = 0) => {
 
   // Top shelf: 2 books right-aligned, colored
   const topBookDefs = [
-    { w: 54*scale, h: topInnerH * 0.82, fill: '#c8c2ff' },
+    { w: 54*scale, h: topInnerH * 0.82, fill: '#6c5ce7' },
     { w: 46*scale, h: topInnerH * 0.97, fill: '#ffffff' },
   ];
   let bookX = innerX + innerW - topBookDefs.reduce((a,b)=>a+b.w,0) - 14*scale;
@@ -32,16 +32,15 @@ const iconSvg = (padding = 0) => {
   topBookDefs.forEach(b => {
     const bky = topFloor - b.h;
     topBooks += `<rect x="${bookX.toFixed(1)}" y="${bky.toFixed(1)}" width="${b.w.toFixed(1)}" height="${b.h.toFixed(1)}" rx="7" fill="${b.fill}"/>`;
-    // subtle spine line
-    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(0,0,0,0.1)"/>`;
+    topBooks += `<rect x="${(bookX+6).toFixed(1)}" y="${(bky+10).toFixed(1)}" width="${(b.w-12).toFixed(1)}" height="5" rx="2" fill="rgba(255,255,255,0.18)"/>`;
     bookX += b.w + 10*scale;
   });
 
   // Bottom shelf: 3 books left-aligned, colored
   const botBookDefs = [
     { w: 50*scale, h: botInnerH * 0.90, fill: '#ffffff' },
-    { w: 44*scale, h: botInnerH * 0.72, fill: '#ffb3d1' },
-    { w: 52*scale, h: botInnerH * 0.84, fill: '#c8c2ff' },
+    { w: 44*scale, h: botInnerH * 0.72, fill: '#fd79a8' },
+    { w: 52*scale, h: botInnerH * 0.84, fill: '#6c5ce7' },
   ];
   let bookX2 = innerX + 14*scale;
   let botBooks = '';
@@ -63,39 +62,61 @@ const iconSvg = (padding = 0) => {
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#5a4fcf"/>
-      <stop offset="100%" stop-color="#e8639a"/>
+      <stop offset="0%" stop-color="#0d0820"/>
+      <stop offset="55%" stop-color="#3b2fa0"/>
+      <stop offset="100%" stop-color="#c0407a"/>
     </linearGradient>
+    <radialGradient id="centerGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#6c5ce7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="transparent" stop-opacity="0"/>
+    </radialGradient>
     <filter id="glow">
       <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
       <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="sh">
-      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="rgba(0,0,0,0.35)"/>
+      <feDropShadow dx="0" dy="8" stdDeviation="18" flood-color="rgba(0,0,0,0.6)"/>
+    </filter>
+    <filter id="bookglow">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#6c5ce7" flood-opacity="0.7"/>
+    </filter>
+    <filter id="pinkglow">
+      <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#fd79a8" flood-opacity="0.7"/>
     </filter>
   </defs>
 
-  <!-- Background -->
+  <!-- Background: very dark -->
   <rect width="512" height="512" fill="url(#bg)"/>
 
-  <!-- Glow halo behind bookcase -->
-  <rect x="${(bx-10).toFixed(1)}" y="${(by-10).toFixed(1)}" width="${(bw+20).toFixed(1)}" height="${(bh+20).toFixed(1)}" rx="26" fill="rgba(255,255,255,0.12)" filter="url(#glow)"/>
+  <!-- Center radial glow -->
+  <rect width="512" height="512" fill="url(#centerGlow)"/>
 
-  <!-- Dark inner compartments (depth) -->
-  <rect x="${(innerX).toFixed(1)}"        y="${(by+shelf).toFixed(1)}"       width="${innerW.toFixed(1)}" height="${(topInnerH).toFixed(1)}" fill="rgba(0,0,0,0.18)"/>
-  <rect x="${(innerX).toFixed(1)}"        y="${(midY+shelf).toFixed(1)}"     width="${innerW.toFixed(1)}" height="${(botInnerH).toFixed(1)}" fill="rgba(0,0,0,0.15)"/>
+  <!-- Dark inner compartments (#080810 — app background color) -->
+  <rect x="${(innerX).toFixed(1)}"   y="${(by+shelf).toFixed(1)}"   width="${innerW.toFixed(1)}" height="${(topInnerH).toFixed(1)}" fill="#080810"/>
+  <rect x="${(innerX).toFixed(1)}"   y="${(midY+shelf).toFixed(1)}" width="${innerW.toFixed(1)}" height="${(botInnerH).toFixed(1)}" fill="#080810"/>
 
-  <!-- Books -->
+  <!-- Purple books with glow -->
+  <g filter="url(#bookglow)">
+    ${topBooks.match(/rect[^/]*(fill="#6c5ce7")[^/]*\/>/g)?.join('') || ''}
+    ${botBooks.match(/rect[^/]*(fill="#6c5ce7")[^/]*\/>/g)?.join('') || ''}
+  </g>
+
+  <!-- Pink books with glow -->
+  <g filter="url(#pinkglow)">
+    ${botBooks.match(/rect[^/]*(fill="#fd79a8")[^/]*\/>/g)?.join('') || ''}
+  </g>
+
+  <!-- All books (full render on top) -->
   ${topBooks}
   ${botBooks}
 
-  <!-- Bookcase frame with drop shadow -->
+  <!-- Bookcase frame -->
   <g filter="url(#sh)">
-    <rect x="${bx.toFixed(1)}"             y="${by.toFixed(1)}"              width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"  rx="11" fill="white"/>
-    <rect x="${(bx+bw-post).toFixed(1)}"   y="${by.toFixed(1)}"              width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"  rx="11" fill="white"/>
-    <rect x="${bx.toFixed(1)}"             y="${by.toFixed(1)}"              width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
-    <rect x="${bx.toFixed(1)}"             y="${midY.toFixed(1)}"            width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
-    <rect x="${bx.toFixed(1)}"             y="${(by+bh-shelf).toFixed(1)}"   width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"           y="${by.toFixed(1)}"             width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"   rx="11" fill="white"/>
+    <rect x="${(bx+bw-post).toFixed(1)}" y="${by.toFixed(1)}"             width="${post.toFixed(1)}"  height="${bh.toFixed(1)}"   rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"           y="${by.toFixed(1)}"             width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"           y="${midY.toFixed(1)}"           width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
+    <rect x="${bx.toFixed(1)}"           y="${(by+bh-shelf).toFixed(1)}"  width="${bw.toFixed(1)}"    height="${shelf.toFixed(1)}" rx="11" fill="white"/>
   </g>
 
   <!-- Sparkles -->
