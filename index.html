@@ -1357,7 +1357,6 @@ html, body {
           Ajouter un jeu
         </button>
         <button class="bracket-launch-btn" onclick="showTirageIntroIfNeeded()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="9" y1="10" x2="15" y2="10"/></svg>
           🎲 Tire-moi un jeu !
         </button>
       </div>
@@ -5287,6 +5286,9 @@ function quickActionBtn(id, status) {
     return `<div style="margin-top:6px;width:100%;background:rgba(0,230,118,0.06);border:0.5px solid rgba(0,230,118,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,230,118,0.6);text-align:center">✓ Terminé</div>`;
   if (status === 'platine')
     return `<div style="margin-top:6px;width:100%;background:rgba(0,206,201,0.06);border:0.5px solid rgba(0,206,201,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,206,201,0.7);text-align:center">⭐ 100%</div>`;
+  if (status === 'abandoned')
+    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
+      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">🔄 Nouvelle chance</button>`;
   return '';
 }
 
