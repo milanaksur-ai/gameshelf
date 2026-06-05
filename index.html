@@ -1429,14 +1429,14 @@ html, body {
         <input type="text" id="search-input" placeholder="Chercher un jeu…" oninput="filterGames()">
       </div>
       <div class="filter-row">
-        <div class="chip active" onclick="setFilter('all',this)">Tous</div>
-        <div class="chip" onclick="setFilter('playing',this)">En cours</div>
+        <div class="chip active" onclick="setFilter('playing',this)">En cours</div>
         <div class="chip" onclick="setFilter('paused',this)">En pause</div>
         <div class="chip" onclick="setFilter('finished',this)">Finis</div>
         <div class="chip" onclick="setFilter('platine',this)">⭐ 100%</div>
         <div class="chip" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>Backlog</span><span style="font-size:9px;opacity:0.55;font-weight:400">à commencer</span></div>
         <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
         <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
+        <div class="chip" onclick="setFilter('all',this)">Tous</div>
       </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
@@ -4458,7 +4458,7 @@ function saveGame() {
 // ══════════════════════════════════════
 // LIBRARY
 // ══════════════════════════════════════
-let currentFilter = 'all';
+let currentFilter = 'playing';
 function setFilter(f,el){ currentFilter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); filterGames(); }
 function filterGames(){
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
