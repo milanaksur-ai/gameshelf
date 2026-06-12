@@ -1985,13 +1985,13 @@ html, body {
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Demandes reçues</div>
           <div id="social-pending-list"></div>
         </div>
-        <!-- Friends list -->
+        <!-- Friends row (stories) -->
         <div id="social-friends-section">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Mes amis</div>
-          <div id="social-friends-list"></div>
+          <div id="social-friends-list" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 6px"></div>
         </div>
         <!-- Activity feed -->
-        <div id="social-activity-section" style="margin-top:24px;display:none">
+        <div id="social-activity-section" style="margin-top:18px;display:none">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Activité récente</div>
           <div id="social-activity-list"></div>
         </div>
@@ -6439,20 +6439,24 @@ function renderSocialScreen(uid) {
     badge.style.display = 'none';
   }
 
-  // Friends list
+  // Friends row (stories style)
   const friendsList = document.getElementById('social-friends-list');
   if (_socialFriends.length) {
     friendsList.innerHTML = _socialFriends.map(p => `
-      <div onclick="openFriendProfile('${p.id}')" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:8px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
-        ${_friendAvHtml(p,44)}
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px">${p.username||'Gamer'}</div>
-          <div style="font-size:11px;color:var(--muted2)">@${(p.username||'gamer').toLowerCase().replace(/\s+/g,'')}</div>
+      <div onclick="openFriendProfile('${p.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:66px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="padding:2.5px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2))">
+          <div style="padding:2px;border-radius:50%;background:var(--bg);display:flex">
+            ${_friendAvHtml(p,54)}
+          </div>
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"><path d="m9 18 6-6-6-6"/></svg>
-      </div>`).join('');
+        <div style="font-size:11px;font-weight:600;color:var(--text);max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${p.username||'Gamer'}</div>
+      </div>`).join('') + `
+      <div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:66px">
+        <div style="width:63px;height:63px;border-radius:50%;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted2)">+</div>
+        <div style="font-size:11px;color:var(--muted2)">Ajouter</div>
+      </div>`;
   } else {
-    friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px">Cherche des amis par pseudo ci-dessus</div>`;
+    friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px;width:100%">Cherche des amis par pseudo ci-dessus</div>`;
   }
 }
 
@@ -7075,7 +7079,15 @@ async function loadFriendActivity(friendIds) {
   const { data } = await _sb.from('user_games').select('user_id,title,status,score,image_id,updated_at')
     .in('user_id', friendIds).gte('updated_at', since)
     .order('updated_at', { ascending: false }).limit(20);
-  if (!data || !data.length) return;
+  if (!data || !data.length) {
+    const emptySection = document.getElementById('social-activity-section');
+    const emptyList = document.getElementById('social-activity-list');
+    if (emptySection && emptyList && !emptyList.innerHTML.trim()) {
+      emptySection.style.display = 'block';
+      emptyList.innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--muted2);font-size:13px;line-height:1.6">🌙 Rien de neuf chez tes amis ces 3 derniers jours.<br>Leurs jeux finis, 100% et parties en cours apparaîtront ici.</div>`;
+    }
+    return;
+  }
 
   // Get profiles for these users
   const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,avatar_url').in('id', friendIds);
