@@ -1374,7 +1374,7 @@ html, body {
 
   <!-- FEED -->
   <div class="screen active" id="screen-feed">
-    <div class="status-bar"><span id="clock">9:41</span><span>●●● ▶</span></div>
+
     <div class="feed-header">
       <div class="logo">GameShelf</div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -8074,8 +8074,6 @@ function addGameFromModal(g, btn) {
 }
 
 // clock
-function updateClock(){ const n=new Date(); document.getElementById('clock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0'); }
-updateClock(); setInterval(updateClock,30000);
 
 // toast
 let toastT;
