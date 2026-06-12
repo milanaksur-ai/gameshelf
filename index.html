@@ -5419,8 +5419,6 @@ function quickActionBtn(id, status) {
       style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">▶ Reprendre</button>`;
   if (status === 'finished')
     return `<div style="margin-top:6px;width:100%;background:rgba(0,230,118,0.06);border:0.5px solid rgba(0,230,118,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,230,118,0.6);text-align:center">✓ Terminé</div>`;
-  if (status === 'platine')
-    return `<div style="margin-top:6px;width:100%;background:rgba(0,206,201,0.06);border:0.5px solid rgba(0,206,201,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,206,201,0.7);text-align:center">⭐ 100%</div>`;
   if (status === 'abandoned')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">🔄 Nouvelle chance</button>`;
