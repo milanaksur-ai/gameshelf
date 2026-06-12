@@ -7157,7 +7157,7 @@ async function renderHomeTrending(refresh = false) {
   if (!row) return;
   if (refresh || !_trendingCache) {
     row.innerHTML = '<div class="loading-dots" style="padding:20px 0"><span></span><span></span><span></span></div>';
-    const data = await igdbFetch('trending', { limit: 30 });
+    const data = await igdbFetch('trending', { limit: 50 });
     _trendingCache = data ? data.map(mapIgdbGame).filter(g => g.cover || g.steamId) : [];
   }
   if (!_trendingCache.length) { row.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0">Aucun résultat</div>'; return; }
