@@ -7904,6 +7904,9 @@ function applyProfileToUI() {
 }
 
 (async function bootApp() {
+  // Demande le stockage persistant — sans ça, Chrome/Android peut effacer le
+  // localStorage (et donc la session) quand l'appareil manque d'espace.
+  if (navigator.storage?.persist) { navigator.storage.persist().catch(() => {}); }
   // ── Public tier list viewer (no auth needed) ──────────────────────
   const _tlPublicId = new URLSearchParams(location.search).get('tl');
   if (_tlPublicId) { renderPublicTierList(_tlPublicId); return; }
