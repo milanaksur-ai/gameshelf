@@ -7922,14 +7922,23 @@ function applyProfileToUI() {
 
   // Register BEFORE any await — Supabase fires SIGNED_IN from the OAuth hash
   // asynchronously during initialisation; if we register late we miss it entirely.
+  // TOKEN_REFRESHED handles the case where getSession() returns null while
+  // Supabase is still refreshing an expired JWT (keeps the user logged in).
   _sb.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session) {
+    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
       const appVisible = document.getElementById('view-app').style.display === 'flex';
       if (!appVisible) await onAuthSuccess(session.user);
     }
   });
 
-  const { data: { session } } = await _sb.auth.getSession();
+  // Give the async token refresh a moment to fire before concluding there is no session.
+  // Without this, an expired-but-refreshable JWT causes getSession() to return null
+  // and the "no session" branch clears local data before TOKEN_REFRESHED can restore it.
+  let { data: { session } } = await _sb.auth.getSession();
+  if (!session) {
+    await new Promise(r => setTimeout(r, 800));
+    ({ data: { session } } = await _sb.auth.getSession());
+  }
 
   if (session) {
     const hasLocal = loadFromStorage();
