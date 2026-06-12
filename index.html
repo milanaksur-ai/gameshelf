@@ -314,6 +314,36 @@ html, body {
 .game-cell:active { transform: scale(0.97); opacity: 0.85; }
 .game-cell.cell-playing { border-color: rgba(108,92,231,0.5); animation: cellPulse 2.4s ease-in-out infinite; }
 @keyframes cellPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,92,231,0); } 50%{ box-shadow: 0 0 0 4px rgba(108,92,231,0.22); } }
+/* Célébration 100% — lueur dorée + reflet brillant + étoile scintillante */
+.game-cell.cell-platine {
+  position: relative;
+  border-color: rgba(255,202,40,0.55);
+  animation: platGlow 3s ease-in-out infinite;
+}
+@keyframes platGlow {
+  0%,100% { box-shadow: 0 0 6px rgba(255,202,40,0.15); }
+  50%     { box-shadow: 0 0 16px rgba(255,202,40,0.4); }
+}
+.game-cell.cell-platine::before {
+  content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: linear-gradient(115deg, transparent 32%, rgba(255,235,170,0.22) 45%, rgba(255,255,255,0.4) 50%, rgba(255,235,170,0.22) 55%, transparent 68%);
+  transform: translateX(-130%);
+  animation: platShine 3.8s ease-in-out infinite;
+}
+@keyframes platShine {
+  0%   { transform: translateX(-130%); }
+  45%  { transform: translateX(130%); }
+  100% { transform: translateX(130%); }
+}
+.game-cell.cell-platine::after {
+  content: '✦'; position: absolute; top: 5px; left: 8px; z-index: 2; pointer-events: none;
+  color: #ffe082; font-size: 13px; text-shadow: 0 0 7px rgba(255,202,40,0.9);
+  animation: platTwinkle 2.2s ease-in-out infinite;
+}
+@keyframes platTwinkle {
+  0%,100% { opacity: 0.35; transform: scale(0.8) rotate(0deg); }
+  50%     { opacity: 1;    transform: scale(1.2) rotate(25deg); }
+}
 .game-cell:hover .remove-game-btn { opacity: 1 !important; }
 .gp-badge { background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0.04em;line-height:1 }
 /* On touch devices, show remove btn on long-press via active state */
@@ -5324,7 +5354,7 @@ function renderGameGrid(games=GAMES){
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
+    const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':'')+(ug.status==='platine'?' cell-platine':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
