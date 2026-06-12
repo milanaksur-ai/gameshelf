@@ -314,6 +314,15 @@ html, body {
 .game-cell:active { transform: scale(0.97); opacity: 0.85; }
 .game-cell.cell-playing { border-color: rgba(108,92,231,0.5); animation: cellPulse 2.4s ease-in-out infinite; }
 @keyframes cellPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,92,231,0); } 50%{ box-shadow: 0 0 0 4px rgba(108,92,231,0.22); } }
+/* Jeux finis — respiration verte très légère */
+.game-cell.cell-finished {
+  border-color: rgba(0,230,118,0.28);
+  animation: finishedBreath 5.5s ease-in-out infinite;
+}
+@keyframes finishedBreath {
+  0%,100% { box-shadow: 0 0 0 rgba(0,230,118,0); }
+  50%     { box-shadow: 0 0 9px rgba(0,230,118,0.14); }
+}
 /* Célébration 100% — lueur dorée + reflet brillant + étoile scintillante */
 .game-cell.cell-platine {
   position: relative;
@@ -5354,7 +5363,7 @@ function renderGameGrid(games=GAMES){
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':'')+(ug.status==='platine'?' cell-platine':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
+    const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':'')+(ug.status==='platine'?' cell-platine':'')+(ug.status==='finished'?' cell-finished':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
         ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
@@ -5417,8 +5426,6 @@ function quickActionBtn(id, status) {
   if (status === 'paused')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
       style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">▶ Reprendre</button>`;
-  if (status === 'finished')
-    return `<div style="margin-top:6px;width:100%;background:rgba(0,230,118,0.06);border:0.5px solid rgba(0,230,118,0.15);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:rgba(0,230,118,0.6);text-align:center">✓ Terminé</div>`;
   if (status === 'abandoned')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">🔄 Nouvelle chance</button>`;
