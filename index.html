@@ -1716,6 +1716,10 @@ html, body {
             <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:8px">
               <div style="font-size:11px;font-weight:700;color:var(--a);margin-bottom:8px">12 juin 2026</div>
               <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Notifications push : demandes d'amis et récap hebdo 🔔</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Nouvel écran Amis : avatars en stories + fil d'activité redessiné</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Jeux en commun affichés sur les profils amis 🤝</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">La recherche couvre toute la bibliothèque</li>
                 <li style="font-size:12px;color:var(--muted2);line-height:1.5">App en vrai plein écran sur Android 🎉</li>
                 <li style="font-size:12px;color:var(--muted2);line-height:1.5">Souhaits visibles sur les profils de tes amis</li>
                 <li style="font-size:12px;color:var(--muted2);line-height:1.5">Fiche complète d'un jeu accessible depuis les profils amis et la recherche</li>
@@ -2034,6 +2038,11 @@ html, body {
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
         </div>
+      </div>
+      <!-- Jeux en commun -->
+      <div id="fp-common-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">🤝 <span id="fp-common-count"></span></div>
+        <div id="fp-common-list" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
       </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
@@ -4676,10 +4685,12 @@ function filterGames(){
   const filtered=GAMES.filter(g=>{
     const ug=userGames[g.id]||{status:g.status};
     let matchFilter;
-    if (currentFilter === 'all') matchFilter = true;
+    // Une recherche active couvre toute la bibliothèque, pas seulement la catégorie affichée
+    if (q) matchFilter = true;
+    else if (currentFilter === 'all') matchFilter = true;
     else if (currentFilter === 'playing') matchFilter = isPlaying(ug.status);
     else matchFilter = ug.status === currentFilter;
-    if (currentFilter === 'finished' && libUnratedOnly) matchFilter = matchFilter && !((ug.score || 0) > 0);
+    if (!q && currentFilter === 'finished' && libUnratedOnly) matchFilter = matchFilter && !((ug.score || 0) > 0);
     const matchSearch = !q||g.title.toLowerCase().includes(q);
     return matchFilter && matchSearch;
   });
@@ -6956,6 +6967,21 @@ function renderFriendProfile(friend) {
   _fpMyTitles = myTitles;
   const emptyRow = (msg) => `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">${msg}</div>`;
 
+  // Jeux en commun — rangée horizontale en haut du profil
+  const commonSec = document.getElementById('fp-common-section');
+  const commonIdx = _fpAllGames.map((g,i) => {
+    const gid = g.id || String(g.game_id || '');
+    return (myIds.has(gid) || myTitles.has((g.title||'').toLowerCase().trim())) ? i : -1;
+  }).filter(i => i >= 0);
+  if (commonSec) {
+    if (commonIdx.length) {
+      commonSec.style.display = 'block';
+      document.getElementById('fp-common-count').textContent =
+        commonIdx.length === 1 ? '1 jeu en commun' : `${commonIdx.length} jeux en commun`;
+      document.getElementById('fp-common-list').innerHTML = commonIdx.map(i => fpCommonCard(i)).join('');
+    } else commonSec.style.display = 'none';
+  }
+
   // Son top — top 6 scored games
   const topSec = document.getElementById('fp-topact-section');
   const topGrid = document.getElementById('fp-top-grid');
@@ -7134,7 +7160,7 @@ async function openFriendProfile(userId) {
   _fpFriendUserId = userId;
   document.getElementById('fp-remove-btn').style.display = 'none';
   document.getElementById('screen-friend-profile').style.display = 'flex';
-  ['fp-now-section','fp-topact-section','fp-trouvailles-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  ['fp-common-section','fp-now-section','fp-topact-section','fp-trouvailles-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-stats').innerHTML = '';
   document.getElementById('fp-platforms').style.display = 'none';
