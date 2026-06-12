@@ -3,7 +3,7 @@
   "short_name": "GameShelf",
   "description": "Ta bibliothèque de jeux vidéo · Quiz · Tier Lists",
   "start_url": "/",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#080810",
   "theme_color": "#6c5ce7",
   "orientation": "portrait-primary",
