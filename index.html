@@ -1744,6 +1744,18 @@ html, body {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
           </button>
 
+          <!-- Notifications push -->
+          <button id="push-toggle" data-on="0" onclick="togglePushNotifs(this)" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:20px;text-align:left">
+            <div style="font-size:20px">🔔</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">Notifications</div>
+              <div style="font-size:11px;color:var(--muted2);margin-top:1px">Demandes d'amis et récap hebdo</div>
+            </div>
+            <div class="pn-track" style="width:40px;height:24px;border-radius:12px;background:var(--s3);position:relative;transition:background 0.2s;flex-shrink:0">
+              <div class="pn-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s"></div>
+            </div>
+          </button>
+
           <!-- FAQ -->
           <div style="margin-bottom:20px">
             <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;padding-left:2px">FAQ</div>
@@ -2558,6 +2570,96 @@ const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
 const SUPABASE_URL = 'https://tphspftxnfhqhhykavbw.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_Ck44c4Aq-B-rd8hHHWuJlg_6ekKbiAk';
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ══════════════════════════════════════
+// PUSH NOTIFICATIONS
+// ══════════════════════════════════════
+const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
+const VAPID_PUBLIC_KEY = 'BDjp6ICwMTmKuT6bkL_f0I4fWtNw96Tf9bQa109UkVj-s1NOP8dkIV_xS5N_AGJUigN6y8ke1fqyCYtMMBIJ4b4';
+
+function _b64ToU8(b64) {
+  const pad = '='.repeat((4 - b64.length % 4) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+}
+
+async function _savePushSub(sub) {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) return;
+  const j = sub.toJSON();
+  await _sb.from('push_subscriptions').upsert({
+    user_id: session.user.id,
+    endpoint: sub.endpoint,
+    p256dh: j.keys.p256dh,
+    auth: j.keys.auth
+  }, { onConflict: 'endpoint' });
+}
+
+async function enablePushNotifs() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+      showToast('Notifications non supportées sur cet appareil'); return false;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { showToast('Notifications refusées par le navigateur'); return false; }
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: _b64ToU8(VAPID_PUBLIC_KEY) });
+    await _savePushSub(sub);
+    showToast('Notifications activées ! 🔔');
+    return true;
+  } catch (e) { console.warn('GameShelf: push enable failed', e); showToast('Activation impossible'); return false; }
+}
+
+async function disablePushNotifs() {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      await _sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+      await sub.unsubscribe();
+    }
+    showToast('Notifications désactivées');
+  } catch (e) {}
+}
+
+function _setPushToggleUI(el, on) {
+  if (!el) return;
+  el.dataset.on = on ? '1' : '0';
+  const track = el.querySelector('.pn-track');
+  const knob  = el.querySelector('.pn-knob');
+  if (track) track.style.background = on ? 'var(--a)' : 'var(--s3)';
+  if (knob)  knob.style.transform = on ? 'translateX(16px)' : '';
+}
+
+async function togglePushNotifs(el) {
+  if (el.dataset.on === '1') { await disablePushNotifs(); _setPushToggleUI(el, false); }
+  else { _setPushToggleUI(el, await enablePushNotifs()); }
+}
+
+async function initPushState() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub && Notification.permission === 'granted') {
+      _setPushToggleUI(document.getElementById('push-toggle'), true);
+      _savePushSub(sub);
+    }
+  } catch (e) {}
+}
+
+// Fire-and-forget social notification to another user via backend
+async function _pushNotify(type, to) {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    fetch(PUSH_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ type, to })
+    }).catch(() => {});
+  } catch (e) {}
+}
 
 // Platform abbreviation colours
 const PLAT_COLORS = {
@@ -6212,6 +6314,7 @@ async function acceptFriendFromNotif(friendshipId, btn) {
     const card = btn.closest('div[style*="border-radius:16px"]');
     if (card) card.style.opacity = '0.4';
     showToast('Ami ajouté !');
+    _notifyRequesterAccepted(friendshipId);
     checkPendingRequests();
   }
 }
@@ -6509,13 +6612,22 @@ async function sendFriendRequest(addresseeId, el) {
   if (error) { showToast(error.code === '23505' ? 'Demande déjà envoyée' : error.message); return; }
   if (el) el.querySelector('span').textContent = '✓ Envoyé';
   showToast('Demande d\'ami envoyée !');
+  _pushNotify('friend_request', addresseeId);
 }
 
 async function acceptFriend(friendshipId) {
   await _sb.from('friendships').update({ status: 'accepted' }).eq('id', friendshipId);
   showToast('Ami ajouté !');
+  _notifyRequesterAccepted(friendshipId);
   loadSocialScreen();
   checkPendingRequests();
+}
+
+async function _notifyRequesterAccepted(friendshipId) {
+  try {
+    const { data } = await _sb.from('friendships').select('requester_id').eq('id', friendshipId).maybeSingle();
+    if (data?.requester_id) _pushNotify('friend_accept', data.requester_id);
+  } catch (e) {}
 }
 
 async function declineFriend(friendshipId) {
@@ -9562,6 +9674,7 @@ async function exportTierList() {
 <script>
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
+  initPushState();
 }
 </script>
 </body>
