@@ -2655,13 +2655,14 @@ function discCardHtml(g, ctx) {
     ? addedGames.find(a => a.id === g.id)?.status
     : (userGames[g.id]?.status || GAMES.find(x=>x.id===g.id)?.status);
   const btnLabel = added ? `✓ ${DISC_STATUS_LABELS[addedStatus]||'Ajouté'}` : '+ Ajouter';
+  const openAttr = ctx === 'lib' ? ` onclick="ldiscOpenDetail('${g.id}')" style="cursor:pointer"` : '';
   return `<div class="disc-card" id="disc-card-${ctx}-${g.id}">
-    <div class="disc-cover">
+    <div class="disc-cover"${openAttr}>
       ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">` : ''}
       <div class="disc-fallback">${initials}</div>
     </div>
     <div class="disc-body">
-      <div class="disc-title">${g.title}</div>
+      <div class="disc-title"${openAttr}>${g.title}</div>
       <div class="disc-meta">${meta}</div>
       <button class="disc-add${added?' added':''}" id="disc-btn-${ctx}-${g.id}" onclick="discTogglePicker('${g.id}','${ctx}')">${btnLabel}</button>
       <div class="disc-picker" id="disc-picker-${ctx}-${g.id}" style="display:none">
@@ -2711,10 +2712,10 @@ function discPick(id, status, ctx) {
   } else {
     const existing = GAMES.find(x => x.id === id);
     if (existing) {
-      userGames[id] = {...(userGames[id]||{}), status};
+      userGames[id] = {...(userGames[id]||{}), status, lastActivityAt: new Date().toISOString()};
     } else {
       GAMES.push({...g, status, score:0, notes:'', hours:0});
-      userGames[id] = {status, score:0, notes:'', hours:0};
+      userGames[id] = {status, score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
     }
     saveToStorage(); refreshViews();
     showToast(`${g.title} → ${DISC_STATUS_LABELS[status]||status}`);
@@ -2842,6 +2843,24 @@ function openLdisc() {
 function closeLdisc() {
   const modal = document.getElementById('ldisc-modal');
   if (modal) modal.style.display = 'none';
+}
+
+// Ouvre la fiche complète d'un jeu depuis l'écran "Ajouter un jeu"
+function ldiscOpenDetail(id) {
+  const inLib = GAMES.find(x => x.id === id);
+  const g = _ldiscPool.find(x => x.id === id) || inLib;
+  if (!g) return;
+  closeLdisc();
+  if (inLib) { openDetail(id); return; }
+  if (_tempRecoId && _tempRecoId !== id) {
+    const prevIdx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (prevIdx >= 0) GAMES.splice(prevIdx, 1);
+    delete userGames[_tempRecoId];
+  }
+  _tempRecoId = id;
+  GAMES.push({ ...g, status: null, score: 0, notes: '', hours: 0 });
+  userGames[id] = { status: null, score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null };
+  openDetail(id);
 }
 
 async function ldiscByGenre(genreId, chipEl) {
@@ -3157,7 +3176,7 @@ async function onAuthSuccess(user) {
           meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
           hours: g.hours || 0
         });
-        userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null };
+        userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null, lastActivityAt: g.updated_at || null };
         if (g.screenshots?.length) {
           gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
         }
@@ -3566,7 +3585,7 @@ async function _execSync() {
         vibe: ug.vibe || null,
         rated_at: ug.ratedAt || null,
         platform: ug.platform || null,
-        updated_at: new Date().toISOString()
+        updated_at: ug.lastActivityAt || ug.ratedAt || new Date().toISOString()
       };
     });
     if (!rows.length) return;
@@ -3640,7 +3659,7 @@ async function syncFromSupabase(user) {
         meta: g.meta || 0, platforms: g.platforms || [], steamId: g.steam_id || null,
         hours: g.hours || 0
       });
-      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null };
+      userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null, lastActivityAt: g.updated_at || null };
       if (g.screenshots?.length) {
         gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
       }
@@ -4418,6 +4437,7 @@ function setStatus(s) {
     showToast("Slots pleins — retire un jeu d'abord"); return;
   }
   ug.status = s;
+  ug.lastActivityAt = new Date().toISOString();
   renderStatus(s);
   renderStars(ug.score, s);
   updateScoreDisplay(ug.score, s);
@@ -4762,8 +4782,16 @@ function renderProfileStats() {
   // Activity feed — recently finished or added
   const activity = document.getElementById('tab-activity');
   if (activity) {
+    const actDate = g => g.lastActivityAt || g.ratedAt || null;
     const recent = [...all]
       .filter(g => isDone(g.status) || g.status === 'backlog')
+      .sort((a, b) => {
+        const da = actDate(a), db = actDate(b);
+        if (da && db) return new Date(db) - new Date(da);
+        if (da) return -1;
+        if (db) return 1;
+        return 0;
+      })
       .slice(0, 6);
     activity.innerHTML = recent.map(g => {
       const action = g.status === 'platine'
@@ -4868,7 +4896,7 @@ function _trvGameCard(g, containerId) {
   const MAX = 100;
   const needsExpand = review.length > MAX;
   const short = needsExpand ? review.slice(0, MAX) + '…' : review;
-  const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review)}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
+  const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review).replace(/'/g,'%27')}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
   const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
   const accentColor = g.score >= 8 ? 'var(--amber)' : g.score >= 6 ? 'rgba(108,92,231,0.6)' : 'var(--border2)';
   const clickFn = containerId.startsWith('fp-') ? `openFriendGamePopup` : `openDetail`;
@@ -4888,12 +4916,11 @@ function _trvGameCard(g, containerId) {
   </div>`;
 }
 
-function _trvExpandMonth(monthId, encodedGames, containerId) {
+const _trvHiddenStore = {};
+function _trvExpandMonth(monthId, containerId) {
   const wrap = document.getElementById(monthId);
   if (!wrap) return;
-  const games = JSON.parse(decodeURIComponent(encodedGames));
-  const moreEl = document.getElementById(monthId + '-more');
-  if (moreEl) moreEl.remove();
+  const games = _trvHiddenStore[monthId] || [];
   const btnEl = document.getElementById(monthId + '-btn');
   if (btnEl) btnEl.remove();
   games.forEach(g => { wrap.insertAdjacentHTML('beforeend', _trvGameCard(g, containerId)); });
@@ -4934,7 +4961,8 @@ function renderTrouvailles(ugData, gamesData, containerId) {
     const shown = games.slice(0, LIMIT);
     const hidden = games.slice(LIMIT);
     const monthId = `trv-month-${containerId}-${mi}`;
-    const moreHtml = hidden.length ? `<div id="${monthId}-more"></div><button id="${monthId}-btn" onclick="_trvExpandMonth('${monthId}-more','${encodeURIComponent(JSON.stringify(hidden))}','${containerId}');document.getElementById('${monthId}-btn').remove()" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:2px;margin-bottom:8px">Afficher plus (${hidden.length})</button>` : '';
+    if (hidden.length) _trvHiddenStore[monthId] = hidden;
+    const moreHtml = hidden.length ? `<button id="${monthId}-btn" onclick="_trvExpandMonth('${monthId}','${containerId}')" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:9px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:2px;margin-bottom:8px">Afficher plus (${hidden.length})</button>` : '';
     return `<div style="margin-bottom:20px">
       <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:capitalize;letter-spacing:0.08em;margin-bottom:10px;padding-left:2px;display:flex;align-items:center;gap:6px">
         <span style="width:20px;height:1px;background:var(--border2);display:inline-block"></span>${month}<span style="flex:1;height:1px;background:var(--border2);display:inline-block"></span>
@@ -5190,7 +5218,7 @@ function recoWishToggle(id) {
   const existing = GAMES.find(x => x.id === id);
   if (!existing) {
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
     saveToStorage();
     refreshViews();
     showToast(`${g.title} ajouté aux souhaits`);
@@ -5296,6 +5324,7 @@ function quickStatusChange(id, status) {
   if (!userGames[id]) return;
   const prev = userGames[id].status;
   userGames[id].status = status;
+  userGames[id].lastActivityAt = new Date().toISOString();
   saveToStorage();
   showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
   if ((status === 'finished' || status === 'platine') && prev !== 'finished' && prev !== 'platine') {
@@ -5670,7 +5699,7 @@ async function addSingleGame(titleRaw, defaultStatus) {
     return `<strong>${g.title}</strong> est déjà dans ta bibliothèque.`;
   }
   GAMES.push({...g, status, score:0, notes:'', hours:0});
-  userGames[g.id] = {status, score:0, notes:'', hours:0};
+  userGames[g.id] = {status, score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
   refreshViews();
   const src = coverUrl(g);
   const coverHtml = src
@@ -6454,7 +6483,7 @@ let _fpActiveTab = '';
 let _fpMyIds    = new Set();
 let _fpMyTitles = new Set();
 
-const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné'};
+const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné','wish':'Souhait','paused':'En pause'};
 
 function fpCoverSrc(g) {
   if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
@@ -6522,11 +6551,13 @@ function fpRenderLibTab(tab, inModal) {
     'backlog':      'var(--muted2)',
     'common':       '#00cec9',
     'abandoned':    'var(--red)',
+    'wish':         '#a78bfa',
   };
   const tabDefs = [
     {key:'finished',     label:'Finis',     match:g=>g.status==='finished'},
     {key:'platine',      label:'100%',      match:g=>g.status==='platine'},
     {key:'backlog',      label:'Backlog',   match:g=>g.status==='backlog'},
+    {key:'wish',         label:'✦ Souhaits', match:g=>g.status==='wish'},
     {key:'common',       label:'En Commun', match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
     {key:'abandoned',    label:'Abandonné', match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
@@ -6732,7 +6763,7 @@ function renderFriendProfile(friend) {
   const libSec = document.getElementById('fp-lib-section');
   libSec.style.display = 'block';
   if (games.length) {
-    const firstTab = ['finished','platine','backlog','abandoned'].find(t => games.some(g=>g.status===t)) || 'common';
+    const firstTab = ['finished','platine','backlog','wish','abandoned'].find(t => games.some(g=>g.status===t)) || 'common';
     fpRenderLibTab(firstTab);
   } else {
     document.getElementById('fp-lib-tabs').innerHTML = '';
@@ -6772,7 +6803,7 @@ async function openFriendGamePopup(idx) {
     ${screenshotHtml}
     ${mine
       ? `<button onclick="closeFriendGamePopup();openDetail('${gid}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
-      : `<button onclick="addFromFriendLibrary('${encodeURIComponent(g.title)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">➕ Ajouter à ma liste</button>`
+      : `<button onclick="openFriendGameDetail(${idx})" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir la fiche du jeu →</button>`
     }
     <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);margin-top:8px">Fermer</button>`;
   }
@@ -6801,14 +6832,45 @@ async function openFriendGamePopup(idx) {
   el.innerHTML = buildHtml(screenshotHtml);
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
-function addFromFriendLibrary(encodedTitle) {
-  const title = decodeURIComponent(encodedTitle);
+
+// Fiche jeu universelle : ouvre la vraie fiche (trailer, notation…) même si le jeu
+// n'est pas dans ma bibliothèque — réutilise le mécanisme temp de recoOpenDetail.
+async function openFriendGameDetail(idx) {
+  const fg = _fpAllGames[idx];
+  if (!fg) return;
+  const gid = String(fg.id || fg.game_id || '');
   closeFriendGamePopup();
-  openAddModal();
-  setTimeout(() => {
-    const searchEl = document.getElementById('ldisc-search');
-    if (searchEl) { searchEl.value = title; ldiscSearch(title); }
-  }, 150);
+  if (gid && GAMES.find(x => x.id === gid)) { openDetail(gid); return; }
+  const byTitle = GAMES.find(x => (x.title||'').toLowerCase().trim() === (fg.title||'').toLowerCase().trim());
+  if (byTitle) { openDetail(byTitle.id); return; }
+  showToast('Chargement…');
+  let g = null;
+  if (gid && /^\d+$/.test(gid)) {
+    const data = await igdbFetch('game', { ids: [gid] });
+    if (data?.length) g = mapIgdbGame(data[0]);
+  }
+  if (!g && fg.title) {
+    const results = await igdbSearch(fg.title, 5);
+    g = (results||[]).find(x => (x.title||'').toLowerCase().trim() === fg.title.toLowerCase().trim()) || (results||[])[0] || null;
+  }
+  if (!g) {
+    g = { id: gid || ('fr_' + Date.now()), title: fg.title || 'Jeu', year: fg.year || 0, genre: fg.genre || '',
+      steamId: fg.steam_id || null, emoji: '🎮', cover: fg.cover || null, imageId: fg.image_id || fg.imageId || null,
+      meta: 0, platforms: fg.platforms || [], gameModes: [], hasMulti: false, videoId: null, timeToBeat: 0 };
+  }
+  if (_tempRecoId && _tempRecoId !== g.id) {
+    const prevIdx = GAMES.findIndex(x => x.id === _tempRecoId);
+    if (prevIdx >= 0) GAMES.splice(prevIdx, 1);
+    delete userGames[_tempRecoId];
+  }
+  if (!GAMES.find(x => x.id === g.id)) {
+    _tempRecoId = g.id;
+    GAMES.push({ ...g, status: null, score: 0, notes: '', hours: 0 });
+    userGames[g.id] = { status: null, score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null };
+  } else {
+    _tempRecoId = null;
+  }
+  openDetail(g.id);
 }
 
 let _fpFriendshipId = null;
@@ -7290,7 +7352,7 @@ function colOpenDetail(id) {
   if (!g) return;
   if (!GAMES.find(x => x.id === id)) {
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
   }
   closeCollection();
   openDetail(id);
@@ -7350,7 +7412,7 @@ function simOpenDetail(id, cacheKey) {
   if (!g) return;
   if (!GAMES.find(x => x.id === id)) {
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0};
+    userGames[id] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
   }
   openDetail(id);
 }
@@ -7830,7 +7892,7 @@ function addGameFromModal(g, btn) {
   const isDoneStatus = addModalStatus === 'finished' || addModalStatus === 'platine';
   const autoHours = isDoneStatus && g.timeToBeat ? g.timeToBeat : 0;
   GAMES.push({...g, status: addModalStatus, score:0, notes:'', hours: autoHours});
-  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours: autoHours};
+  userGames[g.id] = {status: addModalStatus, score:0, notes:'', hours: autoHours, lastActivityAt: new Date().toISOString()};
   _lastAddedId = g.id;
   refreshViews();
   saveToStorage();
