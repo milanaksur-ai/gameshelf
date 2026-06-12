@@ -1429,14 +1429,17 @@ html, body {
         <input type="text" id="search-input" placeholder="Chercher un jeu…" oninput="filterGames()">
       </div>
       <div class="filter-row">
-        <div class="chip active" onclick="setFilter('playing',this)">En cours</div>
-        <div class="chip" onclick="setFilter('paused',this)">En pause</div>
-        <div class="chip" onclick="setFilter('finished',this)">Finis</div>
-        <div class="chip" onclick="setFilter('platine',this)">⭐ 100%</div>
-        <div class="chip" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>Backlog</span><span style="font-size:9px;opacity:0.55;font-weight:400">à commencer</span></div>
-        <div class="chip" onclick="setFilter('abandoned',this)">Abandonnés</div>
-        <div class="chip" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
-        <div class="chip" onclick="setFilter('all',this)">Tous</div>
+        <div class="chip active" data-f="playing" onclick="setFilter('playing',this)">En cours</div>
+        <div class="chip" data-f="paused" onclick="setFilter('paused',this)">En pause</div>
+        <div class="chip" data-f="finished" onclick="setFilter('finished',this)">Finis</div>
+        <div class="chip" data-f="platine" onclick="setFilter('platine',this)">⭐ 100%</div>
+        <div class="chip" data-f="backlog" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>Backlog</span><span style="font-size:9px;opacity:0.55;font-weight:400">à commencer</span></div>
+        <div class="chip" data-f="abandoned" onclick="setFilter('abandoned',this)">Abandonnés</div>
+        <div class="chip" data-f="wish" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
+        <div class="chip" data-f="all" onclick="setFilter('all',this)">Tous</div>
+      </div>
+      <div id="unrated-row" style="display:none;padding:8px 16px 0">
+        <button id="unrated-btn" onclick="toggleUnrated()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;transition:all 0.15s">☆ Non notés uniquement</button>
       </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
@@ -1729,6 +1732,30 @@ html, body {
                 <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55">Dans l'onglet <strong>Profil</strong>, appuie sur "Modifier le profil" en haut de la page.</div>
               </div>
 
+            </div>
+          </div>
+
+          <!-- Dernières mises à jour -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px">✨ Dernières mises à jour</div>
+            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:8px">
+              <div style="font-size:11px;font-weight:700;color:var(--a);margin-bottom:8px">12 juin 2026</div>
+              <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">App en vrai plein écran sur Android 🎉</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Souhaits visibles sur les profils de tes amis</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Fiche complète d'un jeu accessible depuis les profils amis et la recherche</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Swipe gauche/droite pour changer de catégorie dans la bibliothèque</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Filtre "non notés" dans la catégorie Finis</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Activité récente du profil triée par date</li>
+              </ul>
+            </div>
+            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px">
+              <div style="font-size:11px;font-weight:700;color:var(--a);margin-bottom:8px">Début juin 2026</div>
+              <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">GameShelf disponible sur le Play Store (bêta) 🚀</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">Bouton "Nouvelle chance" sur les jeux abandonnés</li>
+                <li style="font-size:12px;color:var(--muted2);line-height:1.5">La bibliothèque s'ouvre sur "En cours"</li>
+              </ul>
             </div>
           </div>
 
@@ -4479,7 +4506,30 @@ function saveGame() {
 // LIBRARY
 // ══════════════════════════════════════
 let currentFilter = 'playing';
-function setFilter(f,el){ currentFilter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); filterGames(); }
+let libUnratedOnly = false;
+function setFilter(f,el){
+  currentFilter=f;
+  document.querySelectorAll('.filter-row .chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  const ur = document.getElementById('unrated-row');
+  if (ur) ur.style.display = f === 'finished' ? 'block' : 'none';
+  if (f !== 'finished' && libUnratedOnly) { libUnratedOnly = false; _styleUnratedBtn(); }
+  filterGames();
+}
+
+function _styleUnratedBtn() {
+  const b = document.getElementById('unrated-btn');
+  if (!b) return;
+  b.style.background  = libUnratedOnly ? 'rgba(255,195,0,0.15)' : 'var(--s2)';
+  b.style.borderColor = libUnratedOnly ? 'rgba(255,195,0,0.4)'  : 'var(--border2)';
+  b.style.color       = libUnratedOnly ? 'var(--amber)'         : 'var(--muted2)';
+}
+
+function toggleUnrated() {
+  libUnratedOnly = !libUnratedOnly;
+  _styleUnratedBtn();
+  filterGames();
+}
 function filterGames(){
   const q=(document.getElementById('search-input')?.value||'').toLowerCase();
   const filtered=GAMES.filter(g=>{
@@ -4488,6 +4538,7 @@ function filterGames(){
     if (currentFilter === 'all') matchFilter = true;
     else if (currentFilter === 'playing') matchFilter = isPlaying(ug.status);
     else matchFilter = ug.status === currentFilter;
+    if (currentFilter === 'finished' && libUnratedOnly) matchFilter = matchFilter && !((ug.score || 0) > 0);
     const matchSearch = !q||g.title.toLowerCase().includes(q);
     return matchFilter && matchSearch;
   });
@@ -4503,6 +4554,32 @@ function filterGames(){
     </div>`;
   }
 }
+
+// Swipe horizontal pour passer d'une catégorie à l'autre dans la bibliothèque
+(function() {
+  const area = document.querySelector('#screen-library .scroll-area');
+  if (!area) return;
+  const ORDER = ['playing','paused','finished','platine','backlog','abandoned','wish','all'];
+  let sx = 0, sy = 0, st = 0;
+  area.addEventListener('touchstart', e => {
+    const t = e.touches[0]; sx = t.clientX; sy = t.clientY; st = Date.now();
+  }, { passive: true });
+  area.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 600) return;                       // trop lent = pas un swipe
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 2) return; // pas assez horizontal
+    const i = ORDER.indexOf(currentFilter);
+    if (i < 0) return;
+    const ni = i + (dx < 0 ? 1 : -1);
+    if (ni < 0 || ni >= ORDER.length) return;
+    const chip = document.querySelector(`.filter-row .chip[data-f="${ORDER[ni]}"]`);
+    if (chip) {
+      setFilter(ORDER[ni], chip);
+      chip.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, { passive: true });
+})();
 
 let _pendingRemoveId = null;
 function removeGame(id) {
