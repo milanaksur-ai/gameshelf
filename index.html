@@ -6954,8 +6954,12 @@ function closeFriendGamePopup() { document.getElementById('fp-game-overlay').sty
 async function openFriendGameDetail(idx) {
   const fg = _fpAllGames[idx];
   if (!fg) return;
-  const gid = String(fg.id || fg.game_id || '');
   closeFriendGamePopup();
+  openExternalGameDetail(fg);
+}
+
+async function openExternalGameDetail(fg) {
+  const gid = String(fg.id || fg.game_id || '');
   if (gid && GAMES.find(x => x.id === gid)) { openDetail(gid); return; }
   const byTitle = GAMES.find(x => (x.title||'').toLowerCase().trim() === (fg.title||'').toLowerCase().trim());
   if (byTitle) { openDetail(byTitle.id); return; }
@@ -7072,19 +7076,36 @@ function closeFriendProfile() {
   _friendProfileData = null;
 }
 
+let _actFeedRows = [];
+function openActivityGame(i) {
+  const item = _actFeedRows[i];
+  if (item) openExternalGameDetail(item);
+}
+
+function _actDayGroup(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (d >= startToday) return "Aujourd'hui";
+  const startYesterday = new Date(startToday);
+  startYesterday.setDate(startYesterday.getDate() - 1);
+  if (d >= startYesterday) return 'Hier';
+  return 'Cette semaine';
+}
+
 async function loadFriendActivity(friendIds) {
   if (!friendIds.length) return;
-  // Get recent game updates from friends (last 10 per friend, last 3 days)
-  const since = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+  // Get recent game updates from friends (last 7 days)
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const { data } = await _sb.from('user_games').select('user_id,title,status,score,image_id,updated_at')
     .in('user_id', friendIds).gte('updated_at', since)
-    .order('updated_at', { ascending: false }).limit(20);
+    .order('updated_at', { ascending: false }).limit(30);
   if (!data || !data.length) {
     const emptySection = document.getElementById('social-activity-section');
     const emptyList = document.getElementById('social-activity-list');
     if (emptySection && emptyList && !emptyList.innerHTML.trim()) {
       emptySection.style.display = 'block';
-      emptyList.innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--muted2);font-size:13px;line-height:1.6">🌙 Rien de neuf chez tes amis ces 3 derniers jours.<br>Leurs jeux finis, 100% et parties en cours apparaîtront ici.</div>`;
+      emptyList.innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--muted2);font-size:13px;line-height:1.6">🌙 Rien de neuf chez tes amis ces 7 derniers jours.<br>Leurs jeux finis, 100% et parties en cours apparaîtront ici.</div>`;
     }
     return;
   }
@@ -7107,30 +7128,50 @@ async function loadFriendActivity(friendIds) {
     'playing-multi': 'joue en multi à', 'backlog': 'a ajouté au backlog',
     'abandoned': 'a abandonné', 'wish': 'souhaite', 'paused': 'a mis en pause'
   };
-  const html = data.map(item => {
+  const BADGE = {
+    'platine':       ['🏆','rgba(255,202,40,0.16)','#ffca28'],
+    'finished':      ['✓','rgba(0,230,118,0.16)','#00e676'],
+    'playing-solo':  ['🎮','rgba(108,92,231,0.22)','#a29bfe'],
+    'playing-multi': ['🎮','rgba(108,92,231,0.22)','#a29bfe'],
+    'wish':          ['⭐','rgba(253,121,168,0.16)','#fd79a8'],
+    'backlog':       ['＋','var(--s2)','var(--muted2)'],
+    'paused':        ['⏸','var(--s2)','var(--muted2)'],
+    'abandoned':     ['✕','var(--s2)','var(--muted2)']
+  };
+  _actFeedRows = data;
+  const _coverHtml = (src, w, h, r) => `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;background:var(--s2);flex-shrink:0">${src
+    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+    : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*0.32)}px">🎮</div>`}</div>`;
+  let lastGroup = null;
+  const html = data.map((item, i) => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     const ago = timeAgo(item.updated_at);
-    const bubble = src
-      ? `<div style="width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : _friendAvHtml({...p, avatar_url: p.avatar_url||null}, 44);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border)">
-      ${bubble}
+    const grp = _actDayGroup(item.updated_at);
+    const header = grp !== lastGroup ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:${lastGroup ? 14 : 0}px 0 4px">${grp}</div>` : '';
+    lastGroup = grp;
+    const [bIcon, bBg, bColor] = BADGE[item.status] || ['•','var(--s2)','var(--muted2)'];
+    return header + `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <div style="position:relative;flex-shrink:0">
+        ${_coverHtml(src, 42, 56, 8)}
+        <div style="position:absolute;right:-7px;bottom:-5px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 20)}</div>
+      </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
       </div>
+      <div style="width:26px;height:26px;border-radius:50%;background:${bBg};color:${bColor};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${bIcon}</div>
     </div>`;
   }).join('');
   if (actList)  actList.innerHTML  = html;
-  if (homeList) homeList.innerHTML = data.slice(0,3).map(item => {
+  if (homeList) homeList.innerHTML = data.slice(0,3).map((item, i) => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
-    const bubble = src
-      ? `<div style="width:34px;height:34px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid var(--border2);background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"></div>`
-      : _friendAvHtml({...p, avatar_url: p.avatar_url||null}, 34);
-    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
-      ${bubble}
+    return `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <div style="position:relative;flex-shrink:0">
+        ${_coverHtml(src, 30, 40, 6)}
+        <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 16)}</div>
+      </div>
       <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
     </div>`;
   }).join('');
