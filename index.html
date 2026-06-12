@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#080810">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1078,7 +1078,7 @@ html, body {
       </div>
       <div class="splash-cta">
         <button class="btn-primary" onclick="obStep(1)">Commencer</button>
-        <button class="btn-ghost" style="display:block;width:100%;margin-top:12px;text-align:center" onclick="obStep(1)">J'ai déjà un compte</button>
+        <button class="btn-ghost" style="display:block;width:100%;margin-top:12px;text-align:center" onclick="obStep(1);setAuthMode('login')">J'ai déjà un compte</button>
       </div>
     </div>
   </div>
@@ -7157,7 +7157,7 @@ async function renderHomeTrending(refresh = false) {
   if (!row) return;
   if (refresh || !_trendingCache) {
     row.innerHTML = '<div class="loading-dots" style="padding:20px 0"><span></span><span></span><span></span></div>';
-    const data = await igdbFetch('trending', { limit: 18 });
+    const data = await igdbFetch('trending', { limit: 30 });
     _trendingCache = data ? data.map(mapIgdbGame).filter(g => g.cover || g.steamId) : [];
   }
   if (!_trendingCache.length) { row.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:8px 0">Aucun résultat</div>'; return; }
@@ -7443,7 +7443,7 @@ function openWrapped() {
     { emoji: '🎮', label: 'Jeux dans ta bibliothèque', value: all.length },
     { emoji: '✅', label: 'Jeux terminés (finis + 100%)', value: finished.length },
     { emoji: '▶', label: 'En cours ou en pause', value: playing.length },
-    totalHours > 0 ? { emoji: '⏱', label: 'Heures jouées au total', value: `${totalHours}h` } : null,
+    // heures retirées du récap — donnée peu fiable pour l'instant
     avgScore ? { emoji: '⭐', label: 'Note moyenne sur tes jeux finis', value: `${avgScore}/10` } : null,
     topGenre ? { emoji: '🏆', label: 'Genre le plus joué', value: topGenre } : null,
     topGame ? { emoji: '👑', label: 'Ton jeu #1', value: topGame.title + (topGame.score ? ` — ★${topGame.score}` : '') } : null,
