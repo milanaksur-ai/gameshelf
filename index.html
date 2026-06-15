@@ -312,16 +312,16 @@ html, body {
 .game-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 16px; perspective: 600px; }
 .game-cell   { background: var(--s2); border-radius: 14px; overflow: hidden; cursor: pointer; transition: transform 0.15s; border: 0.5px solid var(--border); }
 .game-cell:active { transform: scale(0.97); opacity: 0.85; }
-.game-cell.cell-playing { border-color: rgba(108,92,231,0.5); animation: cellPulse 2.4s ease-in-out infinite; }
-@keyframes cellPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(108,92,231,0); } 50%{ box-shadow: 0 0 0 4px rgba(108,92,231,0.22); } }
-/* Jeux finis — respiration verte très légère */
+.game-cell.cell-playing { border-color: rgba(108,92,231,0.75); animation: cellPulse 2.4s ease-in-out infinite; }
+@keyframes cellPulse { 0%,100%{ box-shadow: 0 0 4px rgba(108,92,231,0.1); } 50%{ box-shadow: 0 0 14px 3px rgba(108,92,231,0.40); } }
+/* Jeux finis — respiration verte */
 .game-cell.cell-finished {
-  border-color: rgba(0,230,118,0.40);
+  border-color: rgba(0,230,118,0.65);
   animation: finishedBreath 5.5s ease-in-out infinite;
 }
 @keyframes finishedBreath {
-  0%,100% { box-shadow: 0 0 0 rgba(0,230,118,0); }
-  50%     { box-shadow: 0 0 14px rgba(0,230,118,0.26); }
+  0%,100% { box-shadow: 0 0 4px rgba(0,230,118,0.05); }
+  50%     { box-shadow: 0 0 20px rgba(0,230,118,0.50); }
 }
 /* Célébration 100% — lueur dorée + reflet brillant + étoile scintillante */
 .game-cell.cell-platine {
