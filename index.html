@@ -2730,14 +2730,30 @@ function mapIgdbGame(g) {
 }
 
 // IGDB age_ratings → { system, label }. Prefer PEGI (European audience).
+// Legacy enums (category/rating as numbers):
 const _ESRB_RATINGS = { 6:'RP', 7:'EC', 8:'E', 9:'E10+', 10:'T', 11:'M', 12:'AO' };
 const _PEGI_RATINGS = { 1:'3', 2:'7', 3:'12', 4:'16', 5:'18' };
+// Current model (rating_category.rating as words):
+const _PEGI_WORDS = { Three:'3', Seven:'7', Twelve:'12', Sixteen:'16', Eighteen:'18' };
+const _ESRB_WORDS = { RatingPending:'RP', EarlyChildhood:'EC', Everyone:'E', Everyone10Plus:'E10+', 'Everyone10':'E10+', Teen:'T', Mature:'M', AdultOnly:'AO' };
 function parseAgeRating(ratings) {
   if (!ratings?.length) return null;
-  const pegi = ratings.find(r => r.category === 2);
-  if (pegi && _PEGI_RATINGS[pegi.rating]) return { system: 'PEGI', label: _PEGI_RATINGS[pegi.rating] };
-  const esrb = ratings.find(r => r.category === 1);
-  if (esrb && _ESRB_RATINGS[esrb.rating]) return { system: 'ESRB', label: _ESRB_RATINGS[esrb.rating] };
+  let pegi = null, esrb = null;
+  for (const r of ratings) {
+    // Current model: { organization:{name}, rating_category:{rating} }
+    const org = r.organization?.name || '';
+    const word = r.rating_category?.rating || '';
+    if (org || word) {
+      if (/pegi/i.test(org)) pegi = _PEGI_WORDS[word] || word.replace(/[^0-9]/g, '') || pegi;
+      else if (/esrb/i.test(org)) esrb = _ESRB_WORDS[word] || esrb;
+      continue;
+    }
+    // Legacy model: { category:<num>, rating:<num> }
+    if (r.category === 2 && _PEGI_RATINGS[r.rating]) pegi = _PEGI_RATINGS[r.rating];
+    else if (r.category === 1 && _ESRB_RATINGS[r.rating]) esrb = _ESRB_RATINGS[r.rating];
+  }
+  if (pegi) return { system: 'PEGI', label: pegi };
+  if (esrb) return { system: 'ESRB', label: esrb };
   return null;
 }
 
@@ -4379,6 +4395,12 @@ function openDetail(gameId) {
   if (!g._enriched && /^\d+$/.test(String(g.id))) {
     g._enriched = true;
     igdbFetch('game', { ids: [Number(g.id)], limit: 1 }).then(raw => {
+      // Temp diagnostic — remove once HLTB/age rating confirmed working
+      console.log('[GS enrich]', g.title, {
+        age_ratings: raw?.[0]?.age_ratings,
+        game_time_to_beat: raw?.[0]?.game_time_to_beat,
+        involved_companies: raw?.[0]?.involved_companies?.length
+      });
       const full = raw?.[0] ? mapIgdbGame(raw[0]) : null;
       if (!full) return;
       // Merge enriched fields into the stored game object
