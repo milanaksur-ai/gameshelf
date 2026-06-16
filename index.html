@@ -4395,12 +4395,15 @@ function openDetail(gameId) {
   if (!g._enriched && /^\d+$/.test(String(g.id))) {
     g._enriched = true;
     igdbFetch('game', { ids: [Number(g.id)], limit: 1 }).then(raw => {
-      // Temp diagnostic — remove once HLTB/age rating confirmed working
-      console.log('[GS enrich]', g.title, {
-        age_ratings: raw?.[0]?.age_ratings,
-        game_time_to_beat: raw?.[0]?.game_time_to_beat,
-        involved_companies: raw?.[0]?.involved_companies?.length
-      });
+      // Temp diagnostic — affiché à l'écran le temps de valider HLTB
+      const _info = document.getElementById('detail-info');
+      if (_info && currentGame?.id === g.id) {
+        const _dbg = { ttb: raw?.[0]?.game_time_to_beat, age: raw?.[0]?.age_ratings };
+        const _d = document.createElement('div');
+        _d.style.cssText = 'margin-top:10px;padding:8px 10px;background:#1a1a2e;border:1px solid #444;border-radius:8px;font-size:10px;color:#9898b0;font-family:monospace;word-break:break-all';
+        _d.textContent = 'DEBUG HLTB: ' + JSON.stringify(_dbg.ttb) + ' | AGE: ' + JSON.stringify(_dbg.age);
+        _info.appendChild(_d);
+      }
       const full = raw?.[0] ? mapIgdbGame(raw[0]) : null;
       if (!full) return;
       // Merge enriched fields into the stored game object
