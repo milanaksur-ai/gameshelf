@@ -1937,6 +1937,9 @@ html, body {
         <!-- PLATFORMS -->
         <div id="detail-platforms" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
 
+        <!-- FICHE TECHNIQUE — dev / éditeur / franchise / durée / classification -->
+        <div id="detail-info" style="display:none;margin-bottom:20px"></div>
+
         <div class="notes-section"><div class="rating-label">Mes notes</div><textarea class="notes-input" id="notes-input" rows="3" placeholder="Tes impressions sur ce jeu…"></textarea></div>
 
         <!-- HEURES JOUÉES -->
@@ -2700,6 +2703,7 @@ function mapIgdbGame(g) {
   const gameplayVid = videos.find(v => /gameplay/i.test(v.name || ''));
   const videoId = (gameplayVid || videos[0])?.video_id || null;
   const ttbSec = g.game_time_to_beat?.normally || g.game_time_to_beat?.hastily || 0;
+  const comp = g.involved_companies || [];
   return {
     id: String(g.id),
     title: g.name,
@@ -2715,7 +2719,26 @@ function mapIgdbGame(g) {
     hasMulti:  !!(g.multiplayer_modes?.length),
     videoId,
     timeToBeat: ttbSec ? Math.round(ttbSec / 3600) : 0,
+    // Detail-only fields (present when fetched via action:'game')
+    franchise: g.franchises?.[0]?.name || '',
+    developer: comp.find(c => c.developer)?.company?.name || '',
+    publisher: comp.find(c => c.publisher)?.company?.name || '',
+    ageRating: parseAgeRating(g.age_ratings),
+    ttbStory:    g.game_time_to_beat?.normally   ? Math.round(g.game_time_to_beat.normally / 3600)   : 0,
+    ttbComplete: g.game_time_to_beat?.completely ? Math.round(g.game_time_to_beat.completely / 3600) : 0,
   };
+}
+
+// IGDB age_ratings → { system, label }. Prefer PEGI (European audience).
+const _ESRB_RATINGS = { 6:'RP', 7:'EC', 8:'E', 9:'E10+', 10:'T', 11:'M', 12:'AO' };
+const _PEGI_RATINGS = { 1:'3', 2:'7', 3:'12', 4:'16', 5:'18' };
+function parseAgeRating(ratings) {
+  if (!ratings?.length) return null;
+  const pegi = ratings.find(r => r.category === 2);
+  if (pegi && _PEGI_RATINGS[pegi.rating]) return { system: 'PEGI', label: _PEGI_RATINGS[pegi.rating] };
+  const esrb = ratings.find(r => r.category === 1);
+  if (esrb && _ESRB_RATINGS[esrb.rating]) return { system: 'ESRB', label: _ESRB_RATINGS[esrb.rating] };
+  return null;
 }
 
 function renderPlatforms(platforms = []) {
@@ -4344,19 +4367,28 @@ function openDetail(gameId) {
   const platsEl = document.getElementById('detail-platforms');
   const plats = g.platforms || [];
   renderDetailPlatforms(g);
+  renderDetailInfo(g);
   appGoTo('detail');
   const _starScore = ug.score, _starStatus = ug.status, _starId = g.id;
   setTimeout(() => { if (currentGame?.id === _starId) renderStars(_starScore, _starStatus, true); }, 290);
   _initDetailFx();
   // Load similar games async
   loadSimilarGames(g);
-  // Fetch videoId for library games that predate the videos feature
-  if (g.videoId === undefined) {
+  // Lazy-enrich once per game: detail-only fields (dev/publisher/franchise/age/HLTB)
+  // and videoId aren't present on search/grid results. Fetch the full game and merge.
+  if (!g._enriched && /^\d+$/.test(String(g.id))) {
+    g._enriched = true;
     igdbFetch('game', { ids: [Number(g.id)], limit: 1 }).then(raw => {
-      const vids = raw?.[0]?.videos || [];
-      const best = vids.find(v => /gameplay/i.test(v.name || '')) || vids[0];
-      g.videoId = best?.video_id || null;
-      if (g.videoId && currentGame?.id === g.id) {
+      const full = raw?.[0] ? mapIgdbGame(raw[0]) : null;
+      if (!full) return;
+      // Merge enriched fields into the stored game object
+      ['franchise','developer','publisher','ageRating','ttbStory','ttbComplete','timeToBeat'].forEach(k => {
+        if (full[k]) g[k] = full[k];
+      });
+      if (g.videoId === undefined || g.videoId === null) g.videoId = full.videoId || null;
+      if (currentGame?.id !== g.id) return;
+      renderDetailInfo(g);
+      if (g.videoId) {
         const hero = document.getElementById('detail-hero');
         if (!hero.querySelector('.hero-play-btn') && !hero.querySelector('iframe')) {
           const btn = document.createElement('button');
@@ -4366,7 +4398,7 @@ function openDetail(gameId) {
           hero.appendChild(btn);
         }
       }
-    }).catch(() => { g.videoId = null; });
+    }).catch(() => { g._enriched = false; });
   }
 }
 
@@ -4462,6 +4494,52 @@ function selectPlayedPlatform(gameId, p) {
   saveToStorage();
   renderDetailPlatforms(GAMES.find(x => x.id === gameId));
   renderGameGrid();
+}
+
+// PEGI/ESRB badge colors by age threshold
+function _ageBadgeColor(label) {
+  const n = parseInt(label);
+  if (n >= 17 || label === 'M' || label === 'AO') return '#d63031'; // 18 / M / AO → red
+  if (n >= 12 || label === 'T')                   return '#e17055'; // 12-16 / T → orange
+  return '#00b894';                                                  // 3-7 / E → green
+}
+
+// Render the technical-info block (dev, publisher, franchise, HLTB, age rating).
+function renderDetailInfo(g) {
+  const el = document.getElementById('detail-info');
+  if (!el) return;
+  const rows = [];
+  if (g.developer) rows.push(['Développeur', _esc(g.developer)]);
+  if (g.publisher && g.publisher !== g.developer) rows.push(['Éditeur', _esc(g.publisher)]);
+  if (g.franchise) rows.push(['Franchise', _esc(g.franchise)]);
+
+  // How Long To Beat
+  let ttbHtml = '';
+  if (g.ttbStory || g.ttbComplete) {
+    const parts = [];
+    if (g.ttbStory)    parts.push(`<span style="color:var(--text)">Histoire <b>~${g.ttbStory}h</b></span>`);
+    if (g.ttbComplete) parts.push(`<span style="color:var(--text)">100% <b>~${g.ttbComplete}h</b></span>`);
+    ttbHtml = `<div style="display:flex;align-items:center;gap:14px;padding:10px 12px;background:var(--s2);border-radius:12px;margin-bottom:8px;font-size:12px;color:var(--muted2)">
+      <span style="font-size:15px">⏱</span>${parts.join('<span style="opacity:0.4">·</span>')}</div>`;
+  }
+
+  // Age rating badge
+  let ageHtml = '';
+  if (g.ageRating) {
+    const c = _ageBadgeColor(g.ageRating.label);
+    ageHtml = `<div style="display:inline-flex;align-items:center;gap:6px;margin-bottom:8px">
+      <span style="display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:24px;padding:0 7px;border-radius:6px;background:${c};color:#fff;font-size:12px;font-weight:800;letter-spacing:0.02em">${g.ageRating.label}</span>
+      <span style="font-size:11px;color:var(--muted)">${g.ageRating.system}</span></div>`;
+  }
+
+  const rowsHtml = rows.length ? `<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:${(ttbHtml||ageHtml)?'10px':'0'}">${
+    rows.map(([k,v]) => `<div style="display:flex;justify-content:space-between;gap:12px;font-size:12.5px">
+      <span style="color:var(--muted)">${k}</span><span style="color:var(--text);font-weight:600;text-align:right">${v}</span></div>`).join('')
+  }</div>` : '';
+
+  if (!rowsHtml && !ttbHtml && !ageHtml) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  el.innerHTML = `<div class="rating-label" style="margin-bottom:10px">Fiche technique</div>${ageHtml}${ttbHtml}${rowsHtml}`;
+  el.style.display = 'block';
 }
 
 const VIBES = [
