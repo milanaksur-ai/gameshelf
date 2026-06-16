@@ -3314,13 +3314,26 @@ async function authSubmit() {
       if (cta) { cta.disabled = false; cta.textContent = 'Créer mon compte →'; }
     }
   } else {
-    const { data, error } = await _sb.auth.signInWithPassword({ email, password: pwd });
+    let data, error;
+    try {
+      ({ data, error } = await _sb.auth.signInWithPassword({ email, password: pwd }));
+    } catch (e) {
+      showToast('Erreur de connexion, réessaie');
+      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+      return;
+    }
     if (error) {
       showToast('Email ou mot de passe incorrect');
       if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
       return;
     }
+    // Reset guard in case onAuthStateChange already touched it, then handle directly.
+    _authInProgress = false;
     await onAuthSuccess(data.user);
+    // If the app still isn't visible, onAuthSuccess failed silently — re-enable button.
+    if (document.getElementById('view-app').style.display !== 'flex') {
+      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+    }
   }
 }
 
@@ -3377,8 +3390,7 @@ async function onAuthSuccess(user) {
     }
   } catch(e) {
     console.error('GameShelf: onAuthSuccess error', e);
-    // Fall back to onboarding so the user isn't stuck on the login screen
-    obStep(2);
+    showToast('Erreur lors du chargement du profil');
   } finally {
     _authInProgress = false;
   }
@@ -8060,12 +8072,20 @@ function applyProfileToUI() {
 
   // Register BEFORE any await — Supabase fires SIGNED_IN from the OAuth hash
   // asynchronously during initialisation; if we register late we miss it entirely.
-  // TOKEN_REFRESHED handles the case where getSession() returns null while
-  // Supabase is still refreshing an expired JWT (keeps the user logged in).
+  // TOKEN_REFRESHED / INITIAL_SESSION keep the user logged in across reloads.
+  // SIGNED_IN is only handled here for OAuth redirects (Google etc.) — password
+  // logins are handled directly in authSubmit to avoid the _authInProgress race.
   _sb.auth.onAuthStateChange(async (event, session) => {
-    if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') && session) {
-      const appVisible = document.getElementById('view-app').style.display === 'flex';
-      if (!appVisible) await onAuthSuccess(session.user);
+    if (!session) return;
+    const appVisible = document.getElementById('view-app').style.display === 'flex';
+    if (appVisible) return;
+    if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+      await onAuthSuccess(session.user);
+    } else if (event === 'SIGNED_IN') {
+      // Only handle OAuth callbacks (Google etc.) — URL carries the auth code/token.
+      const isOAuth = window.location.hash.includes('access_token') ||
+                      window.location.search.includes('code=');
+      if (isOAuth) await onAuthSuccess(session.user);
     }
   });
 
