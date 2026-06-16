@@ -4160,6 +4160,12 @@ let _pwaPrompt = null;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _pwaPrompt = e; });
 
 function appGoTo(screen) {
+  // Always dismiss overlays regardless of screen transition — friend profile
+  // has z-index:200 and inline display:flex, so it must be closed even when
+  // appGoTo returns early (e.g. opening a game while already on 'detail').
+  closeFriendProfile();
+  closeShelf();
+
   if(screen===appCurrentScreen) return;
   // Stop gyro when leaving detail
   if (appCurrentScreen === 'detail') {
@@ -4188,8 +4194,6 @@ function appGoTo(screen) {
   appCurrentScreen = screen;
 
   // Side effects per screen
-  closeFriendProfile();
-  closeShelf();
   if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); renderTrouvailles(userGames, GAMES, 'trouvailles-list'); }
   else stopProfileParticles();
   if (screen === 'library') filterGames();
