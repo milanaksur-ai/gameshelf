@@ -1563,6 +1563,17 @@ html, body {
     </div>
   </div>
 
+  <!-- QUIZ CONFRONTATION OVERLAY -->
+  <div id="quiz-confrontation" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--bg);flex-direction:column;overflow-y:auto">
+    <div style="padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+      <button onclick="closeQuizConfrontation()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div id="qconf-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1"></div>
+    </div>
+    <div id="qconf-body" style="padding:0 16px calc(40px + env(safe-area-inset-bottom));flex:1"></div>
+  </div>
+
   <!-- QUIZ PICKER MODAL (opened from friend challenge) -->
   <div id="quiz-picker-modal" onclick="closeQuizPicker()" style="display:none;position:fixed;inset:0;z-index:870;background:rgba(0,0,0,0.7);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+24px);max-height:82vh;display:flex;flex-direction:column">
@@ -2223,6 +2234,11 @@ html, body {
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
           <button id="fp-quiz-btn" onclick="challengeFriendToQuiz()" style="display:none;margin-top:14px;padding:9px 20px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.quiz_challenge">⚡ Défier</button>
         </div>
+      </div>
+      <!-- Collections de l'ami -->
+      <div id="fp-collections-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">📚 Collections</div>
+        <div id="fp-collections-row" style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px"></div>
       </div>
       <!-- Jeux en commun -->
       <div id="fp-common-section" style="display:none;margin-bottom:16px">
@@ -8199,6 +8215,31 @@ async function openFriendProfile(userId) {
     fpTrouvaillesEl.style.display = 'block';
     renderTrouvailles(fpUg, fpGames, 'fp-trouvailles-list');
   }
+  renderFriendProfileCollections(userId);
+}
+
+async function renderFriendProfileCollections(userId) {
+  const section = document.getElementById('fp-collections-section');
+  const row = document.getElementById('fp-collections-row');
+  if (!section || !row) return;
+  try {
+    const { data } = await _sb.from('collections').select('id,user_id,name,emoji,games').eq('user_id', userId).order('updated_at', { ascending: false }).limit(10);
+    if (!data?.length) { section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    row.innerHTML = data.map(col => {
+      const covers = (col.games || []).slice(0, 4).map(g => {
+        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.imageId}.jpg` : (g.cover || '');
+        return img ? `<img src="${img}" style="width:32px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
+      }).join('');
+      return `<div onclick="openFriendCollection('${col.id}','${userId}')" style="flex-shrink:0;width:130px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
+        <div style="height:68px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">${col.emoji}</div>`}</div>
+        <div style="padding:6px 8px 8px">
+          <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${col.emoji} ${col.name}</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:1px">${(col.games||[]).length} jeux</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) { section.style.display = 'none'; }
 }
 
 function closeFriendProfile() {
@@ -10386,6 +10427,7 @@ let _quizIsChallenge = false;
 let _quizChallengeId = null;
 let _quizChallengedFriendId = null;
 let _quizAnswered = false;
+let _quizAnswerLog = [];
 let _quizPublished = new Set();
 let _quizLocalScores  = JSON.parse(localStorage.getItem('gs_quiz_scores')   || '{}');
 let _actLikes        = JSON.parse(localStorage.getItem('gs_act_likes')       || '{}');
@@ -10442,7 +10484,7 @@ function openQuiz(id) {
       return;
     }
   }
-  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizIsChallenge = isChallengeMode;
+  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizAnswerLog = []; _quizIsChallenge = isChallengeMode;
   _quizChallengeId = null;
   _quizPublished.delete(id);
   const overlay = document.getElementById('quiz-overlay');
@@ -10460,6 +10502,23 @@ function closeQuiz() {
   document.getElementById('quiz-overlay').classList.remove('open');
   _quizActive = null;
   renderQuizHub();
+}
+
+// Open a quiz to answer an EXISTING challenge (no cooldown, no new row created)
+function openQuizForChallenge(challengeId, quizId) {
+  closeNotifDrawer();
+  _quizActive = QUIZ_DATA.find(q => q.id === quizId);
+  if (!_quizActive) { showToast('Quiz introuvable'); return; }
+  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizAnswerLog = [];
+  _quizIsChallenge = true;
+  _quizChallengeId = challengeId;
+  _quizChallengedFriendId = null;
+  _quizPublished.delete(quizId);
+  const overlay = document.getElementById('quiz-overlay');
+  overlay.classList.add('open');
+  document.getElementById('quiz-title-bar').textContent = _quizActive.title;
+  document.getElementById('quiz-progress-fill').style.background = _quizActive.gradient;
+  renderQuizQuestion();
 }
 
 function renderQuizQuestion() {
@@ -10488,6 +10547,7 @@ function submitAnswer(idx) {
   _quizAnswered = true;
   const q = _quizActive.questions[_quizQIdx];
   const correct = idx === q.c;
+  _quizAnswerLog.push(correct);
   if (correct) _quizScore++;
   document.querySelectorAll('#quiz-answers .answer-btn').forEach((btn, i) => {
     btn.classList.add('revealed');
@@ -10538,16 +10598,17 @@ async function submitQuizChallengeScore(score, total) {
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
-    // Fetch challenge to determine our role (challenger or challenged)
     const { data: ch } = await _sb.from('quiz_challenges').select('*').eq('id', _quizChallengeId).maybeSingle();
     if (!ch) return;
     const isChallenger = ch.challenger_id === user.id;
+    const otherHasScore = isChallenger ? ch.challenged_score !== null : ch.challenger_score !== null;
+    const newStatus = otherHasScore ? 'completed' : (isChallenger ? 'challenger_done' : 'challenged_done');
     const update = isChallenger
-      ? { challenger_score: score, challenger_total: total, status: ch.challenged_score !== null ? 'completed' : 'challenger_done', updated_at: new Date().toISOString() }
-      : { challenged_score: score, challenged_total: total, status: ch.challenger_score !== null ? 'completed' : 'challenged_done', updated_at: new Date().toISOString() };
-    await _sb.from('quiz_challenges').update(update).eq('id', _quizChallengeId);
-    // Notify the other player
-    if (update.status === 'completed') {
+      ? { challenger_score: score, challenger_total: total, challenger_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() }
+      : { challenged_score: score, challenged_total: total, challenged_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() };
+    const { data: updated } = await _sb.from('quiz_challenges').update(update).eq('id', _quizChallengeId).select('*').maybeSingle();
+    if (newStatus === 'completed') {
+      // Notify the other player
       const otherId = isChallenger ? ch.challenged_id : ch.challenger_id;
       const { data: { session } } = await _sb.auth.getSession();
       if (session?.access_token) {
@@ -10557,8 +10618,103 @@ async function submitQuizChallengeScore(score, total) {
           body: JSON.stringify({ type: 'quiz_result', to: otherId, challengeId: _quizChallengeId })
         }).catch(() => {});
       }
+      // Show confrontation directly to the player who just finished
+      if (updated) setTimeout(() => { closeQuiz(); showQuizConfrontation(updated); }, 800);
     }
   } catch(e) {}
+}
+
+function closeQuizConfrontation() {
+  document.getElementById('quiz-confrontation').style.display = 'none';
+}
+
+async function openChallengeResult(challengeId) {
+  closeNotifDrawer();
+  try {
+    const { data: ch } = await _sb.from('quiz_challenges').select('*').eq('id', challengeId).maybeSingle();
+    if (!ch) return showToast('Défi introuvable');
+    if (ch.status !== 'completed') return showToast('Le duel n\'est pas encore terminé');
+    await showQuizConfrontation(ch);
+  } catch(e) { showToast('Erreur lors du chargement'); }
+}
+
+async function showQuizConfrontation(ch) {
+  const { data: { user } } = await _sb.auth.getUser();
+  if (!user) return;
+
+  // Fetch both players' profiles
+  const ids = [ch.challenger_id, ch.challenged_id];
+  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad').in('id', ids);
+  const getP = id => (profiles||[]).find(p => p.id === id) || { username: 'Joueur', avatar: '🎮', avatar_grad: 'linear-gradient(135deg,#6c5ce7,#a29bfe)' };
+  const pA = getP(ch.challenger_id);
+  const pB = getP(ch.challenged_id);
+  const isMe = user.id === ch.challenger_id;
+  const meP = isMe ? pA : pB;
+  const oppP = isMe ? pB : pA;
+  const meScore = isMe ? ch.challenger_score : ch.challenged_score;
+  const oppScore = isMe ? ch.challenged_score : ch.challenger_score;
+  const meTotal = isMe ? ch.challenger_total : ch.challenged_total;
+  const meAnswers = isMe ? (ch.challenger_answers || []) : (ch.challenged_answers || []);
+  const oppAnswers = isMe ? (ch.challenged_answers || []) : (ch.challenger_answers || []);
+  const total = meTotal || meAnswers.length || 8;
+  const won = meScore > oppScore;
+  const draw = meScore === oppScore;
+
+  const resultColor = won ? '#55efc4' : draw ? 'var(--amber)' : '#ff7675';
+  const resultLabel = won ? '🏆 Victoire !' : draw ? '🤝 Égalité !' : '💀 Défaite';
+  const quizData = QUIZ_DATA.find(q => q.id === ch.quiz_id);
+
+  // Per-question rows (only if answer logs are available)
+  const hasBreakdown = meAnswers.length > 0 || oppAnswers.length > 0;
+  let questionRows = '';
+  if (hasBreakdown && quizData) {
+    const qs = quizData.questions;
+    questionRows = `
+      <div style="margin-top:20px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Détail par question</div>
+        ${qs.map((q, i) => {
+          const myOk = meAnswers[i];
+          const oppOk = oppAnswers[i];
+          const mk = v => v === undefined ? '—' : v ? `<span style="color:#55efc4;font-weight:700">✓</span>` : `<span style="color:#ff7675;font-weight:700">✗</span>`;
+          return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border2)">
+            <div style="width:22px;height:22px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted2);flex-shrink:0">${i+1}</div>
+            <div style="flex:1;font-size:12px;color:var(--text);line-height:1.3">${q.q}</div>
+            <div style="display:flex;gap:16px;flex-shrink:0;font-size:16px;min-width:60px;justify-content:center">${mk(myOk)}<span style="color:var(--border2)">·</span>${mk(oppOk)}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  document.getElementById('qconf-title').textContent = ch.quiz_name;
+  document.getElementById('qconf-body').innerHTML = `
+    <!-- Result banner -->
+    <div style="text-align:center;padding:28px 0 20px">
+      <div style="font-size:52px;margin-bottom:10px">${won?'🏆':draw?'🤝':'💀'}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:${resultColor}">${resultLabel}</div>
+    </div>
+    <!-- Score comparison -->
+    <div style="display:flex;align-items:center;gap:0;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;overflow:hidden;margin-bottom:8px">
+      <!-- Me -->
+      <div style="flex:1;padding:18px 14px;text-align:center;border-right:0.5px solid var(--border2)">
+        <div style="width:48px;height:48px;border-radius:50%;background:${meP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)'};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${meP.avatar||'🎮'}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${meP.username}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:${resultColor};line-height:1">${meScore??'—'}</div>
+        <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
+      </div>
+      <!-- VS -->
+      <div style="padding:0 14px;font-size:13px;font-weight:700;color:var(--muted2)">VS</div>
+      <!-- Opp -->
+      <div style="flex:1;padding:18px 14px;text-align:center;border-left:0.5px solid var(--border2)">
+        <div style="width:48px;height:48px;border-radius:50%;background:${oppP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)'};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${oppP.avatar||'🎮'}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${oppP.username}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:var(--muted2);line-height:1">${oppScore??'—'}</div>
+        <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
+      </div>
+    </div>
+    ${questionRows}
+    <button onclick="closeQuizConfrontation()" style="width:100%;margin-top:20px;padding:15px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
+  `;
+  document.getElementById('quiz-confrontation').style.display = 'flex';
 }
 
 async function loadQuizChallenges() {
@@ -10580,14 +10736,14 @@ function renderQuizChallengeNotif(ch, myId) {
   const myScore = isChallenger ? ch.challenger_score : ch.challenged_score;
   const oppScore = isChallenger ? ch.challenged_score : ch.challenger_score;
   const myTotal = isChallenger ? ch.challenger_total : ch.challenged_total;
-  const waiting = !completed && (isChallenger ? ch.challenger_score !== null : ch.challenged_score !== null);
+  const waiting = !completed && myScore !== null;
   const needsAnswer = !completed && myScore === null;
 
   if (needsAnswer) {
-    return `<div onclick="openQuiz('${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
+    return `<div onclick="openQuizForChallenge('${ch.id}','${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:4px">⚡ Défi Quiz en attente</div>
       <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
-      <div style="font-size:11px;color:var(--muted2);margin-top:2px">Réponds pour voir le résultat !</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:2px">Tape ici pour répondre au défi !</div>
     </div>`;
   }
   if (waiting) {
@@ -10600,10 +10756,10 @@ function renderQuizChallengeNotif(ch, myId) {
   if (completed && myScore !== null && oppScore !== null) {
     const won = myScore > oppScore;
     const draw = myScore === oppScore;
-    return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:${won?'#55efc4':draw?'var(--amber)':'#ff7675'};margin-bottom:4px">${won?'🏆 Victoire !':draw?'🤝 Égalité':' Défaite'}</div>
+    return `<div onclick="openChallengeResult('${ch.id}')" style="background:var(--s2);border:0.5px solid ${won?'#55efc4':draw?'var(--amber)':'#ff7675'};border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:${won?'#55efc4':draw?'var(--amber)':'#ff7675'};margin-bottom:4px">${won?'🏆 Victoire !':draw?'🤝 Égalité':'💀 Défaite'}</div>
       <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
-      <div style="font-size:12px;color:var(--muted2);margin-top:4px">Toi : ${myScore}/${myTotal} · Adversaire : ${oppScore}/${myTotal}</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:4px">Toi : ${myScore}/${myTotal} · Adversaire : ${oppScore}/${myTotal} · Voir le détail →</div>
     </div>`;
   }
   return '';
