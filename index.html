@@ -1109,15 +1109,15 @@ html, body {
     <canvas id="particles" style="position:absolute;inset:0;pointer-events:none"></canvas>
     <div class="splash-content">
       <div class="splash-logo">GameShelf</div>
-      <p class="splash-tagline">Ta bibliothèque gaming.<br>Tes amis. Tes avis.</p>
+      <p class="splash-tagline" data-i18n-html="onboarding.tagline">Ta bibliothèque gaming.<br>Tes amis. Tes avis.</p>
       <div class="splash-icons">
         <div class="splash-icon" style="background:rgba(108,92,231,0.12);border-color:rgba(108,92,231,0.25)">🎮</div>
         <div class="splash-icon" style="background:rgba(0,206,201,0.10);border-color:rgba(0,206,201,0.2)">📚</div>
         <div class="splash-icon" style="background:rgba(253,121,168,0.10);border-color:rgba(253,121,168,0.2)">⭐</div>
       </div>
       <div class="splash-cta">
-        <button class="btn-primary" onclick="obStep(1)">Commencer</button>
-        <button class="btn-ghost" style="display:block;width:100%;margin-top:12px;text-align:center" onclick="obStep(1);setAuthMode('login')">J'ai déjà un compte</button>
+        <button class="btn-primary" onclick="obStep(1)" data-i18n="onboarding.start">Commencer</button>
+        <button class="btn-ghost" style="display:block;width:100%;margin-top:12px;text-align:center" onclick="obStep(1);setAuthMode('login')" data-i18n="onboarding.already">J'ai déjà un compte</button>
       </div>
       <div style="display:flex;justify-content:center;gap:8px;margin-top:24px">
         <button onclick="setLang('fr')" data-lang="fr" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;border:0.5px solid var(--border2);background:var(--a);color:#fff;cursor:pointer;transition:all 0.2s">🇫🇷 FR</button>
@@ -1157,7 +1157,7 @@ html, body {
       <div class="divider" style="margin:22px 0">ou</div>
       <button class="btn-secondary" onclick="authWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px">
         <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-        Continuer avec Google
+        <span data-i18n="onboarding.google">Continuer avec Google</span>
       </button>
       <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.5">En continuant, tu acceptes les <span style="color:var(--muted2)">CGU</span> et la <span style="color:var(--muted2)">Politique de confidentialité</span>.</p>
     </div></div>
@@ -1168,17 +1168,17 @@ html, body {
     <button class="back-btn" onclick="obStep(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 2 sur 5</div>
-      <div class="step-title">Ton <span>profil</span></div>
+      <div class="step-title" data-i18n-html="onboarding.profile_title">Ton <span>profil</span></div>
       <p class="step-sub">Choisis comment tes amis te verront.</p>
       <div style="margin-bottom:20px">
-        <div class="field-label" style="margin-bottom:10px">Choisis ton avatar</div>
+        <div class="field-label" style="margin-bottom:10px" data-i18n="onboarding.choose_avatar">Choisis ton avatar</div>
         <div style="display:flex;justify-content:center;margin-bottom:16px">
           <div id="ob-avatar-preview" style="width:110px;height:110px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:48px;overflow:hidden;flex-shrink:0">🎮</div>
         </div>
         <div style="display:flex;gap:8px;margin-bottom:12px">
           <label style="flex:1;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--s2);border:1.5px dashed var(--border2);border-radius:14px;padding:13px 16px;cursor:pointer;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--a)'" onmouseout="this.style.borderColor='var(--border2)'">
             <span style="font-size:20px">📷</span>
-            <span style="font-size:13px;font-weight:700;color:var(--text)">Importer une photo</span>
+            <span style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="onboarding.import_photo">Importer une photo</span>
             <input type="file" accept="image/*" style="display:none" onchange="handleAvatarUpload(this,'ob-avatar-preview','ob-avatar-grid')">
           </label>
           <button onclick="openAvatarUrlPopup('ob')" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--s2);border:1.5px dashed var(--border2);border-radius:14px;padding:13px 16px;cursor:pointer;transition:border-color 0.2s;font-family:'DM Sans',sans-serif;flex-shrink:0" onmouseover="this.style.borderColor='var(--a)'" onmouseout="this.style.borderColor='var(--border2)'">
@@ -1201,11 +1201,11 @@ html, body {
         </div>
       </div>
       <div class="field">
-        <div class="field-label">Pseudo</div>
-        <input class="field-input" type="text" id="username-input" placeholder="Ton pseudo gamer" maxlength="20" autocomplete="username">
+        <div class="field-label" data-i18n="onboarding.pseudo_label">Pseudo</div>
+        <input class="field-input" type="text" id="username-input" placeholder="Ton pseudo gamer" data-i18n-ph="onboarding.pseudo_ph" maxlength="20" autocomplete="username">
       </div>
       <div class="field">
-        <div class="field-label">Plateformes <span style="font-size:11px;color:var(--muted)">(plusieurs choix possibles)</span></div>
+        <div class="field-label"><span data-i18n="onboarding.platforms">Plateformes</span> <span style="font-size:11px;color:var(--muted)" data-i18n="onboarding.platforms_hint">(plusieurs choix possibles)</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px" id="platform-grid">
           <div class="import-opt" data-p="pc" onclick="selectPlatform(this)" style="padding:12px 14px">
             <div class="import-icon" style="background:rgba(108,92,231,0.12);font-size:18px;width:36px;height:36px">💻</div>
@@ -1246,7 +1246,7 @@ html, body {
     <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 3 sur 5</div>
-      <div class="step-title">Importe tes <span>jeux</span></div>
+      <div class="step-title" data-i18n-html="onboarding.import_title">Importe tes <span>jeux</span></div>
       <p class="step-sub">Comment veux-tu remplir ta bibliothèque ?</p>
       <div class="import-opt" id="opt-steam" style="opacity:0.42;pointer-events:none">
         <div class="import-icon" style="background:rgba(108,92,231,0.12)">🖥️</div>
@@ -1260,7 +1260,7 @@ html, body {
       </div>
       <div class="import-opt" id="opt-skip" onclick="selectImport('skip')">
         <div class="import-icon" style="background:rgba(255,255,255,0.04)">⏭️</div>
-        <div class="import-info"><div class="import-title">Passer cette étape</div><div class="import-sub">Tu pourras ajouter des jeux plus tard</div></div>
+        <div class="import-info"><div class="import-title" data-i18n="onboarding.skip">Passer cette étape</div><div class="import-sub" data-i18n="onboarding.skip_sub">Tu pourras ajouter des jeux plus tard</div></div>
       </div>
       <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep3()" id="import-cta">Construis ton profil →</button></div>
     </div></div>
@@ -1307,7 +1307,7 @@ html, body {
       <div style="padding:0 16px;margin-bottom:8px">
         <div class="search-wrap">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input type="text" id="disc-search" placeholder="Rechercher un titre…" oninput="discSearch(this.value)" autocomplete="off">
+          <input type="text" id="disc-search" placeholder="Rechercher un titre…" data-i18n-ph="discover.search_ph" oninput="discSearch(this.value)" autocomplete="off">
           <button id="disc-search-clear" onclick="discClearSearch()" style="display:none;background:none;border:none;color:var(--muted2);cursor:pointer;padding:0 8px;font-size:20px;line-height:1">×</button>
         </div>
       </div>
@@ -1347,12 +1347,12 @@ html, body {
     <button class="back-btn" onclick="obStep(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag">Étape 4 sur 5</div>
-      <div class="step-title">Jeux <span>en ce moment</span></div>
+      <div class="step-title" data-i18n-html="onboarding.playing_title">Jeux <span>en ce moment</span></div>
       <p class="step-sub">Ajoute ceux qui t'intéressent à ta liste.</p>
       <div id="trending-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
       <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px">
         <button class="btn-primary" onclick="obStep(4)">Continuer →</button>
-        <button class="btn-ghost" style="text-align:center;width:100%;color:var(--muted2)" onclick="obStep(4)">Passer cette étape</button>
+        <button class="btn-ghost" style="text-align:center;width:100%;color:var(--muted2)" onclick="obStep(4)" data-i18n="onboarding.skip">Passer cette étape</button>
       </div>
     </div></div>
   </div>
@@ -1361,7 +1361,7 @@ html, body {
   <div class="step" id="step-4">
     <div class="step-scroll"><div style="padding:calc(var(--safe-t) + 40px) 20px calc(var(--safe-b) + 24px);display:flex;flex-direction:column;align-items:center;min-height:100%">
       <div class="success-ring">🎮</div>
-      <div class="success-title" style="text-align:center">Tu es prêt !</div>
+      <div class="success-title" style="text-align:center" data-i18n="onboarding.ready">Tu es prêt !</div>
       <p class="success-sub" style="text-align:center">Ta bibliothèque est créée.<br>Note tes jeux et retrouve-les ici.</p>
       <div class="games-preview" id="success-preview"></div>
       <button class="btn-primary" style="max-width:320px;width:100%" onclick="launchApp()">Entrer dans GameShelf →</button>
@@ -1409,7 +1409,7 @@ html, body {
 
       <!-- EN COURS -->
       <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
-        <div class="sec-label" style="padding:0;margin:0">En cours</div>
+        <div class="sec-label" style="padding:0;margin:0" data-i18n="feed.playing">En cours</div>
       </div>
       <div id="playing-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
       <!-- hidden divs for compat -->
@@ -1419,15 +1419,15 @@ html, body {
       <!-- ACTIVITÉ AMIS -->
       <div id="home-activity-section" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 8px">
-          <div class="sec-label" style="padding:0">Chez tes amis</div>
-          <button onclick="appGoTo('social')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px">Voir tout →</button>
+          <div class="sec-label" style="padding:0" data-i18n="feed.friends">Chez tes amis</div>
+          <button onclick="appGoTo('social')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px" data-i18n="feed.see_all">Voir tout →</button>
         </div>
         <div id="home-activity-list" style="padding:0 16px 4px"></div>
       </div>
 
       <!-- 🔥 TENDANCES DU MOMENT -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
-        <div class="sec-label" style="padding:0">🔥 Tendances du moment</div>
+        <div class="sec-label" style="padding:0" data-i18n="feed.trending">🔥 Tendances du moment</div>
         <button onclick="renderHomeTrending(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px" title="Rafraîchir">↻</button>
       </div>
       <div id="home-trending-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
@@ -1437,9 +1437,9 @@ html, body {
       <!-- 🎮 GAME PASS -->
       <div id="gp-section" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
-          <div class="sec-label" style="padding:0">🎮 <span style="color:#107c10">Nouveautés</span> Game Pass</div>
+          <div class="sec-label" style="padding:0" data-i18n-html="feed.gamepass">🎮 <span style="color:#107c10">Nouveautés</span> Game Pass</div>
           <div id="gp-update-label" style="font-size:10px;color:var(--muted)"></div>
-          <button onclick="openGPAll()" style="font-size:11px;font-weight:700;color:var(--a);background:none;border:none;cursor:pointer;padding:4px 0">Voir tout →</button>
+          <button onclick="openGPAll()" style="font-size:11px;font-weight:700;color:var(--a);background:none;border:none;cursor:pointer;padding:4px 0" data-i18n="feed.see_all">Voir tout →</button>
         </div>
         <div id="gp-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
       </div>
@@ -1447,7 +1447,7 @@ html, body {
 
       <!-- RECOMMANDATIONS PERSONNALISÉES -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 8px">
-        <div class="sec-label" style="padding:0">Pour toi</div>
+        <div class="sec-label" style="padding:0" data-i18n="feed.foryou">Pour toi</div>
         <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px" title="Rafraîchir">↻</button>
       </div>
       <div id="home-recos" style="padding:0 16px 24px;display:flex;flex-direction:column;gap:8px"></div>
@@ -1469,17 +1469,17 @@ html, body {
       </div>
       <div class="search-bar">
         <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="search-input" placeholder="Chercher un jeu…" oninput="filterGames()">
+        <input type="text" id="search-input" data-i18n-ph="discover.search_ph" placeholder="Chercher un jeu…" oninput="filterGames()">
       </div>
       <div class="filter-row">
-        <div class="chip active" data-f="playing" onclick="setFilter('playing',this)">En cours</div>
-        <div class="chip" data-f="paused" onclick="setFilter('paused',this)">En pause</div>
-        <div class="chip" data-f="finished" onclick="setFilter('finished',this)">Finis</div>
+        <div class="chip active" data-f="playing" onclick="setFilter('playing',this)" data-i18n="lib.playing">En cours</div>
+        <div class="chip" data-f="paused" onclick="setFilter('paused',this)" data-i18n="lib.paused">En pause</div>
+        <div class="chip" data-f="finished" onclick="setFilter('finished',this)" data-i18n="lib.finished">Finis</div>
         <div class="chip" data-f="platine" onclick="setFilter('platine',this)">⭐ 100%</div>
-        <div class="chip" data-f="backlog" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span>Backlog</span><span style="font-size:9px;opacity:0.55;font-weight:400">à commencer</span></div>
-        <div class="chip" data-f="abandoned" onclick="setFilter('abandoned',this)">Abandonnés</div>
-        <div class="chip" data-f="wish" onclick="setFilter('wish',this)" style="color:var(--a3)">✦ Souhaits</div>
-        <div class="chip" data-f="all" onclick="setFilter('all',this)">Tous</div>
+        <div class="chip" data-f="backlog" onclick="setFilter('backlog',this)" style="display:flex;flex-direction:column;align-items:center;gap:1px"><span data-i18n="lib.backlog">Backlog</span></div>
+        <div class="chip" data-f="abandoned" onclick="setFilter('abandoned',this)" data-i18n="lib.abandoned">Abandonnés</div>
+        <div class="chip" data-f="wish" onclick="setFilter('wish',this)" style="color:var(--a3)" data-i18n="lib.wish">✦ Souhaits</div>
+        <div class="chip" data-f="all" onclick="setFilter('all',this)" data-i18n="lib.all">Tous</div>
       </div>
       <div id="unrated-row" style="display:none;padding:8px 16px 0">
         <button id="unrated-btn" onclick="toggleUnrated()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;transition:all 0.15s">☆ Non notés uniquement</button>
@@ -1492,14 +1492,14 @@ html, body {
   <div class="screen" id="screen-explore">
     <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
       <div style="padding:calc(var(--safe-t) + 16px) 16px 10px;flex-shrink:0">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700">Jeux &amp; Culture</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:2px">Quiz · Tier List</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700" data-i18n="explore.title">Jeux &amp; Culture</div>
+        <div style="font-size:12px;color:var(--muted2);margin-top:2px" data-i18n="explore.subtitle">Quiz · Tier List</div>
       </div>
       <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
 
         <!-- QUIZ -->
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <div class="sec-label" style="padding:0">❓ Quiz</div>
+          <div class="sec-label" style="padding:0" data-i18n="explore.quiz">❓ Quiz</div>
         </div>
         <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Par Licence</div>
         <div id="quiz-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
@@ -1511,8 +1511,8 @@ html, body {
 
         <!-- TIER LIST -->
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-          <div class="sec-label" style="padding:0">🏆 Tier List</div>
-          <button onclick="openNewTierListModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent">➕ Nouvelle</button>
+          <div class="sec-label" style="padding:0" data-i18n="explore.tier_list">🏆 Tier List</div>
+          <button onclick="openNewTierListModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent" data-i18n="explore.new_tl">➕ Nouvelle</button>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
@@ -1644,7 +1644,7 @@ html, body {
       </div>
 
       <!-- GENRES -->
-      <div class="sec-label">Genres favoris</div>
+      <div class="sec-label" data-i18n="profile.genres">Genres favoris</div>
       <div style="padding:0 16px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px" id="genre-stats"></div>
 
       <!-- TROUVAILLES DU MOMENT -->
@@ -1666,7 +1666,7 @@ html, body {
       </div>
 
       <!-- CAPTURES D'ÉCRAN -->
-      <div class="sec-label">Captures d'écran</div>
+      <div class="sec-label" data-i18n="profile.screenshots">Captures d'écran</div>
       <div id="profile-media" style="padding:0 16px 16px"></div>
 
       <!-- CONNECTER STEAM (hidden) -->
@@ -2085,7 +2085,7 @@ html, body {
       </div>
       <!-- En ce moment -->
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">JEUX EN COURS</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="friend.playing">JEUX EN COURS</div>
         <div id="fp-now-list"></div>
       </div>
       <!-- Top | Activité (toggle, comme profil utilisateur) -->
@@ -2099,12 +2099,12 @@ html, body {
       </div>
       <!-- Trouvailles -->
       <div id="fp-trouvailles-section" style="display:none;margin-bottom:16px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">✦ LES AVIS RÉCENTS</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="friend.recent">✦ LES AVIS RÉCENTS</div>
         <div id="fp-trouvailles-list"></div>
       </div>
       <!-- Sa bibliothèque -->
       <div id="fp-lib-section" style="display:none">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SA BIBLIOTHÈQUE</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="friend.library">SA BIBLIOTHÈQUE</div>
         <div id="fp-lib-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px"></div>
         <div id="fp-lib-list" style="display:flex;flex-direction:column;gap:8px"></div>
       </div>
@@ -2116,7 +2116,7 @@ html, body {
       <button onclick="document.getElementById('fp-lib-modal').style.display='none'" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div id="fp-lib-modal-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1">Bibliothèque complète</div>
+      <div id="fp-lib-modal-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" data-i18n="friend.full_library">Bibliothèque complète</div>
     </div>
     <div class="scroll-area" style="padding:12px 16px calc(20px + env(safe-area-inset-bottom))">
       <div id="fp-lib-modal-tabs" style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px"></div>
@@ -2690,7 +2690,7 @@ const LANG = {
     },
     feed: {
       playing:'En cours', friends:'Chez tes amis', trending:'Tendances du moment',
-      gamepass:'Nouveautés Game Pass', foryou:'Pour toi',
+      gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
     },
     toast: {
       saved:'✓ Sauvegardé', copied:'Lien copié !', discord_copied:'Copié — colle-le dans Discord 🎮',
@@ -2702,6 +2702,9 @@ const LANG = {
       profile_updated:'Profil mis à jour ✓', avatar_updated:'Avatar mis à jour ✓',
       notif_denied:'Notifications refusées par le navigateur',
       notif_unsupported:'Notifications non supportées sur cet appareil',
+      profile_error:'Erreur lors du chargement du profil',
+      already_friends:'Déjà ami !',
+      unfriended:'Ami retiré',
     },
     settings: {
       title:'Paramètres', feedback:'Envoyer un feedback',
@@ -2712,9 +2715,60 @@ const LANG = {
       export:'Exporter ma bibliothèque', export_sub:'Télécharger en CSV',
       logout:'Se déconnecter', account:'Compte actif',
       about:'Fait avec passion par Milan', privacy:'Mentions légales & Confidentialité',
-      danger:'Zone danger',
-      updates:'✨ Nouveautés',
-      faq:'FAQ',
+      danger:'Zone danger', updates:'✨ Nouveautés', faq:'FAQ',
+    },
+    onboarding: {
+      tagline:'Ta bibliothèque gaming.<br>Tes amis. Tes avis.',
+      start:'Commencer', already:'J\'ai déjà un compte',
+      login_title:'Bon retour <span>!</span>',
+      login_sub:'Connecte-toi à ton compte GameShelf.',
+      login_cta:'Se connecter →',
+      login_switch:'Pas encore de compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'signup\')">Créer un compte</span>',
+      signup_title:'Crée ton <span>compte</span>',
+      signup_sub:'Gratuit. Pas de spam. Juste tes jeux.',
+      signup_cta:'Créer mon compte →',
+      signup_switch:'Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Se connecter</span>',
+      google:'Continuer avec Google',
+      profile_title:'Ton <span>profil</span>',
+      choose_avatar:'Choisis ton avatar',
+      import_photo:'Importer une photo',
+      pseudo_label:'Pseudo', pseudo_ph:'Ton pseudo gamer', bio_ph:'Quelques mots sur toi',
+      platforms:'Plateformes', platforms_hint:'(plusieurs choix possibles)',
+      skip:'Passer cette étape', skip_sub:'Tu pourras ajouter des jeux plus tard',
+      import_title:'Importe tes <span>jeux</span>',
+      playing_title:'Jeux <span>en ce moment</span>',
+      ready:'Tu es prêt !',
+      email_invalid:'Entre une adresse email valide',
+      pwd_short:'Mot de passe trop court (6 min)',
+      pwd_wrong:'Email ou mot de passe incorrect',
+      confirm_email:'Vérifie tes emails pour confirmer ton compte ✓',
+      connection_error:'Erreur de connexion, réessaie',
+      pseudo_short:'Choisis un pseudo (3 min)',
+      pseudo_taken:'Ce pseudo est déjà pris 😕',
+    },
+    explore: {
+      title:'Jeux & Culture', subtitle:'Quiz · Tier List',
+      quiz:'❓ Quiz', by_licence:'Par Licence', by_genre:'Par Genre',
+      tier_list:'🏆 Tier List', new_tl:'➕ Nouvelle',
+      my_games:'Mes jeux', my_games_sub:'Classe ta bibliothèque en tiers S→F',
+      top:'★ Top', activity:'Activité',
+    },
+    profile: {
+      edit:'Modifier le profil', total:'jeux au total',
+      genres:'Genres favoris', screenshots:'Captures d\'écran',
+      recent:'Les avis récents', activity:'Activité', tier_lists:'Mes Tier Lists',
+      recap:'Mon récap',
+    },
+    friend: {
+      recent:'✦ LES AVIS RÉCENTS', playing:'JEUX EN COURS',
+      library:'SA BIBLIOTHÈQUE', full_library:'Bibliothèque complète',
+      not_in_lib:'Pas dans ta bibliothèque',
+      top:'★ Top', activity:'Activité',
+    },
+    discover: {
+      search_ph:'Chercher un jeu', empty:'Aucun résultat',
+      no_results:'Aucun résultat pour',
+      no_results_hint:'Essaie un autre titre ou vérifie l\'orthographe',
     },
   },
   en: {
@@ -2794,7 +2848,7 @@ const LANG = {
     },
     feed: {
       playing:'Playing', friends:'Friends activity', trending:'Trending now',
-      gamepass:'New on Game Pass', foryou:'For you',
+      gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
     },
     toast: {
       saved:'✓ Saved', copied:'Link copied!', discord_copied:'Copied — paste it in Discord 🎮',
@@ -2806,6 +2860,9 @@ const LANG = {
       profile_updated:'Profile updated ✓', avatar_updated:'Avatar updated ✓',
       notif_denied:'Notifications denied by browser',
       notif_unsupported:'Notifications not supported on this device',
+      profile_error:'Error loading profile',
+      already_friends:'Already friends!',
+      unfriended:'Friend removed',
     },
     settings: {
       title:'Settings', feedback:'Send feedback',
@@ -2816,9 +2873,60 @@ const LANG = {
       export:'Export my library', export_sub:'Download as CSV',
       logout:'Sign out', account:'Active account',
       about:'Made with passion by Milan', privacy:'Legal & Privacy',
-      danger:'Danger zone',
-      updates:'✨ What\'s new',
-      faq:'FAQ',
+      danger:'Danger zone', updates:'✨ What\'s new', faq:'FAQ',
+    },
+    onboarding: {
+      tagline:'Your gaming library.<br>Friends. Reviews.',
+      start:'Get started', already:'I already have an account',
+      login_title:'Welcome back <span>!</span>',
+      login_sub:'Sign in to your GameShelf account.',
+      login_cta:'Sign in →',
+      login_switch:'No account yet? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'signup\')">Create one</span>',
+      signup_title:'Create your <span>account</span>',
+      signup_sub:'Free. No spam. Just your games.',
+      signup_cta:'Create my account →',
+      signup_switch:'Already have an account? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Sign in</span>',
+      google:'Continue with Google',
+      profile_title:'Your <span>profile</span>',
+      choose_avatar:'Choose your avatar',
+      import_photo:'Import a photo',
+      pseudo_label:'Username', pseudo_ph:'Your gamer tag', bio_ph:'A few words about you',
+      platforms:'Platforms', platforms_hint:'(multiple choices)',
+      skip:'Skip this step', skip_sub:'You can add games later',
+      import_title:'Import your <span>games</span>',
+      playing_title:'Games <span>right now</span>',
+      ready:'You\'re all set!',
+      email_invalid:'Enter a valid email address',
+      pwd_short:'Password too short (6 min)',
+      pwd_wrong:'Wrong email or password',
+      confirm_email:'Check your email to confirm your account ✓',
+      connection_error:'Connection error, please try again',
+      pseudo_short:'Choose a username (3+ chars)',
+      pseudo_taken:'This username is already taken 😕',
+    },
+    explore: {
+      title:'Games & Culture', subtitle:'Quiz · Tier List',
+      quiz:'❓ Quiz', by_licence:'By Franchise', by_genre:'By Genre',
+      tier_list:'🏆 Tier List', new_tl:'➕ New',
+      my_games:'My games', my_games_sub:'Rank your library in S→F tiers',
+      top:'★ Top', activity:'Activity',
+    },
+    profile: {
+      edit:'Edit profile', total:'games total',
+      genres:'Favorite genres', screenshots:'Screenshots',
+      recent:'Recent reviews', activity:'Activity', tier_lists:'My Tier Lists',
+      recap:'My recap',
+    },
+    friend: {
+      recent:'✦ RECENT REVIEWS', playing:'CURRENTLY PLAYING',
+      library:'LIBRARY', full_library:'Full library',
+      not_in_lib:'Not in your library',
+      top:'★ Top', activity:'Activity',
+    },
+    discover: {
+      search_ph:'Search a game', empty:'No results',
+      no_results:'No results for',
+      no_results_hint:'Try another title or check the spelling',
     },
   },
 };
@@ -2857,6 +2965,9 @@ function applyLangToDOM() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     el.textContent = t(el.dataset.i18n);
   });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    el.innerHTML = t(el.dataset.i18nHtml);
+  });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
     el.placeholder = t(el.dataset.i18nPh);
   });
@@ -2867,6 +2978,7 @@ function applyLangToDOM() {
     btn.style.borderColor   = active ? 'var(--a)'      : 'var(--border2)';
     btn.style.opacity       = active ? '1'              : '0.55';
   });
+  if (document.getElementById('auth-mode-label')) setAuthMode(_authMode);
 }
 
 // ══════════════════════════════════════
@@ -2908,10 +3020,10 @@ async function _savePushSub(sub) {
 async function enablePushNotifs() {
   try {
     if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      showToast('Notifications non supportées sur cet appareil'); return false;
+      showToast(t('toast.notif_unsupported')); return false;
     }
     const perm = await Notification.requestPermission();
-    if (perm !== 'granted') { showToast('Notifications refusées par le navigateur'); return false; }
+    if (perm !== 'granted') { showToast(t('toast.notif_denied')); return false; }
     const reg = await navigator.serviceWorker.ready;
     const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: _b64ToU8(VAPID_PUBLIC_KEY) });
     await _savePushSub(sub);
@@ -3318,7 +3430,7 @@ function discSearch(q) {
     _discPool = games;
     const lmWrap = document.getElementById('disc-loadmore-wrap');
     if (lmWrap) lmWrap.style.display = 'none';
-    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'ob')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun résultat</div>';
+    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'ob')).join('') : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${t('discover.empty')}</div>`;
   }, 350);
 }
 
@@ -3436,7 +3548,7 @@ function ldiscSearch(q) {
     _ldiscPool = games;
     const lmWrap = document.getElementById('ldisc-loadmore-wrap');
     if (lmWrap) lmWrap.style.display = 'none';
-    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'lib')).join('') : '<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">Aucun résultat</div>';
+    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'lib')).join('') : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${t('discover.empty')}</div>`;
   }, 350);
 }
 
@@ -3615,16 +3727,16 @@ function setAuthMode(mode) {
   const sw    = document.getElementById('auth-switch');
   const pwdIn = document.getElementById('auth-pwd');
   if (mode === 'login') {
-    if (label) label.innerHTML = 'Bon retour <span>!</span>';
-    if (sub)   sub.textContent = 'Connecte-toi à ton compte GameShelf.';
-    if (cta)   cta.textContent = 'Se connecter →';
-    if (sw)    sw.innerHTML = 'Pas encore de compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'signup\')">Créer un compte</span>';
+    if (label) label.innerHTML = t('onboarding.login_title');
+    if (sub)   sub.textContent = t('onboarding.login_sub');
+    if (cta)   cta.textContent = t('onboarding.login_cta');
+    if (sw)    sw.innerHTML = t('onboarding.login_switch');
     if (pwdIn) pwdIn.autocomplete = 'current-password';
   } else {
-    if (label) label.innerHTML = 'Crée ton <span>compte</span>';
-    if (sub)   sub.textContent = 'Gratuit. Pas de spam. Juste tes jeux.';
-    if (cta)   cta.textContent = 'Créer mon compte →';
-    if (sw)    sw.innerHTML = 'Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Se connecter</span>';
+    if (label) label.innerHTML = t('onboarding.signup_title');
+    if (sub)   sub.textContent = t('onboarding.signup_sub');
+    if (cta)   cta.textContent = t('onboarding.signup_cta');
+    if (sw)    sw.innerHTML = t('onboarding.signup_switch');
     if (pwdIn) pwdIn.autocomplete = 'new-password';
   }
 }
@@ -3632,36 +3744,36 @@ function setAuthMode(mode) {
 async function authSubmit() {
   const email = (document.getElementById('auth-email')?.value||'').trim();
   const pwd   = document.getElementById('auth-pwd')?.value||'';
-  if (!email || !email.includes('@')) { showToast('Entre une adresse email valide'); return; }
-  if (pwd.length < 6) { showToast('Mot de passe trop court (6 min)'); return; }
+  if (!email || !email.includes('@')) { showToast(t('onboarding.email_invalid')); return; }
+  if (pwd.length < 6) { showToast(t('onboarding.pwd_short')); return; }
   const cta = document.getElementById('auth-cta');
   if (cta) { cta.disabled = true; cta.textContent = '…'; }
   if (_authMode === 'signup') {
     const { data, error } = await _sb.auth.signUp({ email, password: pwd });
     if (error) {
       showToast(error.message);
-      if (cta) { cta.disabled = false; cta.textContent = 'Créer mon compte →'; }
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.signup_cta'); }
       return;
     }
     // Auto sign-in after signup (no email verification required in this flow)
     if (data?.session) {
       await onAuthSuccess(data.session.user);
     } else {
-      showToast('Vérifie tes emails pour confirmer ton compte ✓');
-      if (cta) { cta.disabled = false; cta.textContent = 'Créer mon compte →'; }
+      showToast(t('onboarding.confirm_email'));
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.signup_cta'); }
     }
   } else {
     let data, error;
     try {
       ({ data, error } = await _sb.auth.signInWithPassword({ email, password: pwd }));
     } catch (e) {
-      showToast('Erreur de connexion, réessaie');
-      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+      showToast(t('onboarding.connection_error'));
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.login_cta'); }
       return;
     }
     if (error) {
-      showToast('Email ou mot de passe incorrect');
-      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+      showToast(t('onboarding.pwd_wrong'));
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.login_cta'); }
       return;
     }
     // Reset guard in case onAuthStateChange already touched it, then handle directly.
@@ -3669,7 +3781,7 @@ async function authSubmit() {
     await onAuthSuccess(data.user);
     // If the app still isn't visible, onAuthSuccess failed silently — re-enable button.
     if (document.getElementById('view-app').style.display !== 'flex') {
-      if (cta) { cta.disabled = false; cta.textContent = 'Se connecter →'; }
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.login_cta'); }
     }
   }
 }
@@ -3727,7 +3839,7 @@ async function onAuthSuccess(user) {
     }
   } catch(e) {
     console.error('GameShelf: onAuthSuccess error', e);
-    showToast('Erreur lors du chargement du profil');
+    showToast(t('toast.profile_error'));
   } finally {
     _authInProgress = false;
   }
@@ -3737,12 +3849,12 @@ async function onAuthSuccess(user) {
 function validateStep1() { authSubmit(); }
 async function validateStep2() {
   const u = document.getElementById('username-input').value.trim();
-  if (!u || u.length < 3) { showToast('Choisis un pseudo (3 min)'); return; }
+  if (!u || u.length < 3) { showToast(t('onboarding.pseudo_short')); return; }
   const btn = document.querySelector('#step-2 .btn-primary, #step-2 button[onclick*="validateStep2"]');
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
   const { data: existing } = await _sb.from('profiles').select('id').ilike('username', u).limit(1).maybeSingle();
   if (existing) {
-    showToast('Ce pseudo est déjà pris 😕');
+    showToast(t('onboarding.pseudo_taken'));
     if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
     return;
   }
@@ -3865,7 +3977,7 @@ async function searchGames(q) {
   searchTimer = setTimeout(async ()=>{
     const results = await igdbSearch(q, 30);
     const qSafe = q.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Aucun résultat pour « ${qSafe} »<br><span style="font-size:11px;opacity:.6">Essaie un autre titre ou vérifie l'orthographe</span></div>`; return; }
+    if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">${t('discover.no_results')} « ${qSafe} »<br><span style="font-size:11px;opacity:.6">${t('discover.no_results_hint')}</span></div>`; return; }
     list.innerHTML = results.map(g=>{
       const isAdded = addedGames.some(a=>a.id===g.id);
       const src = g.cover || (g.steamId ? `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg` : null);
@@ -7004,7 +7116,7 @@ async function searchUsers(q) {
   }
   if (!data || !data.length) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Aucun résultat pour "${cleanQ}"</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">${t('discover.no_results')} "${cleanQ}"</div>`;
     return;
   }
   resultsEl.style.display = 'block';
@@ -7024,7 +7136,7 @@ async function sendFriendRequest(addresseeId, el) {
   if (!session) return;
   // Check if friendship already exists
   const existing = _socialFriends.find(f => f.id === addresseeId);
-  if (existing) { showToast('Déjà ami !'); return; }
+  if (existing) { showToast(t('toast.already_friends')); return; }
   const { error } = await _sb.from('friendships').insert({
     requester_id: session.user.id,
     addressee_id: addresseeId,
@@ -7032,7 +7144,7 @@ async function sendFriendRequest(addresseeId, el) {
   });
   if (error) { showToast(error.code === '23505' ? 'Demande déjà envoyée' : error.message); return; }
   if (el) el.querySelector('span').textContent = '✓ Envoyé';
-  showToast('Demande d\'ami envoyée !');
+  showToast(t('toast.friend_sent'));
   _pushNotify('friend_request', addresseeId);
 }
 
@@ -7557,7 +7669,7 @@ async function removeFriend() {
   ]);
   const deleted = [...(r1.data || []), ...(r2.data || [])];
   if (deleted.length > 0) {
-    showToast('Ami retiré');
+    showToast(t('toast.unfriended'));
     closeFriendProfile();
     await loadSocialScreen();
   } else {
