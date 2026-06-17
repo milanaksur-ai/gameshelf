@@ -1491,52 +1491,80 @@ html, body {
   <!-- QUIZ + TIER LIST HUB -->
   <div class="screen" id="screen-explore">
     <div style="display:flex;flex-direction:column;height:100%;overflow:hidden">
-      <div style="padding:calc(var(--safe-t) + 16px) 16px 10px;flex-shrink:0">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700" data-i18n="explore.title">Jeux &amp; Culture</div>
-        <div style="font-size:12px;color:var(--muted2);margin-top:2px" data-i18n="explore.subtitle">Quiz · Tier List</div>
+      <!-- Header -->
+      <div style="padding:calc(var(--safe-t) + 16px) 16px 10px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700" data-i18n="collections.title">Collections</div>
+          <div style="font-size:12px;color:var(--muted2);margin-top:2px" data-i18n="collections.subtitle">Playlists · Sagas</div>
+        </div>
+        <button onclick="openNewCollectionModal()" style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
       </div>
-      <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
 
-        <!-- QUIZ -->
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
-          <div class="sec-label" style="padding:0" data-i18n="explore.quiz">❓ Quiz</div>
+      <div class="scroll-area" style="padding:0 0 calc(80px + env(safe-area-inset-bottom))">
+
+        <!-- MES COLLECTIONS -->
+        <div style="padding:4px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="collections.mine">📚 Mes collections</div>
         </div>
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Par Licence</div>
-        <div id="quiz-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px">Par Genre</div>
-        <div id="quiz-genre-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px"></div>
+        <div id="my-collections-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:60px"></div>
 
-        <!-- SEPARATEUR -->
-        <div style="height:0.5px;background:var(--border);margin-bottom:20px"></div>
-
-        <!-- TIER LIST -->
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px">
-          <div class="sec-label" style="padding:0" data-i18n="explore.tier_list">🏆 Tier List</div>
-          <button onclick="openNewTierListModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:6px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent" data-i18n="explore.new_tl">➕ Nouvelle</button>
+        <!-- COLLECTIONS AMIS -->
+        <div style="padding:20px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="collections.friends_col">👥 Collections amis</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
-            <div style="font-size:36px">📚</div>
+        <div id="friend-collections-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:40px"></div>
+
+        <!-- SAGAS -->
+        <div style="padding:20px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="collections.sagas">📖 Sagas</div>
+        </div>
+        <div id="saga-collections-row" style="display:flex;gap:12px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+          <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
+        </div>
+
+        <!-- TIER LISTS (secondary) -->
+        <div style="height:0.5px;background:var(--border);margin:20px 0 0"></div>
+        <div style="padding:16px 16px 10px;display:flex;align-items:center;justify-content:space-between">
+          <div class="sec-label" style="padding:0" data-i18n="collections.tier_lists">🏆 Tier Lists</div>
+          <button onclick="openNewTierListModal()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--muted2);cursor:pointer" data-i18n="explore.new_tl">➕ Nouvelle</button>
+        </div>
+        <div style="padding:0 16px;display:flex;flex-direction:column;gap:8px">
+          <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
+            <div style="font-size:28px">📚</div>
             <div style="flex:1">
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Mes jeux</div>
-              <div style="font-size:12px;color:var(--muted2)">Classe ta bibliothèque en tiers S→F</div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px" data-i18n="explore.my_games">Mes jeux</div>
+              <div style="font-size:11px;color:var(--muted2)" data-i18n="explore.my_games_sub">Classe ta bibliothèque en tiers S→F</div>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-            <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a),var(--a2));opacity:0.04;pointer-events:none"></div>
           </div>
-          <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;display:flex;align-items:center;gap:14px;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
-            <div style="font-size:36px">🔥</div>
+          <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
+            <div style="font-size:28px">🔥</div>
             <div style="flex:1">
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:3px">Top 20 du moment</div>
-              <div style="font-size:12px;color:var(--muted2)">Classe les meilleurs jeux de tous les temps</div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px">Top 20 du moment</div>
+              <div style="font-size:11px;color:var(--muted2)">Classe les meilleurs jeux de tous les temps</div>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
-            <div style="position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,var(--a2),#e84393);opacity:0.04;pointer-events:none"></div>
           </div>
         </div>
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px">Par Licence</div>
-        <div id="tl-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-        <div id="tl-my-lists" style="margin-top:4px;padding-bottom:24px"></div>
+        <div style="padding:0 16px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px" data-i18n="explore.by_licence">Par Licence</div>
+          <div id="tl-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+          <div id="tl-my-lists" style="margin-top:4px"></div>
+        </div>
+
+        <!-- QUIZ (secondary) -->
+        <div style="height:0.5px;background:var(--border);margin:16px 0 0"></div>
+        <div style="padding:16px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="collections.quiz_sec">❓ Quiz</div>
+        </div>
+        <div style="padding:0 16px 32px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px" data-i18n="explore.by_licence">Par Licence</div>
+          <div id="quiz-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px" data-i18n="explore.by_genre">Par Genre</div>
+          <div id="quiz-genre-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px"></div>
+        </div>
 
       </div>
     </div>
@@ -1560,6 +1588,53 @@ html, body {
     <div id="quiz-q-area" style="flex:1;overflow-y:auto;padding:24px 16px 16px;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     <div id="quiz-next-btn-wrap" style="display:none;padding:12px 16px calc(var(--safe-b)+16px);flex-shrink:0;background:var(--bg)">
       <button id="quiz-next-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Suivant →</button>
+    </div>
+  </div>
+
+  <!-- USER COLLECTION DETAIL -->
+  <div id="user-collection-detail" style="display:none;position:fixed;inset:0;z-index:850;background:var(--bg);flex-direction:column">
+    <div style="display:flex;align-items:center;padding:calc(var(--safe-t)+12px) 16px 12px;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
+      <button onclick="closeUserCollection()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:8px">
+        <span id="ucd-emoji" style="font-size:22px">📚</span>
+        <span id="ucd-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+      </div>
+      <button onclick="openUserCollectionMenu()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;color:var(--muted2)">⋯</button>
+    </div>
+    <div id="ucd-count" style="font-size:11px;color:var(--muted2);padding:8px 16px 0"></div>
+    <div id="ucd-empty" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+      <div style="font-size:48px;margin-bottom:12px">📭</div>
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px" data-i18n="collections.no_game">Aucun jeu ici</div>
+      <div style="font-size:12px;color:var(--muted2)" data-i18n="collections.no_game_sub">Ajoute des jeux depuis leurs fiches</div>
+    </div>
+    <div id="ucd-grid" style="flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
+    <div style="padding:12px 16px calc(env(safe-area-inset-bottom)+12px);flex-shrink:0;background:var(--bg);border-top:0.5px solid var(--border)">
+      <button onclick="openAddToCollectionSheet(null,'ucd')" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.add_game_btn">+ Ajouter des jeux</button>
+    </div>
+  </div>
+
+  <!-- NEW COLLECTION MODAL -->
+  <div id="new-collection-modal" onclick="closeNewCollectionModal()" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.7);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+24px)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 20px"></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:16px" data-i18n="collections.new_title">Nouvelle collection</div>
+      <div id="ncm-emoji-row" style="display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none"></div>
+      <input id="ncm-name-input" type="text" maxlength="50" data-i18n-ph="collections.name_ph" placeholder="Ex : Mon top RPG…"
+        style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);outline:none;margin-bottom:14px;box-sizing:border-box"
+        onkeydown="if(event.key==='Enter')confirmCreateCollection()">
+      <button onclick="confirmCreateCollection()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.create">Créer</button>
+    </div>
+  </div>
+
+  <!-- ADD TO COLLECTION SHEET (from game detail) -->
+  <div id="add-to-collection-sheet" onclick="closeAddToCollectionSheet()" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.7);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+20px)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px" data-i18n="collections.add_game">Ajouter à une collection</div>
+      <div id="atc-list" style="display:flex;flex-direction:column;gap:8px;max-height:45vh;overflow-y:auto"></div>
+      <button onclick="openNewCollectionModal('from_atc')" style="width:100%;margin-top:12px;padding:13px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer" data-i18n="collections.new_mini">+ Nouvelle collection</button>
     </div>
   </div>
 
@@ -1970,6 +2045,12 @@ html, body {
             <button class="status-btn" data-s="wish"          onclick="setStatus('wish')"                                 data-i18n="status_btn.wish">✦ Souhait</button>
           </div>
         </div>
+        <!-- ADD TO COLLECTION -->
+        <button onclick="openAddToCollectionSheet(currentGame?.id)" style="display:flex;align-items:center;gap:6px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-bottom:16px;-webkit-tap-highlight-color:transparent" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="collections.add_game">Ajouter à une collection</span>
+        </button>
+
         <!-- PLATFORMS -->
         <div id="detail-platforms" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px"></div>
 
@@ -2076,6 +2157,7 @@ html, body {
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
+          <button id="fp-quiz-btn" onclick="challengeFriendToQuiz()" style="display:none;margin-top:14px;padding:9px 20px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.quiz_challenge">⚡ Défier</button>
         </div>
       </div>
       <!-- Jeux en commun -->
@@ -2263,7 +2345,7 @@ html, body {
     </button>
     <button class="nav-btn" id="nav-explore" onclick="appGoTo('explore')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span data-i18n="nav.culture">Culture</span>
+      <span data-i18n="nav.collections">Collections</span>
     </button>
     <button class="nav-btn" id="nav-profile" onclick="appGoTo('profile')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -2666,7 +2748,7 @@ const LANG = {
     vibe_neg:  'Points faibles',
     lang_name: 'Langue',
     added:     'Ajouté',
-    nav: { home:'Accueil', library:'Biblio', friends:'Amis', culture:'Culture', profile:'Profil' },
+    nav: { home:'Accueil', library:'Biblio', friends:'Amis', collections:'Collections', profile:'Profil' },
     status_btn: {
       playing:'▶ En cours', paused:'⏸ En pause', finished:'✓ Fini',
       platine:'⭐ 100%', backlog:'Backlog', abandoned:'Abandonné', wish:'✦ Souhait',
@@ -2834,6 +2916,25 @@ const LANG = {
       my_games:'Mes jeux', my_games_sub:'Classe ta bibliothèque en tiers S→F',
       top:'★ Top', activity:'Activité',
     },
+    collections: {
+      title:'Collections', subtitle:'Playlists · Sagas',
+      mine:'📚 Mes collections', friends_col:'👥 Collections amis', sagas:'📖 Sagas',
+      tier_lists:'🏆 Tier Lists', quiz_sec:'❓ Quiz',
+      empty_mine:'Aucune collection pour l\'instant',
+      empty_mine_sub:'Crée ta première playlist de jeux',
+      empty_friends:'Tes amis n\'ont pas encore de collections',
+      new_title:'Nouvelle collection',
+      name_ph:'Ex : Mon top RPG…',
+      create:'Créer',
+      add_game:'Ajouter à une collection',
+      add_game_btn:'+ Ajouter des jeux',
+      new_mini:'+ Nouvelle collection',
+      no_game:'Aucun jeu ici',
+      no_game_sub:'Ajoute des jeux depuis leurs fiches',
+      delete_confirm:'Supprimer cette collection ?',
+      saga_sub:'La saga complète',
+      quiz_challenge:'⚡ Défier',
+    },
     profile: {
       edit:'Modifier le profil', total:'jeux au total',
       genres:'Genres favoris', screenshots:'Captures d\'écran',
@@ -2942,7 +3043,7 @@ const LANG = {
     vibe_neg:  'Downsides',
     lang_name: 'Language',
     added:     'Added',
-    nav: { home:'Home', library:'Library', friends:'Friends', culture:'Culture', profile:'Profile' },
+    nav: { home:'Home', library:'Library', friends:'Friends', collections:'Collections', profile:'Profile' },
     status_btn: {
       playing:'▶ Playing', paused:'⏸ Paused', finished:'✓ Finished',
       platine:'⭐ 100%', backlog:'Backlog', abandoned:'Abandoned', wish:'✦ Wishlist',
@@ -3038,6 +3139,25 @@ const LANG = {
       tier_list:'🏆 Tier List', new_tl:'➕ New',
       my_games:'My games', my_games_sub:'Rank your library in S→F tiers',
       top:'★ Top', activity:'Activity',
+    },
+    collections: {
+      title:'Collections', subtitle:'Playlists · Sagas',
+      mine:'📚 My collections', friends_col:'👥 Friends\' collections', sagas:'📖 Sagas',
+      tier_lists:'🏆 Tier Lists', quiz_sec:'❓ Quiz',
+      empty_mine:'No collections yet',
+      empty_mine_sub:'Create your first game playlist',
+      empty_friends:'Your friends don\'t have collections yet',
+      new_title:'New collection',
+      name_ph:'e.g. My top RPGs…',
+      create:'Create',
+      add_game:'Add to a collection',
+      add_game_btn:'+ Add games',
+      new_mini:'+ New collection',
+      no_game:'No games here',
+      no_game_sub:'Add games from their detail pages',
+      delete_confirm:'Delete this collection?',
+      saga_sub:'The full saga',
+      quiz_challenge:'⚡ Challenge',
     },
     profile: {
       edit:'Edit profile', total:'games total',
@@ -4596,6 +4716,7 @@ function loadFromStorage() {
     if (!g && !ug) return false;
     if (g)  { const p = JSON.parse(g);  GAMES.length = 0; GAMES.push(...p); }
     if (ug) { Object.keys(userGames).forEach(k => delete userGames[k]); Object.assign(userGames, JSON.parse(ug)); }
+    loadUserCollections();
     return true;
   } catch(e) { console.warn('GameShelf: storage load failed', e); return false; }
 }
@@ -4892,7 +5013,7 @@ function appGoTo(screen) {
   if (screen === 'library') filterGames();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
   if (screen === 'social') loadSocialScreen();
-  if (screen === 'explore') { renderQuizHub(); renderTierListHub(); }
+  if (screen === 'explore') { renderQuizHub(); renderTierListHub(); renderMyCollections(); renderFriendCollections(); renderSagaCollections(); }
 }
 
 function moveNavIndicator(btn) {
@@ -7948,9 +8069,10 @@ async function openFriendProfile(userId) {
       .gte('updated_at', since).order('updated_at', {ascending:false}).limit(8)
   ]);
   if (!profile) return;
-  // Show remove button if this person is in our accepted friends list
+  // Show remove + quiz challenge buttons if this person is in our accepted friends list
   const isFriend = (_socialFriends || []).some(f => f.id === userId);
-  if (isFriend) document.getElementById('fp-remove-btn').style.display = 'block';
+  document.getElementById('fp-remove-btn').style.display = isFriend ? 'block' : 'none';
+  document.getElementById('fp-quiz-btn').style.display = isFriend ? 'inline-block' : 'none';
   _friendProfileData = { profile, games: games || [] };
   renderFriendProfile({
     username: profile.username || 'Gamer',
@@ -8421,19 +8543,353 @@ async function openCollection(id) {
 }
 
 function colOpenDetail(id) {
-  const g = (_colCache[_activeCollection] || []).find(x => x.id === id);
+  let g;
+  if (_activeCollection?.startsWith('saga_')) {
+    const sagaId = _activeCollection.replace('saga_', '');
+    g = (_sagaCache[sagaId] || []).find(x => String(x.id) === String(id));
+  } else {
+    g = (_colCache[_activeCollection] || []).find(x => String(x.id) === String(id));
+  }
   if (!g) return;
-  if (!GAMES.find(x => x.id === id)) {
+  const sid = String(id);
+  if (!GAMES.find(x => String(x.id) === sid)) {
     GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[id] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
+    userGames[sid] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
   }
   closeCollection();
-  openDetail(id);
+  openDetail(sid);
+}
+
+function addGameFromCollection(g) {
+  const sid = String(g.id);
+  if (!GAMES.find(x => String(x.id) === sid)) {
+    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+    userGames[sid] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
+  }
+  closeCollection();
+  openDetail(sid);
 }
 
 function closeCollection() {
   document.getElementById('collection-modal').style.display = 'none';
   _activeCollection = null;
+}
+
+// ══════════════════════════════════════
+// USER COLLECTIONS
+// ══════════════════════════════════════
+let userCollections = [];
+let _currentCollectionId = null;
+let _ncmPrefillGame = null;
+let _atcGameId = null;
+let _ncmSelectedEmoji = '📚';
+const COLLECTION_EMOJIS = ['📚','⚔️','🎮','🏆','🌙','🔥','💀','🌍','🎯','💎','🚀','❤️','👾','🎪','🏅','🌈'];
+
+function loadUserCollections() {
+  userCollections = JSON.parse(localStorage.getItem('gs_collections') || '[]');
+}
+
+function saveUserCollections() {
+  localStorage.setItem('gs_collections', JSON.stringify(userCollections));
+}
+
+function renderMyCollections() {
+  const el = document.getElementById('my-collections-row');
+  if (!el) return;
+  if (!userCollections.length) {
+    el.innerHTML = `<div style="padding:16px 0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%">
+      <div style="font-size:13px;font-weight:700;color:var(--muted2)">${t('collections.empty_mine')}</div>
+      <div style="font-size:11px;color:var(--muted)">${t('collections.empty_mine_sub')}</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = userCollections.map(_userCollectionCard).join('');
+}
+
+function _userCollectionCard(c) {
+  const games = c.games || [];
+  const covers = games.slice(0, 3).map(g => {
+    const src = coverUrl(g);
+    return src
+      ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>`
+      : `<div style="flex:1;background:var(--s3)"></div>`;
+  });
+  while (covers.length < 3) covers.push(`<div style="flex:1;background:var(--s${Math.min(covers.length+2,4)})"></div>`);
+  return `<div onclick="openUserCollection('${c.id}')" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    <div style="height:85px;display:flex;position:relative">
+      ${covers.join('')}
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 50%)"></div>
+      <div style="position:absolute;bottom:6px;left:8px;font-size:20px">${c.emoji||'📚'}</div>
+    </div>
+    <div style="padding:8px 10px 10px">
+      <div style="font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${c.name}</div>
+      <div style="font-size:10px;color:var(--muted2);margin-top:3px">${games.length} jeu${games.length!==1?'x':''}</div>
+    </div>
+  </div>`;
+}
+
+function renderFriendCollections() {
+  const el = document.getElementById('friend-collections-row');
+  if (!el) return;
+  el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+}
+
+// ── OPEN / CLOSE ─────────────────────
+function openUserCollection(id) {
+  const c = userCollections.find(x => x.id === id);
+  if (!c) return;
+  _currentCollectionId = id;
+  document.getElementById('ucd-emoji').textContent = c.emoji || '📚';
+  document.getElementById('ucd-title').textContent = c.name;
+  _renderUCDGames(c);
+  document.getElementById('user-collection-detail').style.display = 'flex';
+}
+
+function _renderUCDGames(c) {
+  const games = c.games || [];
+  const count = document.getElementById('ucd-count');
+  const grid  = document.getElementById('ucd-grid');
+  const empty = document.getElementById('ucd-empty');
+  count.textContent = `${games.length} jeu${games.length!==1?'x':''}`;
+  if (!games.length) {
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+  grid.innerHTML = games.map(g => {
+    const src = coverUrl(g);
+    return `<div style="position:relative">
+      <div onclick="openDetail('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
+        <button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+      </div>
+      <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    </div>`;
+  }).join('');
+}
+
+function closeUserCollection() {
+  document.getElementById('user-collection-detail').style.display = 'none';
+  _currentCollectionId = null;
+}
+
+function removeGameFromUserCollection(gameId) {
+  const c = userCollections.find(x => x.id === _currentCollectionId);
+  if (!c) return;
+  c.games = (c.games || []).filter(g => String(g.id) !== String(gameId));
+  saveUserCollections();
+  _renderUCDGames(c);
+  renderMyCollections();
+}
+
+function openUserCollectionMenu() {
+  if (confirm(t('collections.delete_confirm'))) {
+    userCollections = userCollections.filter(c => c.id !== _currentCollectionId);
+    saveUserCollections();
+    closeUserCollection();
+    renderMyCollections();
+  }
+}
+
+// ── CREATE COLLECTION ─────────────────
+function openNewCollectionModal(context) {
+  _ncmSelectedEmoji = '📚';
+  if (context !== 'from_atc') _ncmPrefillGame = null;
+  const row = document.getElementById('ncm-emoji-row');
+  row.innerHTML = COLLECTION_EMOJIS.map((e,i) => `
+    <div onclick="selectCollectionEmoji('${e}',this)" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;background:${i===0?'var(--a)':'var(--s2)'};border:${i===0?'none':'0.5px solid var(--border2)'};">${e}</div>`).join('');
+  document.getElementById('ncm-name-input').value = '';
+  document.getElementById('new-collection-modal').style.display = 'flex';
+  setTimeout(() => document.getElementById('ncm-name-input').focus(), 150);
+}
+
+function closeNewCollectionModal() {
+  document.getElementById('new-collection-modal').style.display = 'none';
+}
+
+function selectCollectionEmoji(emoji, el) {
+  _ncmSelectedEmoji = emoji;
+  document.querySelectorAll('#ncm-emoji-row > div').forEach(d => {
+    d.style.background = 'var(--s2)';
+    d.style.border = '0.5px solid var(--border2)';
+  });
+  el.style.background = 'var(--a)';
+  el.style.border = 'none';
+}
+
+function confirmCreateCollection() {
+  const name = document.getElementById('ncm-name-input').value.trim();
+  if (!name) return;
+  const c = {
+    id: `col_${Date.now()}`,
+    name,
+    emoji: _ncmSelectedEmoji,
+    games: _ncmPrefillGame ? [_ncmPrefillGame] : [],
+    createdAt: new Date().toISOString(),
+  };
+  userCollections.unshift(c);
+  saveUserCollections();
+  closeNewCollectionModal();
+  if (_ncmPrefillGame) {
+    showToast(`${_ncmPrefillGame.title} → ${name}`);
+    closeAddToCollectionSheet();
+    _ncmPrefillGame = null;
+  } else {
+    openUserCollection(c.id);
+  }
+  renderMyCollections();
+}
+
+// ── ADD TO COLLECTION (from game detail) ──
+function openAddToCollectionSheet(gameId, context) {
+  if (context === 'ucd') {
+    // Add games directly to currently open user collection via search
+    // For MVP: just show the add game UI
+    _atcGameId = null;
+    showToast('Ajoute des jeux depuis leurs fiches →');
+    return;
+  }
+  _atcGameId = String(gameId);
+  const list = document.getElementById('atc-list');
+  const game = GAMES.find(g => String(g.id) === _atcGameId);
+  if (!userCollections.length) {
+    list.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted2);font-size:13px">${t('collections.empty_mine')}</div>`;
+  } else {
+    list.innerHTML = userCollections.map(c => {
+      const inCol = (c.games||[]).some(g => String(g.id) === _atcGameId);
+      return `<div onclick="toggleGameInCollection('${c.id}')" id="atc-row-${c.id}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:12px;cursor:pointer" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="font-size:20px">${c.emoji||'📚'}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+          <div style="font-size:11px;color:var(--muted2)">${(c.games||[]).length} jeu${(c.games||[]).length!==1?'x':''}</div>
+        </div>
+        <div id="atc-check-${c.id}" style="width:22px;height:22px;border-radius:50%;border:2px solid ${inCol?'var(--green)':'var(--border2)'};background:${inCol?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;font-weight:700;flex-shrink:0">${inCol?'✓':''}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('add-to-collection-sheet').style.display = 'flex';
+}
+
+function toggleGameInCollection(collectionId) {
+  const c = userCollections.find(x => x.id === collectionId);
+  if (!c || !_atcGameId) return;
+  const game = GAMES.find(g => String(g.id) === _atcGameId) || (currentGame && String(currentGame.id) === _atcGameId ? currentGame : null);
+  if (!game) return;
+  const idx = (c.games||[]).findIndex(g => String(g.id) === _atcGameId);
+  if (idx >= 0) {
+    c.games.splice(idx, 1);
+    showToast(`Retiré de "${c.name}"`);
+  } else {
+    if (!c.games) c.games = [];
+    c.games.push({id:game.id, title:game.title, cover:game.cover, steamId:game.steamId, meta:game.meta});
+    showToast(`Ajouté à "${c.name}"`);
+  }
+  saveUserCollections();
+  const inCol = (c.games||[]).some(g => String(g.id) === _atcGameId);
+  const check = document.getElementById(`atc-check-${collectionId}`);
+  if (check) {
+    check.style.borderColor = inCol ? 'var(--green)' : 'var(--border2)';
+    check.style.background  = inCol ? 'var(--green)' : 'transparent';
+    check.textContent = inCol ? '✓' : '';
+  }
+  renderMyCollections();
+}
+
+function closeAddToCollectionSheet() {
+  document.getElementById('add-to-collection-sheet').style.display = 'none';
+  _atcGameId = null;
+}
+
+// ── SAGA COLLECTIONS ─────────────────
+const SAGA_COLLECTIONS = [
+  { id:'zelda',    emoji:'🗡️',  name:'Zelda',             gameIds:[7346,119388,1025,1022,11565] },
+  { id:'mario',    emoji:'🍄',  name:'Mario',             gameIds:[25312,812,8957,119388] },
+  { id:'gta',      emoji:'🚗',  name:'GTA',               gameIds:[25076,1020,22394,3023] },
+  { id:'darksouls',emoji:'💀',  name:'Souls',             gameIds:[119133,11133,119171,3194,2026] },
+  { id:'ff',       emoji:'🔮',  name:'Final Fantasy',     gameIds:[103374,3863,104261,2013] },
+  { id:'pokemon',  emoji:'⚡',  name:'Pokémon',           gameIds:[1174,1228,4697,3300] },
+  { id:'assassin', emoji:'🦅',  name:'Assassin\'s Creed', gameIds:[65905,21950,113112,66243] },
+  { id:'witcher',  emoji:'🐺',  name:'The Witcher',       gameIds:[1877,1942,440] },
+  { id:'halo',     emoji:'🪖',  name:'Halo',              gameIds:[3200,45115,3201,3202] },
+  { id:'cod',      emoji:'💥',  name:'Call of Duty',      gameIds:[8388,8119,8120,19550] },
+];
+let _sagaCache = {};
+
+async function renderSagaCollections() {
+  const el = document.getElementById('saga-collections-row');
+  if (!el) return;
+  el.innerHTML = SAGA_COLLECTIONS.map(s => `
+    <div onclick="openSagaCollection('${s.id}')" style="flex-shrink:0;width:96px;cursor:pointer;text-align:center" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div id="saga-covers-${s.id}" style="height:96px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);overflow:hidden;position:relative;display:flex">
+        <div style="flex:1;background:var(--s3)"></div><div style="flex:1;background:var(--s2)"></div>
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%)"></div>
+        <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${s.emoji}</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;margin-top:5px;line-height:1.2">${s.name}</div>
+    </div>`).join('');
+  SAGA_COLLECTIONS.slice(0, 5).forEach(s => loadSagaCovers(s));
+}
+
+async function loadSagaCovers(s) {
+  if (_sagaCache[s.id]?.length) { _renderSagaThumbnail(s.id, _sagaCache[s.id]); return; }
+  const raw = await igdbFetch('game', { ids: s.gameIds.slice(0, 4) });
+  if (!raw?.length) return;
+  const games = raw.map(mapIgdbGame).filter(g => g.cover || g.steamId).slice(0, 2);
+  _sagaCache[s.id] = games;
+  _renderSagaThumbnail(s.id, games);
+}
+
+function _renderSagaThumbnail(id, games) {
+  const el = document.getElementById(`saga-covers-${id}`);
+  if (!el || !games.length) return;
+  const s = SAGA_COLLECTIONS.find(x => x.id === id);
+  el.innerHTML = games.slice(0, 2).map(g => {
+    const src = coverUrl(g);
+    return src ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
+  }).join('') + `<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%)"></div><div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${s?.emoji||''}</div>`;
+}
+
+async function openSagaCollection(id) {
+  const s = SAGA_COLLECTIONS.find(x => x.id === id);
+  if (!s) return;
+  _activeCollection = `saga_${id}`;
+  const modal = document.getElementById('collection-modal');
+  const grid  = document.getElementById('col-modal-grid');
+  document.getElementById('col-modal-title').textContent = `${s.emoji} ${s.name}`;
+  document.getElementById('col-modal-sub').textContent = t('collections.saga_sub');
+  grid.innerHTML = '<div class="loading-dots" style="grid-column:1/-1;padding:32px 0"><span></span><span></span><span></span></div>';
+  modal.style.display = 'flex';
+  if (!_sagaCache[id] || _sagaCache[id].length < 2) {
+    const raw = await igdbFetch('game', { ids: s.gameIds });
+    if (raw?.length) _sagaCache[id] = raw.map(mapIgdbGame).filter(g => g.cover || g.steamId);
+  }
+  const games = _sagaCache[id] || [];
+  if (!games.length) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted)">${t('discover.no_games')}</div>`; return; }
+  grid.innerHTML = games.map(g => {
+    const src = coverUrl(g);
+    const inLib = !!GAMES.find(x => String(x.id) === String(g.id));
+    return `<div onclick="colOpenDetail('${g.id}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="border-radius:12px;background:var(--s2);overflow:hidden;position:relative;aspect-ratio:3/4;margin-bottom:6px">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${s.emoji}</div>`}
+        ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 45%)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;padding:7px">
+          <div style="font-size:9px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── QUIZ CHALLENGE (friend profile) ──
+function challengeFriendToQuiz() {
+  appGoTo('explore');
+  setTimeout(() => {
+    const scroll = document.querySelector('#screen-explore .scroll-area');
+    if (scroll) scroll.scrollTo({ top: scroll.scrollHeight, behavior: 'smooth' });
+  }, 300);
 }
 
 // ══════════════════════════════════════
@@ -8881,6 +9337,7 @@ function applyProfileToUI() {
       }
       // Fast path: local data → launch immediately, then sync in background
       applyProfileToUI();
+      loadUserCollections();
       document.getElementById('view-onboarding').style.display = 'none';
       document.getElementById('view-app').style.display = 'flex';
       initApp();
