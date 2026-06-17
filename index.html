@@ -1445,20 +1445,6 @@ html, body {
       </div>
 
 
-      <!-- 🎮 COLLECTIONS THÉMATIQUES -->
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
-        <div class="sec-label" style="padding:0" data-i18n="feed.collections">🎮 Collections</div>
-      </div>
-      <div id="home-collections" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 8px;scrollbar-width:none;-webkit-overflow-scrolling:touch">
-        <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
-      </div>
-
-      <!-- 🏢 STUDIOS -->
-      <div style="padding:4px 16px 16px">
-        <div class="sec-label" style="padding:0 0 10px" data-i18n="feed.studios">Studios</div>
-        <div id="studio-selector" style="display:flex;gap:8px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:2px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-      </div>
-
       <!-- RECOMMANDATIONS PERSONNALISÉES -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 8px">
         <div class="sec-label" style="padding:0" data-i18n="feed.foryou">Pour toi</div>
@@ -2707,7 +2693,6 @@ const LANG = {
       playing:'En cours', friends:'Chez tes amis', trending:'Tendances du moment',
       gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
-      collections:'🎮 Collections', studios:'Studios',
     },
     toast: {
       saved:'✓ Sauvegardé', copied:'Lien copié !', discord_copied:'Copié — colle-le dans Discord 🎮',
@@ -2895,10 +2880,6 @@ const LANG = {
       search_ph:'Chercher un jeu', empty:'Aucun résultat',
       no_results:'Aucun résultat pour',
       no_results_hint:'Essaie un autre titre ou vérifie l\'orthographe',
-      no_games:'Aucun jeu trouvé',
-    },
-    collections: {
-      studio_sub:'Les incontournables du studio',
     },
     social: {
       title:'Amis', search_ph:'Chercher un pseudo…',
@@ -2988,7 +2969,6 @@ const LANG = {
       playing:'Playing', friends:'Friends activity', trending:'Trending now',
       gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
-      collections:'🎮 Collections', studios:'Studios',
     },
     toast: {
       saved:'✓ Saved', copied:'Link copied!', discord_copied:'Copied — paste it in Discord 🎮',
@@ -3105,10 +3085,6 @@ const LANG = {
       search_ph:'Search a game', empty:'No results',
       no_results:'No results for',
       no_results_hint:'Try another title or check the spelling',
-      no_games:'No games found',
-    },
-    collections: {
-      studio_sub:'Studio essentials',
     },
     social: {
       title:'Friends', search_ph:'Search by username…',
@@ -7153,8 +7129,6 @@ function initApp(){
   setTimeout(() => {
     renderHomeTrending();
     renderHomeRecos();
-    renderHomeCollections();
-    renderStudios();
     if (obProfile.gamepass) loadGamePass();
   }, 200);
   // Check for shared tier list URL param
@@ -8351,7 +8325,7 @@ async function openStudioCollection(studioId) {
   const modal = document.getElementById('collection-modal');
   const grid  = document.getElementById('col-modal-grid');
   document.getElementById('col-modal-title').textContent = `${s.emoji} ${s.name}`;
-  document.getElementById('col-modal-sub').textContent = t('collections.studio_sub');
+  document.getElementById('col-modal-sub').textContent = 'Les incontournables du studio';
   grid.innerHTML = '<div class="loading-dots" style="grid-column:1/-1;padding:32px 0"><span></span><span></span><span></span></div>';
   modal.style.display = 'flex';
   let data = _colCache['studio_'+studioId];
@@ -8363,7 +8337,7 @@ async function openStudioCollection(studioId) {
     }
   }
   if (!data?.length) {
-    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted2)">${t('discover.no_games')}</div>`;
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted2)">Aucun jeu trouvé</div>';
     return;
   }
   grid.innerHTML = data.map(g => {
@@ -8426,7 +8400,7 @@ async function openCollection(id) {
     if (data?.length) _colCache[id] = data.map(mapIgdbGame).filter(g => g.cover || g.steamId);
   }
   const games = _colCache[id] || [];
-  if (!games.length) { grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted)">${t('discover.no_games')}</div>`; return; }
+  if (!games.length) { grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted)">Aucun jeu trouvé</div>'; return; }
 
   grid.innerHTML = games.map(g => {
     const src = coverUrl(g);
@@ -8455,15 +8429,6 @@ function colOpenDetail(id) {
   }
   closeCollection();
   openDetail(id);
-}
-
-function addGameFromCollection(g) {
-  if (!GAMES.find(x => x.id === g.id)) {
-    GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
-    userGames[g.id] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
-  }
-  closeCollection();
-  openDetail(g.id);
 }
 
 function closeCollection() {
