@@ -8682,6 +8682,44 @@ function saveUserCollections() {
   localStorage.setItem('gs_collections', JSON.stringify(userCollections));
 }
 
+async function syncCollectionToSupabase(col) {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    await _sb.from('collections').upsert({
+      id: col.id, user_id: user.id, name: col.name, emoji: col.emoji,
+      games: col.games || [], updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+  } catch(e) {}
+}
+
+async function deleteCollectionFromSupabase(colId) {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    await _sb.from('collections').delete().eq('id', colId).eq('user_id', user.id);
+  } catch(e) {}
+}
+
+async function fetchOwnCollectionsFromSupabase() {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    const { data } = await _sb.from('collections').select('id,name,emoji,games,created_at').eq('user_id', user.id).order('created_at', { ascending: true });
+    if (!data?.length) return;
+    const serverMap = new Map(data.map(c => [c.id, c]));
+    // Add/update server collections locally
+    for (const d of data) {
+      const idx = userCollections.findIndex(c => c.id === d.id);
+      const merged = { id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], createdAt: d.created_at };
+      if (idx >= 0) userCollections[idx] = merged;
+      else userCollections.push(merged);
+    }
+    saveUserCollections();
+    renderMyCollections();
+  } catch(e) {}
+}
+
 function renderMyCollections() {
   const el = document.getElementById('my-collections-row');
   if (!el) return;
@@ -8716,10 +8754,60 @@ function _userCollectionCard(c) {
   </div>`;
 }
 
-function renderFriendCollections() {
+async function renderFriendCollections() {
   const el = document.getElementById('friend-collections-row');
   if (!el) return;
-  el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+  if (!_socialFriends?.length) {
+    el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+    return;
+  }
+  el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px">Chargement…</div>`;
+  try {
+    const friendIds = _socialFriends.map(f => f.id);
+    const { data } = await _sb.from('collections').select('id,user_id,name,emoji,games').in('user_id', friendIds).order('updated_at', { ascending: false }).limit(20);
+    if (!data?.length) {
+      el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+      return;
+    }
+    el.innerHTML = data.map(col => {
+      const friend = _socialFriends.find(f => f.id === col.user_id);
+      const covers = (col.games || []).slice(0, 4).map(g => {
+        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.imageId}.jpg` : (g.cover || '');
+        return img ? `<img src="${img}" style="width:36px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
+      }).join('');
+      return `<div onclick="openFriendCollection('${col.id}','${(col.user_id||'').replace(/'/g,'')}')" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
+        <div style="height:80px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${col.emoji}</div>`}</div>
+        <div style="padding:8px 10px 10px">
+          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${col.emoji} ${col.name}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:2px">${friend?.username || 'Ami'} · ${(col.games||[]).length} jeux</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+  }
+}
+
+async function openFriendCollection(colId, userId) {
+  try {
+    const { data } = await _sb.from('collections').select('*').eq('id', colId).eq('user_id', userId).maybeSingle();
+    if (!data) return showToast('Collection introuvable');
+    _activeCollection = `friend_${colId}`;
+    _colCache[`friend_${colId}`] = data.games || [];
+    const games = data.games || [];
+    const overlay = document.getElementById('user-collection-detail');
+    document.getElementById('ucd-title').textContent = `${data.emoji} ${data.name}`;
+    document.getElementById('ucd-count').textContent = `${games.length} jeu${games.length !== 1 ? 'x' : ''}`;
+    const menuBtn = document.getElementById('ucd-menu-btn');
+    if (menuBtn) menuBtn.style.display = 'none';
+    document.getElementById('ucd-grid').innerHTML = games.length
+      ? games.map(g => `<div onclick="colOpenDetail('${g.id}')" style="border-radius:12px;overflow:hidden;background:var(--s2);cursor:pointer">
+          <img src="${g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.imageId}.jpg` : (g.cover||'')}" style="width:100%;aspect-ratio:3/4;object-fit:cover;display:block" onerror="this.style.display='none'">
+          <div style="padding:6px 8px"><div style="font-size:11px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title||''}</div></div>
+        </div>`).join('')
+      : `<div style="grid-column:1/-1;text-align:center;padding:40px 0;color:var(--muted2)">Aucun jeu</div>`;
+    overlay.style.display = 'flex';
+  } catch(e) { showToast('Erreur lors du chargement'); }
 }
 
 // ── OPEN / CLOSE ─────────────────────
@@ -8804,6 +8892,7 @@ function confirmRenameCollection() {
   if (!c) return;
   c.name = name;
   saveUserCollections();
+  syncCollectionToSupabase(c);
   document.getElementById('ucd-title').textContent = name;
   closeRenameCollection();
   renderMyCollections();
@@ -8812,8 +8901,10 @@ function confirmRenameCollection() {
 function confirmDeleteCollection() {
   closeCollectionActionSheet();
   if (!confirm(t('collections.delete_confirm'))) return;
+  const colId = _currentCollectionId;
   userCollections = userCollections.filter(c => c.id !== _currentCollectionId);
   saveUserCollections();
+  deleteCollectionFromSupabase(colId);
   closeUserCollection();
   renderMyCollections();
 }
@@ -8856,6 +8947,7 @@ function confirmCreateCollection() {
   };
   userCollections.unshift(c);
   saveUserCollections();
+  syncCollectionToSupabase(c);
   closeNewCollectionModal();
   if (_ncmPrefillGame) {
     showToast(`${_ncmPrefillGame.title} → ${name}`);
@@ -8912,6 +9004,7 @@ function toggleGameInCollection(collectionId) {
     showToast(`Ajouté à "${c.name}"`);
   }
   saveUserCollections();
+  syncCollectionToSupabase(c);
   const inCol = (c.games||[]).some(g => String(g.id) === _atcGameId);
   const check = document.getElementById(`atc-check-${collectionId}`);
   if (check) {
@@ -9021,6 +9114,7 @@ async function openSagaCollection(id) {
 
 // ── QUIZ CHALLENGE (friend profile) ──
 function challengeFriendToQuiz() {
+  _quizChallengedFriendId = _fpFriendUserId || null;
   openQuizPicker();
 }
 
@@ -9098,6 +9192,7 @@ function colSearchToggleGame(g, btn) {
     btn.textContent = '✓ Ajouté';
   }
   saveUserCollections();
+  syncCollectionToSupabase(c);
   _renderUCDGames(c);
   renderMyCollections();
 }
@@ -10257,6 +10352,8 @@ let _quizActive   = null;
 let _quizQIdx     = 0;
 let _quizScore    = 0;
 let _quizIsChallenge = false;
+let _quizChallengeId = null;
+let _quizChallengedFriendId = null;
 let _quizAnswered = false;
 let _quizPublished = new Set();
 let _quizLocalScores  = JSON.parse(localStorage.getItem('gs_quiz_scores')   || '{}');
@@ -10302,6 +10399,7 @@ function renderQuizHub() {
 
 function openQuiz(id) {
   closeQuizPicker();
+  const isChallengeMode = !!_quizChallengedFriendId;
   _quizActive = QUIZ_DATA.find(q => q.id === id);
   if (!_quizActive) return;
   // 24h cooldown per quiz
@@ -10313,12 +10411,17 @@ function openQuiz(id) {
       return;
     }
   }
-  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizIsChallenge = false;
+  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizIsChallenge = isChallengeMode;
+  _quizChallengeId = null;
   _quizPublished.delete(id);
   const overlay = document.getElementById('quiz-overlay');
   overlay.classList.add('open');
   document.getElementById('quiz-title-bar').textContent = _quizActive.title;
   document.getElementById('quiz-progress-fill').style.background = _quizActive.gradient;
+  if (isChallengeMode && _quizChallengedFriendId) {
+    _createQuizChallenge(_quizActive.id, _quizActive.title, _quizChallengedFriendId).then(id => { _quizChallengeId = id; });
+    _quizChallengedFriendId = null;
+  }
   renderQuizQuestion();
 }
 
@@ -10376,6 +10479,7 @@ function showQuizResults() {
   _quizLocalScores[_quizActive.id] = { score:_quizScore, total, ts:Date.now() };
   localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
   saveQuizScore(_quizActive.id, _quizScore, total);
+  if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
   document.getElementById('quiz-progress-fill').style.width = '100%';
   document.getElementById('quiz-next-btn-wrap').style.display = 'none';
   const pct = Math.round((_quizScore / total) * 100);
@@ -10421,6 +10525,28 @@ function publishQuizResult() {
   showToast('✓ Publié dans ton feed !');
   const btn = document.getElementById('quiz-publish-btn');
   if (btn) { btn.textContent = '✓ Publié !'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
+}
+
+async function _createQuizChallenge(quizId, quizName, friendId) {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return null;
+    const { data, error } = await _sb.from('quiz_challenges').insert({
+      challenger_id: user.id, challenged_id: friendId,
+      quiz_id: quizId, quiz_name: quizName, status: 'pending'
+    }).select('id').single();
+    if (error || !data) return null;
+    // Send push notification to friend
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session?.access_token) {
+      fetch('https://gameshelf-back-end.vercel.app/api/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ type: 'quiz_challenge', to: friendId, quizName, challengeId: data.id })
+      }).catch(() => {});
+    }
+    return data.id;
+  } catch(e) { return null; }
 }
 
 async function saveQuizScore(quizId, score, total) {
