@@ -2470,33 +2470,33 @@ html, body {
 <div id="privacy-modal" onclick="if(event.target===this)closePrivacyModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">Mentions légales & Confidentialité</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="legal.title">Mentions légales & Confidentialité</div>
       <button onclick="closePrivacyModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
     </div>
     <div style="font-size:13px;color:var(--muted2);line-height:1.7;display:flex;flex-direction:column;gap:16px">
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Responsable</div>
-        <div>GameShelf est une application personnelle développée par Milan. Pour toute question : via le formulaire de feedback dans les paramètres.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.owner">Responsable</div>
+        <div data-i18n="legal.owner_text">GameShelf est une application personnelle développée par Milan. Pour toute question : via le formulaire de feedback dans les paramètres.</div>
       </div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Données collectées</div>
-        <div>Lors de l'inscription, nous collectons ton adresse email et les informations de profil que tu renseignes (pseudo, avatar). L'utilisation de l'app génère des données liées à ta bibliothèque de jeux (statuts, notes, temps de jeu, captures d'écran).</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.data">Données collectées</div>
+        <div data-i18n="legal.data_text">Lors de l'inscription, nous collectons ton adresse email et les informations de profil que tu renseignes (pseudo, avatar). L'utilisation de l'app génère des données liées à ta bibliothèque de jeux (statuts, notes, temps de jeu, captures d'écran).</div>
       </div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Utilisation</div>
-        <div>Ces données servent uniquement à faire fonctionner l'application — afficher ta bibliothèque, synchroniser entre appareils, et partager avec tes amis les infos que tu choisis de rendre visibles.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.usage">Utilisation</div>
+        <div data-i18n="legal.usage_text">Ces données servent uniquement à faire fonctionner l'application — afficher ta bibliothèque, synchroniser entre appareils, et partager avec tes amis les infos que tu choisis de rendre visibles.</div>
       </div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Hébergement</div>
-        <div>Les données sont stockées sur <strong>Supabase</strong> (infrastructure cloud conforme RGPD, serveurs en Europe). Les images sont stockées dans Supabase Storage.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.hosting">Hébergement</div>
+        <div data-i18n-html="legal.hosting_text">Les données sont stockées sur <strong>Supabase</strong> (infrastructure cloud conforme RGPD, serveurs en Europe). Les images sont stockées dans Supabase Storage.</div>
       </div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Tes droits</div>
-        <div>Tu peux à tout moment exporter tes données (bouton "Exporter ma bibliothèque"), modifier tes informations de profil, ou supprimer ton compte en vidant ta bibliothèque et en nous contactant via le feedback.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.rights">Tes droits</div>
+        <div data-i18n="legal.rights_text">Tu peux à tout moment exporter tes données (bouton "Exporter ma bibliothèque"), modifier tes informations de profil, ou supprimer ton compte en vidant ta bibliothèque et en nous contactant via le feedback.</div>
       </div>
       <div>
-        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px">Cookies</div>
-        <div>L'app n'utilise pas de cookies de tracking. Un token d'authentification est stocké localement pour maintenir ta session.</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px" data-i18n="legal.cookies">Cookies</div>
+        <div data-i18n="legal.cookies_text">L'app n'utilise pas de cookies de tracking. Un token d'authentification est stocké localement pour maintenir ta session.</div>
       </div>
     </div>
   </div>
@@ -2508,8 +2508,8 @@ html, body {
     <div id="tour-slide" style="min-height:160px;display:flex;flex-direction:column;align-items:center;text-align:center"></div>
     <div id="tour-dots" style="display:flex;justify-content:center;gap:6px;margin:20px 0 18px"></div>
     <div style="display:flex;gap:10px">
-      <button onclick="closeTour()" style="flex:1;background:none;border:0.5px solid var(--border2);border-radius:14px;padding:13px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer">Passer</button>
-      <button id="tour-next-btn" onclick="nextTourStep()" style="flex:2;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif">Suivant →</button>
+      <button onclick="closeTour()" style="flex:1;background:none;border:0.5px solid var(--border2);border-radius:14px;padding:13px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer" data-i18n="tour.skip">Passer</button>
+      <button id="tour-next-btn" onclick="nextTourStep()" style="flex:2;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif" data-i18n="tour.next">Suivant →</button>
     </div>
   </div>
 </div>
@@ -2518,10 +2518,10 @@ html, body {
 <div id="review-prompt" onclick="if(event.target===this)closeReviewPrompt()" style="display:none;position:fixed;inset:0;z-index:975;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px;padding:28px 24px;max-width:340px;width:100%;text-align:center;animation:fadeIn 0.25s ease">
     <div style="font-size:40px;margin-bottom:12px">⭐</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px">Tu apprécies GameShelf ?</div>
-    <div style="font-size:13px;color:var(--muted2);line-height:1.55;margin-bottom:22px">Un petit avis sur le Play Store, ça nous aide vraiment à grandir 🙏</div>
-    <button onclick="openStoreReview()" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:10px">Laisser un avis ⭐</button>
-    <button onclick="closeReviewPrompt()" style="width:100%;background:none;border:none;font-size:13px;color:var(--muted2);cursor:pointer;padding:6px">Plus tard</button>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:8px" data-i18n="review.title">Tu apprécies GameShelf ?</div>
+    <div style="font-size:13px;color:var(--muted2);line-height:1.55;margin-bottom:22px" data-i18n="review.sub">Un petit avis sur le Play Store, ça nous aide vraiment à grandir 🙏</div>
+    <button onclick="openStoreReview()" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:10px" data-i18n="review.cta">Laisser un avis ⭐</button>
+    <button onclick="closeReviewPrompt()" style="width:100%;background:none;border:none;font-size:13px;color:var(--muted2);cursor:pointer;padding:6px" data-i18n="review.later">Plus tard</button>
   </div>
 </div>
 
@@ -2772,6 +2772,31 @@ const LANG = {
       verdict_sub:"Le champion, c'est le jeu que tu vas jouer ce soir !",
       go:'C\'est parti !',
       cancel:'Annuler',
+    },
+    legal: {
+      title:'Mentions légales & Confidentialité',
+      owner:'Responsable',
+      owner_text:'GameShelf est une application personnelle développée par Milan. Pour toute question : via le formulaire de feedback dans les paramètres.',
+      data:'Données collectées',
+      data_text:"Lors de l'inscription, nous collectons ton adresse email et les informations de profil que tu renseignes (pseudo, avatar). L'utilisation de l'app génère des données liées à ta bibliothèque de jeux (statuts, notes, temps de jeu, captures d'écran).",
+      usage:'Utilisation',
+      usage_text:"Ces données servent uniquement à faire fonctionner l'application — afficher ta bibliothèque, synchroniser entre appareils, et partager avec tes amis les infos que tu choisis de rendre visibles.",
+      hosting:'Hébergement',
+      hosting_text:'Les données sont stockées sur <strong>Supabase</strong> (infrastructure cloud conforme RGPD, serveurs en Europe). Les images sont stockées dans Supabase Storage.',
+      rights:'Tes droits',
+      rights_text:'Tu peux à tout moment exporter tes données (bouton "Exporter ma bibliothèque"), modifier tes informations de profil, ou supprimer ton compte en vidant ta bibliothèque et en nous contactant via le feedback.',
+      cookies:'Cookies',
+      cookies_text:"L'app n'utilise pas de cookies de tracking. Un token d'authentification est stocké localement pour maintenir ta session.",
+    },
+    tour: {
+      skip:'Passer',
+      next:'Suivant →',
+    },
+    review: {
+      title:'Tu apprécies GameShelf ?',
+      sub:'Un petit avis sur le Play Store, ça nous aide vraiment à grandir 🙏',
+      cta:'Laisser un avis ⭐',
+      later:'Plus tard',
     },
     onboarding: {
       tagline:'Ta bibliothèque gaming.<br>Tes amis. Tes avis.',
@@ -3113,6 +3138,31 @@ const LANG = {
       verdict_sub:"The champion is the game you're playing tonight!",
       go:'Let\'s go!',
       cancel:'Cancel',
+    },
+    legal: {
+      title:'Legal & Privacy',
+      owner:'Owner',
+      owner_text:'GameShelf is a personal app developed by Milan. For any question, use the feedback form in settings.',
+      data:'Data collected',
+      data_text:'When you sign up, we collect your email address and the profile info you provide (username, avatar). Using the app generates data related to your game library (statuses, ratings, playtime, screenshots).',
+      usage:'Usage',
+      usage_text:'This data is used solely to run the app — display your library, sync across devices, and share with friends the info you choose to make visible.',
+      hosting:'Hosting',
+      hosting_text:'Data is stored on <strong>Supabase</strong> (GDPR-compliant cloud infrastructure, servers in Europe). Images are stored in Supabase Storage.',
+      rights:'Your rights',
+      rights_text:'You can at any time export your data (via "Export my library"), update your profile info, or delete your account by clearing your library and contacting us via the feedback form.',
+      cookies:'Cookies',
+      cookies_text:'The app does not use tracking cookies. An authentication token is stored locally to maintain your session.',
+    },
+    tour: {
+      skip:'Skip',
+      next:'Next →',
+    },
+    review: {
+      title:'Enjoying GameShelf?',
+      sub:'A quick review on the Play Store really helps us grow 🙏',
+      cta:'Leave a review ⭐',
+      later:'Later',
     },
   },
 };
