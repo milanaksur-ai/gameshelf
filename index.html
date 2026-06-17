@@ -4570,6 +4570,8 @@ function launchApp() {
   document.getElementById('view-onboarding').style.display = 'none';
   document.getElementById('view-app').style.display = 'flex';
   initApp();
+  loadUserCollections();
+  fetchOwnCollectionsFromSupabase();
   setTimeout(loadHomeActivityFeed, 1500);
 
   // Feature tour — once, right after account creation
@@ -7258,19 +7260,29 @@ async function openNotifDrawer() {
     if (!session) { body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Connecte-toi pour voir tes notifications.</div>'; return; }
     const uid = session.user.id;
 
-    const { data: rows } = await _sb.from('friendships').select('*').eq('addressee_id', uid).eq('status', 'pending');
-    if (!rows || rows.length === 0) {
+    // Fetch friend requests and quiz challenges in parallel
+    const [{ data: rows }, challenges] = await Promise.all([
+      _sb.from('friendships').select('*').eq('addressee_id', uid).eq('status', 'pending'),
+      loadQuizChallenges()
+    ]);
+
+    const recentChallenges = (challenges || []).filter(ch => {
+      const age = Date.now() - new Date(ch.created_at).getTime();
+      return age < 7 * 24 * 3600 * 1000; // last 7 days
+    });
+
+    if ((!rows || rows.length === 0) && !recentChallenges.length) {
       body.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="color:var(--muted2);font-size:14px">Aucune notification pour l\'instant</div></div>';
       _updateFriendBadges(0);
       return;
     }
 
-    const ids = rows.map(r => r.requester_id);
-    const { data: profiles } = await _sb.from('profiles').select('*').in('id', ids);
+    const ids = (rows||[]).map(r => r.requester_id);
+    const { data: profiles } = ids.length ? await _sb.from('profiles').select('*').in('id', ids) : { data: [] };
     const profileMap = {};
     (profiles||[]).forEach(p => profileMap[p.id] = p);
 
-    body.innerHTML = `
+    const friendReqHtml = (rows||[]).length ? `
       <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Demandes d'amis · ${rows.length}</div>
       ${rows.map(r => {
         const p = profileMap[r.requester_id] || {};
@@ -7285,8 +7297,14 @@ async function openNotifDrawer() {
             <button onclick="declineFriendFromNotif('${r.id}',this)" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
           </div>
         </div>`;
-      }).join('')}`;
-    _updateFriendBadges(rows.length);
+      }).join('')}` : '';
+
+    const quizHtml = recentChallenges.length ? `
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${(rows||[]).length?'18px':'0'}">Défis Quiz</div>
+      ${recentChallenges.map(ch => renderQuizChallengeNotif(ch, uid)).join('')}` : '';
+
+    body.innerHTML = friendReqHtml + quizHtml;
+    _updateFriendBadges((rows||[]).length);
   } catch(e) {
     body.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--red);font-size:13px">${t('toast.error_loading')}</div>`;
   }
@@ -8757,13 +8775,25 @@ function _userCollectionCard(c) {
 async function renderFriendCollections() {
   const el = document.getElementById('friend-collections-row');
   if (!el) return;
-  if (!_socialFriends?.length) {
-    el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
-    return;
-  }
   el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px">Chargement…</div>`;
   try {
-    const friendIds = _socialFriends.map(f => f.id);
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) { el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`; return; }
+
+    // Use cached friends list or fetch directly from friendships table
+    let friendIds = (_socialFriends || []).map(f => f.id);
+    if (!friendIds.length) {
+      const { data: fships } = await _sb.from('friendships')
+        .select('requester_id,addressee_id')
+        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+        .eq('status', 'accepted');
+      friendIds = (fships || []).map(f => f.requester_id === user.id ? f.addressee_id : f.requester_id);
+    }
+    if (!friendIds.length) {
+      el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
+      return;
+    }
+
     const { data } = await _sb.from('collections').select('id,user_id,name,emoji,games').in('user_id', friendIds).order('updated_at', { ascending: false }).limit(20);
     if (!data?.length) {
       el.innerHTML = `<div style="padding:12px 0;color:var(--muted2);font-size:12px;font-style:italic">${t('collections.empty_friends')}</div>`;
