@@ -1119,6 +1119,10 @@ html, body {
         <button class="btn-primary" onclick="obStep(1)">Commencer</button>
         <button class="btn-ghost" style="display:block;width:100%;margin-top:12px;text-align:center" onclick="obStep(1);setAuthMode('login')">J'ai déjà un compte</button>
       </div>
+      <div style="display:flex;justify-content:center;gap:8px;margin-top:24px">
+        <button onclick="setLang('fr')" data-lang="fr" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;border:0.5px solid var(--border2);background:var(--a);color:#fff;cursor:pointer;transition:all 0.2s">🇫🇷 FR</button>
+        <button onclick="setLang('en')" data-lang="en" style="font-size:12px;font-weight:700;padding:6px 14px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);opacity:0.55;cursor:pointer;transition:all 0.2s">🇬🇧 EN</button>
+      </div>
     </div>
   </div>
 
@@ -1843,6 +1847,16 @@ html, body {
                 <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55">Dans l'onglet <strong>Profil</strong>, appuie sur "Modifier le profil" en haut de la page.</div>
               </div>
 
+            </div>
+          </div>
+
+          <!-- Langue -->
+          <div style="border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+            <div style="font-size:20px">🌐</div>
+            <div style="flex:1;font-size:13px;font-weight:700;color:var(--text)" data-i18n="lang_name">Langue</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="setLang('fr')" data-lang="fr" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--a);color:#fff;cursor:pointer;transition:all 0.2s">🇫🇷 FR</button>
+              <button onclick="setLang('en')" data-lang="en" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);opacity:0.55;cursor:pointer;transition:all 0.2s">🇬🇧 EN</button>
             </div>
           </div>
 
@@ -2594,6 +2608,168 @@ html, body {
 
 <script>
 // ══════════════════════════════════════
+// INTERNATIONALISATION
+// ══════════════════════════════════════
+let _lang = localStorage.getItem('gs_lang') || 'fr';
+
+const LANG = {
+  fr: {
+    status: {
+      playing:   'En cours',
+      paused:    'En pause',
+      finished:  'Fini',
+      platine:   '100%',
+      backlog:   'Backlog',
+      abandoned: 'Abandonné',
+      wish:      'Souhait',
+    },
+    vibe: {
+      masterpiece:  '💎 Chef-d\'œuvre',
+      hiddengem:    '🌟 Pépite cachée',
+      banger:       '🔥 Banger',
+      value:        '💸 Rapport qualité/prix',
+      unexpected:   '🧠 Inattendu',
+      atmosphere:   '🌑 Atmosphère unique',
+      emotional:    '❤️ Prend aux tripes',
+      addictive:    '🔁 Addictif',
+      relaxing:     '🧘 Relaxant',
+      ost:          '🎵 OST de fou',
+      dynamique:    '⚡ Dynamique',
+      ambitieux:    '🏔️ Ambitieux',
+      original:     '💡 Original',
+      cinematique:  '🎬 Cinématique',
+      dejante:      '🎪 Déjanté',
+      short:        '🎯 Expérience courte',
+      scenario:     '📖 Scénario fort',
+      immersif:     '🌊 Immersif',
+      satisfaisant: '💪 Satisfaisant',
+      replayable:   '🔄 Très rejouable',
+      coop:         '🤝 Idéal en coop',
+      persos:       '🎭 Persos mémorables',
+      drole:        '😂 Hilarant',
+      meh:          '😐 Bof',
+      avoid:        '💩 À éviter',
+      frustrant:    '😤 Frustrant',
+      slow:         '🐢 Lent à démarrer',
+      indigeste:    '📚 Indigeste',
+      complexe:     '🧩 Complexe',
+      scary:        '😱 Effrayant',
+      repetitif:    '😴 Répétitif',
+      decevant:     '📉 Décevant',
+      buggy:        '🐛 Plein de bugs',
+      tropcher:     '💸 Trop cher',
+      tropcocurt:   '⏱️ Trop court',
+      bacle:        '🔧 Pas fini / bâclé',
+      ennuyeux:     '💤 Ennuyeux',
+    },
+    vibe_pos:  'Points forts',
+    vibe_neg:  'Points faibles',
+    lang_name: 'Langue',
+    added:     'Ajouté',
+  },
+  en: {
+    status: {
+      playing:   'Playing',
+      paused:    'Paused',
+      finished:  'Finished',
+      platine:   '100%',
+      backlog:   'Backlog',
+      abandoned: 'Abandoned',
+      wish:      'Wishlist',
+    },
+    vibe: {
+      masterpiece:  '💎 Masterpiece',
+      hiddengem:    '🌟 Hidden gem',
+      banger:       '🔥 Banger',
+      value:        '💸 Great value',
+      unexpected:   '🧠 Unexpected',
+      atmosphere:   '🌑 Unique atmosphere',
+      emotional:    '❤️ Emotional',
+      addictive:    '🔁 Addictive',
+      relaxing:     '🧘 Relaxing',
+      ost:          '🎵 Amazing OST',
+      dynamique:    '⚡ Dynamic',
+      ambitieux:    '🏔️ Ambitious',
+      original:     '💡 Original',
+      cinematique:  '🎬 Cinematic',
+      dejante:      '🎪 Crazy',
+      short:        '🎯 Short experience',
+      scenario:     '📖 Strong story',
+      immersif:     '🌊 Immersive',
+      satisfaisant: '💪 Satisfying',
+      replayable:   '🔄 Very replayable',
+      coop:         '🤝 Great in co-op',
+      persos:       '🎭 Memorable characters',
+      drole:        '😂 Hilarious',
+      meh:          '😐 Meh',
+      avoid:        '💩 Avoid',
+      frustrant:    '😤 Frustrating',
+      slow:         '🐢 Slow start',
+      indigeste:    '📚 Overwhelming',
+      complexe:     '🧩 Complex',
+      scary:        '😱 Scary',
+      repetitif:    '😴 Repetitive',
+      decevant:     '📉 Disappointing',
+      buggy:        '🐛 Full of bugs',
+      tropcher:     '💸 Overpriced',
+      tropcocurt:   '⏱️ Too short',
+      bacle:        '🔧 Unfinished',
+      ennuyeux:     '💤 Boring',
+    },
+    vibe_pos:  'Highlights',
+    vibe_neg:  'Downsides',
+    lang_name: 'Language',
+    added:     'Added',
+  },
+};
+
+function t(k) {
+  const keys = k.split('.');
+  let obj = LANG[_lang] ?? LANG.fr;
+  for (const key of keys) obj = obj?.[key];
+  if (obj !== undefined && obj !== null) return obj;
+  obj = LANG.fr;
+  for (const key of keys) obj = obj?.[key];
+  return obj ?? k;
+}
+
+function statusLabel(s) {
+  const map = {
+    'playing-solo':  t('status.playing'),
+    'playing-multi': t('status.playing'),
+    finished:        t('status.finished'),
+    platine:         '100%',
+    backlog:         t('status.backlog'),
+    abandoned:       t('status.abandoned'),
+    wish:            t('status.wish'),
+    paused:          t('status.paused'),
+  };
+  return map[s] || s;
+}
+
+function setLang(l) {
+  _lang = l;
+  localStorage.setItem('gs_lang', l);
+  applyLangToDOM();
+}
+
+function applyLangToDOM() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    el.textContent = t(el.dataset.i18n);
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+    el.placeholder = t(el.dataset.i18nPh);
+  });
+  document.querySelectorAll('[data-lang]').forEach(btn => {
+    const active = btn.dataset.lang === _lang;
+    btn.style.background    = active ? 'var(--a)'      : 'var(--s2)';
+    btn.style.color         = active ? '#fff'           : 'var(--muted2)';
+    btn.style.borderColor   = active ? 'var(--a)'      : 'var(--border2)';
+    btn.style.opacity       = active ? '1'              : '0.55';
+  });
+}
+
+// ══════════════════════════════════════
 // IGDB CONFIG
 // ══════════════════════════════════════
 const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
@@ -2880,7 +3056,7 @@ const DISC_STATUSES = [
   ['platine',       '⭐ 100%'],
   ['abandoned',     '❌ Abandonné'],
 ];
-const DISC_STATUS_LABELS = { backlog:'Backlog', wish:'Souhait', 'playing-solo':'En cours', 'playing-multi':'En cours', finished:'Fini', platine:'100%', abandoned:'Abandonné', paused:'En pause' };
+const DISC_STATUS_LABELS = new Proxy({}, { get: (_, s) => statusLabel(s) });
 
 function discCardHtml(g, ctx) {
   const src = coverUrl(g);
@@ -4634,14 +4810,14 @@ function renderVibe(curVibe, hasScore) {
   const sel = _vibeArr(curVibe);
   const chip = v => {
     const active = sel.includes(v.key);
-    return `<button onclick="setVibe('${v.key}')" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:0.5px solid ${active?'var(--a)':'var(--border2)'};background:${active?'rgba(108,92,231,0.2)':'var(--s2)'};color:${active?'var(--a)':'var(--muted2)'};cursor:pointer;white-space:nowrap;transition:all 0.15s">${v.label}</button>`;
+    return `<button onclick="setVibe('${v.key}')" style="font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:0.5px solid ${active?'var(--a)':'var(--border2)'};background:${active?'rgba(108,92,231,0.2)':'var(--s2)'};color:${active?'var(--a)':'var(--muted2)'};cursor:pointer;white-space:nowrap;transition:all 0.15s">${t('vibe.'+v.key)}</button>`;
   };
   const pos = VIBES.filter(v => v.tone === 'pos');
   const neg = VIBES.filter(v => v.tone === 'neg');
   row.innerHTML =
-    `<div style="font-size:10px;font-weight:700;color:#00b894;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-bottom:2px">Points forts</div>` +
+    `<div style="font-size:10px;font-weight:700;color:#00b894;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-bottom:2px">${t('vibe_pos')}</div>` +
     pos.map(chip).join('') +
-    `<div style="font-size:10px;font-weight:700;color:#d63031;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-top:8px;margin-bottom:2px">Points faibles</div>` +
+    `<div style="font-size:10px;font-weight:700;color:#d63031;text-transform:uppercase;letter-spacing:0.08em;width:100%;margin-top:8px;margin-bottom:2px">${t('vibe_neg')}</div>` +
     neg.map(chip).join('');
 }
 function setVibe(vibe) {
@@ -5110,7 +5286,7 @@ function renderProfileStats() {
       const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
       const vibeKeys = _vibeArr(userGames[g.id]?.vibe).slice(0, 2);
       const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
-        .map(v => `<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;white-space:nowrap">${v.label}</span>`).join('');
+        .map(v => `<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;white-space:nowrap">${t('vibe.'+v.key)}</span>`).join('');
       const numColor = i === 0 ? 'var(--amber)' : i === 1 ? '#b0bec5' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.5)';
       return `<div onclick="openDetail('${g.id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
@@ -5237,7 +5413,7 @@ function _trvGameCard(g, containerId) {
   const src = (typeof coverUrl === 'function') ? coverUrl(g) : null;
   const vibeKeys = (typeof _vibeArr === 'function') ? _vibeArr(g.vibe) : [];
   const vibeChips = vibeKeys.map(k => (typeof VIBES !== 'undefined' ? VIBES : []).find(v => v.key === k)).filter(Boolean)
-    .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
+    .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.'+v.key)}</span>`).join('');
   const review = g.notes || '';
   const MAX = 100;
   const needsExpand = review.length > MAX;
@@ -6470,6 +6646,7 @@ async function checkPendingRequests() {
 }
 
 function initApp(){
+  applyLangToDOM();
   refreshViews();
   checkPendingRequests();
   if (_pendingInterval) clearInterval(_pendingInterval);
@@ -6839,7 +7016,7 @@ let _fpActiveTab = '';
 let _fpMyIds    = new Set();
 let _fpMyTitles = new Set();
 
-const FP_SL = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'100%','backlog':'Backlog','abandoned':'Abandonné','wish':'Souhait','paused':'En pause'};
+const FP_SL = new Proxy({}, { get: (_, s) => statusLabel(s) });
 
 function fpCoverSrc(g) {
   if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
@@ -6860,7 +7037,7 @@ function fpGameRow(idx) {
   const mine = gid ? (_fpMyGames[gid] || null) : null;
   const vibeKeys = _vibeArr(g.vibe);
   const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
-    .map(v => `<span style="font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');
+    .map(v => `<span style="font-size:9px;padding:2px 6px;border-radius:10px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.'+v.key)}</span>`).join('');
   const platBadge = g.platform
     ? `<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[g.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 5px">${g.platform.toUpperCase()}</span>`
     : '';
@@ -7168,7 +7345,7 @@ async function openFriendGamePopup(idx) {
         <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted2)">${profileName} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score ? ` <span style="color:var(--amber);font-weight:700">★${g.score}/10</span>` : ''}</div>
       </div>
     </div>
-    ${(()=>{const vibeKeys=_vibeArr(g.vibe);const chips=vibeKeys.map(k=>VIBES.find(v=>v.key===k)).filter(Boolean).map(v=>`<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${v.label}</span>`).join('');return chips?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${chips}</div>`:''})()}
+    ${(()=>{const vibeKeys=_vibeArr(g.vibe);const chips=vibeKeys.map(k=>VIBES.find(v=>v.key===k)).filter(Boolean).map(v=>`<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.'+v.key)}</span>`).join('');return chips?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${chips}</div>`:''})()}
     ${mine ? `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span style="color:var(--muted2)">Toi : </span><span style="font-weight:600">${FP_SL[mine.status]||mine.status}</span>${mine.score ? `<span style="color:var(--amber);font-weight:700"> · ★${mine.score}</span>` : ''}</div>` : `<div style="font-size:12px;color:var(--muted2);font-style:italic;margin-bottom:12px">Pas dans ta bibliothèque</div>`}
     ${g.notes ? `<div style="border-left:3px solid var(--a);border-radius:0 10px 10px 0;background:rgba(108,92,231,0.07);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${g.notes}"</div>` : ''}
     ${screenshotHtml}
@@ -8059,7 +8236,7 @@ async function renderPublicGameShare(gameId, userId) {
 
     const vibeKeys = Array.isArray(g.vibe) ? g.vibe : (g.vibe ? [g.vibe] : []);
     const vibesHtml = vibeKeys.length
-      ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${vibeKeys.map(k => { const v = VIBES.find(x=>x.key===k); return v ? `<span style="font-size:12px;padding:5px 12px;border-radius:20px;background:rgba(108,92,231,0.12);color:#a29bfe;border:0.5px solid rgba(108,92,231,0.3)">${v.label}</span>` : ''; }).join('')}</div>`
+      ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">${vibeKeys.map(k => { const v = VIBES.find(x=>x.key===k); return v ? `<span style="font-size:12px;padding:5px 12px;border-radius:20px;background:rgba(108,92,231,0.12);color:#a29bfe;border:0.5px solid rgba(108,92,231,0.3)">${t('vibe.'+v.key)}</span>` : ''; }).join('')}</div>`
       : '';
 
     const hoursLabel = gpHoursLabel(g.hours);
