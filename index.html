@@ -1573,7 +1573,7 @@ html, body {
         <div class="profile-handle" id="app-profile-handle">@gamer</div>
         <button onclick="openEditProfile()" style="margin-top:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:6px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Modifier le profil
+          <span data-i18n="profile.edit">Modifier le profil</span>
         </button>
         <!-- Steam/Xbox badges hidden for now -->
         <span id="xbox-badge" style="display:none"><span id="xbox-dot"></span><span id="xbox-badge-text"></span></span>
@@ -1599,12 +1599,12 @@ html, body {
           </svg>
           <div class="ring-center">
             <div class="ring-pct" id="ring-pct">0%</div>
-            <div class="ring-sub">fini</div>
+            <div class="ring-sub" data-i18n="profile.ring_sub">fini</div>
           </div>
         </div>
         <div class="comp-stats">
           <div class="comp-total" id="stat-total">0</div>
-          <div class="comp-total-label">jeux au total</div>
+          <div class="comp-total-label" data-i18n="profile.total">jeux au total</div>
 
           <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em">✦ Mon récap</button>
         </div>
@@ -1614,15 +1614,15 @@ html, body {
       <div class="anim" style="animation-delay:0.15s;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 16px">
         <div onclick="openShelf('playing')" style="background:rgba(162,155,254,0.1);border:0.5px solid rgba(162,155,254,0.25);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(162,155,254,0.5)'" onmouseleave="this.style.borderColor='rgba(162,155,254,0.25)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#a29bfe" id="stat-playing">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">En cours</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="lib.playing">En cours</div>
         </div>
         <div onclick="openShelf('paused')" style="background:rgba(240,165,0,0.1);border:0.5px solid rgba(240,165,0,0.25);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(240,165,0,0.5)'" onmouseleave="this.style.borderColor='rgba(240,165,0,0.25)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#f0a500" id="stat-paused">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">En pause</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="lib.paused">En pause</div>
         </div>
         <div onclick="openShelf('finished')" style="background:rgba(0,230,118,0.08);border:0.5px solid rgba(0,230,118,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(0,230,118,0.4)'" onmouseleave="this.style.borderColor='rgba(0,230,118,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--green)" id="stat-finished">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Finis</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="lib.finished">Finis</div>
         </div>
         <div onclick="openShelf('platine')" style="background:rgba(0,206,201,0.08);border:0.5px solid rgba(0,206,201,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(0,206,201,0.45)'" onmouseleave="this.style.borderColor='rgba(0,206,201,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#00cec9" id="stat-platine">0</div>
@@ -1630,16 +1630,16 @@ html, body {
         </div>
         <div onclick="openShelf('backlog')" style="background:rgba(152,152,176,0.08);border:0.5px solid rgba(152,152,176,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(152,152,176,0.4)'" onmouseleave="this.style.borderColor='rgba(152,152,176,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--muted2)" id="stat-backlog">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Backlog</div>
-          <div style="font-size:9px;color:var(--muted);margin-top:1px">à commencer</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="lib.backlog">Backlog</div>
+          <div style="font-size:9px;color:var(--muted);margin-top:1px" data-i18n="profile.stat_backlog_sub">à commencer</div>
         </div>
         <div onclick="openShelf('abandoned')" style="background:rgba(255,82,82,0.08);border:0.5px solid rgba(255,82,82,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s" onmouseenter="this.style.borderColor='rgba(255,82,82,0.4)'" onmouseleave="this.style.borderColor='rgba(255,82,82,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--red)" id="stat-abandoned">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Abandonné</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="profile.stat_abandoned">Abandonné</div>
         </div>
         <div onclick="openShelf('wish')" style="background:rgba(196,181,253,0.08);border:0.5px solid rgba(196,181,253,0.2);border-radius:14px;padding:12px;text-align:center;cursor:pointer;transition:border-color 0.15s;grid-column:1/-1" onmouseenter="this.style.borderColor='rgba(196,181,253,0.45)'" onmouseleave="this.style.borderColor='rgba(196,181,253,0.2)'">
           <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:#c4b5fd" id="stat-wish">0</div>
-          <div style="font-size:10px;color:var(--muted2);margin-top:2px">Souhaits</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:2px" data-i18n="lib.wish">Souhaits</div>
         </div>
       </div>
 
@@ -1650,7 +1650,7 @@ html, body {
       <!-- TROUVAILLES DU MOMENT -->
       <div style="padding:20px 16px 0" id="trouvailles-section">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">✦ Les avis récents</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase" data-i18n="profile.recent_reviews">✦ Les avis récents</div>
         </div>
         <div id="trouvailles-list"></div>
       </div>
@@ -1658,8 +1658,8 @@ html, body {
       <!-- TOP / ACTIVITÉ (fusionné) -->
       <div style="padding:0 16px 16px;margin-top:20px">
         <div style="display:flex;gap:6px;margin-bottom:12px">
-          <button id="tab-top-btn" onclick="switchProfileTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
-          <button id="tab-activity-btn" onclick="switchProfileTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
+          <button id="tab-top-btn" onclick="switchProfileTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s" data-i18n="profile.tab_top">★ Top</button>
+          <button id="tab-activity-btn" onclick="switchProfileTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s" data-i18n="profile.tab_activity">Activité</button>
         </div>
         <div id="tab-top" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="tab-activity" style="display:none;flex-direction:column;gap:0"></div>
@@ -1695,8 +1695,8 @@ html, body {
       <!-- MES TIER LISTS -->
       <div id="profile-tierlists-section" style="padding:20px 16px 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">Mes Tier Lists</div>
-          <button onclick="appGoTo('explore')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px">+ Créer →</button>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase" data-i18n="profile.tier_lists">Mes Tier Lists</div>
+          <button onclick="appGoTo('explore')" style="background:none;border:none;font-size:11px;color:var(--a);font-weight:600;cursor:pointer;padding:4px 6px" data-i18n="profile.tier_lists_create">+ Créer →</button>
         </div>
         <div id="profile-tierlists-list"></div>
       </div>
@@ -2020,14 +2020,14 @@ html, body {
   <div class="screen" id="screen-social">
     <div style="display:flex;flex-direction:column;height:100%;overflow:hidden;width:100%">
       <div style="padding:calc(var(--safe-t)+16px) 20px 12px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800">Amis</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800" data-i18n="social.title">Amis</div>
         <div id="friend-req-badge" style="display:none;background:var(--a);color:#fff;font-size:11px;font-weight:700;border-radius:20px;padding:3px 9px"></div>
       </div>
       <!-- SEARCH -->
       <div style="padding:0 16px 12px;flex-shrink:0">
         <div style="position:relative">
           <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);opacity:0.4" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="friend-search-input" type="text" placeholder="Chercher un pseudo…"
+          <input id="friend-search-input" type="text" placeholder="Chercher un pseudo…" data-i18n-ph="social.search_ph"
             style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:11px 12px 11px 36px;font-size:14px;color:var(--text);outline:none"
             oninput="searchUsers(this.value)">
         </div>
@@ -2037,17 +2037,17 @@ html, body {
       <div class="scroll-area" style="padding:0 16px">
         <!-- Pending requests -->
         <div id="social-pending" style="display:none;margin-bottom:20px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Demandes reçues</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.pending">Demandes reçues</div>
           <div id="social-pending-list"></div>
         </div>
         <!-- Friends row (stories) -->
         <div id="social-friends-section">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Mes amis</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.my_friends">Mes amis</div>
           <div id="social-friends-list" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 6px"></div>
         </div>
         <!-- Activity feed -->
         <div id="social-activity-section" style="margin-top:18px;display:none">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">Activité récente</div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.activity">Activité récente</div>
           <div id="social-activity-list"></div>
         </div>
         <!-- Demo profiles (examples) -->
@@ -2758,17 +2758,40 @@ const LANG = {
       genres:'Genres favoris', screenshots:'Captures d\'écran',
       recent:'Les avis récents', activity:'Activité', tier_lists:'Mes Tier Lists',
       recap:'Mon récap',
+      ring_sub:'fini', stat_abandoned:'Abandonné', stat_backlog_sub:'à commencer',
+      empty_lib:'Bibliothèque vide', empty_lib_sub:'Ajoute ton premier jeu pour commencer',
+      empty_lib_btn:'+ Ajouter un jeu',
+      recent_reviews:'✦ Les avis récents',
+      tab_top:'★ Top', tab_activity:'Activité',
+      tier_lists_create:'+ Créer →',
+      quick_play:'▶ J\'y joue', quick_done:'Je l\'ai fini !',
+      quick_resume:'▶ Reprendre', quick_retry:'🔄 Nouvelle chance',
+      quick_bought:'🛒 Je l\'ai acheté',
     },
     friend: {
       recent:'✦ LES AVIS RÉCENTS', playing:'JEUX EN COURS',
       library:'SA BIBLIOTHÈQUE', full_library:'Bibliothèque complète',
       not_in_lib:'Pas dans ta bibliothèque',
       top:'★ Top', activity:'Activité',
+      no_activity:'Aucune activité récente', no_playing:'Aucun jeu en cours',
+      lib_empty:'Bibliothèque vide pour l\'instant',
+      common_one:'1 jeu en commun', common_many:'jeux en commun',
+      verb_finished:'a fini', verb_platine:'a platinisé 🏆',
+      verb_playing:'joue à', verb_backlog:'a ajouté', verb_abandoned:'a abandonné',
+      verb_updated:'a mis à jour', tab_common:'En Commun',
+      accept:'Accepter',
     },
     discover: {
       search_ph:'Chercher un jeu', empty:'Aucun résultat',
       no_results:'Aucun résultat pour',
       no_results_hint:'Essaie un autre titre ou vérifie l\'orthographe',
+    },
+    social: {
+      title:'Amis', search_ph:'Chercher un pseudo…',
+      pending:'Demandes reçues', my_friends:'Mes amis', activity:'Activité récente',
+      wants_friend:'veut être ton ami', add:'Ajouter',
+      no_friends:'Cherche des amis par pseudo ci-dessus',
+      request:'demande', requests:'demandes',
     },
   },
   en: {
@@ -2916,17 +2939,40 @@ const LANG = {
       genres:'Favorite genres', screenshots:'Screenshots',
       recent:'Recent reviews', activity:'Activity', tier_lists:'My Tier Lists',
       recap:'My recap',
+      ring_sub:'done', stat_abandoned:'Abandoned', stat_backlog_sub:'to start',
+      empty_lib:'Empty library', empty_lib_sub:'Add your first game to get started',
+      empty_lib_btn:'+ Add a game',
+      recent_reviews:'✦ Recent reviews',
+      tab_top:'★ Top', tab_activity:'Activity',
+      tier_lists_create:'+ Create →',
+      quick_play:'▶ Playing it', quick_done:'Finished it!',
+      quick_resume:'▶ Resume', quick_retry:'🔄 Give it another shot',
+      quick_bought:'🛒 I bought it',
     },
     friend: {
       recent:'✦ RECENT REVIEWS', playing:'CURRENTLY PLAYING',
       library:'LIBRARY', full_library:'Full library',
       not_in_lib:'Not in your library',
       top:'★ Top', activity:'Activity',
+      no_activity:'No recent activity', no_playing:'No games being played',
+      lib_empty:'Empty library for now',
+      common_one:'1 game in common', common_many:'games in common',
+      verb_finished:'finished', verb_platine:'platinumed 🏆',
+      verb_playing:'is playing', verb_backlog:'added', verb_abandoned:'abandoned',
+      verb_updated:'updated', tab_common:'In Common',
+      accept:'Accept',
     },
     discover: {
       search_ph:'Search a game', empty:'No results',
       no_results:'No results for',
       no_results_hint:'Try another title or check the spelling',
+    },
+    social: {
+      title:'Friends', search_ph:'Search by username…',
+      pending:'Friend requests', my_friends:'My friends', activity:'Recent activity',
+      wants_friend:'wants to be your friend', add:'Add',
+      no_friends:'Search for friends by username above',
+      request:'request', requests:'requests',
     },
   },
 };
@@ -5983,17 +6029,16 @@ function renderGameGrid(games=GAMES){
   if (games.length === 0) {
     grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 24px;color:var(--muted2)">
       <div style="font-size:48px;margin-bottom:12px">🎮</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">Bibliothèque vide</div>
-      <div style="font-size:13px;margin-bottom:20px">Ajoute ton premier jeu pour commencer</div>
-      <button onclick="openAddModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">+ Ajouter un jeu</button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px;color:var(--text)">${t('profile.empty_lib')}</div>
+      <div style="font-size:13px;margin-bottom:20px">${t('profile.empty_lib_sub')}</div>
+      <button onclick="openAddModal()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer">${t('profile.empty_lib_btn')}</button>
     </div>`;
     return;
   }
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
-    const statusMap = {'playing-solo':'En cours','playing-multi':'En cours','finished':'Fini','platine':'⭐ 100%','backlog':'Backlog','abandoned':'Abandonné','wish':'✦ Souhait','paused':'En pause'};
     const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish','paused':'status-paused'};
-    const label = statusMap[ug.status] || 'Backlog';
+    const label = statusLabel(ug.status) || t('lib.backlog');
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
@@ -6050,19 +6095,19 @@ function renderGameGrid(games=GAMES){
 function quickActionBtn(id, status) {
   if (status === 'wish')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
-      style="margin-top:6px;width:100%;background:rgba(0,206,201,0.12);border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a3);cursor:pointer;">🛒 Je l'ai acheté</button>`;
+      style="margin-top:6px;width:100%;background:rgba(0,206,201,0.12);border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a3);cursor:pointer;">${t('profile.quick_bought')}</button>`;
   if (status === 'backlog')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
-      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">▶ J'y joue</button>`;
+      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_play')}</button>`;
   if (status === 'playing-solo' || status === 'playing-multi')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','finished')"
-      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.08);border:0.5px dashed rgba(0,230,118,0.35);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">Je l'ai fini !</button>`;
+      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.08);border:0.5px dashed rgba(0,230,118,0.35);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">${t('profile.quick_done')}</button>`;
   if (status === 'paused')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
-      style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">▶ Reprendre</button>`;
+      style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">${t('profile.quick_resume')}</button>`;
   if (status === 'abandoned')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
-      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">🔄 Nouvelle chance</button>`;
+      style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_retry')}</button>`;
   return '';
 }
 
@@ -6072,7 +6117,7 @@ function quickStatusChange(id, status) {
   userGames[id].status = status;
   userGames[id].lastActivityAt = new Date().toISOString();
   saveToStorage();
-  showToast(`→ ${{'backlog':'Backlog','playing-solo':'En cours','finished':'Fini'}[status]||status}`);
+  showToast(`→ ${statusLabel(status)}`);
   if ((status === 'finished' || status === 'platine') && prev !== 'finished' && prev !== 'platine') {
     try { celebrateStatus(status); } catch(e) {}
   }
@@ -7059,15 +7104,15 @@ function renderSocialScreen(uid) {
   if (_socialPending.length) {
     pendingEl.style.display = 'block';
     badge.style.display = 'inline-block';
-    badge.textContent = `${_socialPending.length} demande${_socialPending.length > 1 ? 's' : ''}`;
+    badge.textContent = `${_socialPending.length} ${_socialPending.length > 1 ? t('social.requests') : t('social.request')}`;
     pendingList.innerHTML = _socialPending.map(r => `
       <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
         ${_friendAvHtml(r.profile||{},40)}
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:14px">${r.profile?.username||'Gamer'}</div>
-          <div style="font-size:11px;color:var(--muted2)">veut être ton ami</div>
+          <div style="font-size:11px;color:var(--muted2)">${t('social.wants_friend')}</div>
         </div>
-        <button onclick="acceptFriend('${r.id}')" style="background:var(--a);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">Accepter</button>
+        <button onclick="acceptFriend('${r.id}')" style="background:var(--a);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">${t('social.accept')}</button>
         <button onclick="declineFriend('${r.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
       </div>`).join('');
   } else {
@@ -7089,10 +7134,10 @@ function renderSocialScreen(uid) {
       </div>`).join('') + `
       <div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:66px">
         <div style="width:63px;height:63px;border-radius:50%;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted2)">+</div>
-        <div style="font-size:11px;color:var(--muted2)">Ajouter</div>
+        <div style="font-size:11px;color:var(--muted2)">${t('social.add')}</div>
       </div>`;
   } else {
-    friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px;width:100%">Cherche des amis par pseudo ci-dessus</div>`;
+    friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px;width:100%">${t('social.no_friends')}</div>`;
   }
 }
 
@@ -7103,7 +7148,7 @@ async function searchUsers(q) {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
     resultsEl.style.display = 'block';
-    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">Connecte-toi pour chercher des amis</div>`;
+    resultsEl.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:var(--muted2)">${t('social.no_friends')}</div>`;
     return;
   }
   const uid = session.user.id;
@@ -7127,7 +7172,7 @@ async function searchUsers(q) {
         <div style="font-size:13px;font-weight:600">${p.username||'Gamer'}</div>
         <div style="font-size:11px;color:var(--muted2)">@${(p.username||'').toLowerCase().replace(/\s+/g,'')}</div>
       </div>
-      <span style="font-size:11px;color:var(--a);font-weight:600">+ Ajouter</span>
+      <span style="font-size:11px;color:var(--a);font-weight:600">+ ${t('social.add')}</span>
     </div>`).join('');
 }
 
@@ -7315,12 +7360,12 @@ function fpRenderLibTab(tab, inModal) {
     'wish':         '#a78bfa',
   };
   const tabDefs = [
-    {key:'finished',     label:'Finis',     match:g=>g.status==='finished'},
-    {key:'platine',      label:'100%',      match:g=>g.status==='platine'},
-    {key:'backlog',      label:'Backlog',   match:g=>g.status==='backlog'},
-    {key:'wish',         label:'✦ Souhaits', match:g=>g.status==='wish'},
-    {key:'common',       label:'En Commun', match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
-    {key:'abandoned',    label:'Abandonné', match:g=>g.status==='abandoned'},
+    {key:'finished',     label:t('lib.finished'),   match:g=>g.status==='finished'},
+    {key:'platine',      label:'100%',               match:g=>g.status==='platine'},
+    {key:'backlog',      label:t('lib.backlog'),     match:g=>g.status==='backlog'},
+    {key:'wish',         label:`✦ ${t('lib.wish')}`, match:g=>g.status==='wish'},
+    {key:'common',       label:t('friend.tab_common'), match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
+    {key:'abandoned',    label:t('profile.stat_abandoned'), match:g=>g.status==='abandoned'},
   ].filter(t => _fpAllGames.some(t.match));
   const tabsEl = inModal ? document.getElementById('fp-lib-modal-tabs') : document.getElementById('fp-lib-tabs');
   const listEl = inModal ? document.getElementById('fp-lib-modal-list') : document.getElementById('fp-lib-list');
@@ -7388,17 +7433,19 @@ function formatTimeAgo(dateStr) {
   const h = Math.floor(m/60);
   if (h < 24) return `il y a ${h}h`;
   const d = Math.floor(h/24);
-  return d < 7 ? `il y a ${d}j` : `il y a ${Math.floor(d/7)} sem`;
+  return _lang === 'en'
+    ? (d < 7 ? `${d}d ago` : `${Math.floor(d/7)}w ago`)
+    : (d < 7 ? `il y a ${d}j` : `il y a ${Math.floor(d/7)} sem`);
 }
 
 function renderFriendActivity(activities) {
   const sec = document.getElementById('fp-topact-section');
   if (sec) sec.style.display = 'block';
   if (!activities?.length) {
-    document.getElementById('fp-activity-list').innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">Aucune activité récente</div>`;
+    document.getElementById('fp-activity-list').innerHTML = `<div style="text-align:center;padding:16px 0;color:var(--muted2);font-size:13px">${t('friend.no_activity')}</div>`;
     return;
   }
-  const VERB = {'finished':'a fini','platine':'a platinisé 🏆','playing-solo':'joue à','playing-multi':'joue à','backlog':'a ajouté','abandoned':'a abandonné'};
+  const VERB = {'finished':t('friend.verb_finished'),'platine':t('friend.verb_platine'),'playing-solo':t('friend.verb_playing'),'playing-multi':t('friend.verb_playing'),'backlog':t('friend.verb_backlog'),'abandoned':t('friend.verb_abandoned')};
   document.getElementById('fp-activity-list').innerHTML = activities.slice(0, 5).map(a => {
     const src = fpCoverSrc(a);
     return `<div style="display:flex;gap:10px;align-items:flex-start">
@@ -7406,7 +7453,7 @@ function renderFriendActivity(activities) {
         ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" onerror="this.style.display='none'">🎮`:'🎮'}
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||'a mis à jour'}</span> <span style="font-weight:600">${a.title}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
+        <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${a.title}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.ago||formatTimeAgo(a.updated_at)}</div>
       </div>
     </div>`;
@@ -7472,7 +7519,7 @@ function renderFriendProfile(friend) {
       </div>
       <div>
         <div style="font-size:22px;font-weight:800;font-family:'Space Grotesk',sans-serif">${games.length}</div>
-        <div style="font-size:11px;color:var(--muted2)">jeux au total</div>
+        <div style="font-size:11px;color:var(--muted2)">${t('profile.total')}</div>
       </div>
     </div>
     ${statCell(playing,'En cours','var(--a)','playing')}
@@ -7499,7 +7546,7 @@ function renderFriendProfile(friend) {
     if (commonIdx.length) {
       commonSec.style.display = 'block';
       document.getElementById('fp-common-count').textContent =
-        commonIdx.length === 1 ? '1 jeu en commun' : `${commonIdx.length} jeux en commun`;
+        commonIdx.length === 1 ? t('friend.common_one') : `${commonIdx.length} ${t('friend.common_many')}`;
       document.getElementById('fp-common-list').innerHTML = commonIdx.map(i => fpCommonCard(i)).join('');
     } else commonSec.style.display = 'none';
   }
@@ -7531,7 +7578,7 @@ function renderFriendProfile(friend) {
   const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
   nowSec.style.display = 'block';
-  document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : emptyRow('Aucun jeu en cours');
+  document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : emptyRow(t('friend.no_playing'));
 
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
@@ -7543,7 +7590,7 @@ function renderFriendProfile(friend) {
     fpRenderLibTab(firstTab);
   } else {
     document.getElementById('fp-lib-tabs').innerHTML = '';
-    document.getElementById('fp-lib-list').innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">Bibliothèque vide pour l'instant</div>`;
+    document.getElementById('fp-lib-list').innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">${t('friend.lib_empty')}</div>`;
   }
 }
 
