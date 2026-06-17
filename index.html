@@ -2700,6 +2700,7 @@ const LANG = {
       bracket_min:'Ajoute au moins 2 jeux à commencer ou en pause pour lancer un bracket !',
       slots_full:"Slots pleins — retire un jeu d'abord",
       profile_updated:'Profil mis à jour ✓', avatar_updated:'Avatar mis à jour ✓',
+      already_in_lib:'déjà dans ta bibliothèque',
       notif_denied:'Notifications refusées par le navigateur',
       notif_unsupported:'Notifications non supportées sur cet appareil',
       profile_error:'Erreur lors du chargement du profil',
@@ -2881,6 +2882,7 @@ const LANG = {
       bracket_min:'Add at least 2 games in backlog or paused to start a bracket!',
       slots_full:'Slots full — remove a game first',
       profile_updated:'Profile updated ✓', avatar_updated:'Avatar updated ✓',
+      already_in_lib:'already in your library',
       notif_denied:'Notifications denied by browser',
       notif_unsupported:'Notifications not supported on this device',
       profile_error:'Error loading profile',
@@ -3025,6 +3027,12 @@ function applyLangToDOM() {
     btn.style.opacity       = active ? '1'              : '0.55';
   });
   if (document.getElementById('auth-mode-label')) setAuthMode(_authMode);
+  if (document.getElementById('view-app')?.style?.display === 'flex') {
+    if (typeof refreshViews === 'function') refreshViews();
+    if (_fpProfile && document.getElementById('screen-friend-profile')?.style?.display === 'flex') {
+      if (typeof renderFriendProfile === 'function') renderFriendProfile(_fpProfile);
+    }
+  }
 }
 
 // ══════════════════════════════════════
@@ -3305,15 +3313,17 @@ async function igdbPopular() {
 // ══════════════════════════════════════
 // DISCOVER SCREEN — shared helpers
 // ══════════════════════════════════════
-const DISC_STATUSES = [
-  ['playing-solo',  '▶ En cours'],
-  ['paused',        '⏸ En pause'],
-  ['backlog',       '📋 Backlog<span style="display:block;font-size:9px;opacity:0.5;font-weight:400;margin-top:1px">à commencer</span>'],
-  ['wish',          '✦ Souhait'],
-  ['finished',      '✅ Fini'],
-  ['platine',       '⭐ 100%'],
-  ['abandoned',     '❌ Abandonné'],
-];
+function getDiscStatuses() {
+  return [
+    ['playing-solo', `▶ ${t('status.playing')}`],
+    ['paused',       `⏸ ${t('status.paused')}`],
+    ['backlog',      `📋 ${t('lib.backlog')}<span style="display:block;font-size:9px;opacity:0.5;font-weight:400;margin-top:1px">${t('profile.stat_backlog_sub')}</span>`],
+    ['wish',         `✦ ${t('status.wish')}`],
+    ['finished',     `✅ ${t('status.finished')}`],
+    ['platine',      '⭐ 100%'],
+    ['abandoned',    `❌ ${t('status.abandoned')}`],
+  ];
+}
 const DISC_STATUS_LABELS = new Proxy({}, { get: (_, s) => statusLabel(s) });
 
 function discCardHtml(g, ctx) {
@@ -3326,7 +3336,7 @@ function discCardHtml(g, ctx) {
   const addedStatus = ctx === 'ob'
     ? addedGames.find(a => a.id === g.id)?.status
     : (userGames[g.id]?.status || GAMES.find(x=>x.id===g.id)?.status);
-  const btnLabel = added ? `✓ ${DISC_STATUS_LABELS[addedStatus]||'Ajouté'}` : '+ Ajouter';
+  const btnLabel = added ? `✓ ${DISC_STATUS_LABELS[addedStatus]||t('added')}` : `+ ${t('social.add')}`;
   const openAttr = ctx === 'lib' ? ` onclick="ldiscOpenDetail('${g.id}')" style="cursor:pointer"` : '';
   return `<div class="disc-card" id="disc-card-${ctx}-${g.id}">
     <div class="disc-cover"${openAttr}>
@@ -3338,7 +3348,7 @@ function discCardHtml(g, ctx) {
       <div class="disc-meta">${meta}</div>
       <button class="disc-add${added?' added':''}" id="disc-btn-${ctx}-${g.id}" onclick="discTogglePicker('${g.id}','${ctx}')">${btnLabel}</button>
       <div class="disc-picker" id="disc-picker-${ctx}-${g.id}" style="display:none">
-        ${DISC_STATUSES.map(([s,l]) => `<button class="disc-pick" onclick="discPick('${g.id}','${s}','${ctx}')">${l}</button>`).join('')}
+        ${getDiscStatuses().map(([s,l]) => `<button class="disc-pick" onclick="discPick('${g.id}','${s}','${ctx}')">${l}</button>`).join('')}
       </div>
     </div>
   </div>`;
@@ -8777,7 +8787,7 @@ function addGameFromModal(g, btn) {
       refreshViews();
       showToast(`${g.title} → ${addModalStatus.replace('-',' ')}`);
     } else {
-      showToast(`${g.title} déjà en bibliothèque`);
+      showToast(`${g.title} ${t('toast.already_in_lib')}`);
     }
     return;
   }
@@ -8796,8 +8806,7 @@ function addGameFromModal(g, btn) {
   if (item) item.classList.add('added');
   if (btn) btn.textContent = '✓';
 
-  const statusLabels = {backlog:'Backlog','playing-solo':'Solo','playing-multi':'Multi',finished:'Fini',wish:'✦ Souhait'};
-  showToast(`✓ ${g.title} ajouté — ${statusLabels[addModalStatus]||addModalStatus}`);
+  showToast(`✓ ${g.title} ${t('added')} — ${statusLabel(addModalStatus)||addModalStatus}`);
 }
 
 // clock
