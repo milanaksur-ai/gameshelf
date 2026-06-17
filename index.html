@@ -9643,6 +9643,7 @@ function applyProfileToUI() {
       // Fast path: local data → launch immediately, then sync in background
       applyProfileToUI();
       loadUserCollections();
+      fetchOwnCollectionsFromSupabase();
       document.getElementById('view-onboarding').style.display = 'none';
       document.getElementById('view-app').style.display = 'flex';
       initApp();
@@ -10500,6 +10501,82 @@ function showQuizResults() {
       </div>` : ''}
       <button onclick="closeQuiz()" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
     </div>`;
+}
+
+async function submitQuizChallengeScore(score, total) {
+  if (!_quizChallengeId) return;
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    // Fetch challenge to determine our role (challenger or challenged)
+    const { data: ch } = await _sb.from('quiz_challenges').select('*').eq('id', _quizChallengeId).maybeSingle();
+    if (!ch) return;
+    const isChallenger = ch.challenger_id === user.id;
+    const update = isChallenger
+      ? { challenger_score: score, challenger_total: total, status: ch.challenged_score !== null ? 'completed' : 'challenger_done', updated_at: new Date().toISOString() }
+      : { challenged_score: score, challenged_total: total, status: ch.challenger_score !== null ? 'completed' : 'challenged_done', updated_at: new Date().toISOString() };
+    await _sb.from('quiz_challenges').update(update).eq('id', _quizChallengeId);
+    // Notify the other player
+    if (update.status === 'completed') {
+      const otherId = isChallenger ? ch.challenged_id : ch.challenger_id;
+      const { data: { session } } = await _sb.auth.getSession();
+      if (session?.access_token) {
+        fetch('https://gameshelf-back-end.vercel.app/api/push', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+          body: JSON.stringify({ type: 'quiz_result', to: otherId, challengeId: _quizChallengeId })
+        }).catch(() => {});
+      }
+    }
+  } catch(e) {}
+}
+
+async function loadQuizChallenges() {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return [];
+    const { data } = await _sb.from('quiz_challenges')
+      .select('*')
+      .or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    return data || [];
+  } catch(e) { return []; }
+}
+
+function renderQuizChallengeNotif(ch, myId) {
+  const isChallenger = ch.challenger_id === myId;
+  const completed = ch.status === 'completed';
+  const myScore = isChallenger ? ch.challenger_score : ch.challenged_score;
+  const oppScore = isChallenger ? ch.challenged_score : ch.challenger_score;
+  const myTotal = isChallenger ? ch.challenger_total : ch.challenged_total;
+  const waiting = !completed && (isChallenger ? ch.challenger_score !== null : ch.challenged_score !== null);
+  const needsAnswer = !completed && myScore === null;
+
+  if (needsAnswer) {
+    return `<div onclick="openQuiz('${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:4px">⚡ Défi Quiz en attente</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:2px">Réponds pour voir le résultat !</div>
+    </div>`;
+  }
+  if (waiting) {
+    return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);margin-bottom:4px">⏳ Défi Quiz</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
+      <div style="font-size:11px;color:var(--muted2);margin-top:2px">En attente de la réponse de l'adversaire…</div>
+    </div>`;
+  }
+  if (completed && myScore !== null && oppScore !== null) {
+    const won = myScore > oppScore;
+    const draw = myScore === oppScore;
+    return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:10px">
+      <div style="font-size:12px;font-weight:700;color:${won?'#55efc4':draw?'var(--amber)':'#ff7675'};margin-bottom:4px">${won?'🏆 Victoire !':draw?'🤝 Égalité':' Défaite'}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
+      <div style="font-size:12px;color:var(--muted2);margin-top:4px">Toi : ${myScore}/${myTotal} · Adversaire : ${oppScore}/${myTotal}</div>
+    </div>`;
+  }
+  return '';
 }
 
 function publishQuizResult() {
