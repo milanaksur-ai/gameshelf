@@ -8783,15 +8783,16 @@ async function fetchOwnCollectionsFromSupabase() {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
     const { data } = await _sb.from('collections').select('id,name,emoji,games,created_at').eq('user_id', user.id).order('created_at', { ascending: true });
-    if (!data?.length) return;
-    const serverMap = new Map(data.map(c => [c.id, c]));
-    // Add/update server collections locally
-    for (const d of data) {
-      const idx = userCollections.findIndex(c => c.id === d.id);
-      const merged = { id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], createdAt: d.created_at };
-      if (idx >= 0) userCollections[idx] = merged;
-      else userCollections.push(merged);
+    // Server is authoritative: replace local state entirely.
+    // Keep any local-only collections not yet synced (created offline).
+    const serverIds = new Set((data || []).map(c => c.id));
+    const localOnly = userCollections.filter(c => !serverIds.has(c.id));
+    userCollections.length = 0;
+    for (const d of (data || [])) {
+      userCollections.push({ id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], createdAt: d.created_at });
     }
+    // Re-add local-only (unsynced) collections at the front
+    userCollections.unshift(...localOnly);
     saveUserCollections();
     renderMyCollections();
   } catch(e) {}
