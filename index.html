@@ -8925,13 +8925,32 @@ function _renderUCDGames(c) {
   grid.innerHTML = games.map(g => {
     const src = coverUrl(g);
     return `<div style="position:relative">
-      <div onclick="openDetail('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div onclick="openGameFromCollection('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
         ${_ucdIsOwner ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>` : ''}
       </div>
       <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
     </div>`;
   }).join('');
+}
+
+function openGameFromCollection(gameId) {
+  const sid = String(gameId);
+  let g = GAMES.find(x => String(x.id) === sid);
+  if (!g) {
+    // Look in the currently open collection data
+    const colGames = _ucdIsOwner
+      ? (userCollections.find(c => c.id === _currentCollectionId)?.games || [])
+      : (_colCache[_activeCollection] || []);
+    g = colGames.find(x => String(x.id) === sid);
+    if (g) {
+      GAMES.push({...g, status:'wish', score:0, notes:'', hours:0});
+      userGames[sid] = {status:'wish', score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
+    }
+  }
+  if (!g) return showToast('Jeu introuvable');
+  closeUserCollection();
+  openDetail(sid);
 }
 
 function closeUserCollection() {
@@ -11568,6 +11587,34 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
   initPushState();
 }
+
+// ── ANDROID BACK BUTTON ───────────────────────────────────────────────────────
+// Push an initial state so the first back press is intercepted by popstate,
+// not sent to the browser (which would close/exit the PWA).
+history.pushState({ gs: true }, '');
+
+window.addEventListener('popstate', function() {
+  // Always re-push so subsequent back presses are also intercepted
+  history.pushState({ gs: true }, '');
+
+  // Close overlays from most specific (topmost z-index) to least
+  const el = id => document.getElementById(id);
+  const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
+
+  if (visible('quiz-confrontation'))      { closeQuizConfrontation();      return; }
+  if (el('quiz-overlay')?.classList.contains('open')) { closeQuiz();       return; }
+  if (visible('rename-collection-modal')) { closeRenameCollection();        return; }
+  if (visible('collection-action-sheet')){ closeCollectionActionSheet();   return; }
+  if (visible('new-collection-modal'))   { closeNewCollectionModal();       return; }
+  if (visible('add-to-collection-sheet')){ closeAddToCollectionSheet();     return; }
+  if (visible('quiz-picker-modal'))      { closeQuizPicker();               return; }
+  if (visible('notif-drawer'))           { closeNotifDrawer();              return; }
+  if (visible('col-search-overlay'))     { closeColSearch();                return; }
+  if (visible('user-collection-detail')) { closeUserCollection();           return; }
+  if (visible('screen-friend-profile'))  { closeFriendProfile();            return; }
+  if (appCurrentScreen === 'detail')     { appGoBack();                     return; }
+  if (appCurrentScreen !== 'home')       { appGoTo('home');                 return; }
+});
 </script>
 </body>
 </html>
