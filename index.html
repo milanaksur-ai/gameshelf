@@ -1547,8 +1547,8 @@ html, body {
           <div onclick="openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
             <div style="font-size:28px">🔥</div>
             <div style="flex:1">
-              <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px">Top 20 du moment</div>
-              <div style="font-size:11px;color:var(--muted2)">Classe les meilleurs jeux de tous les temps</div>
+              <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:2px" data-i18n="explore.tl_popular">Top 20 du moment</div>
+              <div style="font-size:11px;color:var(--muted2)" data-i18n="explore.tl_popular_sub">Classe les meilleurs jeux de tous les temps</div>
             </div>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
           </div>
@@ -1697,8 +1697,8 @@ html, body {
   <div id="profile-screenshot-picker" onclick="closeProfileScreenshotPicker()" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.7);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+20px);max-height:75vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Pour quel jeu ?</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px">Sélectionne le jeu lié à ta capture</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="profile.screenshot_picker_title">Pour quel jeu ?</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px" data-i18n="profile.screenshot_picker_sub">Sélectionne le jeu lié à ta capture</div>
       <div id="psp-game-list" style="overflow-y:auto;flex:1"></div>
     </div>
   </div>
@@ -2385,20 +2385,20 @@ html, body {
   <!-- NEW TIER LIST MODAL -->
   <div id="tl-new-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlNewModal()">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">Nouvelle Tier List</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Choisis un point de départ</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px" data-i18n="explore.tl_new_title">Nouvelle Tier List</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="explore.tl_new_sub">Choisis un point de départ</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div onclick="closeTlNewModal();openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
           <div style="font-size:28px">📚</div>
-          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Mes jeux</div><div style="font-size:11px;color:var(--muted2)">Classe ta bibliothèque</div></div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px" data-i18n="explore.my_games">Mes jeux</div><div style="font-size:11px;color:var(--muted2)" data-i18n="explore.tl_library_sub">Classe ta bibliothèque</div></div>
         </div>
         <div onclick="closeTlNewModal();openTierList('popular')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
           <div style="font-size:28px">🔥</div>
-          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Top 20 du moment</div><div style="font-size:11px;color:var(--muted2)">Les meilleurs jeux de tous les temps</div></div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px" data-i18n="explore.tl_popular">Top 20 du moment</div><div style="font-size:11px;color:var(--muted2)" data-i18n="explore.tl_popular_sub">Les meilleurs jeux de tous les temps</div></div>
         </div>
         <div onclick="closeTlNewModal();openTierListCustomPrompt()" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
           <div style="font-size:28px">✨</div>
-          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px">Thème libre</div><div style="font-size:11px;color:var(--muted2)">Choisis toi-même tes jeux via recherche</div></div>
+          <div><div style="font-weight:700;font-size:14px;margin-bottom:2px" data-i18n="explore.tl_custom_name">Thème libre</div><div style="font-size:11px;color:var(--muted2)" data-i18n="explore.tl_custom_sub">Choisis toi-même tes jeux via recherche</div></div>
         </div>
       </div>
     </div>
@@ -3033,6 +3033,10 @@ const LANG = {
       tier_list:'🏆 Tier List', new_tl:'➕ Nouvelle',
       my_games:'Mes jeux', my_games_sub:'Classe ta bibliothèque en tiers S→F',
       top:'★ Top', activity:'Activité',
+      tl_popular:'Top 20 du moment', tl_popular_sub:'Classe les meilleurs jeux de tous les temps',
+      tl_new_title:'Nouvelle Tier List', tl_new_sub:'Choisis un point de départ',
+      tl_library_sub:'Classe ta bibliothèque', tl_custom_name:'Thème libre',
+      tl_custom_sub:'Choisis toi-même tes jeux via recherche',
     },
     collections: {
       title:'Collections', subtitle:'Playlists · Sagas',
@@ -3079,6 +3083,9 @@ const LANG = {
       no_screenshots:"Aucun screenshot pour l'instant. Ajoute-en depuis la fiche d'un jeu.",
       no_reviews:'Aucun avis récent',
       no_recos:'Aucun jeu ici pour l\'instant.',
+      add_first_screenshot:'Ajouter ta première capture',
+      screenshot_picker_title:'Pour quel jeu ?',
+      screenshot_picker_sub:'Sélectionne le jeu lié à ta capture',
     },
     friend: {
       recent:'✦ LES AVIS RÉCENTS', playing:'JEUX EN COURS',
@@ -3257,6 +3264,10 @@ const LANG = {
       tier_list:'🏆 Tier List', new_tl:'➕ New',
       my_games:'My games', my_games_sub:'Rank your library in S→F tiers',
       top:'★ Top', activity:'Activity',
+      tl_popular:'Top 20 right now', tl_popular_sub:'Rank the best games of all time',
+      tl_new_title:'New Tier List', tl_new_sub:'Choose a starting point',
+      tl_library_sub:'Rank your library', tl_custom_name:'Free theme',
+      tl_custom_sub:'Pick your own games via search',
     },
     collections: {
       title:'Collections', subtitle:'Playlists · Sagas',
@@ -3303,6 +3314,9 @@ const LANG = {
       no_screenshots:'No screenshots yet. Add some from a game card.',
       no_reviews:'No recent reviews',
       no_recos:'No games here yet.',
+      add_first_screenshot:'Add your first screenshot',
+      screenshot_picker_title:'For which game?',
+      screenshot_picker_sub:'Select the game linked to your screenshot',
     },
     friend: {
       recent:'✦ RECENT REVIEWS', playing:'CURRENTLY PLAYING',
@@ -6137,7 +6151,7 @@ function renderProfileStats() {
     if (allMedia.length === 0) {
       profileMedia.innerHTML = `<div onclick="openProfileScreenshotPicker()" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;cursor:pointer;color:var(--muted2);font-size:12px;font-weight:600">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        Ajouter ta première capture
+        ${t('profile.add_first_screenshot')}
       </div>`;
     } else {
       profileMedia.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">` +
@@ -11209,7 +11223,7 @@ function openTierList(mode, opts = {}) {
     _tlPool = _tlPool.filter(g => !Object.values(_tlTiers).flat().find(t => t.id === g.id));
   }
 
-  const titles = { library:'📚 Mes jeux', popular:'🔥 Top 20 du moment', custom: _tlCustomTitle || '✨ Thème libre', licence: _tlCustomTitle || '🎮 Licence', view: opts.name || '👁 Tier List' };
+  const titles = { library:`📚 ${t('explore.my_games')}`, popular:`🔥 ${t('explore.tl_popular')}`, custom: _tlCustomTitle || `✨ ${t('explore.tl_custom_name')}`, licence: _tlCustomTitle || '🎮 Licence', view: opts.name || '👁 Tier List' };
   document.getElementById('tl-title').textContent = titles[mode] || '🏆 Tier List';
 
   const searchWrap = document.getElementById('tl-search-wrap');
@@ -11289,7 +11303,7 @@ async function saveTierList() {
   if (allItems.length === 0) { showToast('Ajoute des jeux avant de sauvegarder'); return; }
   const saveBtn = document.getElementById('tl-save-btn');
   if (saveBtn) { saveBtn.textContent = '⏳…'; saveBtn.disabled = true; }
-  const titles = { library:'📚 Mes jeux', popular:'🔥 Top 20 du moment', custom: _tlCustomTitle || '✨ Thème libre', licence: _tlCustomTitle || '🎮 Licence' };
+  const titles = { library:`📚 ${t('explore.my_games')}`, popular:`🔥 ${t('explore.tl_popular')}`, custom: _tlCustomTitle || `✨ ${t('explore.tl_custom_name')}`, licence: _tlCustomTitle || '🎮 Licence' };
   const name = titles[_tlMode] || '🏆 Tier List';
   const profile = JSON.parse(localStorage.getItem('gs_profile') || '{}');
   const payload = { name, mode: _tlMode, items: allItems, tiers: _tlTiers, creator_name: profile.username || 'Anonyme' };
