@@ -1879,227 +1879,146 @@ html, body {
         <!-- Contenu caché par défaut -->
         <div id="settings-panel" style="display:none;margin-top:8px">
 
-          <!-- Nouveautés -->
-          <div style="margin-bottom:20px">
-            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px" data-i18n="settings.updates">✨ Nouveautés</div>
-            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:14px">
+          <!-- ════ COMPTE ════ -->
+          <div style="margin-bottom:22px">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:4px" data-i18n="settings.group_account">Compte</div>
 
-              <div>
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
-                  <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase">📚 Collections &amp; ⚡ Défis Quiz</div>
-                  <div style="background:var(--a);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em">NOUVEAU</div>
-                </div>
-                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Crée des playlists de jeux et partage-les avec tes amis</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Collections visibles sur ton profil et ceux de tes amis</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Sagas auto-générées : Zelda, Mario, Dark Souls…</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">⚡ Défie un ami à un quiz depuis son profil</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Chacun répond de son côté — confrontation des scores question par question</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Victoire / Défaite / Égalité avec récap détaillé ✓✗</li>
-                </ul>
-              </div>
-
-              <div style="height:0.5px;background:var(--border)"></div>
-
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.game_card">🎯 Fiche de jeu</div>
-                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_1">Classification PEGI/ESRB, développeur, éditeur, franchise</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_2">Durée estimée (histoire + 100%) via IGDB ⏱</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_3">Fiche accessible depuis les profils amis et la recherche</li>
-                </ul>
-              </div>
-
-              <div style="height:0.5px;background:var(--border)"></div>
-
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.social">👥 Social & Amis</div>
-                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_1">Écran Amis redessiné : avatars en stories + fil d'activité</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_2">Jeux en commun et souhaits sur les profils amis 🤝</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_3">Activité récente du profil triée par date</li>
-                </ul>
-              </div>
-
-              <div style="height:0.5px;background:var(--border)"></div>
-
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.library">🎮 Bibliothèque</div>
-                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_1">Swipe gauche/droite pour changer de catégorie</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_2">La recherche couvre toute la bibliothèque</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_3">Filtre "non notés" dans la catégorie Finis</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_4">Bouton "Nouvelle chance" sur les jeux abandonnés</li>
-                </ul>
-              </div>
-
-              <div style="height:0.5px;background:var(--border)"></div>
-
-              <div>
-                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.notifs">🔔 Notifs & App</div>
-                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.notifs_1">Notifications push : demandes d'amis et récap hebdo</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.notifs_2">Play Store bêta 🚀 · Vrai plein écran Android 🎉</li>
-                </ul>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Feedback -->
-          <button onclick="window.open('https://tally.so/r/NpdaxW','_blank')" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:20px;text-align:left">
-            <div style="font-size:20px">📩</div>
-            <div>
-              <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="settings.feedback">Envoyer un feedback</div>
-              <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.feedback_label">Bug, suggestion, idée — tout est bienvenu</div>
-            </div>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto;flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
-          </button>
-
-          <!-- Notifications push -->
-          <button id="push-toggle" data-on="0" onclick="togglePushNotifs(this)" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;margin-bottom:20px;text-align:left">
-            <div style="font-size:20px">🔔</div>
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="settings.notifs">Notifications</div>
-              <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.notifs_sub">Demandes d'amis et récap hebdo</div>
-            </div>
-            <div class="pn-track" style="width:40px;height:24px;border-radius:12px;background:var(--s3);position:relative;transition:background 0.2s;flex-shrink:0">
-              <div class="pn-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s"></div>
-            </div>
-          </button>
-
-          <!-- FAQ -->
-          <div style="margin-bottom:20px">
-            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;padding-left:2px" data-i18n="settings.faq">FAQ</div>
-            <div style="display:flex;flex-direction:column;gap:2px">
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q1">Comment ajouter un jeu ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a1">Appuie sur le bouton <strong>+</strong> en haut de ta bibliothèque, cherche un titre et sélectionne le jeu.</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q2">Mes données sont-elles sauvegardées ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a2">Oui, tout est synchronisé en temps réel. Tu peux accéder à ta bibliothèque depuis n'importe quel appareil en te connectant avec ton compte.</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q3">Comment installer l'app sur mon téléphone ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a3">Sur iPhone : Safari → icône partager → "Sur l'écran d'accueil". Sur Android : Chrome → menu ⋮ → "Ajouter à l'écran d'accueil".</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q4">Comment ajouter des amis ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a4">Va dans l'onglet <strong>Social</strong> et cherche le pseudo exact de ton ami. Envoie-lui une demande — il devra l'accepter de son côté.</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q5">Comment fonctionne "Tire-moi un jeu !" ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a5">L'app tire au sort un jeu dans ton backlog et tes jeux en pause. Tu peux filtrer par plateforme, durée ou ambiance avant de lancer le tirage.</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q6">C'est quoi les vibes ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a6">Des tags d'ambiance pour décrire ton ressenti sur un jeu — chill, intense, narratif, défouloir… Ils servent aussi à filtrer le tirage.</div>
-              </div>
-
-              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
-                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q7">Comment modifier mon avatar ou mon pseudo ?</div>
-                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
-                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a7">Dans l'onglet <strong>Profil</strong>, appuie sur "Modifier le profil" en haut de la page.</div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Langue -->
-          <div style="border-top:0.5px solid var(--border);padding-top:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
-            <div style="font-size:20px">🌐</div>
-            <div style="flex:1;font-size:13px;font-weight:700;color:var(--text)" data-i18n="lang_name">Langue</div>
-            <div style="display:flex;gap:6px">
-              <button onclick="setLang('fr')" data-lang="fr" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--a);color:#fff;cursor:pointer;transition:all 0.2s">🇫🇷 FR</button>
-              <button onclick="setLang('en')" data-lang="en" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);opacity:0.55;cursor:pointer;transition:all 0.2s">🇬🇧 EN</button>
-            </div>
-          </div>
-
-          <!-- Compte + déconnexion -->
-          <div style="border-top:0.5px solid var(--border);padding-top:20px;margin-bottom:20px">
-            <div id="account-email-row" style="display:none;margin-bottom:12px;padding:10px 14px;background:var(--s2);border-radius:12px;border:0.5px solid var(--border2)">
-              <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px" data-i18n="settings.account">Compte actif</div>
+            <div id="account-email-row" style="display:none;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:12px 16px;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:2px" data-i18n="settings.account">Compte actif</div>
               <div id="account-email-text" style="font-size:13px;font-weight:600;color:var(--text)"></div>
             </div>
-            <button onclick="logoutUser()" style="background:none;border:0.5px solid rgba(255,255,255,0.12);border-radius:12px;padding:10px 20px;font-size:13px;color:var(--muted2);cursor:pointer;display:inline-flex;align-items:center;gap:6px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-              <span data-i18n="settings.logout">Se déconnecter</span>
-            </button>
+
+            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;overflow:hidden">
+              <button id="push-toggle" data-on="0" onclick="togglePushNotifs(this)" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🔔</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.notifs">Notifications</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.notifs_sub">Demandes d'amis et récap hebdo</div>
+                </div>
+                <div class="pn-track" style="width:40px;height:24px;border-radius:12px;background:var(--s3);position:relative;transition:background 0.2s;flex-shrink:0">
+                  <div class="pn-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s"></div>
+                </div>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🌐</div>
+                <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)" data-i18n="lang_name">Langue</div>
+                <div style="display:flex;gap:6px">
+                  <button onclick="setLang('fr')" data-lang="fr" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--a);color:#fff;cursor:pointer;transition:all 0.2s">🇫🇷 FR</button>
+                  <button onclick="setLang('en')" data-lang="en" style="font-size:12px;font-weight:700;padding:6px 12px;border-radius:20px;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);opacity:0.55;cursor:pointer;transition:all 0.2s">🇬🇧 EN</button>
+                </div>
+              </div>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="logoutUser()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></div>
+                <div style="flex:1;font-size:13px;font-weight:600;color:var(--muted2)" data-i18n="settings.logout">Se déconnecter</div>
+              </button>
+            </div>
           </div>
 
-          <!-- Zone danger -->
-          <div style="border-top:0.5px solid var(--border);padding-top:20px">
-            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px" data-i18n="settings.danger">Zone danger</div>
-            <div style="margin-bottom:8px">
-              <button onclick="startFeatureTour(true)" style="background:none;border:0.5px solid rgba(255,82,82,0.25);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7" data-i18n="settings.feature_tour">🎯 Relancer le tour des features</button>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div>
-                <button onclick="clearLibrary()" style="background:none;border:0.5px solid rgba(255,82,82,0.25);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7" data-i18n="settings.danger_lib">Vider la bibliothèque</button>
-                <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="settings.danger_lib_sub">Supprime tous les jeux mais garde ton profil</div>
-              </div>
-              <div>
-                <button onclick="forceRefresh()" style="background:none;border:0.5px solid rgba(255,82,82,0.25);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--red);cursor:pointer;opacity:0.7;display:inline-flex;align-items:center;gap:6px">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                  <span data-i18n="settings.cache">Vider le cache et recharger</span>
-                </button>
-                <div style="font-size:11px;color:var(--muted);margin-top:4px" data-i18n="settings.cache_sub">Force le rechargement de la dernière version</div>
-              </div>
+          <!-- ════ AIDE & INFOS ════ -->
+          <div style="margin-bottom:22px">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:4px" data-i18n="settings.group_help">Aide & infos</div>
+            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;overflow:hidden">
+              <button onclick="openFaqModal()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">❓</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.faq">FAQ</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.faq_sub">Questions fréquentes</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="openWhatsNewModal()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">✨</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.updates_title">Nouveautés</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.updates_sub">Les nouvelles fonctionnalités</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="window.open('https://tally.so/r/NpdaxW','_blank')" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">📩</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.feedback">Envoyer un feedback</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.feedback_label">Bug, suggestion, idée — tout est bienvenu</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="startFeatureTour(true)" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🎯</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.feature_tour_title">Relancer le tour des features</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.feature_tour_sub">Revoir la présentation des features</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="openPrivacyModal()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">📄</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.privacy_short">Mentions légales</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
             </div>
           </div>
 
-          <!-- Partager + Export -->
-          <div style="border-top:0.5px solid var(--border);padding-top:20px;margin-top:20px;display:flex;flex-direction:column;gap:8px">
-            <button onclick="shareApp()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
-              <div style="font-size:20px">🔗</div>
-              <div style="flex:1">
-                <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="settings.share">Partager GameShelf</div>
-                <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.share_label">Inviter un ami à rejoindre</div>
-              </div>
-            </button>
-            <button onclick="exportLibrary()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
-              <div style="font-size:20px">📊</div>
-              <div style="flex:1">
-                <div style="font-size:13px;font-weight:700;color:var(--text)" data-i18n="settings.export">Exporter ma bibliothèque</div>
-                <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.export_label">Télécharger en CSV</div>
-              </div>
-            </button>
+          <!-- ════ MES DONNÉES ════ -->
+          <div style="margin-bottom:22px">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:4px" data-i18n="settings.group_data">Mes données</div>
+            <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;overflow:hidden">
+              <button onclick="shareApp()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🔗</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.share">Partager GameShelf</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.share_label">Inviter un ami à rejoindre</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="exportLibrary()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">📊</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.export">Exporter ma bibliothèque</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.export_label">Télécharger en CSV</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button onclick="forceRefresh()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🔄</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.cache">Vider le cache et recharger</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.cache_sub">Force le rechargement de la dernière version</div>
+                </div>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;opacity:0.35"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- ════ ZONE DANGER ════ -->
+          <div style="margin-bottom:22px">
+            <div style="font-size:10px;font-weight:700;color:var(--red);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;padding-left:4px" data-i18n="settings.danger">Zone danger</div>
+            <div style="background:var(--s2);border:0.5px solid rgba(255,82,82,0.22);border-radius:14px;overflow:hidden">
+              <button onclick="clearLibrary()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🗑️</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--red)" data-i18n="settings.danger_lib">Vider la bibliothèque</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.danger_lib_sub">Supprime tous les jeux mais garde ton profil</div>
+                </div>
+              </button>
+            </div>
           </div>
 
           <!-- À propos -->
-          <div style="border-top:0.5px solid var(--border);padding-top:20px;margin-top:20px;text-align:center">
+          <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.0</div>
-            <div style="font-size:12px;color:var(--muted2);margin-bottom:14px" data-i18n="settings.about">Fait avec passion par Milan</div>
-            <button onclick="openPrivacyModal()" style="background:none;border:none;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px" data-i18n="settings.privacy">Mentions légales &amp; Confidentialité</button>
+            <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
         </div>
@@ -2667,6 +2586,147 @@ html, body {
 </div>
 
 <!-- PRIVACY MODAL -->
+<!-- WHAT'S NEW MODAL -->
+<div id="whatsnew-modal" onclick="if(event.target===this)closeWhatsNewModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="settings.updates">✨ Nouveautés</div>
+      <button onclick="closeWhatsNewModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+                  <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase">📚 Collections &amp; ⚡ Défis Quiz</div>
+                  <div style="background:var(--a);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em">NOUVEAU</div>
+                </div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Crée des playlists de jeux et partage-les avec tes amis</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Collections visibles sur ton profil et ceux de tes amis</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Sagas auto-générées : Zelda, Mario, Dark Souls…</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">⚡ Défie un ami à un quiz depuis son profil</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Chacun répond de son côté — confrontation des scores question par question</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5">Victoire / Défaite / Égalité avec récap détaillé ✓✗</li>
+                </ul>
+              </div>
+
+              <div style="height:0.5px;background:var(--border)"></div>
+
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.game_card">🎯 Fiche de jeu</div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_1">Classification PEGI/ESRB, développeur, éditeur, franchise</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_2">Durée estimée (histoire + 100%) via IGDB ⏱</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.game_card_3">Fiche accessible depuis les profils amis et la recherche</li>
+                </ul>
+              </div>
+
+              <div style="height:0.5px;background:var(--border)"></div>
+
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.social">👥 Social & Amis</div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_1">Écran Amis redessiné : avatars en stories + fil d'activité</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_2">Jeux en commun et souhaits sur les profils amis 🤝</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.social_3">Activité récente du profil triée par date</li>
+                </ul>
+              </div>
+
+              <div style="height:0.5px;background:var(--border)"></div>
+
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.library">🎮 Bibliothèque</div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_1">Swipe gauche/droite pour changer de catégorie</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_2">La recherche couvre toute la bibliothèque</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_3">Filtre "non notés" dans la catégorie Finis</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_4">Bouton "Nouvelle chance" sur les jeux abandonnés</li>
+                </ul>
+              </div>
+
+              <div style="height:0.5px;background:var(--border)"></div>
+
+              <div>
+                <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:7px" data-i18n="updates.notifs">🔔 Notifs & App</div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.notifs_1">Notifications push : demandes d'amis et récap hebdo</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.notifs_2">Play Store bêta 🚀 · Vrai plein écran Android 🎉</li>
+                </ul>
+              </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FAQ MODAL -->
+<div id="faq-modal" onclick="if(event.target===this)closeFaqModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="settings.faq">FAQ</div>
+      <button onclick="closeFaqModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:2px">
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q1">Comment ajouter un jeu ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a1">Appuie sur le bouton <strong>+</strong> en haut de ta bibliothèque, cherche un titre et sélectionne le jeu.</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q2">Mes données sont-elles sauvegardées ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a2">Oui, tout est synchronisé en temps réel. Tu peux accéder à ta bibliothèque depuis n'importe quel appareil en te connectant avec ton compte.</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q3">Comment installer l'app sur mon téléphone ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a3">Sur iPhone : Safari → icône partager → "Sur l'écran d'accueil". Sur Android : Chrome → menu ⋮ → "Ajouter à l'écran d'accueil".</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q4">Comment ajouter des amis ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a4">Va dans l'onglet <strong>Social</strong> et cherche le pseudo exact de ton ami. Envoie-lui une demande — il devra l'accepter de son côté.</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q5">Comment fonctionne "Tire-moi un jeu !" ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a5">L'app tire au sort un jeu dans ton backlog et tes jeux en pause. Tu peux filtrer par plateforme, durée ou ambiance avant de lancer le tirage.</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q6">C'est quoi les vibes ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n="faq.a6">Des tags d'ambiance pour décrire ton ressenti sur un jeu — chill, intense, narratif, défouloir… Ils servent aussi à filtrer le tirage.</div>
+              </div>
+
+              <div onclick="toggleFaq(this)" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:14px 16px;cursor:pointer;user-select:none">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="faq.q7">Comment modifier mon avatar ou mon pseudo ?</div>
+                  <svg class="faq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="flex-shrink:0;transition:transform 0.2s"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="faq-answer" style="display:none;font-size:13px;color:var(--muted2);margin-top:10px;line-height:1.55" data-i18n-html="faq.a7">Dans l'onglet <strong>Profil</strong>, appuie sur "Modifier le profil" en haut de la page.</div>
+              </div>
+
+    </div>
+  </div>
+</div>
+
 <div id="privacy-modal" onclick="if(event.target===this)closePrivacyModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:80vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
@@ -2926,6 +2986,11 @@ const LANG = {
       feedback_label:'Bug, suggestion, idée — tout est bienvenu',
       share_label:"Inviter un ami à rejoindre",
       export_label:'Télécharger en CSV',
+      group_account:'Compte', group_help:'Aide & infos', group_data:'Mes données',
+      updates_title:'Nouveautés', updates_sub:'Les nouvelles fonctionnalités',
+      faq_sub:'Questions fréquentes',
+      privacy_short:'Mentions légales',
+      feature_tour_title:'Relancer le tour des features', feature_tour_sub:'Revoir la présentation des features',
     },
     faq: {
       q1:'Comment ajouter un jeu ?',
@@ -3228,6 +3293,11 @@ const LANG = {
       feedback_label:'Bug, suggestion, idea — all welcome',
       share_label:'Invite a friend to join',
       export_label:'Download as CSV',
+      group_account:'Account', group_help:'Help & info', group_data:'My data',
+      updates_title:'What\'s new', updates_sub:'The latest features',
+      faq_sub:'Frequently asked questions',
+      privacy_short:'Legal & Privacy',
+      feature_tour_title:'Restart feature tour', feature_tour_sub:'Replay the feature walkthrough',
     },
     onboarding: {
       tagline:'Your gaming library.<br>Friends. Reviews.',
@@ -4916,6 +4986,10 @@ function closePrivacyModal() {
   const m = document.getElementById('privacy-modal');
   if (m) m.style.display = 'none';
 }
+function openWhatsNewModal() { const m = document.getElementById('whatsnew-modal'); if (m) m.style.display = 'flex'; }
+function closeWhatsNewModal() { const m = document.getElementById('whatsnew-modal'); if (m) m.style.display = 'none'; }
+function openFaqModal() { const m = document.getElementById('faq-modal'); if (m) m.style.display = 'flex'; }
+function closeFaqModal() { const m = document.getElementById('faq-modal'); if (m) m.style.display = 'none'; }
 // ── OFFLINE INDICATOR ───────────────────────────────────────────
 function _updateOfflineBanner() {
   const b = document.getElementById('offline-banner');
@@ -11721,6 +11795,9 @@ window.addEventListener('popstate', function() {
   const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
 
   if (visible('quiz-confrontation'))      { closeQuizConfrontation();           return; }
+  if (visible('whatsnew-modal'))          { closeWhatsNewModal();            return; }
+  if (visible('faq-modal'))               { closeFaqModal();                 return; }
+  if (visible('privacy-modal'))           { closePrivacyModal();             return; }
   if (visible('profile-screenshot-picker')){ closeProfileScreenshotPicker();   return; }
   if (el('quiz-overlay')?.classList.contains('open')) { closeQuiz();       return; }
   if (visible('rename-collection-modal')) { closeRenameCollection();        return; }
