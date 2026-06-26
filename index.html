@@ -3663,10 +3663,10 @@ const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
 
 // ── XP & LEVELS ──────────────────────────────────────────────────────────
 const XP_LEVELS = [
-  { level:1, xp:0,    title_fr:'🎮 Joueur',      title_en:'🎮 Player',   slots:5  },
-  { level:2, xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:15 },
-  { level:3, xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:30 },
-  { level:4, xp:900,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:50 },
+  { level:1, xp:0,    title_fr:'🎮 Joueur',      title_en:'🎮 Player',   slots:3  },
+  { level:2, xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:5  },
+  { level:3, xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:10 },
+  { level:4, xp:900,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:15 },
   { level:5, xp:2000, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
 ];
 function getLevel(xp) {
@@ -7897,8 +7897,10 @@ function initApp(){
   if (_pendingInterval) clearInterval(_pendingInterval);
   _pendingInterval = setInterval(checkPendingRequests, 30000);
   document.getElementById('lib-count').textContent = GAMES.length + ' ' + t('profile.games');
-  const firstActive = document.querySelector('#app-nav .nav-btn.active');
-  if (firstActive) requestAnimationFrame(() => moveNavIndicator(firstActive));
+  // Force correct screen + nav indicator — bypass appGoTo's early-return guard
+  const _startScreen = appCurrentScreen || 'feed';
+  appCurrentScreen = null;
+  appGoTo(_startScreen);
   // Load home feed async sections
   setTimeout(() => {
     renderHomeTrending();
