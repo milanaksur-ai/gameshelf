@@ -11531,27 +11531,50 @@ async function clearLibrary() {
 
 async function resetProgress() {
   if (!confirm(_lang === 'en'
-    ? 'Reset all XP and achievements? Your library and collections are untouched. XP will be recalculated from scratch.'
-    : 'Réinitialiser XP et succès ? Ta bibliothèque et tes collections restent intactes. Le XP sera recalculé depuis zéro.')) return;
-  // Wipe all XP flags and achievements from localStorage
-  ['scored','vibed','noted','quizzed'].forEach(k => localStorage.removeItem('gs_xp_' + k));
-  localStorage.removeItem('gs_xp_backfilled');
-  localStorage.removeItem('gs_achievements');
+    ? 'Reset all XP and achievements? Your library stays intact but XP goes to 0.'
+    : 'Réinitialiser XP et succès ? Ta bibliothèque reste intacte mais le XP repasse à zéro.')) return;
+  // Zero XP and wipe achievements (including pinned slots)
   if (obProfile) {
     obProfile.xp = 0;
+    obProfile.pinnedAchievements = [];
     localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   }
-  // Sync reset to Supabase
+  localStorage.removeItem('gs_achievements');
+  // Rebuild XP flags silently from current library state — marks existing work as "done"
+  // so the system won't re-award XP for them, but new actions earn normally going forward.
+  const _rScored = new Set(), _rVibed = new Set(), _rNoted = new Set();
+  for (const g of GAMES) {
+    const ug = userGames[g.id] || {};
+    const id = String(g.id);
+    if ((ug.score || 0) > 0) _rScored.add(id);
+    const vs = Array.isArray(ug.vibe) ? ug.vibe : (ug.vibe ? [ug.vibe] : []);
+    if (vs.length > 0) _rVibed.add(id);
+    if (ug.notes && ug.notes.trim()) _rNoted.add(id);
+  }
+  const _rQuizzed = new Set();
+  try { Object.keys(JSON.parse(localStorage.getItem('gs_quiz_scores') || '{}')).forEach(qid => _rQuizzed.add(qid)); } catch(e) {}
+  localStorage.setItem('gs_xp_scored',  JSON.stringify([..._rScored]));
+  localStorage.setItem('gs_xp_vibed',   JSON.stringify([..._rVibed]));
+  localStorage.setItem('gs_xp_noted',   JSON.stringify([..._rNoted]));
+  localStorage.setItem('gs_xp_quizzed', JSON.stringify([..._rQuizzed]));
+  // Mark backfill as done so it never auto-runs again and re-awards retroactive XP
+  localStorage.setItem('gs_xp_backfilled', '1');
+  // Sync to Supabase — xp_backfilled:true prevents re-backfill on other devices
   try {
     const { data: { session } } = await _sb.auth.getSession();
     if (session) {
-      await _sb.from('profiles').update({ xp: 0, xp_backfilled: false, achievements: [] }).eq('id', session.user.id);
+      await _sb.from('profiles').update({
+        xp: 0,
+        xp_backfilled: true,
+        achievements: [],
+        pinned_achievements: [],
+      }).eq('id', session.user.id);
     }
   } catch(e) {}
   refreshViews();
-  showToast(_lang === 'en' ? 'XP reset — recalculating…' : 'XP réinitialisé — recalcul en cours…');
-  // Re-run backfill and check achievements so everything is immediately consistent
-  setTimeout(() => { _backfillXp(); checkAchievements(); }, 400);
+  renderPinnedAchievements();
+  showToast(_lang === 'en' ? 'XP and achievements reset.' : 'XP et succès réinitialisés.');
+  // No _backfillXp() / checkAchievements() — clean slate, re-earn naturally going forward
 }
 
 // ══════════════════════════════════════
