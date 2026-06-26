@@ -4850,6 +4850,43 @@ function launchApp() {
 
   // Feature tour — once, right after account creation
   setTimeout(() => startFeatureTour(false), 1000);
+
+  // Retroactive XP — run only once, award XP for already-rated/vibed/noted games
+  setTimeout(() => _backfillXp(), 800);
+}
+
+async function _backfillXp() {
+  if (localStorage.getItem('gs_xp_backfilled')) return;
+  localStorage.setItem('gs_xp_backfilled', '1');
+
+  const scoredFlags  = _xpFlags('scored');
+  const vibedFlags   = _xpFlags('vibed');
+  const notedFlags   = _xpFlags('noted');
+  const quizzedFlags = _xpFlags('quizzed');
+  let total = 0;
+
+  for (const g of GAMES) {
+    const ug = userGames[g.id] || {};
+    const id = String(g.id);
+    if ((ug.score > 0) && !scoredFlags.has(id))  { scoredFlags.add(id);  total += 10; }
+    const vibes = Array.isArray(ug.vibe) ? ug.vibe : (ug.vibe ? [ug.vibe] : []);
+    if (vibes.length > 0 && !vibedFlags.has(id))  { vibedFlags.add(id);   total += 5;  }
+    if (ug.notes && ug.notes.trim() && !notedFlags.has(id)) { notedFlags.add(id); total += 15; }
+  }
+
+  try {
+    const qs = JSON.parse(localStorage.getItem('gs_quiz_scores') || '{}');
+    for (const qid of Object.keys(qs)) {
+      if (!quizzedFlags.has(qid)) { quizzedFlags.add(qid); total += 20; }
+    }
+  } catch(e) {}
+
+  localStorage.setItem('gs_xp_scored',  JSON.stringify([...scoredFlags]));
+  localStorage.setItem('gs_xp_vibed',   JSON.stringify([...vibedFlags]));
+  localStorage.setItem('gs_xp_noted',   JSON.stringify([...notedFlags]));
+  localStorage.setItem('gs_xp_quizzed', JSON.stringify([...quizzedFlags]));
+
+  if (total > 0) await gainXp(total);
 }
 
 // ══════════════════════════════════════
