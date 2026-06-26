@@ -1733,7 +1733,7 @@ html, body {
   <!-- PROFILE -->
   <div class="screen" id="screen-profile" style="position:relative;overflow:hidden">
     <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.7"></canvas>
-    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.16;pointer-events:none;transition:background 0.5s ease"></div>
+    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.4;pointer-events:none;transition:background 0.5s ease"></div>
     <div class="scroll-area" style="position:relative;z-index:1">
       <div class="profile-header anim">
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
@@ -2241,14 +2241,15 @@ html, body {
 
   <!-- FRIEND PROFILE (full-screen overlay) -->
   <div class="screen" id="screen-friend-profile" style="position:absolute;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column">
-    <div style="padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <div id="fp-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.4;pointer-events:none;transition:background 0.5s ease"></div>
+    <div style="position:relative;z-index:1;padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
       <button onclick="closeFriendProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" id="fp-title">Profil</div>
       <button id="fp-remove-btn" style="display:none;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer" onclick="removeFriend()" data-i18n="friend.remove_btn">Retirer</button>
     </div>
-    <div class="scroll-area" style="padding:0 16px calc(80px + env(safe-area-inset-bottom))">
+    <div class="scroll-area" style="position:relative;z-index:1;padding:0 16px calc(80px + env(safe-area-inset-bottom))">
       <!-- Hero card -->
       <div id="fp-hero-card" style="position:relative;overflow:hidden;background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
         <div id="fp-hero-content" style="position:relative;z-index:2">
@@ -2782,8 +2783,9 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_3">Niveau 2 → 3 succès épinglés sur ton profil</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_4">Niveau 3 → fond de profil personnalisable (6 thèmes)</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_5">Tous les avantages de chaque palier visibles dans ta progression</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_6">14 succès à débloquer + option de réinitialisation dans les réglages</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_6">30+ succès à débloquer (notes, jeux finis, amis…) + réinitialisation possible</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_7">Impossible de renvoyer deux fois le même défi quiz à un ami</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_8">Le fond et les titres épinglés de tes amis sont visibles sur leur profil 👀</li>
                 </ul>
               </div>
 
@@ -3241,8 +3243,9 @@ const LANG = {
       xp_3:'Niveau 2 → 3 succès épinglés sur ton profil',
       xp_4:'Niveau 3 → fond de profil personnalisable (6 thèmes)',
       xp_5:'Tous les avantages de chaque palier visibles dans ta progression',
-      xp_6:'14 succès à débloquer + option de réinitialisation dans les réglages',
+      xp_6:'30+ succès à débloquer (notes, jeux finis, amis…) + réinitialisation possible',
       xp_7:'Impossible de renvoyer deux fois le même défi quiz à un ami',
+      xp_8:'Le fond et les titres épinglés de tes amis sont visibles sur leur profil 👀',
     },
     tirage: {
       title:'Tire-moi un jeu !',
@@ -3700,8 +3703,9 @@ const LANG = {
       xp_3:'Level 2 → 3 pinned achievements on your profile',
       xp_4:'Level 3 → customizable profile background (6 themes)',
       xp_5:'Every perk for each level now visible in your progression',
-      xp_6:'14 achievements to unlock + reset option in settings',
+      xp_6:'30+ achievements to unlock (ratings, finished games, friends…) + reset option',
       xp_7:'Can\'t send the same quiz challenge twice to a friend',
+      xp_8:'Your friends\' background and pinned titles are visible on their profile 👀',
     },
     tirage: {
       title:'Pick a game for me!',
@@ -4213,21 +4217,49 @@ function applyProfileBg() {
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────────────────────────────────────
+// Nombre de jeux terminés (finis OU platinés)
+function _finishedCount(){ return GAMES.filter(g=>{const s=(userGames[g.id]||g).status;return s==='finished'||s==='platine';}).length; }
 const ACHIEVEMENTS = [
-  { id:'lib_10',   emoji:'📚', title_fr:'Bibliothécaire', title_en:'Librarian',    desc_fr:'10 jeux dans ta bibliothèque', desc_en:'10 games in library',      xp:30,  check:()=>GAMES.length>=10 },
-  { id:'lib_25',   emoji:'📖', title_fr:'Grand lecteur',  title_en:'Bookworm',     desc_fr:'25 jeux dans ta bibliothèque', desc_en:'25 games in library',      xp:50,  check:()=>GAMES.length>=25 },
-  { id:'lib_50',   emoji:'🏛️', title_fr:'Archiviste',    title_en:'Archivist',    desc_fr:'50 jeux dans ta bibliothèque', desc_en:'50 games in library',      xp:100, check:()=>GAMES.length>=50 },
-  { id:'score_5',  emoji:'⭐', title_fr:'Critique',       title_en:'Critic',       desc_fr:'5 jeux notés',                 desc_en:'5 games rated',            xp:20,  check:()=>_xpFlags('scored').size>=5 },
-  { id:'score_20', emoji:'🎖️', title_fr:'Expert',         title_en:'Expert',       desc_fr:'20 jeux notés',                desc_en:'20 games rated',           xp:50,  check:()=>_xpFlags('scored').size>=20 },
-  { id:'note_3',   emoji:'✏️', title_fr:'Chroniqueur',   title_en:'Reviewer',     desc_fr:'3 critiques écrites',           desc_en:'3 reviews written',        xp:25,  check:()=>_xpFlags('noted').size>=3 },
-  { id:'finish_5', emoji:'🏆', title_fr:'Finisher',       title_en:'Finisher',     desc_fr:'5 jeux terminés',              desc_en:'5 games finished',         xp:40,  check:()=>GAMES.filter(g=>(userGames[g.id]||g).status==='finished').length>=5 },
-  { id:'quiz_3',   emoji:'🧠', title_fr:'Quiz Master',   title_en:'Quiz Master',  desc_fr:'3 quiz complétés',              desc_en:'3 quizzes done',           xp:35,  check:()=>_xpFlags('quizzed').size>=3 },
-  { id:'chall_1',  emoji:'⚡', title_fr:'Challenger',    title_en:'Challenger',   desc_fr:'Gagner un défi quiz',           desc_en:'Win a quiz challenge',     xp:40,  check:()=>_xpFlags('chall_won').size>=1 },
-  { id:'friend_1', emoji:'👥', title_fr:'Connecté',       title_en:'Connected',    desc_fr:'1 ami sur GameShelf',           desc_en:'1 friend on GameShelf',   xp:20,  check:()=>(_socialFriends||[]).length>=1 },
-  { id:'friend_5', emoji:'🌟', title_fr:'Influenceur',   title_en:'Influencer',   desc_fr:'5 amis sur GameShelf',          desc_en:'5 friends on GameShelf', xp:50,  check:()=>(_socialFriends||[]).length>=5 },
-  { id:'col_1',    emoji:'💎', title_fr:'Collectionneur', title_en:'Collector',    desc_fr:'Première collection créée',     desc_en:'First collection created', xp:20, check:()=>(userCollections||[]).length>=1 },
-  { id:'lvl_3',    emoji:'🔥', title_fr:'Vétéran',        title_en:'Veteran',      desc_fr:'Atteindre le niveau 3',         desc_en:'Reach level 3',            xp:0,  check:()=>getLevel(obProfile.xp||0).level>=3 },
-  { id:'lvl_5',    emoji:'👑', title_fr:'Légende',         title_en:'Legend',       desc_fr:'Atteindre le niveau MAX',       desc_en:'Reach max level',          xp:0,  check:()=>getLevel(obProfile.xp||0).level>=5 },
+  // ── Bibliothèque ──
+  { id:'lib_10',    emoji:'📚', title_fr:'Bibliothécaire',       title_en:'Librarian',         desc_fr:'10 jeux dans ta bibliothèque',  desc_en:'10 games in library',   xp:30,  check:()=>GAMES.length>=10 },
+  { id:'lib_25',    emoji:'📖', title_fr:'Grand lecteur',        title_en:'Bookworm',          desc_fr:'25 jeux dans ta bibliothèque',  desc_en:'25 games in library',   xp:50,  check:()=>GAMES.length>=25 },
+  { id:'lib_50',    emoji:'🏛️', title_fr:'Archiviste',          title_en:'Archivist',         desc_fr:'50 jeux dans ta bibliothèque',  desc_en:'50 games in library',   xp:100, check:()=>GAMES.length>=50 },
+  { id:'lib_100',   emoji:'🗃️', title_fr:'Conservateur',        title_en:'Curator',           desc_fr:'100 jeux dans ta bibliothèque', desc_en:'100 games in library',  xp:160, check:()=>GAMES.length>=100 },
+  { id:'lib_250',   emoji:'🏰', title_fr:'Conservateur en chef', title_en:'Head Curator',     desc_fr:'250 jeux dans ta bibliothèque', desc_en:'250 games in library',  xp:280, check:()=>GAMES.length>=250 },
+  { id:'lib_500',   emoji:'🌌', title_fr:'Collection ultime',    title_en:'Ultimate Library',  desc_fr:'500 jeux dans ta bibliothèque', desc_en:'500 games in library',  xp:450, check:()=>GAMES.length>=500 },
+  // ── Notes (scores) ──
+  { id:'score_5',   emoji:'⭐', title_fr:'Critique',             title_en:'Critic',            desc_fr:'5 jeux notés',   desc_en:'5 games rated',   xp:20,  check:()=>_xpFlags('scored').size>=5 },
+  { id:'score_20',  emoji:'🎖️', title_fr:'Connaisseur',         title_en:'Connoisseur',       desc_fr:'20 jeux notés',  desc_en:'20 games rated',  xp:50,  check:()=>_xpFlags('scored').size>=20 },
+  { id:'score_50',  emoji:'🏅', title_fr:'Expert',               title_en:'Expert',            desc_fr:'50 jeux notés',  desc_en:'50 games rated',  xp:110, check:()=>_xpFlags('scored').size>=50 },
+  { id:'score_100', emoji:'👑', title_fr:'Maître critique',      title_en:'Master Critic',     desc_fr:'100 jeux notés', desc_en:'100 games rated', xp:200, check:()=>_xpFlags('scored').size>=100 },
+  // ── Critiques écrites ──
+  { id:'note_3',    emoji:'✏️', title_fr:'Chroniqueur',         title_en:'Reviewer',          desc_fr:'3 critiques écrites',  desc_en:'3 reviews written',  xp:25,  check:()=>_xpFlags('noted').size>=3 },
+  { id:'note_15',   emoji:'📝', title_fr:'Éditorialiste',        title_en:'Columnist',         desc_fr:'15 critiques écrites', desc_en:'15 reviews written', xp:70,  check:()=>_xpFlags('noted').size>=15 },
+  { id:'note_50',   emoji:'📰', title_fr:'Rédacteur en chef',    title_en:'Editor-in-Chief',   desc_fr:'50 critiques écrites', desc_en:'50 reviews written', xp:160, check:()=>_xpFlags('noted').size>=50 },
+  // ── Jeux terminés ──
+  { id:'finish_5',   emoji:'🏆', title_fr:'Finisher',            title_en:'Finisher',          desc_fr:'5 jeux terminés',   desc_en:'5 games finished',   xp:40,  check:()=>_finishedCount()>=5 },
+  { id:'finish_25',  emoji:'🥇', title_fr:'Complétionniste',     title_en:'Completionist',     desc_fr:'25 jeux terminés',  desc_en:'25 games finished',  xp:100, check:()=>_finishedCount()>=25 },
+  { id:'finish_50',  emoji:'🎯', title_fr:'Implacable',          title_en:'Relentless',        desc_fr:'50 jeux terminés',  desc_en:'50 games finished',  xp:170, check:()=>_finishedCount()>=50 },
+  { id:'finish_100', emoji:'💯', title_fr:'Centurion',           title_en:'Centurion',         desc_fr:'100 jeux terminés', desc_en:'100 games finished', xp:280, check:()=>_finishedCount()>=100 },
+  { id:'finish_250', emoji:'⚔️', title_fr:'Légende du backlog',  title_en:'Backlog Legend',    desc_fr:'250 jeux terminés', desc_en:'250 games finished', xp:450, check:()=>_finishedCount()>=250 },
+  // ── Quiz ──
+  { id:'quiz_1',    emoji:'❓', title_fr:'Curieux',             title_en:'Curious',           desc_fr:'1 quiz complété',   desc_en:'1 quiz completed',  xp:15,  check:()=>_xpFlags('quizzed').size>=1 },
+  { id:'quiz_3',    emoji:'🧠', title_fr:'Quiz Master',         title_en:'Quiz Master',       desc_fr:'3 quiz complétés',  desc_en:'3 quizzes done',    xp:35,  check:()=>_xpFlags('quizzed').size>=3 },
+  { id:'quiz_10',   emoji:'🎓', title_fr:'Érudit',              title_en:'Scholar',           desc_fr:'10 quiz complétés', desc_en:'10 quizzes done',   xp:90,  check:()=>_xpFlags('quizzed').size>=10 },
+  // ── Défis ──
+  { id:'chall_1',   emoji:'⚡', title_fr:'Challenger',          title_en:'Challenger',        desc_fr:'Gagner un défi quiz', desc_en:'Win a quiz challenge',  xp:40,  check:()=>_xpFlags('chall_won').size>=1 },
+  { id:'chall_5',   emoji:'🔥', title_fr:'Duelliste',           title_en:'Duelist',           desc_fr:'Gagner 5 défis quiz', desc_en:'Win 5 quiz challenges', xp:110, check:()=>_xpFlags('chall_won').size>=5 },
+  // ── Amis ──
+  { id:'friend_1',  emoji:'👥', title_fr:'Connecté',            title_en:'Connected',         desc_fr:'1 ami sur GameShelf',   desc_en:'1 friend on GameShelf',  xp:20,  check:()=>(_socialFriends||[]).length>=1 },
+  { id:'friend_5',  emoji:'🌟', title_fr:'Sociable',            title_en:'Social',            desc_fr:'5 amis sur GameShelf',  desc_en:'5 friends on GameShelf', xp:50,  check:()=>(_socialFriends||[]).length>=5 },
+  { id:'friend_10', emoji:'🎉', title_fr:'Populaire',           title_en:'Popular',           desc_fr:'10 amis sur GameShelf', desc_en:'10 friends on GameShelf',xp:90,  check:()=>(_socialFriends||[]).length>=10 },
+  { id:'friend_20', emoji:'💫', title_fr:'Influenceur',         title_en:'Influencer',        desc_fr:'20 amis sur GameShelf', desc_en:'20 friends on GameShelf',xp:160, check:()=>(_socialFriends||[]).length>=20 },
+  // ── Collections ──
+  { id:'col_1',     emoji:'💎', title_fr:'Collectionneur',      title_en:'Collector',         desc_fr:'Première collection créée', desc_en:'First collection created', xp:20, check:()=>(userCollections||[]).length>=1 },
+  { id:'col_3',     emoji:'🗂️', title_fr:'Organisateur',       title_en:'Organizer',         desc_fr:'3 collections créées',      desc_en:'3 collections created',    xp:50, check:()=>(userCollections||[]).length>=3 },
+  // ── Niveaux ──
+  { id:'lvl_3',     emoji:'🔥', title_fr:'Vétéran',             title_en:'Veteran',           desc_fr:'Atteindre le niveau 3',   desc_en:'Reach level 3',   xp:0, check:()=>getLevel(obProfile.xp||0).level>=3 },
+  { id:'lvl_5',     emoji:'👑', title_fr:'Légende',             title_en:'Legend',            desc_fr:'Atteindre le niveau MAX', desc_en:'Reach max level', xp:0, check:()=>getLevel(obProfile.xp||0).level>=5 },
 ];
 function _getUnlockedAchievements() {
   try { return new Set(JSON.parse(localStorage.getItem('gs_achievements')||'[]')); } catch(e) { return new Set(); }
@@ -9226,6 +9258,13 @@ function renderFriendProfile(friend) {
     } else { _fpAchEl.style.display = 'none'; }
   } else if (_fpAchEl) { _fpAchEl.style.display = 'none'; }
 
+  // Friend profile background
+  const _fpBgEl = document.getElementById('fp-bg-overlay');
+  if (_fpBgEl) {
+    const _fpPreset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (friend.profile_bg || null)) || PROFILE_BG_PRESETS[0];
+    _fpBgEl.style.background = _fpPreset.grad;
+  }
+
   // Pinned achievement badges
   const _fpPinEl = document.getElementById('fp-pinned-ach');
   if (_fpPinEl) {
@@ -9528,6 +9567,8 @@ async function openFriendProfile(userId) {
     platforms: profile.platforms || [],
     xp: profile.xp || 0,
     achievements: profile.achievements || [],
+    pinned_achievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
+    profile_bg: profile.profile_bg || null,
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
     activity: recentActivity || []
   });
@@ -11530,7 +11571,7 @@ async function saveEditProfile() {
 // CLEAR LIBRARY
 // ══════════════════════════════════════
 // Achievement IDs that depend on the game library + their XP values
-const _LIB_ACH_XP = { lib_10:30, lib_25:50, lib_50:100, score_5:20, score_20:50, note_3:25, finish_5:40, lvl_3:0, lvl_5:0 };
+const _LIB_ACH_XP = { lib_10:30, lib_25:50, lib_50:100, lib_100:160, lib_250:280, lib_500:450, score_5:20, score_20:50, score_50:110, score_100:200, note_3:25, note_15:70, note_50:160, finish_5:40, finish_25:100, finish_50:170, finish_100:280, finish_250:450, lvl_3:0, lvl_5:0 };
 
 async function clearLibrary() {
   if (!confirm('Vider la bibliothèque ? Tous tes jeux seront supprimés, ton profil sera conservé.')) return;
