@@ -2774,6 +2774,19 @@ html, body {
   </div>
 </div>
 
+<!-- PUSH NUDGE -->
+<div id="push-nudge-modal" onclick="if(event.target===this)_closePushNudge()" style="display:none;position:fixed;inset:0;z-index:976;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(28px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:36px;margin-bottom:10px">🔔</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px" data-i18n="push_nudge.title">Active les notifications 🔔</div>
+      <div id="push-nudge-body" style="font-size:13px;color:var(--muted2);line-height:1.55"></div>
+    </div>
+    <button onclick="_acceptPushNudge()" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif;margin-bottom:10px" data-i18n="push_nudge.cta">Activer</button>
+    <button onclick="_closePushNudge()" style="width:100%;background:none;border:none;font-size:13px;color:var(--muted2);cursor:pointer;padding:6px" data-i18n="push_nudge.later">Plus tard</button>
+  </div>
+</div>
+
 <!-- REVIEW PROMPT -->
 <div id="review-prompt" onclick="if(event.target===this)closeReviewPrompt()" style="display:none;position:fixed;inset:0;z-index:975;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:24px">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:24px;padding:28px 24px;max-width:340px;width:100%;text-align:center;animation:fadeIn 0.25s ease">
@@ -3069,6 +3082,13 @@ const LANG = {
       title:'Tu apprécies GameShelf ?',
       sub:'Un petit avis sur le Play Store, ça nous aide vraiment à grandir 🙏',
       cta:'Laisser un avis ⭐',
+      later:'Plus tard',
+    },
+    push_nudge: {
+      title:'Active les notifications 🔔',
+      friend:'Pour être notifié quand ta demande d\'ami est acceptée',
+      quiz:'Pour savoir quand ton ami répond à ton défi',
+      cta:'Activer',
       later:'Plus tard',
     },
     onboarding: {
@@ -3502,6 +3522,13 @@ const LANG = {
       cta:'Leave a review ⭐',
       later:'Later',
     },
+    push_nudge: {
+      title:'Enable notifications 🔔',
+      friend:'Get notified when your friend request is accepted',
+      quiz:'Know when your friend replies to your challenge',
+      cta:'Enable',
+      later:'Later',
+    },
   },
 };
 
@@ -3622,6 +3649,26 @@ async function disablePushNotifs() {
     }
     showToast(t('toast.notif_off'));
   } catch (e) {}
+}
+
+function _promptPushIfNeeded(context) {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+  if (Notification.permission !== 'default') return;
+  if (localStorage.getItem('gs_push_nudge_' + context)) return;
+  localStorage.setItem('gs_push_nudge_' + context, '1');
+  const body = document.getElementById('push-nudge-body');
+  if (body) body.textContent = t('push_nudge.' + context);
+  const m = document.getElementById('push-nudge-modal');
+  if (m) m.style.display = 'flex';
+}
+function _closePushNudge() {
+  const m = document.getElementById('push-nudge-modal');
+  if (m) m.style.display = 'none';
+}
+async function _acceptPushNudge() {
+  _closePushNudge();
+  const ok = await enablePushNotifs();
+  _setPushToggleUI(document.getElementById('push-toggle'), ok);
 }
 
 function _setPushToggleUI(el, on) {
@@ -7836,6 +7883,7 @@ async function sendFriendRequest(addresseeId, el) {
   if (el) el.querySelector('span').textContent = '✓ Envoyé';
   showToast(t('toast.friend_sent'));
   _pushNotify('friend_request', addresseeId);
+  setTimeout(() => _promptPushIfNeeded('friend'), 800);
 }
 
 async function acceptFriend(friendshipId) {
@@ -11064,6 +11112,7 @@ async function _createQuizChallenge(quizId, quizName, friendId) {
         body: JSON.stringify({ type: 'quiz_challenge', to: friendId, quizName, challengeId: data.id })
       }).catch(() => {});
     }
+    setTimeout(() => _promptPushIfNeeded('quiz'), 800);
     return data.id;
   } catch(e) { return null; }
 }
@@ -11811,6 +11860,7 @@ window.addEventListener('popstate', function() {
   const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
 
   if (visible('quiz-confrontation'))      { closeQuizConfrontation();           return; }
+  if (visible('push-nudge-modal'))        { _closePushNudge();               return; }
   if (visible('whatsnew-modal'))          { closeWhatsNewModal();            return; }
   if (visible('faq-modal'))               { closeFaqModal();                 return; }
   if (visible('privacy-modal'))           { closePrivacyModal();             return; }
