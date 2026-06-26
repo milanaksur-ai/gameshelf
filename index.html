@@ -2228,6 +2228,7 @@ html, body {
           <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
           <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:6px"></div>
           <div id="fp-rank" style="display:none;align-items:center;justify-content:center;gap:5px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 13px;font-size:12px;font-weight:700;color:var(--a);width:fit-content;margin:0 auto 8px"></div>
+          <div id="fp-achievements" style="display:none;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted2);margin-bottom:6px">🏆 <span id="fp-ach-text"></span></div>
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
@@ -2859,6 +2860,13 @@ html, body {
         </div>
       </div>
 
+      <!-- SUCCÈS -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase" data-i18n="profile.achievements">Succès</div>
+        <div id="xpm-ach-count" style="font-size:10px;font-weight:700;color:var(--muted2)"></div>
+      </div>
+      <div id="xpm-achievements" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:26px"></div>
+
       <!-- PALIERS -->
       <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px" data-i18n="profile.xp_levels">Paliers</div>
       <div id="xpm-levels" style="display:flex;flex-direction:column;gap:8px;margin-bottom:26px"></div>
@@ -3274,7 +3282,7 @@ const LANG = {
       xp_modal_title:'XP & Progression', xp_levels:'Paliers', xp_history:'Historique récent',
       xp_reason_score:'Note sur', xp_reason_vibe:'Vibe sur', xp_reason_note:'Note écrite sur',
       xp_reason_quiz:'Quiz complété', xp_reason_challenge:'Défi gagné', xp_reason_backfill:'Bibliothèque existante',
-      xp_no_history:'Aucune action encore', xp_slot_free:'Collections illimitées',
+      xp_no_history:'Aucune action encore', xp_slot_free:'Collections illimitées', achievements:'Succès',
       slot_full:'Collections limitées à {n} au niveau {lvl}. Note plus de jeux pour monter de niveau !',
       no_reviews:'Aucun avis récent',
       no_recos:'Aucun jeu ici pour l\'instant.',
@@ -3516,7 +3524,7 @@ const LANG = {
       xp_modal_title:'XP & Progress', xp_levels:'Levels', xp_history:'Recent history',
       xp_reason_score:'Rated', xp_reason_vibe:'Vibed', xp_reason_note:'Wrote a note for',
       xp_reason_quiz:'Quiz completed', xp_reason_challenge:'Challenge won', xp_reason_backfill:'Existing library',
-      xp_no_history:'No actions yet', xp_slot_free:'Unlimited collections',
+      xp_no_history:'No actions yet', xp_slot_free:'Unlimited collections', achievements:'Achievements',
       slot_full:'Collections capped at {n} for level {lvl}. Rate more games to level up!',
       no_reviews:'No recent reviews',
       no_recos:'No games here yet.',
@@ -3748,6 +3756,7 @@ async function gainXp(amount, reason, label) {
   } catch(e) {}
   // Level-up celebration
   if (getLevel(after).level > lvlBefore) _celebrateLevelUp(getLevel(after));
+  checkAchievements();
 }
 function _logXpEvent(amount, reason, label) {
   if (!reason) return;
@@ -3822,13 +3831,133 @@ function renderXpBar(animate) {
     _applyTip(pct);
   }
 }
+function _celebrateRichToast({ emoji, subtitle, title, detail, delay }) {
+  setTimeout(() => {
+    const toast = document.createElement('div');
+    toast.style.cssText = [
+      'position:fixed',
+      'bottom:calc(80px + env(safe-area-inset-bottom) + 16px)',
+      'left:50%',
+      'transform:translateX(-50%) translateY(28px)',
+      'background:linear-gradient(135deg,rgba(22,8,52,0.97),rgba(42,22,92,0.97))',
+      'border:1px solid rgba(108,92,231,0.5)',
+      'color:#fff',
+      'font-family:"Space Grotesk",sans-serif',
+      'padding:13px 18px 13px 13px',
+      'border-radius:20px',
+      'z-index:9999',
+      'box-shadow:0 8px 40px rgba(108,92,231,0.5),0 0 0 0.5px rgba(253,121,168,0.3)',
+      'opacity:0',
+      'transition:opacity 0.3s,transform 0.45s cubic-bezier(0.34,1.56,0.64,1)',
+      'display:flex',
+      'align-items:center',
+      'gap:14px',
+      'min-width:230px',
+      'max-width:310px',
+      '-webkit-tap-highlight-color:transparent',
+    ].join(';');
+    toast.innerHTML = `<div style="font-size:34px;line-height:1;flex-shrink:0;filter:drop-shadow(0 0 12px rgba(253,121,168,0.75))">${emoji}</div><div style="min-width:0"><div style="font-size:9px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;opacity:0.55;margin-bottom:2px">${subtitle}</div><div style="font-size:15px;font-weight:800;line-height:1.2">${title}</div><div style="font-size:11px;opacity:0.6;margin-top:3px">${detail}</div></div>`;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(-50%) translateY(0)';
+    }));
+    setTimeout(() => {
+      const r = toast.getBoundingClientRect();
+      _spawnToastParticles(r.left + r.width / 2, r.top + r.height / 2);
+    }, 320);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(-50%) translateY(12px)';
+      setTimeout(() => toast.remove(), 400);
+    }, 4600);
+  }, delay || 0);
+}
+function _spawnToastParticles(cx, cy) {
+  const COLORS = ['#a29bfe','#6c5ce7','#fd79a8','#fdcb6e','#00cec9','#ffffff','#e17055'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    const sz = 3 + Math.random() * 7;
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const angle = Math.random() * Math.PI * 2;
+    const dist  = 25 + Math.random() * 90;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist - 50;
+    p.style.cssText = `position:fixed;width:${sz}px;height:${sz}px;border-radius:${Math.random()>.5?'50%':'3px'};background:${color};z-index:10000;pointer-events:none;left:${cx-sz/2}px;top:${cy-sz/2}px;opacity:1;transition:transform 0.7s cubic-bezier(0.22,1,0.36,1),opacity 0.7s ease;box-shadow:0 0 ${sz+2}px ${color};`;
+    document.body.appendChild(p);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      p.style.transform = `translate(${dx}px,${dy}px) scale(0)`;
+      p.style.opacity = '0';
+    }));
+    setTimeout(() => p.remove(), 800);
+  }
+}
 function _celebrateLevelUp(lvl) {
   const title = _lang === 'en' ? lvl.title_en : lvl.title_fr;
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:calc(80px + env(safe-area-inset-bottom) + 12px);left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-family:"Space Grotesk",sans-serif;font-weight:800;font-size:14px;padding:12px 24px;border-radius:50px;z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(108,92,231,0.5);animation:fadeIn 0.3s ease';
-  toast.textContent = '🎉 Niveau ' + lvl.level + ' · ' + title + ' !';
-  document.body.appendChild(toast);
-  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 3500);
+  const slots = lvl.slots === Infinity ? (_lang === 'en' ? 'Unlimited collections' : 'Collections illimitées') : lvl.slots + ' collections';
+  _celebrateRichToast({
+    emoji: '🎉',
+    subtitle: _lang === 'en' ? 'Level up!' : 'Niveau supérieur !',
+    title: (_lang === 'en' ? 'Level ' : 'Niveau ') + lvl.level + ' · ' + title.split(' ').slice(1).join(' '),
+    detail: slots,
+    delay: 0,
+  });
+}
+
+// ── ACHIEVEMENTS ──────────────────────────────────────────────────────────────
+const ACHIEVEMENTS = [
+  { id:'lib_10',   emoji:'📚', title_fr:'Bibliothécaire', title_en:'Librarian',    desc_fr:'10 jeux dans ta bibliothèque', desc_en:'10 games in library',      xp:30,  check:()=>GAMES.length>=10 },
+  { id:'lib_25',   emoji:'📖', title_fr:'Grand lecteur',  title_en:'Bookworm',     desc_fr:'25 jeux dans ta bibliothèque', desc_en:'25 games in library',      xp:50,  check:()=>GAMES.length>=25 },
+  { id:'lib_50',   emoji:'🏛️', title_fr:'Archiviste',    title_en:'Archivist',    desc_fr:'50 jeux dans ta bibliothèque', desc_en:'50 games in library',      xp:100, check:()=>GAMES.length>=50 },
+  { id:'score_5',  emoji:'⭐', title_fr:'Critique',       title_en:'Critic',       desc_fr:'5 jeux notés',                 desc_en:'5 games rated',            xp:20,  check:()=>_xpFlags('scored').size>=5 },
+  { id:'score_20', emoji:'🎖️', title_fr:'Expert',         title_en:'Expert',       desc_fr:'20 jeux notés',                desc_en:'20 games rated',           xp:50,  check:()=>_xpFlags('scored').size>=20 },
+  { id:'note_3',   emoji:'✏️', title_fr:'Chroniqueur',   title_en:'Reviewer',     desc_fr:'3 critiques écrites',           desc_en:'3 reviews written',        xp:25,  check:()=>_xpFlags('noted').size>=3 },
+  { id:'finish_5', emoji:'🏆', title_fr:'Finisher',       title_en:'Finisher',     desc_fr:'5 jeux terminés',              desc_en:'5 games finished',         xp:40,  check:()=>GAMES.filter(g=>(userGames[g.id]||g).status==='finished').length>=5 },
+  { id:'quiz_3',   emoji:'🧠', title_fr:'Quiz Master',   title_en:'Quiz Master',  desc_fr:'3 quiz complétés',              desc_en:'3 quizzes done',           xp:35,  check:()=>_xpFlags('quizzed').size>=3 },
+  { id:'chall_1',  emoji:'⚡', title_fr:'Challenger',    title_en:'Challenger',   desc_fr:'Gagner un défi quiz',           desc_en:'Win a quiz challenge',     xp:40,  check:()=>_xpFlags('chall_won').size>=1 },
+  { id:'friend_1', emoji:'👥', title_fr:'Connecté',       title_en:'Connected',    desc_fr:'1 ami sur GameShelf',           desc_en:'1 friend on GameShelf',   xp:20,  check:()=>(_socialFriends||[]).length>=1 },
+  { id:'friend_5', emoji:'🌟', title_fr:'Influenceur',   title_en:'Influencer',   desc_fr:'5 amis sur GameShelf',          desc_en:'5 friends on GameShelf', xp:50,  check:()=>(_socialFriends||[]).length>=5 },
+  { id:'col_1',    emoji:'💎', title_fr:'Collectionneur', title_en:'Collector',    desc_fr:'Première collection créée',     desc_en:'First collection created', xp:20, check:()=>(userCollections||[]).length>=1 },
+  { id:'lvl_3',    emoji:'🔥', title_fr:'Vétéran',        title_en:'Veteran',      desc_fr:'Atteindre le niveau 3',         desc_en:'Reach level 3',            xp:0,  check:()=>getLevel(obProfile.xp||0).level>=3 },
+  { id:'lvl_5',    emoji:'👑', title_fr:'Légende',         title_en:'Legend',       desc_fr:'Atteindre le niveau MAX',       desc_en:'Reach max level',          xp:0,  check:()=>getLevel(obProfile.xp||0).level>=5 },
+];
+function _getUnlockedAchievements() {
+  try { return new Set(JSON.parse(localStorage.getItem('gs_achievements')||'[]')); } catch(e) { return new Set(); }
+}
+let _checkingAchievements = false;
+async function checkAchievements() {
+  if (_checkingAchievements) return;
+  _checkingAchievements = true;
+  try {
+    const unlocked = _getUnlockedAchievements();
+    let idx = 0;
+    for (const a of ACHIEVEMENTS) {
+      if (unlocked.has(a.id)) continue;
+      let met = false;
+      try { met = a.check(); } catch(e) { continue; }
+      if (!met) continue;
+      unlocked.add(a.id);
+      localStorage.setItem('gs_achievements', JSON.stringify([...unlocked]));
+      _celebrateAchievement(a, idx++);
+      if (a.xp > 0) await gainXp(a.xp, 'achievement', (_lang==='en'?a.title_en:a.title_fr));
+      try {
+        const { data:{ user } } = await _sb.auth.getUser();
+        if (user) _sb.from('profiles').update({ achievements:[...unlocked] }).eq('id',user.id).then(()=>{});
+      } catch(e) {}
+    }
+  } finally { _checkingAchievements = false; }
+}
+function _celebrateAchievement(a, idx) {
+  const title  = _lang === 'en' ? a.title_en : a.title_fr;
+  const desc   = _lang === 'en' ? a.desc_en  : a.desc_fr;
+  const xpStr  = a.xp > 0 ? ' · +' + a.xp + ' XP' : '';
+  _celebrateRichToast({
+    emoji:    a.emoji,
+    subtitle: _lang === 'en' ? 'Achievement unlocked!' : 'Succès débloqué !',
+    title,
+    detail:   desc + xpStr,
+    delay:    (idx || 0) * 1500,
+  });
 }
 const VAPID_PUBLIC_KEY = 'BDjp6ICwMTmKuT6bkL_f0I4fWtNw96Tf9bQa109UkVj-s1NOP8dkIV_xS5N_AGJUigN6y8ke1fqyCYtMMBIJ4b4';
 
@@ -5007,6 +5136,7 @@ function launchApp() {
 
   // Retroactive XP — run only once, award XP for already-rated/vibed/noted games
   setTimeout(() => _backfillXp(), 800);
+  setTimeout(checkAchievements, 2000);
 }
 
 async function _backfillXp() {
@@ -5261,6 +5391,7 @@ async function syncProfileToSupabase() {
         ? [...(obProfile.platforms || []).filter(p => p !== '__gp__'), '__gp__']
         : (obProfile.platforms || []).filter(p => p !== '__gp__'),
       onboarding_done: true,
+      achievements: [..._getUnlockedAchievements()],
       updated_at: new Date().toISOString()
     });
   } catch(e) { console.warn('GameShelf: profile sync failed', e); }
@@ -5350,6 +5481,29 @@ function _renderXpModal() {
   document.getElementById('xpm-bar').style.width        = '0%';
   const tipEl = document.getElementById('xpm-bar-tip');
   if (tipEl) tipEl.style.display = 'none';
+
+  // Achievements grid
+  const unlocked = _getUnlockedAchievements();
+  const achCountEl = document.getElementById('xpm-ach-count');
+  const achEl = document.getElementById('xpm-achievements');
+  if (achCountEl) achCountEl.textContent = unlocked.size + ' / ' + ACHIEVEMENTS.length;
+  if (achEl) {
+    achEl.innerHTML = ACHIEVEMENTS.map(a => {
+      const done   = unlocked.has(a.id);
+      const atitle = done ? (_lang==='en' ? a.title_en : a.title_fr) : '???';
+      const adesc  = done ? (_lang==='en' ? a.desc_en  : a.desc_fr)  : (_lang==='en' ? 'Keep playing to unlock' : 'Continue à jouer');
+      const xpBadge = !done && a.xp > 0 ? `<div style="font-size:9px;font-weight:700;color:var(--muted2);margin-top:4px">+${a.xp} XP</div>` : '';
+      const checkBadge = done ? '<div style="position:absolute;top:7px;right:8px;font-size:10px;color:rgba(108,92,231,0.8)">✓</div>' : '';
+      return `<div style="position:relative;padding:11px 10px;border-radius:14px;background:${done?'linear-gradient(135deg,rgba(108,92,231,0.14),rgba(253,121,168,0.07))':'var(--s2)'};border:${done?'1px solid rgba(108,92,231,0.3)':'0.5px solid var(--border2)'};display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px">
+        ${checkBadge}
+        <div style="font-size:26px;${done?'':'filter:grayscale(1);opacity:0.2'}">${a.emoji}</div>
+        <div style="font-size:11px;font-weight:700;color:${done?'var(--text)':'var(--muted2)'};line-height:1.2">${atitle}</div>
+        <div style="font-size:9px;color:var(--muted2);line-height:1.3;opacity:${done?0.7:0.5}">${adesc}</div>
+        ${xpBadge}
+      </div>`;
+    }).join('');
+  }
+
   const nextLbl = document.getElementById('xpm-xp-next');
   if (nextLbl) {
     nextLbl.textContent = next
@@ -8132,6 +8286,7 @@ async function loadSocialScreen() {
     friends = profiles || [];
   }
   _socialFriends = [...friends];
+  checkAchievements();
 
   // Fetch profiles for pending requesters
   let pendingWithProfiles = [];
@@ -8560,6 +8715,15 @@ function renderFriendProfile(friend) {
     _fpRankEl.textContent = _lang === 'en' ? _fpLvl.title_en : _fpLvl.title_fr;
     _fpRankEl.style.display = 'inline-flex';
   } else if (_fpRankEl) { _fpRankEl.style.display = 'none'; }
+  const _fpAchEl  = document.getElementById('fp-achievements');
+  const _fpAchTxt = document.getElementById('fp-ach-text');
+  if (_fpAchEl && Array.isArray(friend.achievements)) {
+    const achCount = friend.achievements.length;
+    if (achCount > 0 && _fpAchTxt) {
+      _fpAchTxt.textContent = achCount + ' / ' + ACHIEVEMENTS.length + (_lang === 'en' ? ' achievements' : ' succès');
+      _fpAchEl.style.display = 'flex';
+    } else { _fpAchEl.style.display = 'none'; }
+  } else if (_fpAchEl) { _fpAchEl.style.display = 'none'; }
 
   // B — Banner dynamique
   fpSetBanner(friend.games || []);
@@ -8843,6 +9007,8 @@ async function openFriendProfile(userId) {
     avatar_url: profile.avatar_url || null,
     bio: profile.bio || '',
     platforms: profile.platforms || [],
+    xp: profile.xp || 0,
+    achievements: profile.achievements || [],
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
     activity: recentActivity || []
   });
@@ -9715,6 +9881,7 @@ function confirmCreateCollection() {
     openUserCollection(c.id);
   }
   renderMyCollections();
+  setTimeout(checkAchievements, 400);
 }
 
 // ── ADD TO COLLECTION (from game detail) ──
