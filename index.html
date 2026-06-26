@@ -1525,9 +1525,11 @@ html, body {
       <div class="scroll-area" style="padding:0 0 calc(80px + env(safe-area-inset-bottom))">
 
         <!-- MES COLLECTIONS -->
-        <div style="padding:4px 16px 10px">
+        <div style="padding:4px 16px 6px;display:flex;align-items:center;justify-content:space-between">
           <div class="sec-label" style="padding:0" data-i18n="collections.mine">📚 Mes collections</div>
+          <div id="my-collections-info" style="display:none;font-size:11px;font-weight:700;color:var(--muted2)"></div>
         </div>
+        <div id="my-collections-upgrade" style="display:none;margin:0 16px 8px;padding:8px 12px;background:linear-gradient(135deg,rgba(108,92,231,0.1),rgba(253,121,168,0.06));border:0.5px solid rgba(108,92,231,0.25);border-radius:12px;font-size:11px;font-weight:600;color:var(--a);cursor:pointer" onclick="openXpModal()"></div>
         <div id="my-collections-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;min-height:60px"></div>
 
         <!-- COLLECTIONS AMIS -->
@@ -9745,15 +9747,61 @@ async function fetchOwnCollectionsFromSupabase() {
 }
 
 function renderMyCollections() {
-  const el = document.getElementById('my-collections-row');
+  const el        = document.getElementById('my-collections-row');
+  const infoEl    = document.getElementById('my-collections-info');
+  const upgradeEl = document.getElementById('my-collections-upgrade');
   if (!el) return;
-  const newCard = `<div onclick="openNewCollectionModal()" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:1px dashed var(--border2);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:145px" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+
+  const lvl      = getLevel(obProfile.xp || 0);
+  const count    = userCollections.length;
+  const maxSlots = lvl.slots === Infinity ? null : lvl.slots;
+  const atMax    = maxSlots !== null && count >= maxSlots;
+
+  // Info badge (X/N)
+  if (infoEl) {
+    if (maxSlots !== null) {
+      infoEl.style.display = 'block';
+      infoEl.textContent   = count + ' / ' + maxSlots;
+    } else {
+      infoEl.style.display = 'none';
+    }
+  }
+
+  // Upgrade hint (shown only when at max and a next level exists)
+  if (upgradeEl) {
+    const nextLvl = XP_LEVELS.find(l => l.level === lvl.level + 1);
+    if (atMax && nextLvl) {
+      const nextTitle = _lang === 'en' ? nextLvl.title_en : nextLvl.title_fr;
+      const xpNeeded  = Math.max(0, nextLvl.xp - (obProfile.xp || 0));
+      upgradeEl.style.display = 'block';
+      upgradeEl.innerHTML = xpNeeded > 0
+        ? '🔓 ' + nextTitle + ' → ' + nextLvl.slots + ' collections · encore ' + xpNeeded + ' XP'
+        : '🔓 Passe au niveau ' + nextTitle + ' pour débloquer ' + nextLvl.slots + ' collections';
+    } else {
+      upgradeEl.style.display = 'none';
+    }
+  }
+
+  // Empty slot card (clickable "+")
+  const emptySlotCard = `<div onclick="openNewCollectionModal()" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:1px dashed var(--border2);cursor:pointer;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;height:145px" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
     <div style="width:36px;height:36px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </div>
     <div style="font-size:12px;font-weight:600;color:var(--muted2);text-align:center;padding:0 10px" data-i18n="collections.new_title">Nouvelle collection</div>
   </div>`;
-  el.innerHTML = newCard + userCollections.map(_userCollectionCard).join('');
+
+  // How many empty "+" slots to render
+  let emptySlotsCount;
+  if (maxSlots === null) {
+    emptySlotsCount = 1; // infinite level: always one "+"
+  } else if (maxSlots <= 5) {
+    emptySlotsCount = atMax ? 0 : maxSlots - count; // show all N slots explicitly
+  } else {
+    emptySlotsCount = atMax ? 0 : 1; // bigger levels: just one "+" slot
+  }
+
+  const emptyCards = Array(emptySlotsCount).fill(emptySlotCard).join('');
+  el.innerHTML = userCollections.map(_userCollectionCard).join('') + emptyCards;
 }
 
 function _userCollectionCard(c) {
@@ -9992,9 +10040,11 @@ function confirmCreateCollection() {
   const name = document.getElementById('ncm-name-input').value.trim();
   if (!name) return;
   const _lvl = getLevel(obProfile.xp || 0);
-  if (userCollections.length >= _lvl.slots) {
-    const msg = (_lang === 'en' ? _lvl.title_en : _lvl.title_fr);
-    showToast(t('profile.slot_full').replace('{n}', _lvl.slots).replace('{lvl}', msg));
+  if (_lvl.slots !== Infinity && userCollections.length >= _lvl.slots) {
+    const nextLvl = XP_LEVELS.find(l => l.level === _lvl.level + 1);
+    const hint = nextLvl ? ' · ' + (_lang === 'en' ? nextLvl.title_en : nextLvl.title_fr) + ' → ' + nextLvl.slots : '';
+    showToast('Max ' + _lvl.slots + ' collections' + hint + ' 🔓');
+    closeNewCollectionModal();
     return;
   }
   const c = {
