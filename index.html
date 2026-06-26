@@ -11540,6 +11540,7 @@ async function resetProgress() {
     localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   }
   localStorage.removeItem('gs_achievements');
+  localStorage.removeItem('gs_xp_log');
   // Rebuild XP flags silently from current library state — marks existing work as "done"
   // so the system won't re-award XP for them, but new actions earn normally going forward.
   const _rScored = new Set(), _rVibed = new Set(), _rNoted = new Set();
