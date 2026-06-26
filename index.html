@@ -2877,8 +2877,8 @@ html, body {
       <div id="xpm-achievements" style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:26px"></div>
 
       <!-- PALIERS -->
-      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px" data-i18n="profile.xp_levels">Paliers</div>
-      <div id="xpm-levels" style="display:flex;flex-direction:column;gap:8px;margin-bottom:26px"></div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px" data-i18n="profile.xp_levels">🛤 Ta progression</div>
+      <div id="xpm-levels" style="margin-bottom:26px"></div>
 
       <!-- HISTORIQUE -->
       <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px" data-i18n="profile.xp_history">Historique récent</div>
@@ -5553,35 +5553,83 @@ function _renderXpModal() {
       : (_lang === 'en' ? '✦ Max level' : '✦ Niveau MAX');
   }
 
-  // Level roadmap
+  // Level roadmap — vertical timeline
   const lvlsEl = document.getElementById('xpm-levels');
-  lvlsEl.innerHTML = XP_LEVELS.map(l => {
+  lvlsEl.innerHTML = XP_LEVELS.map((l, i) => {
     const done    = xp >= l.xp;
     const current = l.level === lvl.level;
-    const locked  = !done && !current;
+    const locked  = !done;
+    const isLast  = i === XP_LEVELS.length - 1;
     const ltitle  = _lang === 'en' ? l.title_en : l.title_fr;
     const lemoji  = ltitle.split(' ')[0];
     const lname   = ltitle.split(' ').slice(1).join(' ');
-    const slotTxt = l.slots === Infinity ? t('profile.xp_slot_free') : l.slots + ' collections';
-    const xpLbl   = l.xp === 0 ? (_lang === 'en' ? 'Starting rank' : 'Rang de départ') : l.xp + ' XP';
-    const bg = current
-      ? 'linear-gradient(135deg,rgba(108,92,231,0.15),rgba(253,121,168,0.08))'
-      : done ? 'rgba(0,230,118,0.05)' : 'var(--s2)';
-    const border = current
-      ? '1px solid rgba(108,92,231,0.38)'
-      : done ? '0.5px solid rgba(0,230,118,0.2)' : '0.5px solid var(--border2)';
-    const badge = done && !current
-      ? `<div style="width:22px;height:22px;border-radius:50%;background:rgba(0,230,118,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div>`
-      : locked
-        ? `<div style="font-size:10px;font-weight:700;color:var(--muted2);white-space:nowrap;flex-shrink:0">+${l.xp - xp} XP</div>`
-        : `<div style="font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;flex-shrink:0">${_lang==='en'?'NOW':'EN COURS'}</div>`;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:${bg};border:${border}">
-      <div style="font-size:26px;line-height:1;${locked ? 'opacity:0.22;filter:grayscale(1)' : ''}">${lemoji}</div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;color:${locked ? 'var(--muted2)' : 'var(--text)'}">${lname}</div>
-        <div style="font-size:10px;color:var(--muted2);margin-top:2px">${xpLbl} · ${slotTxt}</div>
+    const slotTxt = l.slots === Infinity ? (_lang==='en'?'Unlimited collections':'Collections illimitées') : l.slots + ' collections';
+    const xpLbl   = l.xp === 0 ? (_lang==='en'?'Starting rank':'Rang de départ') : l.xp + ' XP';
+
+    // Dot
+    let dotInner, dotBg;
+    if (current) {
+      dotBg = 'background:linear-gradient(135deg,var(--a),var(--a2));box-shadow:0 0 10px rgba(108,92,231,0.55)';
+      dotInner = `<div style="width:7px;height:7px;border-radius:50%;background:#fff;opacity:0.9"></div>`;
+    } else if (done) {
+      dotBg = 'background:rgba(0,230,118,0.18);border:1.5px solid rgba(0,230,118,0.45)';
+      dotInner = `<div style="font-size:9px;color:var(--green);font-weight:800;line-height:1">✓</div>`;
+    } else {
+      dotBg = 'background:var(--s3);border:1.5px solid var(--border2)';
+      dotInner = '';
+    }
+
+    // Line to next
+    const lineGrad = done && !current
+      ? 'background:linear-gradient(to bottom,rgba(0,230,118,0.35),rgba(0,230,118,0.1))'
+      : current
+        ? 'background:linear-gradient(to bottom,rgba(108,92,231,0.4),rgba(255,255,255,0.05))'
+        : 'background:rgba(255,255,255,0.05)';
+
+    // Progress to next (only for current level)
+    let extra = '';
+    if (current && !isLast) {
+      const nxt   = XP_LEVELS[i + 1];
+      const span  = nxt.xp - l.xp;
+      const earn  = xp - l.xp;
+      const pct   = Math.min(100, Math.round(earn / span * 100));
+      const left  = nxt.xp - xp;
+      const nxttitle = _lang === 'en' ? nxt.title_en : nxt.title_fr;
+      extra = `<div style="margin-top:9px">
+        <div style="height:5px;border-radius:5px;background:rgba(255,255,255,0.07);overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:5px"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px">
+          <div style="font-size:10px;color:var(--muted2)">${earn} / ${span} XP dans ce niveau</div>
+          <div style="font-size:10px;font-weight:700;color:var(--a)">encore ${left} XP → ${nxttitle}</div>
+        </div>
+      </div>`;
+    } else if (current && isLast) {
+      extra = `<div style="font-size:11px;color:var(--a);font-weight:700;margin-top:6px">👑 ${_lang==='en'?'Max level reached !':'Niveau maximum atteint !'}</div>`;
+    } else if (locked) {
+      extra = `<div style="font-size:10px;font-weight:700;color:var(--muted2);margin-top:4px">🔒 encore ${l.xp - xp} XP</div>`;
+    }
+
+    const textCol = current ? 'var(--a)' : done ? 'var(--text)' : 'var(--muted2)';
+    const opacity = locked ? 'opacity:0.5' : '';
+
+    return `<div style="display:flex;gap:0;align-items:stretch">
+      <div style="display:flex;flex-direction:column;align-items:center;width:30px;flex-shrink:0;padding-top:1px">
+        <div style="width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;${dotBg}">${dotInner}</div>
+        ${!isLast ? `<div style="width:2px;flex:1;min-height:10px;margin:3px 0;${lineGrad}"></div>` : ''}
       </div>
-      ${badge}
+      <div style="flex:1;padding:0 0 ${isLast?'0':'18px'} 14px;${opacity}">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:24px;line-height:1">${lemoji}</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:${textCol}">${lname}</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:1px">${xpLbl} · ${slotTxt}</div>
+          </div>
+          ${done && !current ? `<div style="font-size:11px;color:var(--green);font-weight:800">✓</div>` : ''}
+          ${current ? `<div style="font-size:10px;font-weight:800;white-space:nowrap;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${_lang==='en'?'NOW':'EN COURS'}</div>` : ''}
+        </div>
+        ${extra}
+      </div>
     </div>`;
   }).join('');
 
