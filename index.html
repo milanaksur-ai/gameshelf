@@ -4822,6 +4822,18 @@ async function onAuthSuccess(user) {
         gamepass: rawPlatforms.includes('__gp__'),
         xp: profile.xp || 0,
       };
+      // Sync Supabase achievements → localStorage so they don't re-fire on a new device
+      if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
+        try {
+          const _gsAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+          profile.achievements.forEach(id => _gsAch.add(id));
+          localStorage.setItem('gs_achievements', JSON.stringify([..._gsAch]));
+        } catch(e) {}
+      }
+      // If profile already has XP, skip the backfill to avoid double-awarding
+      if ((profile.xp || 0) > 0 && !localStorage.getItem('gs_xp_backfilled')) {
+        localStorage.setItem('gs_xp_backfilled', '1');
+      }
       localStorage.setItem('gs_user_id', user.id);
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       saveToStorage();
@@ -5327,7 +5339,19 @@ async function syncFromSupabase(user) {
         bio: profile.bio || '',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass,
+        xp: profile.xp || obProfile.xp || 0,
       };
+      // Merge Supabase achievements into localStorage (cross-device sync)
+      if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
+        try {
+          const _gsAch2 = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+          profile.achievements.forEach(id => _gsAch2.add(id));
+          localStorage.setItem('gs_achievements', JSON.stringify([..._gsAch2]));
+        } catch(e) {}
+      }
+      if ((profile.xp || 0) > 0 && !localStorage.getItem('gs_xp_backfilled')) {
+        localStorage.setItem('gs_xp_backfilled', '1');
+      }
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       applyProfileToUI();
       if (gamepass) loadGamePass();
@@ -8162,6 +8186,11 @@ function initApp(){
   const _startScreen = appCurrentScreen || 'feed';
   appCurrentScreen = null;
   appGoTo(_startScreen);
+  // RAF: re-position indicator after the view-app becomes visible (getBoundingClientRect needs layout)
+  requestAnimationFrame(() => {
+    const _nb = document.getElementById('nav-' + _startScreen);
+    if (_nb) moveNavIndicator(_nb);
+  });
   // Load home feed async sections
   setTimeout(() => {
     renderHomeTrending();
