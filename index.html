@@ -2777,10 +2777,13 @@ html, body {
                   <div style="background:var(--a);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em" data-i18n="updates.new_badge">NOUVEAU</div>
                 </div>
                 <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_1">Système XP : gagne de l'expérience en notant et jouant 🏅</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_2">Niveau 2 : 3 slots pour épingler tes succès sur ton profil</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_3">Niveau 3 : personnalise le fond de ton profil avec 6 thèmes</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_4">Succès : 14 défis à débloquer en explorant l'app</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_1">Système XP : gagne de l'expérience en notant, jouant et écrivant des avis 🏅</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_2">Célébration animée à chaque montée de niveau 🎉</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_3">Niveau 2 → 3 succès épinglés sur ton profil</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_4">Niveau 3 → fond de profil personnalisable (6 thèmes)</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_5">Tous les avantages de chaque palier visibles dans ta progression</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_6">14 succès à débloquer + option de réinitialisation dans les réglages</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_7">Impossible de renvoyer deux fois le même défi quiz à un ami</li>
                 </ul>
               </div>
 
@@ -3233,10 +3236,13 @@ const LANG = {
       notifs_1:'Notifications push : demandes d\'amis et récap hebdo',
       notifs_2:'Play Store bêta 🚀 · Vrai plein écran Android 🎉',
       xp:'⚡ XP & Profil',
-      xp_1:'Système XP : gagne de l\'expérience en notant et jouant 🏅',
-      xp_2:'Niveau 2 : 3 slots pour épingler tes succès sur ton profil',
-      xp_3:'Niveau 3 : personnalise le fond de ton profil avec 6 thèmes',
-      xp_4:'Succès : 14 défis à débloquer en explorant l\'app',
+      xp_1:'Système XP : gagne de l\'expérience en notant, jouant et écrivant des avis 🏅',
+      xp_2:'Célébration animée à chaque montée de niveau 🎉',
+      xp_3:'Niveau 2 → 3 succès épinglés sur ton profil',
+      xp_4:'Niveau 3 → fond de profil personnalisable (6 thèmes)',
+      xp_5:'Tous les avantages de chaque palier visibles dans ta progression',
+      xp_6:'14 succès à débloquer + option de réinitialisation dans les réglages',
+      xp_7:'Impossible de renvoyer deux fois le même défi quiz à un ami',
     },
     tirage: {
       title:'Tire-moi un jeu !',
@@ -3689,10 +3695,13 @@ const LANG = {
       notifs_1:'Push notifications: friend requests and weekly recap',
       notifs_2:'Play Store beta 🚀 · True fullscreen on Android 🎉',
       xp:'⚡ XP & Profile',
-      xp_1:'XP system: earn experience by rating and playing 🏅',
-      xp_2:'Level 2: 3 slots to pin your achievements on your profile',
-      xp_3:'Level 3: customize your profile background with 6 themes',
-      xp_4:'Achievements: 14 challenges to unlock as you explore the app',
+      xp_1:'XP system: earn experience by rating, playing and writing reviews 🏅',
+      xp_2:'Animated celebration each time you level up 🎉',
+      xp_3:'Level 2 → 3 pinned achievements on your profile',
+      xp_4:'Level 3 → customizable profile background (6 themes)',
+      xp_5:'Every perk for each level now visible in your progression',
+      xp_6:'14 achievements to unlock + reset option in settings',
+      xp_7:'Can\'t send the same quiz challenge twice to a friend',
     },
     tirage: {
       title:'Pick a game for me!',
@@ -3822,6 +3831,13 @@ const XP_LEVELS = [
   { level:4, xp:1050, title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:15 },
   { level:5, xp:2400, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
 ];
+// Tous les avantages débloqués à chaque palier (hors collections, géré à part)
+function getLevelPerks(level, fr) {
+  const perks = [];
+  if (level === 2) perks.push(fr ? '🏅 3 succès épinglés sur ton profil' : '🏅 3 pinned achievements on your profile');
+  if (level === 3) perks.push(fr ? '🎨 Fond de profil personnalisable' : '🎨 Custom profile background');
+  return perks;
+}
 function getLevel(xp) {
   let lvl = XP_LEVELS[0];
   for (const l of XP_LEVELS) { if ((xp||0) >= l.xp) lvl = l; }
@@ -5850,8 +5866,10 @@ function _renderXpModal() {
     const ltitle  = _lang === 'en' ? l.title_en : l.title_fr;
     const lemoji  = ltitle.split(' ')[0];
     const lname   = ltitle.split(' ').slice(1).join(' ');
-    const slotTxt = l.slots === Infinity ? (_lang==='en'?'Unlimited collections':'Collections illimitées') : l.slots + ' collections';
-    const xpLbl   = l.xp === 0 ? (_lang==='en'?'Starting rank':'Rang de départ') : l.xp + ' XP';
+    const fr      = _lang !== 'en';
+    const slotTxt = l.slots === Infinity ? (fr?'Collections illimitées':'Unlimited collections') : '📚 ' + l.slots + (fr?' collections':' collections');
+    const xpLbl   = l.xp === 0 ? (fr?'Rang de départ':'Starting rank') : l.xp + ' XP';
+    const perks   = [slotTxt, ...getLevelPerks(l.level, fr)];
 
     // Dot
     let dotInner, dotBg;
@@ -5910,7 +5928,8 @@ function _renderXpModal() {
           <span style="font-size:24px;line-height:1">${lemoji}</span>
           <div style="flex:1">
             <div style="font-size:14px;font-weight:700;color:${textCol}">${lname}</div>
-            <div style="font-size:10px;color:var(--muted2);margin-top:1px">${xpLbl} · ${slotTxt}</div>
+            <div style="font-size:10px;color:var(--muted2);margin-top:1px">${xpLbl}</div>
+            <div style="display:flex;flex-direction:column;gap:2px;margin-top:4px">${perks.map(p => `<div style="font-size:11px;color:var(--muted2);line-height:1.4">${p}</div>`).join('')}</div>
           </div>
           ${done && !current ? `<div style="font-size:11px;color:var(--green);font-weight:800">✓</div>` : ''}
           ${current ? `<div style="font-size:10px;font-weight:800;white-space:nowrap;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent">${_lang==='en'?'NOW':'EN COURS'}</div>` : ''}
