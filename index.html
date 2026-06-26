@@ -472,6 +472,12 @@ html, body {
 @keyframes screenSlideIn { from{opacity:0;transform:translateX(28px)} to{opacity:1;transform:translateX(0)} }
 .screen.active           { animation: screenFadeIn  0.22s cubic-bezier(0.22,1,0.36,1) forwards; }
 #screen-detail.active    { animation: screenSlideIn 0.26s cubic-bezier(0.22,1,0.36,1) forwards; }
+@keyframes xpFloat {
+  0%   { opacity:0; transform:translateX(-50%) translateY(0);   }
+  15%  { opacity:1; transform:translateX(-50%) translateY(-6px);}
+  80%  { opacity:1; transform:translateX(-50%) translateY(-22px);}
+  100% { opacity:0; transform:translateX(-50%) translateY(-32px);}
+}
 @keyframes tourPulse { 0%,100%{box-shadow:0 0 0 3px var(--a),0 0 0 7px rgba(108,92,231,0.25)} 50%{box-shadow:0 0 0 3px var(--a),0 0 0 14px rgba(108,92,231,0.08)} }
 .tour-spot { animation:tourPulse 1.6s ease-in-out infinite!important; position:relative; z-index:981!important; }
 
@@ -1722,12 +1728,13 @@ html, body {
         <div class="profile-name" id="app-profile-name">Gamer</div>
         <div class="profile-handle" id="app-profile-handle">@gamer</div>
         <div id="app-profile-rank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 13px;font-size:12px;font-weight:700;color:var(--a);margin-top:8px;margin-bottom:4px">🎮 Joueur</div>
-        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 6px">
+        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 4px">
           <div id="app-xp-bar-wrap" style="width:130px;height:4px;background:var(--s3);border-radius:2px;overflow:hidden">
-            <div id="app-xp-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:2px;width:0%;transition:width 0.7s cubic-bezier(0.22,1,0.36,1)"></div>
+            <div id="app-xp-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:2px;width:0%;transition:width 0.8s cubic-bezier(0.22,1,0.36,1)"></div>
           </div>
           <div id="app-xp-label" style="font-size:10px;color:var(--muted2);white-space:nowrap">0 XP</div>
         </div>
+        <button onclick="openXpModal()" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-bottom:8px;opacity:0.8" data-i18n="profile.xp_see_progress">Voir ma progression →</button>
         <button onclick="openEditProfile()" style="margin-top:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:6px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span data-i18n="profile.edit">Modifier le profil</span>
@@ -2782,6 +2789,35 @@ html, body {
   </div>
 </div>
 
+<!-- XP PROGRESS MODAL -->
+<div id="xp-modal" onclick="if(event.target===this)closeXpModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
+  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="profile.xp_modal_title">XP & Progression</div>
+      <button onclick="closeXpModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
+    </div>
+    <!-- Current rank big card -->
+    <div id="xpm-rank-card" style="background:linear-gradient(135deg,var(--a),var(--a2));border-radius:16px;padding:18px 20px;margin-bottom:16px;color:#fff;display:flex;align-items:center;gap:14px">
+      <div id="xpm-rank-emoji" style="font-size:36px;line-height:1">🎮</div>
+      <div style="flex:1">
+        <div id="xpm-rank-title" style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:2px">Joueur</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <div style="flex:1;height:5px;background:rgba(255,255,255,0.25);border-radius:3px;overflow:hidden">
+            <div id="xpm-bar" style="height:100%;background:#fff;border-radius:3px;width:0%;transition:width 0.9s cubic-bezier(0.22,1,0.36,1)"></div>
+          </div>
+          <div id="xpm-xp-label" style="font-size:11px;font-weight:700;white-space:nowrap;opacity:0.9">0 XP</div>
+        </div>
+      </div>
+    </div>
+    <!-- Level roadmap -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="profile.xp_levels">Paliers</div>
+    <div id="xpm-levels" style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px"></div>
+    <!-- XP log -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="profile.xp_history">Historique</div>
+    <div id="xpm-log" style="display:flex;flex-direction:column;gap:4px"></div>
+  </div>
+</div>
+
 <!-- PUSH NUDGE -->
 <div id="push-nudge-modal" onclick="if(event.target===this)_closePushNudge()" style="display:none;position:fixed;inset:0;z-index:976;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:24px 20px calc(28px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
@@ -3182,7 +3218,11 @@ const LANG = {
       playing_empty:'Rien en cours…',
       playing_empty_sub:"Ton backlog a sûrement une pépite qui t'attend.",
       no_screenshots:"Aucun screenshot pour l'instant. Ajoute-en depuis la fiche d'un jeu.",
-      xp_level:'Niveau', xp_label:'XP',
+      xp_level:'Niveau', xp_label:'XP', xp_see_progress:'Voir ma progression →',
+      xp_modal_title:'XP & Progression', xp_levels:'Paliers', xp_history:'Historique récent',
+      xp_reason_score:'Note sur', xp_reason_vibe:'Vibe sur', xp_reason_note:'Note écrite sur',
+      xp_reason_quiz:'Quiz complété', xp_reason_challenge:'Défi gagné', xp_reason_backfill:'Bibliothèque existante',
+      xp_no_history:'Aucune action encore', xp_slot_free:'Collections illimitées',
       slot_full:'Collections limitées à {n} au niveau {lvl}. Note plus de jeux pour monter de niveau !',
       no_reviews:'Aucun avis récent',
       no_recos:'Aucun jeu ici pour l\'instant.',
@@ -3420,7 +3460,11 @@ const LANG = {
       playing_empty:'Nothing playing…',
       playing_empty_sub:'Your backlog probably has a gem waiting for you.',
       no_screenshots:'No screenshots yet. Add some from a game card.',
-      xp_level:'Level', xp_label:'XP',
+      xp_level:'Level', xp_label:'XP', xp_see_progress:'See my progress →',
+      xp_modal_title:'XP & Progress', xp_levels:'Levels', xp_history:'Recent history',
+      xp_reason_score:'Rated', xp_reason_vibe:'Vibed', xp_reason_note:'Wrote a note for',
+      xp_reason_quiz:'Quiz completed', xp_reason_challenge:'Challenge won', xp_reason_backfill:'Existing library',
+      xp_no_history:'No actions yet', xp_slot_free:'Unlimited collections',
       slot_full:'Collections capped at {n} for level {lvl}. Rate more games to level up!',
       no_reviews:'No recent reviews',
       no_recos:'No games here yet.',
@@ -3636,13 +3680,15 @@ function getLevelTitle(xp) {
 }
 function _xpFlags(key) { try { return new Set(JSON.parse(localStorage.getItem('gs_xp_'+key)||'[]')); } catch(e) { return new Set(); } }
 function _setXpFlag(key, val) { const s=_xpFlags(key); s.add(String(val)); localStorage.setItem('gs_xp_'+key, JSON.stringify([...s])); }
-async function gainXp(amount) {
+async function gainXp(amount, reason, label) {
   const before = obProfile.xp || 0;
   const after  = before + amount;
   const lvlBefore = getLevel(before).level;
   obProfile.xp = after;
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  _logXpEvent(amount, reason, label);
   renderXpBar();
+  _showXpFloat(amount);
   // Sync to Supabase fire-and-forget
   try {
     const { data:{ user } } = await _sb.auth.getUser();
@@ -3651,21 +3697,58 @@ async function gainXp(amount) {
   // Level-up celebration
   if (getLevel(after).level > lvlBefore) _celebrateLevelUp(getLevel(after));
 }
-function renderXpBar() {
-  const xp  = obProfile.xp || 0;
-  const lvl = getLevel(xp);
+function _logXpEvent(amount, reason, label) {
+  if (!reason) return;
+  try {
+    const log = JSON.parse(localStorage.getItem('gs_xp_log') || '[]');
+    log.unshift({ amount, reason, label: label || '', ts: Date.now() });
+    localStorage.setItem('gs_xp_log', JSON.stringify(log.slice(0, 30)));
+  } catch(e) {}
+}
+function _showXpFloat(amount) {
+  const chip = document.createElement('div');
+  chip.textContent = '+' + amount + ' XP';
+  chip.style.cssText = [
+    'position:fixed',
+    'bottom:calc(80px + env(safe-area-inset-bottom) + 16px)',
+    'left:50%',
+    'transform:translateX(-50%) translateY(0)',
+    'background:linear-gradient(135deg,var(--a),var(--a2))',
+    'color:#fff',
+    'font-family:"Space Grotesk",sans-serif',
+    'font-weight:800',
+    'font-size:15px',
+    'padding:7px 18px',
+    'border-radius:50px',
+    'z-index:9990',
+    'pointer-events:none',
+    'white-space:nowrap',
+    'box-shadow:0 4px 16px rgba(108,92,231,0.45)',
+    'animation:xpFloat 1.4s ease forwards',
+  ].join(';');
+  document.body.appendChild(chip);
+  setTimeout(() => chip.remove(), 1450);
+}
+function renderXpBar(animate) {
+  const xp   = obProfile.xp || 0;
+  const lvl  = getLevel(xp);
   const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
+  const pct  = next ? Math.min(100, Math.round(((xp - lvl.xp) / (next.xp - lvl.xp)) * 100)) : 100;
   const rankEl = document.getElementById('app-profile-rank');
   const barEl  = document.getElementById('app-xp-bar');
   const lblEl  = document.getElementById('app-xp-label');
   if (rankEl) rankEl.textContent = getLevelTitle(xp);
-  if (next) {
-    const pct = Math.min(100, Math.round(((xp - lvl.xp) / (next.xp - lvl.xp)) * 100));
-    if (barEl) barEl.style.width = pct + '%';
-    if (lblEl) lblEl.textContent = xp + ' / ' + next.xp + ' XP';
+  if (lblEl)  lblEl.textContent  = next ? (xp + ' / ' + next.xp + ' XP') : (xp + ' XP · MAX');
+  if (!barEl) return;
+  if (animate || typeof animate === 'undefined' && appCurrentScreen === 'profile') {
+    barEl.style.transition = 'none';
+    barEl.style.width = '0%';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      barEl.style.transition = 'width 0.8s cubic-bezier(0.22,1,0.36,1)';
+      barEl.style.width = pct + '%';
+    }));
   } else {
-    if (barEl) barEl.style.width = '100%';
-    if (lblEl) lblEl.textContent = xp + ' XP · MAX';
+    barEl.style.width = pct + '%';
   }
 }
 function _celebrateLevelUp(lvl) {
@@ -4886,7 +4969,7 @@ async function _backfillXp() {
   localStorage.setItem('gs_xp_noted',   JSON.stringify([...notedFlags]));
   localStorage.setItem('gs_xp_quizzed', JSON.stringify([...quizzedFlags]));
 
-  if (total > 0) await gainXp(total);
+  if (total > 0) await gainXp(total, 'backfill', '');
 }
 
 // ══════════════════════════════════════
@@ -5159,6 +5242,88 @@ function closePrivacyModal() {
   const m = document.getElementById('privacy-modal');
   if (m) m.style.display = 'none';
 }
+function openXpModal() {
+  const m = document.getElementById('xp-modal');
+  if (!m) return;
+  _renderXpModal();
+  m.style.display = 'flex';
+  // Animate the in-modal bar after paint
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    const xp   = obProfile.xp || 0;
+    const lvl  = getLevel(xp);
+    const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
+    const pct  = next ? Math.min(100, Math.round(((xp - lvl.xp) / (next.xp - lvl.xp)) * 100)) : 100;
+    const bar  = document.getElementById('xpm-bar');
+    if (bar) bar.style.width = pct + '%';
+  }));
+}
+function closeXpModal() {
+  const m = document.getElementById('xp-modal');
+  if (m) m.style.display = 'none';
+}
+function _renderXpModal() {
+  const xp   = obProfile.xp || 0;
+  const lvl  = getLevel(xp);
+  const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
+  const title = getLevelTitle(xp);
+  const emoji = title.split(' ')[0];
+  document.getElementById('xpm-rank-emoji').textContent = emoji;
+  document.getElementById('xpm-rank-title').textContent = title.split(' ').slice(1).join(' ');
+  document.getElementById('xpm-xp-label').textContent   = next ? (xp + ' / ' + next.xp + ' XP') : (xp + ' XP');
+  document.getElementById('xpm-bar').style.width = '0%'; // reset for animation
+
+  // Level roadmap
+  const lvlsEl = document.getElementById('xpm-levels');
+  lvlsEl.innerHTML = XP_LEVELS.map(l => {
+    const done    = xp >= l.xp;
+    const current = l.level === lvl.level;
+    const ltitle  = _lang === 'en' ? l.title_en : l.title_fr;
+    const lemoji  = ltitle.split(' ')[0];
+    const lname   = ltitle.split(' ').slice(1).join(' ');
+    const slotTxt = l.slots === Infinity ? t('profile.xp_slot_free') : l.slots + ' collections';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;background:${current ? 'rgba(108,92,231,0.15)' : 'var(--s2)'};border:0.5px solid ${current ? 'rgba(108,92,231,0.4)' : 'var(--border2)'}">
+      <div style="font-size:24px;opacity:${done ? 1 : 0.35}">${lemoji}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:${done ? 'var(--text)' : 'var(--muted2)'}">${lname}${current ? ' ←' : ''}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:1px">${l.xp} XP · ${slotTxt}</div>
+      </div>
+      ${done ? '<div style="font-size:16px">✓</div>' : `<div style="font-size:11px;font-weight:700;color:var(--muted2)">${l.xp - xp > 0 ? '-' + (l.xp - xp) + ' XP' : ''}</div>`}
+    </div>`;
+  }).join('');
+
+  // XP log
+  const logEl = document.getElementById('xpm-log');
+  const REASON_ICONS = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚' };
+  const REASON_KEY   = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill' };
+  try {
+    const log = JSON.parse(localStorage.getItem('gs_xp_log') || '[]');
+    if (!log.length) { logEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:8px 0">${t('profile.xp_no_history')}</div>`; return; }
+    logEl.innerHTML = log.map(e => {
+      const icon = REASON_ICONS[e.reason] || '✦';
+      const key  = REASON_KEY[e.reason] || 'xp_reason_backfill';
+      const desc = e.label ? t('profile.' + key) + ' ' + e.label : t('profile.' + key);
+      const ago  = _xpTimeAgo(e.ts);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--s2)">
+        <div style="font-size:16px;width:22px;text-align:center;flex-shrink:0">${icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${desc}</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:1px">${ago}</div>
+        </div>
+        <div style="font-size:12px;font-weight:800;color:var(--a);flex-shrink:0">+${e.amount} XP</div>
+      </div>`;
+    }).join('');
+  } catch(e) { logEl.innerHTML = ''; }
+}
+function _xpTimeAgo(ts) {
+  const diff = Date.now() - ts;
+  const m = Math.floor(diff / 60000);
+  const h = Math.floor(diff / 3600000);
+  const d = Math.floor(diff / 86400000);
+  if (m < 1)  return _lang === 'en' ? 'just now'         : 'à l'instant';
+  if (m < 60) return _lang === 'en' ? m + 'm ago'        : 'il y a ' + m + ' min';
+  if (h < 24) return _lang === 'en' ? h + 'h ago'        : 'il y a ' + h + 'h';
+  return       _lang === 'en' ? d + 'd ago'        : 'il y a ' + d + 'j';
+}
 function openWhatsNewModal() { const m = document.getElementById('whatsnew-modal'); if (m) m.style.display = 'flex'; }
 function closeWhatsNewModal() { const m = document.getElementById('whatsnew-modal'); if (m) m.style.display = 'none'; }
 function openFaqModal() { const m = document.getElementById('faq-modal'); if (m) m.style.display = 'flex'; }
@@ -5414,7 +5579,7 @@ function appGoTo(screen) {
   appCurrentScreen = screen;
 
   // Side effects per screen
-  if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); renderTrouvailles(userGames, GAMES, 'trouvailles-list'); }
+  if (screen === 'profile') { renderProfileStats(); renderProfileTierLists(); startProfileParticles(); renderTrouvailles(userGames, GAMES, 'trouvailles-list'); renderXpBar(true); }
   else stopProfileParticles();
   if (screen === 'library') filterGames();
   if (screen === 'detail' && currentGame) renderMediaGrid(currentGame.id);
@@ -5829,7 +5994,7 @@ function setVibe(vibe) {
   if (ug.vibe.length === 0) ug.vibe = null;
   renderVibe(ug.vibe, ug.score > 0);
   saveToStorage();
-  if (wasEmpty && idx < 0 && !_xpFlags('vibed').has(String(currentGame.id))) { _setXpFlag('vibed', currentGame.id); gainXp(5); }
+  if (wasEmpty && idx < 0 && !_xpFlags('vibed').has(String(currentGame.id))) { _setXpFlag('vibed', currentGame.id); gainXp(5, 'vibe', currentGame.title); }
 }
 
 function renderStars(cur, status, doAnim = false) {
@@ -5861,7 +6026,7 @@ function renderStars(cur, status, doAnim = false) {
       renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
       saveToStorage();
-      if (!_xpFlags('scored').has(String(currentGame.id))) { _setXpFlag('scored', currentGame.id); gainXp(10); }
+      if (!_xpFlags('scored').has(String(currentGame.id))) { _setXpFlag('scored', currentGame.id); gainXp(10, 'score', currentGame.title); }
     };
     row.appendChild(b);
   }
@@ -5944,7 +6109,7 @@ function saveGame() {
   renderFeed();
   saveToStorage();
   if (ug._justFinished) { try { celebrateStatus(ug.status); } catch(e) {} delete ug._justFinished; }
-  if (!_hadNotes && ug.notes.trim() && !_xpFlags('noted').has(String(currentGame.id))) { _setXpFlag('noted', currentGame.id); gainXp(15); }
+  if (!_hadNotes && ug.notes.trim() && !_xpFlags('noted').has(String(currentGame.id))) { _setXpFlag('noted', currentGame.id); gainXp(15, 'note', currentGame.title); }
   showToast(t('toast.saved'));
   setTimeout(() => appGoBack(), 600);
 }
@@ -10992,7 +11157,7 @@ function showQuizResults() {
   localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
   saveQuizScore(_quizActive.id, _quizScore, total);
   if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
-  if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20); }
+  if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20, 'quiz', _quizActive.title || ''); }
   document.getElementById('quiz-progress-fill').style.width = '100%';
   document.getElementById('quiz-next-btn-wrap').style.display = 'none';
   const pct = Math.round((_quizScore / total) * 100);
@@ -11081,7 +11246,7 @@ async function showQuizConfrontation(ch) {
   const total = meTotal || meAnswers.length || 8;
   const won = meScore > oppScore;
   const draw = meScore === oppScore;
-  if (won && !_xpFlags('chall_won').has(String(ch.id))) { _setXpFlag('chall_won', ch.id); gainXp(30); }
+  if (won && !_xpFlags('chall_won').has(String(ch.id))) { _setXpFlag('chall_won', ch.id); gainXp(30, 'challenge', ''); }
 
   const resultColor = won ? '#55efc4' : draw ? 'var(--amber)' : '#ff7675';
   const resultLabel = won ? '🏆 Victoire !' : draw ? '🤝 Égalité !' : '💀 Défaite';
@@ -11990,6 +12155,7 @@ window.addEventListener('popstate', function() {
   const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
 
   if (visible('quiz-confrontation'))      { closeQuizConfrontation();           return; }
+  if (visible('xp-modal'))                { closeXpModal();                  return; }
   if (visible('push-nudge-modal'))        { _closePushNudge();               return; }
   if (visible('whatsnew-modal'))          { closeWhatsNewModal();            return; }
   if (visible('faq-modal'))               { closeFaqModal();                 return; }
