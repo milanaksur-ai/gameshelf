@@ -2823,31 +2823,50 @@ html, body {
 </div>
 
 <!-- XP PROGRESS MODAL -->
-<div id="xp-modal" onclick="if(event.target===this)closeXpModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center">
-  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="profile.xp_modal_title">XP & Progression</div>
-      <button onclick="closeXpModal()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--muted2);display:flex;align-items:center;justify-content:center">×</button>
-    </div>
-    <!-- Current rank big card -->
-    <div id="xpm-rank-card" style="background:linear-gradient(135deg,var(--a),var(--a2));border-radius:16px;padding:18px 20px;margin-bottom:16px;color:#fff;display:flex;align-items:center;gap:14px">
-      <div id="xpm-rank-emoji" style="font-size:36px;line-height:1">🎮</div>
-      <div style="flex:1">
-        <div id="xpm-rank-title" style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:2px">Joueur</div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-          <div style="flex:1;height:5px;background:rgba(255,255,255,0.25);border-radius:3px;overflow:hidden">
-            <div id="xpm-bar" style="height:100%;background:#fff;border-radius:3px;width:0%;transition:width 0.9s cubic-bezier(0.22,1,0.36,1)"></div>
+<div id="xp-modal" onclick="if(event.target===this)closeXpModal()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.72);backdrop-filter:blur(10px);align-items:flex-end;justify-content:center">
+  <div style="background:linear-gradient(180deg,rgba(108,92,231,0.10) 0%,var(--s1) 90px);border:0.5px solid rgba(108,92,231,0.22);border-radius:24px 24px 0 0;padding:0 0 calc(28px + env(safe-area-inset-bottom));max-width:430px;width:100%;max-height:88vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.22,1,0.36,1);position:relative">
+    <!-- handle bar -->
+    <div style="display:flex;justify-content:center;padding:12px 0 0"><div style="width:36px;height:4px;background:rgba(255,255,255,0.15);border-radius:2px"></div></div>
+    <!-- close -->
+    <button onclick="closeXpModal()" style="position:absolute;top:10px;right:14px;background:rgba(255,255,255,0.07);border:0.5px solid rgba(255,255,255,0.1);border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:18px;color:var(--muted2);display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+
+    <div style="padding:14px 18px 0">
+      <!-- RANK CARD -->
+      <div id="xpm-rank-card" style="background:linear-gradient(135deg,var(--a) 0%,var(--a2) 100%);border-radius:20px;padding:20px 18px;margin-bottom:22px;color:#fff;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-24px;right:-18px;width:90px;height:90px;background:radial-gradient(circle,rgba(255,255,255,0.14),transparent 70%);pointer-events:none"></div>
+        <div style="position:absolute;bottom:-16px;left:16px;width:70px;height:70px;background:radial-gradient(circle,rgba(0,0,0,0.15),transparent 70%);pointer-events:none"></div>
+        <!-- emoji + title -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+          <div id="xpm-rank-emoji" style="font-size:46px;line-height:1;filter:drop-shadow(0 3px 10px rgba(0,0,0,0.3))">🎮</div>
+          <div>
+            <div style="font-size:10px;font-weight:700;opacity:0.7;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px" data-i18n="profile.xp_level">Niveau</div>
+            <div id="xpm-rank-title" style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:800;line-height:1.1">Joueur</div>
           </div>
-          <div id="xpm-xp-label" style="font-size:11px;font-weight:700;white-space:nowrap;opacity:0.9">0 XP</div>
+        </div>
+        <!-- progress bar -->
+        <div style="position:relative;height:8px;background:rgba(255,255,255,0.2);border-radius:4px;margin-bottom:10px">
+          <div style="position:absolute;inset:0;border-radius:4px;overflow:hidden">
+            <div id="xpm-bar" style="height:100%;background:rgba(255,255,255,0.9);border-radius:4px;width:0%;transition:width 0.9s cubic-bezier(0.22,1,0.36,1);position:relative;overflow:hidden">
+              <div style="position:absolute;top:0;bottom:0;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent);animation:xpShimmer 2.4s ease-in-out 2s infinite;transform:translateX(-150%)"></div>
+            </div>
+          </div>
+          <div id="xpm-bar-tip" style="display:none;position:absolute;top:50%;width:12px;height:12px;background:#fff;border-radius:50%;transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(255,255,255,0.28),0 2px 10px rgba(0,0,0,0.35);transition:left 0.9s cubic-bezier(0.22,1,0.36,1);pointer-events:none"></div>
+        </div>
+        <!-- XP labels -->
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div id="xpm-xp-label" style="font-size:14px;font-weight:800;opacity:0.95">0 XP</div>
+          <div id="xpm-xp-next" style="font-size:11px;font-weight:600;opacity:0.7;text-align:right"></div>
         </div>
       </div>
+
+      <!-- PALIERS -->
+      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px" data-i18n="profile.xp_levels">Paliers</div>
+      <div id="xpm-levels" style="display:flex;flex-direction:column;gap:8px;margin-bottom:26px"></div>
+
+      <!-- HISTORIQUE -->
+      <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:12px" data-i18n="profile.xp_history">Historique récent</div>
+      <div id="xpm-log" style="display:flex;flex-direction:column;gap:6px"></div>
     </div>
-    <!-- Level roadmap -->
-    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="profile.xp_levels">Paliers</div>
-    <div id="xpm-levels" style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px"></div>
-    <!-- XP log -->
-    <div style="font-size:10px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="profile.xp_history">Historique</div>
-    <div id="xpm-log" style="display:flex;flex-direction:column;gap:4px"></div>
   </div>
 </div>
 
@@ -5299,14 +5318,18 @@ function openXpModal() {
   if (!m) return;
   _renderXpModal();
   m.style.display = 'flex';
-  // Animate the in-modal bar after paint
   requestAnimationFrame(() => requestAnimationFrame(() => {
     const xp   = obProfile.xp || 0;
     const lvl  = getLevel(xp);
     const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
     const pct  = next ? Math.min(100, Math.round(((xp - lvl.xp) / (next.xp - lvl.xp)) * 100)) : 100;
     const bar  = document.getElementById('xpm-bar');
+    const tip  = document.getElementById('xpm-bar-tip');
     if (bar) bar.style.width = pct + '%';
+    if (tip) {
+      tip.style.display = pct > 2 ? 'block' : 'none';
+      tip.style.left = pct + '%';
+    }
   }));
 }
 function closeXpModal() {
@@ -5314,54 +5337,79 @@ function closeXpModal() {
   if (m) m.style.display = 'none';
 }
 function _renderXpModal() {
-  const xp   = obProfile.xp || 0;
-  const lvl  = getLevel(xp);
-  const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
+  const xp    = obProfile.xp || 0;
+  const lvl   = getLevel(xp);
+  const next  = XP_LEVELS.find(l => l.level === lvl.level + 1);
   const title = getLevelTitle(xp);
   const emoji = title.split(' ')[0];
+  const name  = title.split(' ').slice(1).join(' ');
+
   document.getElementById('xpm-rank-emoji').textContent = emoji;
-  document.getElementById('xpm-rank-title').textContent = title.split(' ').slice(1).join(' ');
-  document.getElementById('xpm-xp-label').textContent   = next ? (xp + ' / ' + next.xp + ' XP') : (xp + ' XP');
-  document.getElementById('xpm-bar').style.width = '0%'; // reset for animation
+  document.getElementById('xpm-rank-title').textContent = name;
+  document.getElementById('xpm-xp-label').textContent   = xp + ' XP';
+  document.getElementById('xpm-bar').style.width        = '0%';
+  const tipEl = document.getElementById('xpm-bar-tip');
+  if (tipEl) tipEl.style.display = 'none';
+  const nextLbl = document.getElementById('xpm-xp-next');
+  if (nextLbl) {
+    nextLbl.textContent = next
+      ? ((next.xp - xp) + ' XP → ' + (_lang === 'en' ? next.title_en : next.title_fr))
+      : (_lang === 'en' ? '✦ Max level' : '✦ Niveau MAX');
+  }
 
   // Level roadmap
   const lvlsEl = document.getElementById('xpm-levels');
   lvlsEl.innerHTML = XP_LEVELS.map(l => {
     const done    = xp >= l.xp;
     const current = l.level === lvl.level;
+    const locked  = !done && !current;
     const ltitle  = _lang === 'en' ? l.title_en : l.title_fr;
     const lemoji  = ltitle.split(' ')[0];
     const lname   = ltitle.split(' ').slice(1).join(' ');
     const slotTxt = l.slots === Infinity ? t('profile.xp_slot_free') : l.slots + ' collections';
-    return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:12px;background:${current ? 'rgba(108,92,231,0.15)' : 'var(--s2)'};border:0.5px solid ${current ? 'rgba(108,92,231,0.4)' : 'var(--border2)'}">
-      <div style="font-size:24px;opacity:${done ? 1 : 0.35}">${lemoji}</div>
-      <div style="flex:1">
-        <div style="font-size:13px;font-weight:700;color:${done ? 'var(--text)' : 'var(--muted2)'}">${lname}${current ? ' ←' : ''}</div>
-        <div style="font-size:11px;color:var(--muted2);margin-top:1px">${l.xp} XP · ${slotTxt}</div>
+    const xpLbl   = l.xp === 0 ? (_lang === 'en' ? 'Starting rank' : 'Rang de départ') : l.xp + ' XP';
+    const bg = current
+      ? 'linear-gradient(135deg,rgba(108,92,231,0.15),rgba(253,121,168,0.08))'
+      : done ? 'rgba(0,230,118,0.05)' : 'var(--s2)';
+    const border = current
+      ? '1px solid rgba(108,92,231,0.38)'
+      : done ? '0.5px solid rgba(0,230,118,0.2)' : '0.5px solid var(--border2)';
+    const badge = done && !current
+      ? `<div style="width:22px;height:22px;border-radius:50%;background:rgba(0,230,118,0.15);display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0">✓</div>`
+      : locked
+        ? `<div style="font-size:10px;font-weight:700;color:var(--muted2);white-space:nowrap;flex-shrink:0">+${l.xp - xp} XP</div>`
+        : `<div style="font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;white-space:nowrap;flex-shrink:0">${_lang==='en'?'NOW':'EN COURS'}</div>`;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:${bg};border:${border}">
+      <div style="font-size:26px;line-height:1;${locked ? 'opacity:0.22;filter:grayscale(1)' : ''}">${lemoji}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:${locked ? 'var(--muted2)' : 'var(--text)'}">${lname}</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:2px">${xpLbl} · ${slotTxt}</div>
       </div>
-      ${done ? '<div style="font-size:16px">✓</div>' : `<div style="font-size:11px;font-weight:700;color:var(--muted2)">${l.xp - xp > 0 ? '-' + (l.xp - xp) + ' XP' : ''}</div>`}
+      ${badge}
     </div>`;
   }).join('');
 
   // XP log
   const logEl = document.getElementById('xpm-log');
-  const REASON_ICONS = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚' };
-  const REASON_KEY   = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill' };
+  const REASON_ICONS  = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚' };
+  const REASON_KEY    = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill' };
+  const REASON_COLORS = { score:'rgba(253,203,110,0.18)', vibe:'rgba(108,92,231,0.18)', note:'rgba(0,206,201,0.18)', quiz:'rgba(108,92,231,0.18)', challenge:'rgba(253,121,168,0.2)', backfill:'rgba(108,92,231,0.12)' };
   try {
     const log = JSON.parse(localStorage.getItem('gs_xp_log') || '[]');
-    if (!log.length) { logEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:8px 0">${t('profile.xp_no_history')}</div>`; return; }
+    if (!log.length) { logEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:10px 0;text-align:center">${t('profile.xp_no_history')}</div>`; return; }
     logEl.innerHTML = log.map(e => {
-      const icon = REASON_ICONS[e.reason] || '✦';
-      const key  = REASON_KEY[e.reason] || 'xp_reason_backfill';
-      const desc = e.label ? t('profile.' + key) + ' ' + e.label : t('profile.' + key);
-      const ago  = _xpTimeAgo(e.ts);
-      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--s2)">
-        <div style="font-size:16px;width:22px;text-align:center;flex-shrink:0">${icon}</div>
+      const icon  = REASON_ICONS[e.reason] || '✦';
+      const key   = REASON_KEY[e.reason] || 'xp_reason_backfill';
+      const color = REASON_COLORS[e.reason] || 'rgba(108,92,231,0.12)';
+      const desc  = e.label ? t('profile.' + key) + ' ' + e.label : t('profile.' + key);
+      const ago   = _xpTimeAgo(e.ts);
+      return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--s2);border-left:2px solid rgba(108,92,231,0.28)">
+        <div style="width:32px;height:32px;border-radius:50%;background:${color};display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">${icon}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${desc}</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:1px">${ago}</div>
         </div>
-        <div style="font-size:12px;font-weight:800;color:var(--a);flex-shrink:0">+${e.amount} XP</div>
+        <div style="font-size:13px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;flex-shrink:0;white-space:nowrap">+${e.amount} XP</div>
       </div>`;
     }).join('');
   } catch(e) { logEl.innerHTML = ''; }
