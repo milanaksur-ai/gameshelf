@@ -1733,6 +1733,7 @@ html, body {
   <!-- PROFILE -->
   <div class="screen" id="screen-profile" style="position:relative;overflow:hidden">
     <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.7"></canvas>
+    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.16;pointer-events:none;transition:background 0.5s ease"></div>
     <div class="scroll-area" style="position:relative;z-index:1">
       <div class="profile-header anim">
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
@@ -1776,6 +1777,18 @@ html, body {
         </button>
         <!-- Steam/Xbox badges hidden for now -->
         <span id="xbox-badge" style="display:none"><span id="xbox-dot"></span><span id="xbox-badge-text"></span></span>
+      </div>
+
+      <!-- PINNED ACHIEVEMENTS (level 2+) -->
+      <div id="pinned-ach-wrap" style="display:none;padding:0 16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🏅 Mes titres</div>
+        <div id="pinned-ach-slots" style="display:flex;gap:8px"></div>
+      </div>
+
+      <!-- PROFILE BACKGROUND (level 3+) -->
+      <div id="profile-bg-wrap" style="display:none;padding:0 16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">🎨 Fond de profil</div>
+        <div id="profile-bg-swatches" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
 
       <!-- STATS: Completion Ring -->
@@ -2244,6 +2257,7 @@ html, body {
           <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:6px"></div>
           <div id="fp-rank" style="display:none;align-items:center;justify-content:center;gap:5px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 13px;font-size:12px;font-weight:700;color:var(--a);width:fit-content;margin:0 auto 8px"></div>
           <div id="fp-achievements" style="display:none;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted2);margin-bottom:6px">🏆 <span id="fp-ach-text"></span></div>
+          <div id="fp-pinned-ach" style="display:none;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:10px"></div>
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
@@ -2316,6 +2330,17 @@ html, body {
       <div id="lu-benefits" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
       <!-- CTA -->
       <button onclick="closeLevelUpOverlay()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:0.02em" data-i18n="levelup.cta">Continuer →</button>
+    </div>
+  </div>
+
+  <!-- ACHIEVEMENT PICKER MODAL -->
+  <div id="ach-picker-modal" onclick="closeAchPicker()" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);align-items:flex-end;justify-content:center">
+    <div onclick="event.stopPropagation()" style="background:var(--s1);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:430px;max-height:72vh;display:flex;flex-direction:column">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif">🏅 Choisir un titre</div>
+        <button onclick="closeAchPicker()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:50%;width:28px;height:28px;cursor:pointer;color:var(--muted2);font-size:14px">✕</button>
+      </div>
+      <div id="ach-picker-list" style="overflow-y:auto;display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
 
@@ -3955,10 +3980,17 @@ function _celebrateLevelUp(lvl) {
     : lvl.slots + (fr ? ' collections' : ' collections');
   const nextLvl = XP_LEVELS.find(l => l.level === lvl.level + 1);
   const benefits = [];
-  if (lvl.level === 2) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-  else if (lvl.level === 3) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-  else if (lvl.level === 4) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-  else if (lvl.level === 5) benefits.push({ icon:'📚', text: fr ? 'Collections illimitées !' : 'Unlimited collections!' });
+  if (lvl.level === 2) {
+    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+    benefits.push({ icon:'🏅', text: fr ? '3 titres épinglés sur ton profil' : '3 achievement badges on your profile' });
+  } else if (lvl.level === 3) {
+    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+    benefits.push({ icon:'🎨', text: fr ? 'Personnalisation du fond de profil' : 'Custom profile background' });
+  } else if (lvl.level === 4) {
+    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+  } else if (lvl.level === 5) {
+    benefits.push({ icon:'📚', text: fr ? 'Collections illimitées !' : 'Unlimited collections!' });
+  }
   if (nextLvl) {
     const needed = nextLvl.xp - lvl.xp;
     benefits.push({ icon:'🎯', text: fr ? `Prochain rang à ${nextLvl.xp} XP` : `Next rank at ${nextLvl.xp} XP` });
@@ -4023,6 +4055,120 @@ function _luStartParticles() {
     else { _luAnimFrame = null; ctx.clearRect(0, 0, cv.width, cv.height); }
   }
   _luAnimFrame = requestAnimationFrame(frame);
+}
+
+// ── PINNED ACHIEVEMENTS + PROFILE BACKGROUND ────────────────────────────────
+let _achPickerSlot = -1;
+
+const PROFILE_BG_PRESETS = [
+  { key: null,      grad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', label: '🎮' },
+  { key: 'space',   grad: 'linear-gradient(135deg,#0f0c29,#302b63)', label: '🌌' },
+  { key: 'crimson', grad: 'linear-gradient(135deg,#300000,#aa0000)', label: '🔴' },
+  { key: 'forest',  grad: 'linear-gradient(135deg,#0a3d1f,#1db954)', label: '🌿' },
+  { key: 'ocean',   grad: 'linear-gradient(135deg,#001f3f,#00a8cc)', label: '🌊' },
+  { key: 'gold',    grad: 'linear-gradient(135deg,#2d2400,#ffd700)', label: '✨' },
+];
+
+function renderPinnedAchievements() {
+  const wrap = document.getElementById('pinned-ach-wrap');
+  if (!wrap) return;
+  if (getLevel(obProfile.xp || 0).level < 2) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const slotsEl = document.getElementById('pinned-ach-slots');
+  if (!slotsEl) return;
+  const pinned = obProfile.pinnedAchievements || [];
+  slotsEl.innerHTML = [0,1,2].map(i => {
+    const achId = pinned[i] || null;
+    const ach = achId ? ACHIEVEMENTS.find(a => a.id === achId) : null;
+    if (ach) {
+      return '<div onclick="openAchPicker(' + i + ')" style="flex:1;min-width:0;background:rgba(108,92,231,0.1);border:0.5px solid rgba(108,92,231,0.3);border-radius:14px;padding:10px 8px;text-align:center;cursor:pointer" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">'
+        + '<div style="font-size:22px;margin-bottom:4px">' + ach.emoji + '</div>'
+        + '<div style="font-size:10px;font-weight:700;color:var(--a);line-height:1.2">' + (_lang==='en'?ach.title_en:ach.title_fr) + '</div>'
+        + '</div>';
+    }
+    return '<div onclick="openAchPicker(' + i + ')" style="flex:1;min-width:0;background:var(--s2);border:1.5px dashed rgba(108,92,231,0.25);border-radius:14px;padding:10px 8px;text-align:center;cursor:pointer;opacity:0.55" ontouchstart="this.style.opacity=.35" ontouchend="this.style.opacity=.55">'
+      + '<div style="font-size:20px;margin-bottom:4px;color:var(--muted2)">&#65291;</div>'
+      + '<div style="font-size:10px;font-weight:600;color:var(--muted2)">' + (_lang==='en'?'Add':'Ajouter') + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function openAchPicker(slotIdx) {
+  _achPickerSlot = slotIdx;
+  const unlocked = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+  const valid = ACHIEVEMENTS.filter(a => unlocked.has(a.id));
+  const pinned = obProfile.pinnedAchievements || [];
+  const list = document.getElementById('ach-picker-list');
+  if (!list) return;
+  if (!valid.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted2);font-size:13px">' + (_lang==='en'?'No achievements unlocked yet':'Aucun succ\u00e8s d\u00e9bloqu\u00e9 pour l\u2019instant') + '</div>';
+  } else {
+    list.innerHTML = valid.map(a => {
+      const isPinned = pinned.includes(a.id);
+      return '<div onclick="pinAchievement(' + slotIdx + ',\'' + a.id + '\')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:' + (isPinned?'rgba(108,92,231,0.1)':'var(--s2)') + ';border:0.5px solid ' + (isPinned?'var(--a)':'var(--border2)') + ';border-radius:12px;cursor:pointer">'
+        + '<span style="font-size:24px;flex-shrink:0">' + a.emoji + '</span>'
+        + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:var(--text)">' + (_lang==='en'?a.title_en:a.title_fr) + '</div>'
+        + '<div style="font-size:11px;color:var(--muted2)">' + (_lang==='en'?a.desc_en:a.desc_fr) + '</div></div>'
+        + (isPinned ? '<div style="width:18px;height:18px;background:var(--a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;flex-shrink:0">&#10003;</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+  const modal = document.getElementById('ach-picker-modal');
+  if (modal) modal.style.display = 'flex';
+}
+
+function closeAchPicker() {
+  const modal = document.getElementById('ach-picker-modal');
+  if (modal) modal.style.display = 'none';
+  _achPickerSlot = -1;
+}
+
+async function pinAchievement(slotIdx, achId) {
+  let pinned = [...(obProfile.pinnedAchievements || [null, null, null])];
+  while (pinned.length < 3) pinned.push(null);
+  const already = pinned.indexOf(achId);
+  if (already !== -1 && already !== slotIdx) pinned[already] = null;
+  pinned[slotIdx] = achId;
+  obProfile.pinnedAchievements = pinned.slice(0, 3);
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  closeAchPicker();
+  renderPinnedAchievements();
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) _sb.from('profiles').update({ pinned_achievements: obProfile.pinnedAchievements }).eq('id', session.user.id).then(() => {});
+  } catch(e) {}
+}
+
+function renderProfileBgPicker() {
+  const wrap = document.getElementById('profile-bg-wrap');
+  if (!wrap) return;
+  if (getLevel(obProfile.xp || 0).level < 3) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  const current = obProfile.profileBg || null;
+  const sw = document.getElementById('profile-bg-swatches');
+  if (!sw) return;
+  sw.innerHTML = PROFILE_BG_PRESETS.map(p => {
+    const active = (p.key || null) === current;
+    return '<div onclick="setProfileBg(\'' + (p.key||'') + '\')" style="width:44px;height:44px;border-radius:12px;background:' + p.grad + ';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid ' + (active?'rgba(255,255,255,0.85)':'transparent') + ';box-shadow:' + (active?'0 0 0 1.5px var(--a)':'none') + ';transition:border-color 0.2s;flex-shrink:0">' + p.label + '</div>';
+  }).join('');
+}
+
+async function setProfileBg(key) {
+  obProfile.profileBg = key || null;
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  applyProfileBg();
+  renderProfileBgPicker();
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) _sb.from('profiles').update({ profile_bg: obProfile.profileBg || null }).eq('id', session.user.id).then(() => {});
+  } catch(e) {}
+}
+
+function applyProfileBg() {
+  const overlay = document.getElementById('profile-bg-overlay');
+  if (!overlay) return;
+  const preset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (obProfile.profileBg || null)) || PROFILE_BG_PRESETS[0];
+  overlay.style.background = preset.grad;
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────────────────────────────────────
@@ -4935,6 +5081,8 @@ async function onAuthSuccess(user) {
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass: rawPlatforms.includes('__gp__'),
         xp: profile.xp || 0,
+        pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
+        profileBg: profile.profile_bg || null,
       };
       // Sync Supabase achievements → localStorage so they don't re-fire on a new device
       if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
@@ -5463,6 +5611,8 @@ async function syncFromSupabase(user) {
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass,
         xp: profile.xp || obProfile.xp || 0,
+        pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : (obProfile.pinnedAchievements || []),
+        profileBg: profile.profile_bg !== undefined ? profile.profile_bg : (obProfile.profileBg || null),
       };
       // Merge Supabase achievements into localStorage (cross-device sync)
       if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
@@ -9029,6 +9179,22 @@ function renderFriendProfile(friend) {
     } else { _fpAchEl.style.display = 'none'; }
   } else if (_fpAchEl) { _fpAchEl.style.display = 'none'; }
 
+  // Pinned achievement badges
+  const _fpPinEl = document.getElementById('fp-pinned-ach');
+  if (_fpPinEl) {
+    const _fpPins = Array.isArray(friend.pinned_achievements) ? friend.pinned_achievements.filter(Boolean) : [];
+    if (_fpPins.length > 0) {
+      _fpPinEl.innerHTML = _fpPins.map(id => {
+        const _a = ACHIEVEMENTS.find(a => a.id === id);
+        if (!_a) return '';
+        return '<div style="background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:12px;padding:8px 10px;text-align:center;min-width:58px">'
+          + '<div style="font-size:20px;margin-bottom:3px">' + _a.emoji + '</div>'
+          + '<div style="font-size:9px;font-weight:700;color:var(--a);line-height:1.2">' + (_lang==='en'?_a.title_en:_a.title_fr) + '</div>'
+          + '</div>';
+      }).join('');
+      _fpPinEl.style.display = 'flex';
+    } else { _fpPinEl.style.display = 'none'; }
+  }
   // 1v1 comparison
   _renderFpVs(friend);
   // B — Banner dynamique
@@ -10843,6 +11009,9 @@ function applyProfileToUI() {
   if (nameEl) nameEl.textContent = nm;
   if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
   renderXpBar();
+  renderPinnedAchievements();
+  renderProfileBgPicker();
+  applyProfileBg();
   // Show active account email
   _sb.auth.getSession().then(({ data: { session } }) => {
     const email = session?.user?.email;
@@ -12094,6 +12263,17 @@ async function _createQuizChallenge(quizId, quizName, friendId) {
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return null;
+    // Block duplicate: prevent same quiz between same two players while one is still active
+    const { data: _dupCheck } = await _sb.from('quiz_challenges')
+      .select('id')
+      .or(`and(challenger_id.eq.${user.id},challenged_id.eq.${friendId}),and(challenger_id.eq.${friendId},challenged_id.eq.${user.id})`)
+      .eq('quiz_id', quizId)
+      .neq('status', 'completed')
+      .maybeSingle();
+    if (_dupCheck) {
+      showToast(_lang === 'en' ? 'A challenge for this quiz is already pending!' : 'Un défi pour ce quiz est déjà en cours !');
+      return null;
+    }
     const { data, error } = await _sb.from('quiz_challenges').insert({
       challenger_id: user.id, challenged_id: friendId,
       quiz_id: quizId, quiz_name: quizName, status: 'pending'
