@@ -2195,6 +2195,11 @@ html, body {
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.pending">Demandes reçues</div>
           <div id="social-pending-list"></div>
         </div>
+        <!-- Leaderboard -->
+        <div id="social-leaderboard" style="margin-bottom:18px;display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">🏆 Classement</div>
+          <div id="social-leaderboard-list" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
         <!-- Friends row (stories) -->
         <div id="social-friends-section">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.my_friends">Mes amis</div>
@@ -2236,6 +2241,8 @@ html, body {
           <button id="fp-quiz-btn" onclick="challengeFriendToQuiz()" style="display:none;margin-top:14px;padding:9px 20px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.quiz_challenge">⚡ Défier</button>
         </div>
       </div>
+      <!-- Comparaison 1v1 -->
+      <div id="fp-vs-section" style="display:none;margin-bottom:16px"></div>
       <!-- Screenshots de l'ami -->
       <div id="fp-screenshots-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">📷 Captures d'écran</div>
@@ -3724,10 +3731,10 @@ const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
 // ── XP & LEVELS ──────────────────────────────────────────────────────────
 const XP_LEVELS = [
   { level:1, xp:0,    title_fr:'🎮 Joueur',      title_en:'🎮 Player',   slots:3  },
-  { level:2, xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:5  },
-  { level:3, xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:10 },
-  { level:4, xp:900,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:15 },
-  { level:5, xp:2000, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
+  { level:2, xp:175,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:5  },
+  { level:3, xp:475,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:10 },
+  { level:4, xp:1050, title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:15 },
+  { level:5, xp:2400, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
 ];
 function getLevel(xp) {
   let lvl = XP_LEVELS[0];
@@ -8287,6 +8294,7 @@ async function loadSocialScreen() {
   }
   _socialFriends = [...friends];
   checkAchievements();
+  renderSocialLeaderboard();
 
   // Fetch profiles for pending requesters
   let pendingWithProfiles = [];
@@ -8325,6 +8333,94 @@ function _friendAvHtml(p, size) {
   return `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px">${av}</div>`;
 }
 
+function renderSocialLeaderboard() {
+  const el = document.getElementById('social-leaderboard');
+  const list = document.getElementById('social-leaderboard-list');
+  if (!el || !list) return;
+  const myXp = obProfile.xp || 0;
+  const entries = [
+    { id:'__me__', username: obProfile.username || 'Moi', xp: myXp,
+      avatar: obProfile.avatar || '🎮', avatar_grad: obProfile.avatarGrad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+      avatar_url: obProfile.avatarUrl || null, isMe: true },
+    ...(_socialFriends||[]).map(p => ({ ...p, isMe: false }))
+  ].sort((a,b) => (b.xp||0) - (a.xp||0));
+  if (entries.length < 2) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+  const medals = ['🥇','🥈','🥉'];
+  list.innerHTML = entries.map((e, i) => {
+    const lvl = getLevel(e.xp || 0);
+    const lvlTitle = _lang === 'en' ? lvl.title_en : lvl.title_fr;
+    const medal = i < 3 ? medals[i] : String(i + 1);
+    const border = e.isMe ? 'border:1.5px solid var(--a)' : 'border:0.5px solid var(--border2)';
+    const bg = e.isMe ? 'background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(162,155,254,0.08))' : 'background:var(--s1)';
+    const grad = e.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
+    const av = e.avatar_url
+      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${e.avatar_url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${e.avatar||'🎮'}';this.parentElement.style='width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px'"></div>`
+      : `<div style="width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${e.avatar||'🎮'}</div>`;
+    return `<div style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+      <div style="width:24px;text-align:center;font-size:${i<3?18:13}px;font-weight:700;flex-shrink:0${i>=3?';color:var(--muted2)':''}">${medal}</div>
+      ${av}
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;${e.isMe?'color:var(--a)':'color:var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.isMe?'⭐ '+e.username:e.username}</div>
+        <div style="font-size:11px;color:var(--muted2)">${lvlTitle}</div>
+      </div>
+      <div style="font-size:13px;font-weight:800;font-family:'Space Grotesk',sans-serif;${e.isMe?'color:var(--a)':'color:var(--text);opacity:0.8'}">${e.xp||0} XP</div>
+    </div>`;
+  }).join('');
+}
+
+function _renderFpVs(friend) {
+  const el = document.getElementById('fp-vs-section');
+  if (!el) return;
+  const myXp  = obProfile.xp || 0;
+  const fXp   = friend.xp || 0;
+  const myAch = (_getUnlockedAchievements()||[]).length;
+  const fAch  = Array.isArray(friend.achievements) ? friend.achievements.length : 0;
+  const myGames = GAMES.length;
+  const fGames  = (friend.games||[]).length;
+  const myDone = GAMES.filter(g => (userGames[g.id]||g).status === 'finished').length;
+  const fDone  = (friend.games||[]).filter(g => g.status === 'finished' || g.status === 'platine').length;
+  const diff = myXp - fXp;
+  let msg;
+  const fname = friend.username || 'ton ami';
+  if (Math.abs(diff) < 25) {
+    msg = "Égalité parfaite ! 🤝 Qui va craquer en premier ?";
+  } else if (diff > 0) {
+    if (diff > 500) msg = "Tu écrases " + fname + " — " + diff + " XP d'avance ! 🔥";
+    else if (diff > 150) msg = "Belle avance sur " + fname + " — continue comme ça 💪";
+    else msg = "Légèrement devant " + fname + " — ça va se jouer ! ⚡";
+  } else {
+    const behind = Math.abs(diff);
+    if (behind > 500) msg = fname + " te coiffe de " + behind + " XP 👀 Rattrape-le !";
+    else if (behind > 150) msg = fname + " a de l'avance — tu peux le battre 🎯";
+    else msg = fname + " est juste devant — c'est maintenant ou jamais ! 🔥";
+  }
+  const vsRow = (icon, label, myVal, fVal) => {
+    const myW = myVal > fVal, fW = fVal > myVal;
+    const myCol = myW ? 'color:var(--a)' : 'color:var(--text);opacity:0.65';
+    const fCol  = fW  ? 'color:var(--a2)' : 'color:var(--text);opacity:0.65';
+    return `<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:9px 0;border-bottom:0.5px solid rgba(255,255,255,0.07)"><div style="text-align:right;font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif;${myCol}">${myVal}${myW ? ' ✓' : ''}</div><div style="font-size:10px;font-weight:700;color:var(--muted2);text-align:center;letter-spacing:0.04em;text-transform:uppercase;white-space:nowrap;padding:0 4px">${icon} ${label}</div><div style="text-align:left;font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif;${fCol}">${fVal}${fW ? ' ✓' : ''}</div></div>`;
+  };
+  el.style.display = 'block';
+  el.innerHTML =
+    '<div style="background:linear-gradient(135deg,rgba(108,92,231,0.12),rgba(253,121,168,0.08));border:0.5px solid rgba(108,92,231,0.3);border-radius:18px;padding:14px 16px;overflow:hidden;position:relative">' +
+      '<div style="position:absolute;top:-24px;right:-24px;width:90px;height:90px;background:radial-gradient(circle,rgba(108,92,231,0.18),transparent 70%);pointer-events:none"></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase">⚔️ Duel</div>' +
+        '<div style="display:flex;align-items:center;gap:6px">' +
+          '<span style="font-size:12px;font-weight:700;color:var(--a)">Moi</span>' +
+          '<span style="font-size:10px;color:var(--muted2)">vs</span>' +
+          '<span style="font-size:12px;font-weight:700;color:var(--a2)">' + (friend.username||'Ami') + '</span>' +
+        '</div>' +
+      '</div>' +
+      vsRow('⚡', 'XP', myXp, fXp) +
+      vsRow('🏆', 'Succès', myAch, fAch) +
+      vsRow('🎮', 'Jeux', myGames, fGames) +
+      vsRow('✅', 'Terminés', myDone, fDone) +
+      '<div style="margin-top:12px;padding:10px 12px;background:rgba(0,0,0,0.2);border-radius:12px;font-size:12px;font-weight:600;color:var(--muted2);text-align:center;line-height:1.4">' + msg + '</div>' +
+    '</div>';
+}
+
 function renderSocialScreen(uid) {
   // Pending section
   const pendingEl = document.getElementById('social-pending');
@@ -8352,15 +8448,23 @@ function renderSocialScreen(uid) {
   // Friends row (stories style)
   const friendsList = document.getElementById('social-friends-list');
   if (_socialFriends.length) {
-    friendsList.innerHTML = _socialFriends.map(p => `
-      <div onclick="openFriendProfile('${p.id}')" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:66px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
-        <div style="padding:2.5px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2))">
-          <div style="padding:2px;border-radius:50%;background:var(--bg);display:flex">
-            ${_friendAvHtml(p,54)}
+    friendsList.innerHTML = _socialFriends.map(p => {
+      const _fLvl = getLevel(p.xp || 0);
+      const _fLvlEmoji = (_fLvl.title_fr || '').split(' ')[0] || '🎮';
+      return `
+      <div onclick="openFriendProfile('${p.id}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;width:70px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="position:relative">
+          <div style="padding:2.5px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2))">
+            <div style="padding:2px;border-radius:50%;background:var(--bg);display:flex">
+              ${_friendAvHtml(p,54)}
+            </div>
           </div>
+          <div style="position:absolute;bottom:0;right:0;background:var(--bg);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${_fLvlEmoji}</div>
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--text);max-width:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${p.username||'Gamer'}</div>
-      </div>`).join('') + `
+        <div style="font-size:11px;font-weight:600;color:var(--text);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${p.username||'Gamer'}</div>
+        <div style="font-size:10px;color:var(--muted2);font-weight:600">${p.xp||0} XP</div>
+      </div>`;
+    }).join('') + `
       <div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;width:66px">
         <div style="width:63px;height:63px;border-radius:50%;border:1.5px dashed var(--border2);display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--muted2)">+</div>
         <div style="font-size:11px;color:var(--muted2)">${t('social.add')}</div>
@@ -8725,6 +8829,8 @@ function renderFriendProfile(friend) {
     } else { _fpAchEl.style.display = 'none'; }
   } else if (_fpAchEl) { _fpAchEl.style.display = 'none'; }
 
+  // 1v1 comparison
+  _renderFpVs(friend);
   // B — Banner dynamique
   fpSetBanner(friend.games || []);
 
