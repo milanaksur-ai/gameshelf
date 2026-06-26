@@ -2287,6 +2287,30 @@ html, body {
       </div>
     </div>
   </div>
+  <!-- LEVEL-UP OVERLAY -->
+  <div id="levelup-overlay" onclick="closeLevelUpOverlay()" style="display:none;position:fixed;inset:0;z-index:995;background:rgba(0,0,0,0.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:24px">
+    <canvas id="levelup-canvas" style="position:absolute;inset:0;pointer-events:none"></canvas>
+    <div onclick="event.stopPropagation()" style="position:relative;z-index:2;width:100%;max-width:340px;background:linear-gradient(160deg,#1a1040 0%,#0d0d1a 100%);border:1px solid rgba(108,92,231,0.4);border-radius:28px;padding:36px 28px 28px;text-align:center;box-shadow:0 0 60px rgba(108,92,231,0.25),0 24px 48px rgba(0,0,0,0.6)">
+      <!-- Corner glows -->
+      <div style="position:absolute;top:-30px;left:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(108,92,231,0.3),transparent 70%);pointer-events:none"></div>
+      <div style="position:absolute;bottom:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(253,121,168,0.2),transparent 70%);pointer-events:none"></div>
+      <!-- Header -->
+      <div style="font-size:10px;font-weight:800;letter-spacing:0.18em;text-transform:uppercase;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px" data-i18n="levelup.header">✦ Niveau supérieur ✦</div>
+      <!-- Rank emoji -->
+      <div id="lu-emoji" style="font-size:72px;line-height:1;margin-bottom:16px;filter:drop-shadow(0 0 20px rgba(108,92,231,0.6))"></div>
+      <!-- Rank title -->
+      <div id="lu-title" style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;color:#fff;margin-bottom:6px"></div>
+      <!-- Level number -->
+      <div id="lu-level" style="font-size:12px;font-weight:700;color:var(--muted2);letter-spacing:0.06em;margin-bottom:24px"></div>
+      <!-- Divider -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(108,92,231,0.4),transparent);margin-bottom:20px"></div>
+      <!-- Benefits -->
+      <div id="lu-benefits" style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px"></div>
+      <!-- CTA -->
+      <button onclick="closeLevelUpOverlay()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;color:#fff;cursor:pointer;letter-spacing:0.02em" data-i18n="levelup.cta">Continuer →</button>
+    </div>
+  </div>
+
   <!-- Friend full library modal -->
   <div id="fp-lib-modal" style="display:none;position:fixed;inset:0;z-index:500;background:var(--bg);flex-direction:column">
     <div style="padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
@@ -3901,16 +3925,94 @@ function _spawnToastParticles(cx, cy) {
     setTimeout(() => p.remove(), 800);
   }
 }
+let _luAnimFrame = null;
+function closeLevelUpOverlay() {
+  const ov = document.getElementById('levelup-overlay');
+  if (!ov) return;
+  ov.style.display = 'none';
+  if (_luAnimFrame) { cancelAnimationFrame(_luAnimFrame); _luAnimFrame = null; }
+  const cv = document.getElementById('levelup-canvas');
+  if (cv) { const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height); }
+}
 function _celebrateLevelUp(lvl) {
-  const title = _lang === 'en' ? lvl.title_en : lvl.title_fr;
-  const slots = lvl.slots === Infinity ? (_lang === 'en' ? 'Unlimited collections' : 'Collections illimitées') : lvl.slots + ' collections';
-  _celebrateRichToast({
-    emoji: '🎉',
-    subtitle: _lang === 'en' ? 'Level up!' : 'Niveau supérieur !',
-    title: (_lang === 'en' ? 'Level ' : 'Niveau ') + lvl.level + ' · ' + title.split(' ').slice(1).join(' '),
-    detail: slots,
-    delay: 0,
-  });
+  const fr = _lang !== 'en';
+  const title = fr ? lvl.title_fr : lvl.title_en;
+  const titleParts = title.split(' ');
+  const emoji = titleParts[0];
+  const name = titleParts.slice(1).join(' ');
+  const slots = lvl.slots === Infinity
+    ? (fr ? 'Collections illimitées' : 'Unlimited collections')
+    : lvl.slots + (fr ? ' collections' : ' collections');
+  const nextLvl = XP_LEVELS.find(l => l.level === lvl.level + 1);
+  const benefits = [];
+  if (lvl.level === 2) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+  else if (lvl.level === 3) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+  else if (lvl.level === 4) benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+  else if (lvl.level === 5) benefits.push({ icon:'📚', text: fr ? 'Collections illimitées !' : 'Unlimited collections!' });
+  if (nextLvl) {
+    const needed = nextLvl.xp - lvl.xp;
+    benefits.push({ icon:'🎯', text: fr ? `Prochain rang à ${nextLvl.xp} XP` : `Next rank at ${nextLvl.xp} XP` });
+  }
+  const luEmoji = document.getElementById('lu-emoji');
+  const luTitle = document.getElementById('lu-title');
+  const luLevel = document.getElementById('lu-level');
+  const luBenefits = document.getElementById('lu-benefits');
+  if (!luEmoji) return;
+  luEmoji.textContent = emoji;
+  luTitle.textContent = name;
+  luLevel.textContent = (fr ? 'Niveau ' : 'Level ') + lvl.level + (lvl.level === 5 ? ' · MAX' : '');
+  luBenefits.innerHTML = benefits.map(b =>
+    `<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border-radius:12px;padding:12px 16px;font-size:14px;color:#e8e0ff">`+
+    `<span style="font-size:20px">${b.icon}</span><span>${b.text}</span></div>`
+  ).join('');
+  const ov = document.getElementById('levelup-overlay');
+  ov.style.display = 'flex';
+  _luStartParticles();
+}
+function _luStartParticles() {
+  if (_luAnimFrame) { cancelAnimationFrame(_luAnimFrame); _luAnimFrame = null; }
+  const cv = document.getElementById('levelup-canvas');
+  if (!cv) return;
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  const ctx = cv.getContext('2d');
+  const colors = ['#6c5ce7','#fd79a8','#fdcb6e','#00cec9','#a29bfe','#ff7675','#55efc4'];
+  const particles = Array.from({length: 90}, (_, i) => ({
+    x: Math.random() * cv.width,
+    y: -10 - Math.random() * cv.height * 0.4,
+    r: 3 + Math.random() * 5,
+    color: colors[i % colors.length],
+    vx: (Math.random() - 0.5) * 2.5,
+    vy: 1.5 + Math.random() * 3,
+    spin: (Math.random() - 0.5) * 0.15,
+    angle: Math.random() * Math.PI * 2,
+    life: 1,
+  }));
+  let tick = 0;
+  function frame() {
+    tick++;
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    let alive = 0;
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.angle += p.spin;
+      if (p.y > cv.height + 20) { p.y = -10; p.x = Math.random() * cv.width; p.life = 1; }
+      if (tick > 120) p.life = Math.max(0, p.life - 0.012);
+      if (p.life <= 0) continue;
+      alive++;
+      ctx.save();
+      ctx.globalAlpha = p.life * 0.85;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.angle);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
+      ctx.restore();
+    }
+    if (alive > 0) _luAnimFrame = requestAnimationFrame(frame);
+    else { _luAnimFrame = null; ctx.clearRect(0, 0, cv.width, cv.height); }
+  }
+  _luAnimFrame = requestAnimationFrame(frame);
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────────────────────────────────────
@@ -7428,7 +7530,7 @@ function quickStatusChange(id, status) {
       duration: 500, easing: 'easeOutBack',
       complete() { c.style.transition = ''; } });
   }
-  setTimeout(() => refreshViews(), 520);
+  setTimeout(() => { refreshViews(); checkAchievements(); }, 520);
 }
 
 // ══════════════════════════════════════
@@ -11202,13 +11304,30 @@ async function saveEditProfile() {
 // ══════════════════════════════════════
 async function clearLibrary() {
   if (!confirm('Vider la bibliothèque ? Tous tes jeux seront supprimés, ton profil sera conservé.')) return;
+  const scored = _xpFlags('scored');
+  const vibed  = _xpFlags('vibed');
+  const noted  = _xpFlags('noted');
+  const lostXp = scored.size * 10 + vibed.size * 5 + noted.size * 15;
   GAMES.length = 0;
   Object.keys(userGames).forEach(k => delete userGames[k]);
+  ['scored','vibed','noted'].forEach(k => localStorage.removeItem('gs_xp_' + k));
+  localStorage.removeItem('gs_xp_backfilled');
+  if (lostXp > 0 && obProfile) {
+    obProfile.xp = Math.max(0, (obProfile.xp || 0) - lostXp);
+    localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  }
   saveToStorage();
   refreshViews();
   showToast('Bibliothèque vidée');
-  const { data: { session } } = await _sb.auth.getSession();
-  if (session) await _sb.from('user_games').delete().eq('user_id', session.user.id);
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      _sb.from('user_games').delete().eq('user_id', session.user.id).then(() => {});
+      if (lostXp > 0) {
+        _sb.from('profiles').update({ xp: obProfile?.xp || 0, xp_backfilled: false }).eq('id', session.user.id).then(() => {});
+      }
+    }
+  } catch(e) {}
 }
 
 // ══════════════════════════════════════
@@ -11757,7 +11876,23 @@ async function showQuizConfrontation(ch) {
   const total = meTotal || meAnswers.length || 8;
   const won = meScore > oppScore;
   const draw = meScore === oppScore;
-  if (won && !_xpFlags('chall_won').has(String(ch.id))) { _setXpFlag('chall_won', ch.id); gainXp(30, 'challenge', ''); }
+  const _challXpKey = `xp_chall_${ch.id}`;
+  const _localAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+  if (won && !_localAch.has(_challXpKey)) {
+    _setXpFlag('chall_won', ch.id);
+    gainXp(30, 'challenge', '');
+    _localAch.add(_challXpKey);
+    localStorage.setItem('gs_achievements', JSON.stringify([..._localAch]));
+    try {
+      const _cs = await _sb.auth.getSession();
+      if (_cs.data.session?.user) {
+        const _pi = await _sb.from('profiles').select('achievements').eq('id', _cs.data.session.user.id).single();
+        const _da = new Set(Array.isArray(_pi.data?.achievements) ? _pi.data.achievements : []);
+        _da.add(_challXpKey);
+        _sb.from('profiles').update({ achievements: [..._da] }).eq('id', _cs.data.session.user.id).then(() => {});
+      }
+    } catch(e) {}
+  }
 
   const resultColor = won ? '#55efc4' : draw ? 'var(--amber)' : '#ff7675';
   const resultLabel = won ? '🏆 Victoire !' : draw ? '🤝 Égalité !' : '💀 Défaite';
