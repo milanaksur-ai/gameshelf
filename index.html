@@ -2059,6 +2059,14 @@ html, body {
                   <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.danger_lib_sub">Supprime tous les jeux mais garde ton profil</div>
                 </div>
               </button>
+              <div style="height:0.5px;background:rgba(255,82,82,0.15)"></div>
+              <button onclick="resetProgress()" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">⚡</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--red)" data-i18n="settings.danger_prog">Réinitialiser XP et succès</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.danger_prog_sub">Recalcule tout depuis zéro, jeux intacts</div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -3132,6 +3140,7 @@ const LANG = {
       about:'Fait avec passion par Milan', privacy:'Mentions légales & Confidentialité',
       danger:'Zone danger', updates:'✨ Nouveautés', faq:'FAQ',
       danger_lib:'Vider la bibliothèque', danger_lib_sub:'Supprime tous les jeux mais garde ton profil',
+      danger_prog:'Réinitialiser XP et succès', danger_prog_sub:'Recalcule tout depuis zéro, jeux intacts',
       feature_tour:'🎯 Relancer le tour des features',
       feedback_label:'Bug, suggestion, idée — tout est bienvenu',
       share_label:"Inviter un ami à rejoindre",
@@ -3460,6 +3469,7 @@ const LANG = {
       about:'Made with passion by Milan', privacy:'Legal & Privacy',
       danger:'Danger zone', updates:'✨ What\'s new', faq:'FAQ',
       danger_lib:'Clear library', danger_lib_sub:'Deletes all games but keeps your profile',
+      danger_prog:'Reset XP & achievements', danger_prog_sub:'Recalculates everything from scratch, library intact',
       feature_tour:'🎯 Restart feature tour',
       feedback_label:'Bug, suggestion, idea — all welcome',
       share_label:'Invite a friend to join',
@@ -11303,18 +11313,35 @@ async function saveEditProfile() {
 // ══════════════════════════════════════
 // CLEAR LIBRARY
 // ══════════════════════════════════════
+// Achievement IDs that depend on the game library + their XP values
+const _LIB_ACH_XP = { lib_10:30, lib_25:50, lib_50:100, score_5:20, score_20:50, note_3:25, finish_5:40, lvl_3:0, lvl_5:0 };
+
 async function clearLibrary() {
   if (!confirm('Vider la bibliothèque ? Tous tes jeux seront supprimés, ton profil sera conservé.')) return;
+  // XP from per-game interactions
   const scored = _xpFlags('scored');
   const vibed  = _xpFlags('vibed');
   const noted  = _xpFlags('noted');
-  const lostXp = scored.size * 10 + vibed.size * 5 + noted.size * 15;
+  const gameXp = scored.size * 10 + vibed.size * 5 + noted.size * 15;
+  // XP from library-based achievements — remove those too
+  let localAch;
+  try { localAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]')); } catch(e) { localAch = new Set(); }
+  let achXp = 0;
+  for (const [id, xp] of Object.entries(_LIB_ACH_XP)) {
+    if (localAch.has(id)) { achXp += xp; localAch.delete(id); }
+  }
+  const totalLost = gameXp + achXp;
+  // Clear games
   GAMES.length = 0;
   Object.keys(userGames).forEach(k => delete userGames[k]);
+  // Clear XP flags
   ['scored','vibed','noted'].forEach(k => localStorage.removeItem('gs_xp_' + k));
   localStorage.removeItem('gs_xp_backfilled');
-  if (lostXp > 0 && obProfile) {
-    obProfile.xp = Math.max(0, (obProfile.xp || 0) - lostXp);
+  // Persist cleaned achievements
+  localStorage.setItem('gs_achievements', JSON.stringify([...localAch]));
+  // Deduct XP
+  if (obProfile) {
+    obProfile.xp = Math.max(0, (obProfile.xp || 0) - totalLost);
     localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   }
   saveToStorage();
@@ -11324,11 +11351,38 @@ async function clearLibrary() {
     const { data: { session } } = await _sb.auth.getSession();
     if (session) {
       _sb.from('user_games').delete().eq('user_id', session.user.id).then(() => {});
-      if (lostXp > 0) {
-        _sb.from('profiles').update({ xp: obProfile?.xp || 0, xp_backfilled: false }).eq('id', session.user.id).then(() => {});
-      }
+      _sb.from('profiles').update({
+        xp: obProfile?.xp || 0,
+        xp_backfilled: false,
+        achievements: [...localAch],
+      }).eq('id', session.user.id).then(() => {});
     }
   } catch(e) {}
+}
+
+async function resetProgress() {
+  if (!confirm(_lang === 'en'
+    ? 'Reset all XP and achievements? Your library and collections are untouched. XP will be recalculated from scratch.'
+    : 'Réinitialiser XP et succès ? Ta bibliothèque et tes collections restent intactes. Le XP sera recalculé depuis zéro.')) return;
+  // Wipe all XP flags and achievements from localStorage
+  ['scored','vibed','noted','quizzed'].forEach(k => localStorage.removeItem('gs_xp_' + k));
+  localStorage.removeItem('gs_xp_backfilled');
+  localStorage.removeItem('gs_achievements');
+  if (obProfile) {
+    obProfile.xp = 0;
+    localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  }
+  // Sync reset to Supabase
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (session) {
+      await _sb.from('profiles').update({ xp: 0, xp_backfilled: false, achievements: [] }).eq('id', session.user.id);
+    }
+  } catch(e) {}
+  refreshViews();
+  showToast(_lang === 'en' ? 'XP reset — recalculating…' : 'XP réinitialisé — recalcul en cours…');
+  // Re-run backfill and check achievements so everything is immediately consistent
+  setTimeout(() => { _backfillXp(); checkAchievements(); }, 400);
 }
 
 // ══════════════════════════════════════
