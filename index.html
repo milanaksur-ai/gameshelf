@@ -1733,7 +1733,7 @@ html, body {
   <!-- PROFILE -->
   <div class="screen" id="screen-profile" style="position:relative;overflow:hidden">
     <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.7"></canvas>
-    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.4;pointer-events:none;transition:background 0.5s ease"></div>
+    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.85;pointer-events:none;transition:background 0.5s ease"></div>
     <div class="scroll-area" style="position:relative;z-index:1">
       <div class="profile-header anim">
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
@@ -2241,7 +2241,7 @@ html, body {
 
   <!-- FRIEND PROFILE (full-screen overlay) -->
   <div class="screen" id="screen-friend-profile" style="position:absolute;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column">
-    <div id="fp-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.4;pointer-events:none;transition:background 0.5s ease"></div>
+    <div id="fp-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.85;pointer-events:none;transition:background 0.5s ease"></div>
     <div style="position:relative;z-index:1;padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
       <button onclick="closeFriendProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
@@ -2251,7 +2251,7 @@ html, body {
     </div>
     <div class="scroll-area" style="position:relative;z-index:1;padding:0 16px calc(80px + env(safe-area-inset-bottom))">
       <!-- Hero card -->
-      <div id="fp-hero-card" style="position:relative;overflow:hidden;background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
+      <div id="fp-hero-card" style="position:relative;overflow:hidden;background:rgba(16,16,26,0.5);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:0.5px solid var(--border2);border-radius:20px;padding:20px;margin-bottom:16px;text-align:center">
         <div id="fp-hero-content" style="position:relative;z-index:2">
           <div id="fp-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
           <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
@@ -4105,13 +4105,20 @@ function _luStartParticles() {
 // ── PINNED ACHIEVEMENTS + PROFILE BACKGROUND ────────────────────────────────
 let _achPickerSlot = -1;
 
+// grad = aperçu (swatch carré) · overlay = fond dramatique appliqué au profil
 const PROFILE_BG_PRESETS = [
-  { key: null,      grad: 'linear-gradient(135deg,#6c5ce7,#fd79a8)', label: '🎮' },
-  { key: 'space',   grad: 'linear-gradient(135deg,#0f0c29,#302b63)', label: '🌌' },
-  { key: 'crimson', grad: 'linear-gradient(135deg,#300000,#aa0000)', label: '🔴' },
-  { key: 'forest',  grad: 'linear-gradient(135deg,#0a3d1f,#1db954)', label: '🌿' },
-  { key: 'ocean',   grad: 'linear-gradient(135deg,#001f3f,#00a8cc)', label: '🌊' },
-  { key: 'gold',    grad: 'linear-gradient(135deg,#2d2400,#ffd700)', label: '✨' },
+  { key: null,      label: '🎮', grad: 'linear-gradient(135deg,#7b6ef6,#e84393)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #7b6ef6 0%, #e84393 42%, transparent 76%), linear-gradient(180deg, rgba(123,110,246,0.35) 0%, transparent 45%)' },
+  { key: 'space',   label: '🌌', grad: 'linear-gradient(135deg,#5b4bdb,#130f40)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #6c5ce7 0%, #1e1148 44%, transparent 78%), linear-gradient(180deg, rgba(40,20,90,0.45) 0%, transparent 50%)' },
+  { key: 'crimson', label: '🔴', grad: 'linear-gradient(135deg,#ff4d4d,#7a0010)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #ff4d4d 0%, #7a0010 44%, transparent 78%), linear-gradient(180deg, rgba(150,0,20,0.4) 0%, transparent 48%)' },
+  { key: 'forest',  label: '🌿', grad: 'linear-gradient(135deg,#2ee87a,#064d27)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #2ee87a 0%, #064d27 44%, transparent 78%), linear-gradient(180deg, rgba(10,90,45,0.4) 0%, transparent 48%)' },
+  { key: 'ocean',   label: '🌊', grad: 'linear-gradient(135deg,#22d3ff,#023e7d)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #22d3ff 0%, #023e7d 44%, transparent 78%), linear-gradient(180deg, rgba(2,62,125,0.42) 0%, transparent 48%)' },
+  { key: 'gold',    label: '✨', grad: 'linear-gradient(135deg,#ffd84d,#8a6100)',
+    overlay: 'radial-gradient(135% 65% at 50% 10%, #ffd84d 0%, #8a6100 44%, transparent 78%), linear-gradient(180deg, rgba(138,97,0,0.4) 0%, transparent 48%)' },
 ];
 
 function renderPinnedAchievements() {
@@ -4213,7 +4220,7 @@ function applyProfileBg() {
   const overlay = document.getElementById('profile-bg-overlay');
   if (!overlay) return;
   const preset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (obProfile.profileBg || null)) || PROFILE_BG_PRESETS[0];
-  overlay.style.background = preset.grad;
+  overlay.style.background = preset.overlay || preset.grad;
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────────────────────────────────────
@@ -8803,11 +8810,11 @@ function _renderFpVs(friend) {
   if (!el) return;
   const myXp  = obProfile.xp || 0;
   const fXp   = friend.xp || 0;
-  const myAch = (_getUnlockedAchievements()||[]).length;
+  const myAch = _getUnlockedAchievements().size;
   const fAch  = Array.isArray(friend.achievements) ? friend.achievements.length : 0;
   const myGames = GAMES.length;
   const fGames  = (friend.games||[]).length;
-  const myDone = GAMES.filter(g => (userGames[g.id]||g).status === 'finished').length;
+  const myDone = _finishedCount();
   const fDone  = (friend.games||[]).filter(g => g.status === 'finished' || g.status === 'platine').length;
   const diff = myXp - fXp;
   let msg;
@@ -9262,7 +9269,7 @@ function renderFriendProfile(friend) {
   const _fpBgEl = document.getElementById('fp-bg-overlay');
   if (_fpBgEl) {
     const _fpPreset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (friend.profile_bg || null)) || PROFILE_BG_PRESETS[0];
-    _fpBgEl.style.background = _fpPreset.grad;
+    _fpBgEl.style.background = _fpPreset.overlay || _fpPreset.grad;
   }
 
   // Pinned achievement badges
