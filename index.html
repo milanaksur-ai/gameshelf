@@ -1721,6 +1721,13 @@ html, body {
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
         <div class="profile-name" id="app-profile-name">Gamer</div>
         <div class="profile-handle" id="app-profile-handle">@gamer</div>
+        <div id="app-profile-rank" style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 13px;font-size:12px;font-weight:700;color:var(--a);margin-top:8px;margin-bottom:4px">🎮 Joueur</div>
+        <div style="display:flex;align-items:center;gap:8px;margin:4px 0 6px">
+          <div id="app-xp-bar-wrap" style="width:130px;height:4px;background:var(--s3);border-radius:2px;overflow:hidden">
+            <div id="app-xp-bar" style="height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:2px;width:0%;transition:width 0.7s cubic-bezier(0.22,1,0.36,1)"></div>
+          </div>
+          <div id="app-xp-label" style="font-size:10px;color:var(--muted2);white-space:nowrap">0 XP</div>
+        </div>
         <button onclick="openEditProfile()" style="margin-top:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:6px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span data-i18n="profile.edit">Modifier le profil</span>
@@ -2179,7 +2186,8 @@ html, body {
         <div id="fp-hero-content" style="position:relative;z-index:2">
           <div id="fp-avatar" style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#6c5ce7,#fd79a8);font-size:32px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 4px 20px rgba(0,0,0,0.4)"></div>
           <div id="fp-name" style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;margin-bottom:2px"></div>
-          <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:8px"></div>
+          <div id="fp-handle" style="font-size:12px;color:var(--muted2);margin-bottom:6px"></div>
+          <div id="fp-rank" style="display:none;align-items:center;justify-content:center;gap:5px;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 13px;font-size:12px;font-weight:700;color:var(--a);width:fit-content;margin:0 auto 8px"></div>
           <div id="fp-bio" style="font-size:13px;color:var(--muted2);line-height:1.5;margin-bottom:10px"></div>
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
@@ -3174,6 +3182,8 @@ const LANG = {
       playing_empty:'Rien en cours…',
       playing_empty_sub:"Ton backlog a sûrement une pépite qui t'attend.",
       no_screenshots:"Aucun screenshot pour l'instant. Ajoute-en depuis la fiche d'un jeu.",
+      xp_level:'Niveau', xp_label:'XP',
+      slot_full:'Collections limitées à {n} au niveau {lvl}. Note plus de jeux pour monter de niveau !',
       no_reviews:'Aucun avis récent',
       no_recos:'Aucun jeu ici pour l\'instant.',
       add_first_screenshot:'Ajouter ta première capture',
@@ -3410,6 +3420,8 @@ const LANG = {
       playing_empty:'Nothing playing…',
       playing_empty_sub:'Your backlog probably has a gem waiting for you.',
       no_screenshots:'No screenshots yet. Add some from a game card.',
+      xp_level:'Level', xp_label:'XP',
+      slot_full:'Collections capped at {n} for level {lvl}. Rate more games to level up!',
       no_reviews:'No recent reviews',
       no_recos:'No games here yet.',
       add_first_screenshot:'Add your first screenshot',
@@ -3604,6 +3616,66 @@ const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // PUSH NOTIFICATIONS
 // ══════════════════════════════════════
 const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
+
+// ── XP & LEVELS ──────────────────────────────────────────────────────────
+const XP_LEVELS = [
+  { level:1, xp:0,    title_fr:'🎮 Joueur',      title_en:'🎮 Player',   slots:5  },
+  { level:2, xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:15 },
+  { level:3, xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:30 },
+  { level:4, xp:900,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:50 },
+  { level:5, xp:2000, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
+];
+function getLevel(xp) {
+  let lvl = XP_LEVELS[0];
+  for (const l of XP_LEVELS) { if ((xp||0) >= l.xp) lvl = l; }
+  return lvl;
+}
+function getLevelTitle(xp) {
+  const l = getLevel(xp);
+  return _lang === 'en' ? l.title_en : l.title_fr;
+}
+function _xpFlags(key) { try { return new Set(JSON.parse(localStorage.getItem('gs_xp_'+key)||'[]')); } catch(e) { return new Set(); } }
+function _setXpFlag(key, val) { const s=_xpFlags(key); s.add(String(val)); localStorage.setItem('gs_xp_'+key, JSON.stringify([...s])); }
+async function gainXp(amount) {
+  const before = obProfile.xp || 0;
+  const after  = before + amount;
+  const lvlBefore = getLevel(before).level;
+  obProfile.xp = after;
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  renderXpBar();
+  // Sync to Supabase fire-and-forget
+  try {
+    const { data:{ user } } = await _sb.auth.getUser();
+    if (user) _sb.from('profiles').update({ xp: after }).eq('id', user.id).then(() => {});
+  } catch(e) {}
+  // Level-up celebration
+  if (getLevel(after).level > lvlBefore) _celebrateLevelUp(getLevel(after));
+}
+function renderXpBar() {
+  const xp  = obProfile.xp || 0;
+  const lvl = getLevel(xp);
+  const next = XP_LEVELS.find(l => l.level === lvl.level + 1);
+  const rankEl = document.getElementById('app-profile-rank');
+  const barEl  = document.getElementById('app-xp-bar');
+  const lblEl  = document.getElementById('app-xp-label');
+  if (rankEl) rankEl.textContent = getLevelTitle(xp);
+  if (next) {
+    const pct = Math.min(100, Math.round(((xp - lvl.xp) / (next.xp - lvl.xp)) * 100));
+    if (barEl) barEl.style.width = pct + '%';
+    if (lblEl) lblEl.textContent = xp + ' / ' + next.xp + ' XP';
+  } else {
+    if (barEl) barEl.style.width = '100%';
+    if (lblEl) lblEl.textContent = xp + ' XP · MAX';
+  }
+}
+function _celebrateLevelUp(lvl) {
+  const title = _lang === 'en' ? lvl.title_en : lvl.title_fr;
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:calc(80px + env(safe-area-inset-bottom) + 12px);left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-family:"Space Grotesk",sans-serif;font-weight:800;font-size:14px;padding:12px 24px;border-radius:50px;z-index:9999;white-space:nowrap;box-shadow:0 4px 24px rgba(108,92,231,0.5);animation:fadeIn 0.3s ease';
+  toast.textContent = '🎉 Niveau ' + lvl.level + ' · ' + title + ' !';
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(() => toast.remove(), 400); }, 3500);
+}
 const VAPID_PUBLIC_KEY = 'BDjp6ICwMTmKuT6bkL_f0I4fWtNw96Tf9bQa109UkVj-s1NOP8dkIV_xS5N_AGJUigN6y8ke1fqyCYtMMBIJ4b4';
 
 function _b64ToU8(b64) {
@@ -4458,6 +4530,7 @@ async function onAuthSuccess(user) {
         bio: profile.bio || '',
         platforms: rawPlatforms.filter(p => p !== '__gp__'),
         gamepass: rawPlatforms.includes('__gp__'),
+        xp: profile.xp || 0,
       };
       localStorage.setItem('gs_user_id', user.id);
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
@@ -5713,11 +5786,13 @@ function setVibe(vibe) {
   if (!currentGame) return;
   const ug = userGames[currentGame.id];
   const arr = _vibeArr(ug.vibe);
+  const wasEmpty = arr.length === 0;
   const idx = arr.indexOf(vibe);
   ug.vibe = idx >= 0 ? arr.filter(k => k !== vibe) : [...arr, vibe];
   if (ug.vibe.length === 0) ug.vibe = null;
   renderVibe(ug.vibe, ug.score > 0);
   saveToStorage();
+  if (wasEmpty && idx < 0 && !_xpFlags('vibed').has(String(currentGame.id))) { _setXpFlag('vibed', currentGame.id); gainXp(5); }
 }
 
 function renderStars(cur, status, doAnim = false) {
@@ -5749,6 +5824,7 @@ function renderStars(cur, status, doAnim = false) {
       renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
       saveToStorage();
+      if (!_xpFlags('scored').has(String(currentGame.id))) { _setXpFlag('scored', currentGame.id); gainXp(10); }
     };
     row.appendChild(b);
   }
@@ -5819,6 +5895,7 @@ function setStatus(s) {
 
 function saveGame() {
   const ug = userGames[currentGame.id];
+  const _hadNotes = !!(ug.notes && ug.notes.trim());
   ug.notes = document.getElementById('notes-input').value;
   const h = parseInt(document.getElementById('hours-input').value) || 0;
   ug.hours = h;
@@ -5830,6 +5907,7 @@ function saveGame() {
   renderFeed();
   saveToStorage();
   if (ug._justFinished) { try { celebrateStatus(ug.status); } catch(e) {} delete ug._justFinished; }
+  if (!_hadNotes && ug.notes.trim() && !_xpFlags('noted').has(String(currentGame.id))) { _setXpFlag('noted', currentGame.id); gainXp(15); }
   showToast(t('toast.saved'));
   setTimeout(() => appGoBack(), 600);
 }
@@ -8172,6 +8250,12 @@ function renderFriendProfile(friend) {
   document.getElementById('fp-name').textContent = friend.username || '';
   document.getElementById('fp-handle').textContent = '@' + (friend.username||'').toLowerCase().replace(/\s+/g,'');
   document.getElementById('fp-bio').textContent = friend.bio || '';
+  const _fpRankEl = document.getElementById('fp-rank');
+  if (_fpRankEl && friend.xp !== undefined) {
+    const _fpLvl = getLevel(friend.xp);
+    _fpRankEl.textContent = _lang === 'en' ? _fpLvl.title_en : _fpLvl.title_fr;
+    _fpRankEl.style.display = 'inline-flex';
+  } else if (_fpRankEl) { _fpRankEl.style.display = 'none'; }
 
   // B — Banner dynamique
   fpSetBanner(friend.games || []);
@@ -9302,6 +9386,12 @@ function selectCollectionEmoji(emoji, el) {
 function confirmCreateCollection() {
   const name = document.getElementById('ncm-name-input').value.trim();
   if (!name) return;
+  const _lvl = getLevel(obProfile.xp || 0);
+  if (userCollections.length >= _lvl.slots) {
+    const msg = (_lang === 'en' ? _lvl.title_en : _lvl.title_fr);
+    showToast(t('profile.slot_full').replace('{n}', _lvl.slots).replace('{lvl}', msg));
+    return;
+  }
   const c = {
     id: `col_${Date.now()}`,
     name,
@@ -9927,6 +10017,7 @@ function applyProfileToUI() {
   const hdlEl  = document.getElementById('app-profile-handle');
   if (nameEl) nameEl.textContent = nm;
   if (hdlEl)  hdlEl.textContent = '@' + nm.toLowerCase().replace(/\s+/g,'');
+  renderXpBar();
   // Show active account email
   _sb.auth.getSession().then(({ data: { session } }) => {
     const email = session?.user?.email;
@@ -10864,6 +10955,7 @@ function showQuizResults() {
   localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
   saveQuizScore(_quizActive.id, _quizScore, total);
   if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
+  if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20); }
   document.getElementById('quiz-progress-fill').style.width = '100%';
   document.getElementById('quiz-next-btn-wrap').style.display = 'none';
   const pct = Math.round((_quizScore / total) * 100);
@@ -10952,6 +11044,7 @@ async function showQuizConfrontation(ch) {
   const total = meTotal || meAnswers.length || 8;
   const won = meScore > oppScore;
   const draw = meScore === oppScore;
+  if (won && !_xpFlags('chall_won').has(String(ch.id))) { _setXpFlag('chall_won', ch.id); gainXp(30); }
 
   const resultColor = won ? '#55efc4' : draw ? 'var(--amber)' : '#ff7675';
   const resultLabel = won ? '🏆 Victoire !' : draw ? '🤝 Égalité !' : '💀 Défaite';
