@@ -4109,23 +4109,23 @@ let _achPickerSlot = -1;
 // grad = aperçu (swatch carré) · overlay = dégradé plein-écran · fx = effets de particules animés
 const PROFILE_BG_PRESETS = [
   { key: null,      label: '🎮', grad: 'linear-gradient(135deg,#7b6ef6,#e84393)',
-    overlay: 'linear-gradient(180deg,#6c5ce7 0%,#a83279 46%,#160c2a 100%)',
-    fx: { kind:'bokeh', colors:['#a29bfe','#fd79a8','#7b6ef6'], count:20, emoji:'🎮' } },
+    overlay: 'linear-gradient(180deg,#6c5ce7 0%,#7d3a8f 42%,#2a1740 100%)',
+    fx: { kind:'bokeh', colors:['#a29bfe','#fd79a8','#7b6ef6'], count:22, emoji:'🎮' } },
   { key: 'space',   label: '🌌', grad: 'linear-gradient(135deg,#5b4bdb,#130f40)',
-    overlay: 'linear-gradient(180deg,#2c1a6b 0%,#160d3a 46%,#05030f 100%)',
-    fx: { kind:'stars', colors:['#ffffff','#a29bfe','#74b9ff'], count:64, emoji:'🌟', shooting:true } },
+    overlay: 'linear-gradient(180deg,#2c1a6b 0%,#1a1048 45%,#0a0820 100%)',
+    fx: { kind:'stars', colors:['#ffffff','#a29bfe','#74b9ff'], count:70, emoji:'🌟', shooting:true } },
   { key: 'crimson', label: '🔴', grad: 'linear-gradient(135deg,#ff4d4d,#7a0010)',
-    overlay: 'linear-gradient(180deg,#8b0010 0%,#4a0008 46%,#0c0203 100%)',
-    fx: { kind:'embers', colors:['#ff6b35','#ff3838','#ffa94d'], count:42 } },
+    overlay: 'linear-gradient(180deg,#8b0010 0%,#5a0410 45%,#1a0206 100%)',
+    fx: { kind:'embers', colors:['#ff6b35','#ff3838','#ffa94d'], count:46 } },
   { key: 'forest',  label: '🌿', grad: 'linear-gradient(135deg,#2ee87a,#064d27)',
-    overlay: 'linear-gradient(180deg,#0a7a3c 0%,#064d27 46%,#021a0e 100%)',
-    fx: { kind:'leaves', colors:['#2ee87a','#7bed9f','#26de81'], count:16, emoji:'🍃' } },
+    overlay: 'linear-gradient(180deg,#0a7a3c 0%,#06532b 45%,#031f12 100%)',
+    fx: { kind:'leaves', colors:['#2ee87a','#7bed9f','#26de81'], count:18, emoji:'🍃' } },
   { key: 'ocean',   label: '🌊', grad: 'linear-gradient(135deg,#22d3ff,#023e7d)',
-    overlay: 'linear-gradient(180deg,#0066b3 0%,#023e7d 46%,#02101f 100%)',
-    fx: { kind:'bubbles', colors:['#7fdbff','#48dbfb','#a8e6ff'], count:22, emoji:'🌊', waves:'#22d3ff' } },
+    overlay: 'linear-gradient(180deg,#0066b3 0%,#024a8a 45%,#021a33 100%)',
+    fx: { kind:'bubbles', colors:['#7fdbff','#48dbfb','#a8e6ff'], count:24, emoji:'🌊', waves:'#22d3ff' } },
   { key: 'gold',    label: '✨', grad: 'linear-gradient(135deg,#ffd84d,#8a6100)',
-    overlay: 'linear-gradient(180deg,#b8860b 0%,#6b4e00 46%,#120c00 100%)',
-    fx: { kind:'sparkle', colors:['#ffd84d','#ffe98a','#fff3c4'], count:34, emoji:'✨' } },
+    overlay: 'linear-gradient(180deg,#b8860b 0%,#7a5600 45%,#241800 100%)',
+    fx: { kind:'sparkle', colors:['#ffd84d','#ffe98a','#fff3c4'], count:36, emoji:'✨' } },
 ];
 
 function renderPinnedAchievements() {
@@ -5033,9 +5033,13 @@ function startThemeBg(canvas, themeKey) {
   stopThemeBg(canvas);
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
+  canvas._themeKey = themeKey || null;
   const cfg = _fxConfigFor(themeKey);
-  const W = canvas.width = canvas.offsetWidth || window.innerWidth;
-  const H = canvas.height = canvas.offsetHeight || window.innerHeight;
+  // Mesure robuste : le canvas couvre tout l'écran (inset:0). On ne sous-dimensionne
+  // jamais sous la taille du viewport pour éviter que les particules se tassent en haut.
+  const rect = canvas.getBoundingClientRect();
+  const W = canvas.width  = Math.max(Math.round(rect.width),  window.innerWidth  || 0) || 360;
+  const H = canvas.height = Math.max(Math.round(rect.height), window.innerHeight || 0) || 640;
   const parts = [];
   for (let i = 0; i < (cfg.count || 20); i++) parts.push(_mkThemePart(cfg, W, H, true));
   const emojis = [];
@@ -5071,8 +5075,22 @@ function startThemeBg(canvas, themeKey) {
 
 function stopThemeBg(canvas) { if (canvas && canvas._themeStop) canvas._themeStop(); }
 
+// Re-dimensionne les fonds animés actifs au resize / changement d'orientation
+let _themeResizeRAF = null;
+window.addEventListener('resize', () => {
+  if (_themeResizeRAF) cancelAnimationFrame(_themeResizeRAF);
+  _themeResizeRAF = requestAnimationFrame(() => {
+    [pCanvas, document.getElementById('fp-particles')].forEach(cv => {
+      if (cv && cv._themeRaf) startThemeBg(cv, cv._themeKey);
+    });
+  });
+});
+
 // Compat : appelées depuis appGoTo('profile')
-function startProfileParticles() { startThemeBg(pCanvas, obProfile.profileBg || null); }
+function startProfileParticles() {
+  // double rAF : on laisse le layout de l'écran se stabiliser avant de mesurer le canvas
+  requestAnimationFrame(() => requestAnimationFrame(() => startThemeBg(pCanvas, obProfile.profileBg || null)));
+}
 function stopProfileParticles() { stopThemeBg(pCanvas); }
 
 // ══════════════════════════════════════

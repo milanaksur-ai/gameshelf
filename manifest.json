@@ -5,7 +5,7 @@
   "start_url": "/",
   "display": "fullscreen",
   "background_color": "#080810",
-  "theme_color": "#6c5ce7",
+  "theme_color": "#080810",
   "orientation": "portrait-primary",
   "lang": "fr",
   "categories": ["games", "entertainment"],
