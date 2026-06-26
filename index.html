@@ -36,6 +36,8 @@
   --red:     #ff5252;
   --safe-t:  env(safe-area-inset-top, 0px);
   --safe-b:  env(safe-area-inset-bottom, 0px);
+  /* Android renvoie souvent 0 pour l'inset bas → on garantit une marge mini */
+  --safe-b-min: max(env(safe-area-inset-bottom, 0px), 12px);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body {
@@ -254,14 +256,14 @@ html, body {
 }
 .screen { display: none; flex-direction: column; flex: 1; overflow: hidden; width: 100%; }
 .screen.active { display: flex; }
-.scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: calc(80px + var(--safe-b)); }
+.scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: calc(80px + var(--safe-b-min)); }
 .scroll-area::-webkit-scrollbar { display: none; }
 
 /* nav */
 #app-nav {
   position: fixed; bottom: 0; left: 0; right: 0; margin: 0 auto;
   width: 100%; max-width: 430px;
-  height: calc(64px + var(--safe-b)); padding-bottom: var(--safe-b);
+  height: calc(64px + var(--safe-b-min)); padding-bottom: var(--safe-b-min);
   background: rgba(8,8,16,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border-top: 0.5px solid var(--border);
   display: flex; align-items: center; justify-content: space-around; z-index: 400;
@@ -495,7 +497,7 @@ html, body {
 ══════════════════════════════════════ */
 #nav-indicator {
   position: absolute;
-  bottom: calc(var(--safe-b) + 5px);
+  bottom: calc(var(--safe-b-min) + 5px);
   height: 3px; width: 24px;
   background: linear-gradient(90deg, var(--a), var(--a2));
   border-radius: 2px;
