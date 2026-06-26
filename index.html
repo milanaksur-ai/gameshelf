@@ -1732,8 +1732,8 @@ html, body {
 
   <!-- PROFILE -->
   <div class="screen" id="screen-profile" style="position:relative;overflow:hidden">
-    <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.7"></canvas>
-    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.85;pointer-events:none;transition:background 0.5s ease"></div>
+    <div id="profile-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.62;pointer-events:none;transition:background 0.5s ease"></div>
+    <canvas id="profile-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.9"></canvas>
     <div class="scroll-area" style="position:relative;z-index:1">
       <div class="profile-header anim">
         <div class="profile-av" id="app-profile-av" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)">🎮</div>
@@ -2241,7 +2241,8 @@ html, body {
 
   <!-- FRIEND PROFILE (full-screen overlay) -->
   <div class="screen" id="screen-friend-profile" style="position:absolute;inset:0;z-index:200;background:var(--bg);display:none;flex-direction:column">
-    <div id="fp-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.85;pointer-events:none;transition:background 0.5s ease"></div>
+    <div id="fp-bg-overlay" style="position:absolute;inset:0;z-index:0;opacity:0.62;pointer-events:none;transition:background 0.5s ease"></div>
+    <canvas id="fp-particles" style="position:absolute;inset:0;pointer-events:none;z-index:0;opacity:0.9"></canvas>
     <div style="position:relative;z-index:1;padding:calc(var(--safe-t)+14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
       <button onclick="closeFriendProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
@@ -2781,7 +2782,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_1">Système XP : gagne de l'expérience en notant, jouant et écrivant des avis 🏅</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_2">Célébration animée à chaque montée de niveau 🎉</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_3">Niveau 2 → 3 succès épinglés sur ton profil</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_4">Niveau 3 → fond de profil personnalisable (6 thèmes)</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_4">Niveau 3 → fonds de profil animés (vagues 🌊, étoiles 🌌, braises 🔴…)</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_5">Tous les avantages de chaque palier visibles dans ta progression</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_6">30+ succès à débloquer (notes, jeux finis, amis…) + réinitialisation possible</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.xp_7">Impossible de renvoyer deux fois le même défi quiz à un ami</li>
@@ -3241,7 +3242,7 @@ const LANG = {
       xp_1:'Système XP : gagne de l\'expérience en notant, jouant et écrivant des avis 🏅',
       xp_2:'Célébration animée à chaque montée de niveau 🎉',
       xp_3:'Niveau 2 → 3 succès épinglés sur ton profil',
-      xp_4:'Niveau 3 → fond de profil personnalisable (6 thèmes)',
+      xp_4:'Niveau 3 → fonds de profil animés (vagues 🌊, étoiles 🌌, braises 🔴…)',
       xp_5:'Tous les avantages de chaque palier visibles dans ta progression',
       xp_6:'30+ succès à débloquer (notes, jeux finis, amis…) + réinitialisation possible',
       xp_7:'Impossible de renvoyer deux fois le même défi quiz à un ami',
@@ -3701,7 +3702,7 @@ const LANG = {
       xp_1:'XP system: earn experience by rating, playing and writing reviews 🏅',
       xp_2:'Animated celebration each time you level up 🎉',
       xp_3:'Level 2 → 3 pinned achievements on your profile',
-      xp_4:'Level 3 → customizable profile background (6 themes)',
+      xp_4:'Level 3 → animated profile backgrounds (waves 🌊, stars 🌌, embers 🔴…)',
       xp_5:'Every perk for each level now visible in your progression',
       xp_6:'30+ achievements to unlock (ratings, finished games, friends…) + reset option',
       xp_7:'Can\'t send the same quiz challenge twice to a friend',
@@ -4105,20 +4106,26 @@ function _luStartParticles() {
 // ── PINNED ACHIEVEMENTS + PROFILE BACKGROUND ────────────────────────────────
 let _achPickerSlot = -1;
 
-// grad = aperçu (swatch carré) · overlay = fond dramatique appliqué au profil
+// grad = aperçu (swatch carré) · overlay = dégradé plein-écran · fx = effets de particules animés
 const PROFILE_BG_PRESETS = [
   { key: null,      label: '🎮', grad: 'linear-gradient(135deg,#7b6ef6,#e84393)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #7b6ef6 0%, #e84393 42%, transparent 76%), linear-gradient(180deg, rgba(123,110,246,0.35) 0%, transparent 45%)' },
+    overlay: 'linear-gradient(180deg,#6c5ce7 0%,#a83279 46%,#160c2a 100%)',
+    fx: { kind:'bokeh', colors:['#a29bfe','#fd79a8','#7b6ef6'], count:20, emoji:'🎮' } },
   { key: 'space',   label: '🌌', grad: 'linear-gradient(135deg,#5b4bdb,#130f40)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #6c5ce7 0%, #1e1148 44%, transparent 78%), linear-gradient(180deg, rgba(40,20,90,0.45) 0%, transparent 50%)' },
+    overlay: 'linear-gradient(180deg,#2c1a6b 0%,#160d3a 46%,#05030f 100%)',
+    fx: { kind:'stars', colors:['#ffffff','#a29bfe','#74b9ff'], count:64, emoji:'🌟', shooting:true } },
   { key: 'crimson', label: '🔴', grad: 'linear-gradient(135deg,#ff4d4d,#7a0010)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #ff4d4d 0%, #7a0010 44%, transparent 78%), linear-gradient(180deg, rgba(150,0,20,0.4) 0%, transparent 48%)' },
+    overlay: 'linear-gradient(180deg,#8b0010 0%,#4a0008 46%,#0c0203 100%)',
+    fx: { kind:'embers', colors:['#ff6b35','#ff3838','#ffa94d'], count:42 } },
   { key: 'forest',  label: '🌿', grad: 'linear-gradient(135deg,#2ee87a,#064d27)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #2ee87a 0%, #064d27 44%, transparent 78%), linear-gradient(180deg, rgba(10,90,45,0.4) 0%, transparent 48%)' },
+    overlay: 'linear-gradient(180deg,#0a7a3c 0%,#064d27 46%,#021a0e 100%)',
+    fx: { kind:'leaves', colors:['#2ee87a','#7bed9f','#26de81'], count:16, emoji:'🍃' } },
   { key: 'ocean',   label: '🌊', grad: 'linear-gradient(135deg,#22d3ff,#023e7d)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #22d3ff 0%, #023e7d 44%, transparent 78%), linear-gradient(180deg, rgba(2,62,125,0.42) 0%, transparent 48%)' },
+    overlay: 'linear-gradient(180deg,#0066b3 0%,#023e7d 46%,#02101f 100%)',
+    fx: { kind:'bubbles', colors:['#7fdbff','#48dbfb','#a8e6ff'], count:22, emoji:'🌊', waves:'#22d3ff' } },
   { key: 'gold',    label: '✨', grad: 'linear-gradient(135deg,#ffd84d,#8a6100)',
-    overlay: 'radial-gradient(135% 65% at 50% 10%, #ffd84d 0%, #8a6100 44%, transparent 78%), linear-gradient(180deg, rgba(138,97,0,0.4) 0%, transparent 48%)' },
+    overlay: 'linear-gradient(180deg,#b8860b 0%,#6b4e00 46%,#120c00 100%)',
+    fx: { kind:'sparkle', colors:['#ffd84d','#ffe98a','#fff3c4'], count:34, emoji:'✨' } },
 ];
 
 function renderPinnedAchievements() {
@@ -4209,6 +4216,7 @@ async function setProfileBg(key) {
   obProfile.profileBg = key || null;
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   applyProfileBg();
+  startThemeBg(pCanvas, obProfile.profileBg || null);
   renderProfileBgPicker();
   try {
     const { data: { session } } = await _sb.auth.getSession();
@@ -4936,57 +4944,136 @@ window.addEventListener('resize', initParticles);
 // ══════════════════════════════════════
 // PROFILE PARTICLES
 // ══════════════════════════════════════
+// ── Moteur de fond animé thématique (réutilisable sur plusieurs canvas) ──
 const pCanvas = document.getElementById('profile-particles');
-const pCtx = pCanvas ? pCanvas.getContext('2d') : null;
-let profileParts = [];
-let profilePartRAF = null;
-let profilePartActive = false;
 
-function initProfileParticles() {
-  if (!pCanvas || !pCtx) return;
-  pCanvas.width = pCanvas.offsetWidth || window.innerWidth;
-  pCanvas.height = pCanvas.offsetHeight || window.innerHeight;
-  profileParts = [];
-  for (let i = 0; i < 18; i++) {
-    profileParts.push({
-      x: Math.random() * pCanvas.width,
-      y: Math.random() * pCanvas.height,
-      r: Math.random() * 1.8 + 0.4,
-      vx: (Math.random() - 0.5) * 0.18,
-      vy: -(Math.random() * 0.3 + 0.1),
-      o: Math.random() * 0.25 + 0.06,
-      c: Math.random() > 0.45 ? '#00cec9' : Math.random() > 0.5 ? '#6c5ce7' : '#a29bfe'
-    });
+function _hexA(c, a) { return c + Math.round(Math.max(0, Math.min(1, a)) * 255).toString(16).padStart(2, '0'); }
+function _rnd(a, b) { return a + Math.random() * (b - a); }
+
+function _fxConfigFor(themeKey) {
+  const p = PROFILE_BG_PRESETS.find(x => (x.key || null) === (themeKey || null)) || PROFILE_BG_PRESETS[0];
+  return p.fx || PROFILE_BG_PRESETS[0].fx;
+}
+
+function _mkThemePart(cfg, W, H, atTop) {
+  const c = cfg.colors[Math.floor(Math.random() * cfg.colors.length)];
+  switch (cfg.kind) {
+    case 'stars':   return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(0.5,1.9), c, ph:_rnd(0,6.28), tw:_rnd(0.01,0.04), vx:_rnd(-0.04,0.04), vy:_rnd(-0.04,0.04) };
+    case 'embers':  return { x:_rnd(0,W), y:atTop?_rnd(0,H):_rnd(H*0.5,H), r:_rnd(1,2.6), c, vy:-_rnd(0.3,0.95), sway:_rnd(6,18), ph:_rnd(0,6.28), life:_rnd(0.2,1) };
+    case 'leaves':  return { x:_rnd(0,W), y:_rnd(-H,H), r:_rnd(3,6), c, vy:_rnd(0.4,1.05), sway:_rnd(12,32), ph:_rnd(0,6.28), spin:_rnd(0.01,0.03) };
+    case 'bubbles': return { x:_rnd(0,W), y:atTop?_rnd(0,H):_rnd(H*0.4,H), r:_rnd(2,6.5), c, vy:-_rnd(0.4,1.15), sway:_rnd(8,24), ph:_rnd(0,6.28) };
+    case 'sparkle': return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(1.6,4.2), c, ph:_rnd(0,6.28), tw:_rnd(0.02,0.06) };
+    default:        return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(16,48), c, o:_rnd(0.04,0.13), vx:_rnd(-0.14,0.14), vy:-_rnd(0.04,0.28), ph:_rnd(0,6.28), tw:_rnd(0.004,0.018) };
   }
 }
 
-function drawProfileParticles() {
-  if (!profilePartActive || !pCtx) return;
-  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-  profileParts.forEach(p => {
-    pCtx.beginPath(); pCtx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-    pCtx.fillStyle = p.c + Math.round(p.o * 255).toString(16).padStart(2, '0');
-    pCtx.fill();
-    p.x += p.vx; p.y += p.vy;
-    if (p.y < -2) p.y = pCanvas.height + 2;
-    if (p.x < 0) p.x = pCanvas.width; if (p.x > pCanvas.width) p.x = 0;
+function _drawStar4(ctx, x, y, r, fill) {
+  ctx.save(); ctx.translate(x, y); ctx.beginPath();
+  for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; const rad = (i % 2 === 0) ? r : r * 0.4; ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad); }
+  ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); ctx.restore();
+}
+
+function _drawWaves(ctx, W, H, t, col) {
+  const layers = [{ amp:15, len:0.011, sp:0.018, base:0.80, a:0.11 }, { amp:11, len:0.017, sp:0.028, base:0.87, a:0.09 }, { amp:8, len:0.024, sp:0.04, base:0.93, a:0.07 }];
+  layers.forEach(L => {
+    ctx.beginPath(); ctx.moveTo(0, H);
+    for (let x = 0; x <= W; x += 6) { const y = H * L.base + Math.sin(x * L.len + t * L.sp) * L.amp; ctx.lineTo(x, y); }
+    ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = _hexA(col, L.a); ctx.fill();
   });
-  profilePartRAF = requestAnimationFrame(drawProfileParticles);
 }
 
-function startProfileParticles() {
-  if (!pCanvas) return;
-  profilePartActive = true;
-  if (profileParts.length === 0) initProfileParticles();
-  else { pCanvas.width = pCanvas.offsetWidth || window.innerWidth; pCanvas.height = pCanvas.offsetHeight || window.innerHeight; }
-  if (!profilePartRAF) drawProfileParticles();
+function _drawThemePart(ctx, p, cfg, W, H) {
+  switch (cfg.kind) {
+    case 'stars': {
+      p.ph += p.tw; const o = 0.25 + 0.55 * Math.abs(Math.sin(p.ph));
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fillStyle = _hexA(p.c, o); ctx.fill();
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0) p.x = W; if (p.x > W) p.x = 0; if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+      break;
+    }
+    case 'embers': {
+      p.ph += 0.05; const x = p.x + Math.sin(p.ph) * p.sway; p.life -= 0.005; if (p.life < 0) p.life = 1;
+      ctx.beginPath(); ctx.arc(x, p.y, p.r, 0, 6.28); ctx.fillStyle = _hexA(p.c, 0.55 * p.life);
+      ctx.shadowBlur = 8; ctx.shadowColor = p.c; ctx.fill(); ctx.shadowBlur = 0;
+      p.y += p.vy; if (p.y < -6) { p.y = H + 6; p.x = Math.random() * W; }
+      break;
+    }
+    case 'leaves': {
+      p.ph += p.spin; const x = p.x + Math.sin(p.ph) * p.sway;
+      ctx.save(); ctx.translate(x, p.y); ctx.rotate(p.ph);
+      ctx.beginPath(); ctx.ellipse(0, 0, p.r, p.r * 0.5, 0, 0, 6.28); ctx.fillStyle = _hexA(p.c, 0.55); ctx.fill(); ctx.restore();
+      p.y += p.vy; if (p.y > H + 8) { p.y = -8; p.x = Math.random() * W; }
+      break;
+    }
+    case 'bubbles': {
+      p.ph += 0.04; const x = p.x + Math.sin(p.ph) * p.sway;
+      ctx.beginPath(); ctx.arc(x, p.y, p.r, 0, 6.28);
+      ctx.fillStyle = _hexA(p.c, 0.10); ctx.fill();
+      ctx.strokeStyle = _hexA(p.c, 0.5); ctx.lineWidth = 1.2; ctx.stroke();
+      p.y += p.vy; if (p.y < -8) { p.y = H + 8; p.x = Math.random() * W; }
+      break;
+    }
+    case 'sparkle': {
+      p.ph += p.tw; const s = Math.abs(Math.sin(p.ph)); _drawStar4(ctx, p.x, p.y, p.r * (0.4 + 0.6 * s), _hexA(p.c, 0.2 + 0.8 * s));
+      break;
+    }
+    default: { // bokeh
+      p.ph += p.tw; const o = p.o * (0.6 + 0.4 * Math.sin(p.ph));
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+      g.addColorStop(0, _hexA(p.c, o)); g.addColorStop(1, _hexA(p.c, 0));
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28); ctx.fillStyle = g; ctx.fill();
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -p.r) p.y = H + p.r; if (p.x < -p.r) p.x = W + p.r; if (p.x > W + p.r) p.x = -p.r;
+    }
+  }
 }
 
-function stopProfileParticles() {
-  profilePartActive = false;
-  if (profilePartRAF) { cancelAnimationFrame(profilePartRAF); profilePartRAF = null; }
-  if (pCtx) pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+function startThemeBg(canvas, themeKey) {
+  if (!canvas) return;
+  stopThemeBg(canvas);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const cfg = _fxConfigFor(themeKey);
+  const W = canvas.width = canvas.offsetWidth || window.innerWidth;
+  const H = canvas.height = canvas.offsetHeight || window.innerHeight;
+  const parts = [];
+  for (let i = 0; i < (cfg.count || 20); i++) parts.push(_mkThemePart(cfg, W, H, true));
+  const emojis = [];
+  if (cfg.emoji) { const ne = cfg.kind === 'leaves' ? 5 : 4; for (let i = 0; i < ne; i++) emojis.push({ x:_rnd(0,W), y:_rnd(0,H), size:_rnd(24,52), o:_rnd(0.05,0.15), vy:_rnd(0.12,0.45), vx:_rnd(-0.18,0.18), rot:_rnd(0,6.28), vr:_rnd(-0.008,0.008) }); }
+  let t = 0;
+  let shoot = null;
+  function frame() {
+    t++;
+    ctx.clearRect(0, 0, W, H);
+    if (cfg.waves) _drawWaves(ctx, W, H, t, cfg.waves);
+    emojis.forEach(e => {
+      ctx.save(); ctx.globalAlpha = e.o; ctx.font = e.size + 'px serif';
+      ctx.translate(e.x, e.y); ctx.rotate(e.rot); ctx.fillText(cfg.emoji, -e.size / 2, e.size / 3); ctx.restore();
+      e.y += e.vy; e.x += e.vx; e.rot += e.vr;
+      if (e.y > H + 60) { e.y = -60; e.x = _rnd(0, W); }
+      if (e.x < -60) e.x = W + 60; if (e.x > W + 60) e.x = -60;
+    });
+    for (const p of parts) _drawThemePart(ctx, p, cfg, W, H);
+    if (cfg.shooting) {
+      if (!shoot && Math.random() < 0.006) shoot = { x:_rnd(W * 0.1, W * 0.7), y:_rnd(0, H * 0.4), len:_rnd(60, 130), life:1 };
+      if (shoot) {
+        const a = shoot.life;
+        ctx.strokeStyle = _hexA('#ffffff', 0.7 * a); ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(shoot.x, shoot.y); ctx.lineTo(shoot.x - shoot.len, shoot.y - shoot.len * 0.5); ctx.stroke();
+        shoot.x += 5; shoot.y += 2.5; shoot.life -= 0.02; if (shoot.life <= 0) shoot = null;
+      }
+    }
+    canvas._themeRaf = requestAnimationFrame(frame);
+  }
+  canvas._themeRaf = requestAnimationFrame(frame);
+  canvas._themeStop = () => { if (canvas._themeRaf) cancelAnimationFrame(canvas._themeRaf); canvas._themeRaf = null; ctx.clearRect(0, 0, W, H); };
 }
+
+function stopThemeBg(canvas) { if (canvas && canvas._themeStop) canvas._themeStop(); }
+
+// Compat : appelées depuis appGoTo('profile')
+function startProfileParticles() { startThemeBg(pCanvas, obProfile.profileBg || null); }
+function stopProfileParticles() { stopThemeBg(pCanvas); }
 
 // ══════════════════════════════════════
 // ONBOARDING STATE
@@ -9271,6 +9358,7 @@ function renderFriendProfile(friend) {
     const _fpPreset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (friend.profile_bg || null)) || PROFILE_BG_PRESETS[0];
     _fpBgEl.style.background = _fpPreset.overlay || _fpPreset.grad;
   }
+  startThemeBg(document.getElementById('fp-particles'), friend.profile_bg || null);
 
   // Pinned achievement badges
   const _fpPinEl = document.getElementById('fp-pinned-ach');
@@ -9644,6 +9732,7 @@ function openImageLightbox(url) {
 
 function closeFriendProfile() {
   document.getElementById('screen-friend-profile').style.display = 'none';
+  stopThemeBg(document.getElementById('fp-particles'));
   _friendProfileData = null;
 }
 
