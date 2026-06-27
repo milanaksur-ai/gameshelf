@@ -1,5 +1,5 @@
 // GameShelf Service Worker — network-first, shell fallback
-const CACHE = 'gs-v1';
+const CACHE = 'gs-v2';
 const SHELL = ['/'];
 
 self.addEventListener('install', e => {
