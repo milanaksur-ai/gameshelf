@@ -2156,6 +2156,9 @@ html, body {
         <!-- FICHE TECHNIQUE — dev / éditeur / franchise / durée / classification -->
         <div id="detail-info" style="display:none;margin-bottom:20px"></div>
 
+        <!-- AVIS DES AMIS -->
+        <div id="detail-friend-reviews" style="display:none;margin-bottom:20px"></div>
+
         <div class="notes-section"><div class="rating-label" data-i18n="detail.notes">Mes notes</div><textarea class="notes-input" id="notes-input" rows="3" data-i18n-ph="detail.notes_ph" placeholder="Tes impressions sur ce jeu…"></textarea></div>
 
         <!-- HEURES JOUÉES -->
@@ -2716,6 +2719,19 @@ html, body {
 
               <div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+                  <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase" data-i18n="updates.reviews">👥 Avis des amis</div>
+                  <div style="background:var(--a);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em" data-i18n="updates.new_badge">NOUVEAU</div>
+                </div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_1">Sur la fiche d'un jeu : note, vibes, heures jouées et avis de tes amis qui l'ont testé</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_2">Temps de jeu affiché aussi sur les avis des profils</li>
+                </ul>
+              </div>
+
+              <div style="height:0.5px;background:var(--border)"></div>
+
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
                   <div style="font-size:10px;font-weight:700;color:var(--a);letter-spacing:0.06em;text-transform:uppercase" data-i18n="updates.collections">📚 Collections &amp; ⚡ Défis Quiz</div>
                   <div style="background:var(--a);color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:50px;letter-spacing:.04em" data-i18n="updates.new_badge">NOUVEAU</div>
                 </div>
@@ -3142,6 +3158,7 @@ const LANG = {
       tech:'Fiche technique', notes:'Mes notes', notes_ph:'Tes impressions sur ce jeu…',
       playtime:'Temps de jeu', screenshots:"Captures d'écran", screenshots_add:"Ajouter des captures d'écran",
       similar:'Tu aimeras aussi', save:'Sauvegarder', score_clear:'Effacer', score_temp:'provisoire',
+      friend_reviews:'👥 L\'avis de tes amis',
       developer:'Développeur', publisher:'Éditeur', franchise:'Franchise',
       ttb_story:'Histoire', ttb_complete:'100%', ttb_hint:'Estimé d\'après IGDB',
     },
@@ -3217,6 +3234,9 @@ const LANG = {
     },
     updates: {
       new_badge:'NOUVEAU',
+      reviews:'👥 Avis des amis',
+      reviews_1:'Sur la fiche d\'un jeu : note, vibes, heures jouées et avis de tes amis qui l\'ont testé',
+      reviews_2:'Temps de jeu affiché aussi sur les avis des profils',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3480,6 +3500,7 @@ const LANG = {
       tech:'Game info', notes:'My notes', notes_ph:'Your thoughts on this game…',
       playtime:'Playtime', screenshots:'Screenshots', screenshots_add:'Add screenshots',
       similar:'You might also like', save:'Save', score_clear:'Clear', score_temp:'provisional',
+      friend_reviews:'👥 What your friends think',
       developer:'Developer', publisher:'Publisher', franchise:'Franchise',
       ttb_story:'Story', ttb_complete:'100%', ttb_hint:'Estimated from IGDB',
     },
@@ -3677,6 +3698,9 @@ const LANG = {
     },
     updates: {
       new_badge:'NEW',
+      reviews:'👥 Friend reviews',
+      reviews_1:'On a game page: your friends\' score, vibes, playtime and review if they\'ve played it',
+      reviews_2:'Playtime now also shown on profile reviews',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -6439,6 +6463,83 @@ function hoursToRange(h) {
   if (h < 100) return 50;
   return 200;
 }
+// Libellé lisible d'un temps de jeu (utilisé sur les avis d'amis)
+function _hoursLabel(h) {
+  const r = hoursToRange(h);
+  if (!r) return '';
+  const map = (_lang === 'en')
+    ? { 3:'🌱 Tried · <5h', 10:'🎮 Played · 5–15h', 50:'🔥 Mastered · 15–100h', 200:'💯 Obsessed · 100h+' }
+    : { 3:'🌱 Découvert · <5h', 10:'🎮 Joué · 5–15h', 50:'🔥 Maîtrisé · 15–100h', 200:'💯 Obsédé · 100h+' };
+  return map[r] || '';
+}
+
+// Charge la liste des amis (id + profil) si elle n'a pas encore été chargée,
+// sans déclencher le rendu de l'écran social.
+async function _ensureFriendsLoaded() {
+  if (_socialFriends && _socialFriends.length) return;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    const uid = session.user.id;
+    const { data: rows } = await _sb.from('friendships').select('requester_id,addressee_id,status')
+      .or(`requester_id.eq.${uid},addressee_id.eq.${uid}`);
+    if (!rows) return;
+    const acceptedIds = rows.filter(r => r.status === 'accepted')
+      .map(r => r.requester_id === uid ? r.addressee_id : r.requester_id);
+    if (!acceptedIds.length) return;
+    const { data: profiles } = await _sb.from('profiles').select('*').in('id', acceptedIds);
+    if (profiles && profiles.length) _socialFriends = [...profiles];
+  } catch (e) {}
+}
+
+// Affiche les avis des amis (note, vibes, heures, description) sur la fiche d'un jeu
+async function renderFriendGameReviews(gameId) {
+  const el = document.getElementById('detail-friend-reviews');
+  if (!el) return;
+  el.style.display = 'none';
+  el.innerHTML = '';
+  await _ensureFriendsLoaded();
+  const friends = _socialFriends || [];
+  const ids = friends.map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+  if (!ids.length) return;
+  let rows = [];
+  try {
+    const { data } = await _sb.from('user_games')
+      .select('user_id,score,notes,vibe,hours,status')
+      .eq('game_id', String(gameId))
+      .in('user_id', ids);
+    rows = data || [];
+  } catch (e) { return; }
+  // L'utilisateur a peut-être changé de fiche pendant la requête
+  if (!currentGame || String(currentGame.id) !== String(gameId)) return;
+  const reviews = rows.filter(r => (r.score || 0) > 0 || (r.notes && r.notes.trim()) || (Array.isArray(r.vibe) && r.vibe.length));
+  if (!reviews.length) return;
+  const byId = {}; friends.forEach(f => { byId[f.id] = f; });
+  reviews.sort((a, b) => (b.score || 0) - (a.score || 0));
+  const cards = reviews.map(r => {
+    const f = byId[r.user_id] || {};
+    const name = _esc(f.username || 'Ami');
+    const scoreStr = (r.score || 0) > 0 ? ((r.score % 1) ? r.score : Math.round(r.score)) + '/10' : '';
+    const vibeChips = _vibeArr(r.vibe).map(k => VIBES.find(v => v.key === k)).filter(Boolean)
+      .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.' + v.key)}</span>`).join('');
+    const hLabel = _hoursLabel(r.hours);
+    const notes = (r.notes || '').trim();
+    return `<div onclick="openFriendProfile('${r.user_id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:${(vibeChips || notes) ? '8px' : '0'}">
+        ${_friendAvHtml(f, 34)}
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</div>
+          ${hLabel ? `<div style="font-size:10px;color:var(--muted2);margin-top:1px">${hLabel}</div>` : ''}
+        </div>
+        ${scoreStr ? `<div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:3px 9px;font-size:12px;font-weight:700;color:var(--amber)">★ ${scoreStr}</div>` : ''}
+      </div>
+      ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${notes ? '6px' : '0'}">${vibeChips}</div>` : ''}
+      ${notes ? `<div style="font-size:12px;color:var(--muted);line-height:1.5">${_esc(notes)}</div>` : ''}
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div class="rating-label" style="margin-bottom:10px">${t('detail.friend_reviews')} <span style="color:var(--muted2);font-weight:600">(${reviews.length})</span></div>${cards}`;
+  el.style.display = 'block';
+}
 function selectHoursRange(val, btn) {
   const inp = document.getElementById('hours-input');
   const alreadySelected = inp && inp.value === String(val);
@@ -6548,6 +6649,8 @@ function openDetail(gameId) {
   _initDetailFx();
   // Load similar games async
   loadSimilarGames(g);
+  // Avis des amis sur ce jeu (async)
+  renderFriendGameReviews(g.id);
   // Lazy-enrich once per game: detail-only fields (dev/publisher/franchise/age/HLTB)
   // and videoId aren't present on search/grid results. Fetch the full game and merge.
   if (!g._enriched && /^\d+$/.test(String(g.id))) {
@@ -7462,6 +7565,7 @@ function _trvGameCard(g, containerId) {
         <div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--amber)">${scoreStr}</div>
       </div>
       ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${vibeChips}</div>` : ''}
+      ${_hoursLabel(g.hours) ? `<div style="font-size:10px;color:var(--muted2);margin-bottom:2px">${_hoursLabel(g.hours)}</div>` : ''}
       ${notesHtml}
     </div>
   </div>`;
