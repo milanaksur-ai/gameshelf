@@ -1657,7 +1657,10 @@ html, body {
       </div>
       <button id="ucd-menu-btn" onclick="openUserCollectionMenu()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;color:var(--muted2)">⋯</button>
     </div>
-    <div id="ucd-count" style="font-size:11px;color:var(--muted2);padding:8px 16px 0"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px 0">
+      <div id="ucd-count" style="font-size:11px;color:var(--muted2)"></div>
+      <button id="ucd-sort-btn" class="shelf-sort-btn" onclick="cycleUcdSort()" style="display:none">🔀 Perso</button>
+    </div>
     <div id="ucd-empty" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
       <div style="font-size:48px;margin-bottom:12px">📭</div>
       <div style="font-size:15px;font-weight:700;margin-bottom:4px" data-i18n="collections.no_game">Aucun jeu ici</div>
@@ -10550,17 +10553,16 @@ async function openFriendCollection(colId, userId) {
     _colCache[`friend_${colId}`] = data.games || [];
     _currentCollectionId = null;
     _ucdIsOwner = false;
+    _ucdSort = 'manual';
     const _fbadges = Array.isArray(data.game_badges) ? data.game_badges : [];
-    // Charge les données perso du propriétaire si une pastille en dépend
+    // Charge les données perso du propriétaire (pastilles + tri par note)
     _ucdOwnerGames = {};
-    if (_fbadges.some(k => k === 'score' || k === 'status' || k === 'hours')) {
-      const gids = (data.games || []).map(g => String(g.id));
-      if (gids.length) {
-        try {
-          const { data: og } = await _sb.from('user_games').select('game_id,score,status,hours').eq('user_id', userId).in('game_id', gids);
-          (og || []).forEach(r => { _ucdOwnerGames[String(r.game_id)] = r; });
-        } catch (e) {}
-      }
+    const gids = (data.games || []).map(g => String(g.id));
+    if (gids.length) {
+      try {
+        const { data: og } = await _sb.from('user_games').select('game_id,score,status,hours').eq('user_id', userId).in('game_id', gids);
+        (og || []).forEach(r => { _ucdOwnerGames[String(r.game_id)] = r; });
+      } catch (e) {}
     }
     document.getElementById('ucd-emoji').textContent = data.emoji || '📚';
     document.getElementById('ucd-title').textContent = data.name;
@@ -10577,6 +10579,7 @@ function openUserCollection(id) {
   if (!c) return;
   _currentCollectionId = id;
   _ucdIsOwner = true;
+  _ucdSort = 'manual';
   _ucdOwnerGames = userGames; // le propriétaire lit ses propres données locales
   document.getElementById('ucd-emoji').textContent = c.emoji || '📚';
   document.getElementById('ucd-title').textContent = c.name;
@@ -10597,6 +10600,35 @@ const COL_BADGES = [
 const _COL_STATUS_EMOJI = { 'finished':'✅', 'platine':'🏆', 'playing-solo':'▶️', 'playing-multi':'▶️', 'paused':'⏸️', 'backlog':'📥', 'abandoned':'🚫', 'wish':'🎁' };
 // Données perso du propriétaire pour la collection ouverte (game_id → {score,status,hours})
 let _ucdOwnerGames = {};
+
+// ── TRI DES JEUX DANS UNE COLLECTION ──────────────────────────────────
+const UCD_SORT_CYCLE = ['manual', 'score', 'meta', 'alpha'];
+let _ucdSort = 'manual';
+let _ucdCollection = null; // dernière collection rendue (propre ou ami)
+function _ucdSortLabel(key) {
+  const fr = _lang !== 'en';
+  return {
+    manual: fr ? '🔀 Perso' : '🔀 Custom',
+    score:  fr ? '★ Ma note' : '★ My rating',
+    meta:   '🏆 Metacritic',
+    alpha:  'A–Z',
+  }[key] || (fr ? '🔀 Perso' : '🔀 Custom');
+}
+function _ucdSortGames(games) {
+  if (_ucdSort === 'manual') return games;
+  const arr = [...games];
+  arr.sort((a, b) => {
+    if (_ucdSort === 'score') return ((_ucdOwnerGames[String(b.id)]?.score) || 0) - ((_ucdOwnerGames[String(a.id)]?.score) || 0);
+    if (_ucdSort === 'meta')  return (b.meta || 0) - (a.meta || 0);
+    return (a.title || '').localeCompare(b.title || '');
+  });
+  return arr;
+}
+function cycleUcdSort() {
+  const idx = UCD_SORT_CYCLE.indexOf(_ucdSort);
+  _ucdSort = UCD_SORT_CYCLE[(idx + 1) % UCD_SORT_CYCLE.length];
+  if (_ucdCollection) _renderUCDGames(_ucdCollection);
+}
 
 function _colPill(content, color) {
   return `<span style="font-size:9px;font-weight:800;background:rgba(0,0,0,0.62);border-radius:6px;padding:1.5px 5px;line-height:1.5;color:${color||'#fff'};white-space:nowrap">${content}</span>`;
@@ -10625,12 +10657,18 @@ function _colBadgeHtml(g, badges) {
 }
 
 function _renderUCDGames(c) {
+  _ucdCollection = c;
   const games = c.games || [];
   const badges = c.gameBadges || [];
   const count = document.getElementById('ucd-count');
   const grid  = document.getElementById('ucd-grid');
   const empty = document.getElementById('ucd-empty');
+  const sortBtn = document.getElementById('ucd-sort-btn');
   count.textContent = `${games.length} jeu${games.length!==1?'x':''}`;
+  if (sortBtn) {
+    sortBtn.style.display = games.length > 1 ? 'inline-flex' : 'none';
+    sortBtn.textContent = _ucdSortLabel(_ucdSort);
+  }
   if (!games.length) {
     grid.style.display = 'none';
     empty.style.display = 'flex';
@@ -10638,7 +10676,7 @@ function _renderUCDGames(c) {
   }
   empty.style.display = 'none';
   grid.style.display = 'grid';
-  grid.innerHTML = games.map(g => {
+  grid.innerHTML = _ucdSortGames(games).map(g => {
     const src = coverUrl(g);
     return `<div style="position:relative">
       <div onclick="openGameFromCollection('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
