@@ -4515,6 +4515,8 @@ function mapIgdbGame(g) {
     cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${imageId}.jpg` : null,
     imageId,
     meta: Math.round(g.aggregated_rating || g.rating || 0) || 0,
+    category: (g.category ?? g.game_type ?? null),
+    ratingCount: (g.rating_count || g.follows || g.hypes || 0),
     platforms,
     gameModes: g.game_modes || [],
     hasMulti:  !!(g.multiplayer_modes?.length),
@@ -4587,14 +4589,64 @@ async function igdbFetch(action, extra = {}) {
 
 const DLC_RE = /\b(dlc|bundle|pack|season pass|expansion pass|artbook|soundtrack)\b/i;
 const EDITION_RE = /\s*[-:·]?\s*(deluxe|standard|gold|premium|complete|definitive|goty|game of the year|remastered|ultimate|enhanced|anniversary|extended|royal|legendary|director'?s? cut)\s*(edition)?$/i;
+// Bruit à toujours exclure d'une recherche
+const JUNK_RE = /\b(artbook|soundtrack|ost|wallpaper|avatar)\b/i;
+
+// Score de "propreté" d'une variante : on préfère le jeu de base à son édition/DLC
+function _variantScore(g) {
+  let s = 0;
+  if (!EDITION_RE.test(g.title) && !DLC_RE.test(g.title)) s += 10; // titre de base
+  if (g.cover) s += 3;
+  if (g.meta)  s += 1;
+  if (g.ratingCount) s += 1;
+  return s;
+}
+// Regroupe les variantes d'un même jeu et garde la meilleure (le jeu principal)
 function dedupByTitle(games) {
-  const seen = new Map();
-  return games.filter(g => {
+  const best = new Map();
+  const order = [];
+  for (const g of games) {
     const key = g.title.replace(EDITION_RE, '').trim().toLowerCase();
-    if (seen.has(key)) return false;
-    seen.set(key, true);
-    return true;
-  });
+    if (!best.has(key)) { best.set(key, g); order.push(key); }
+    else if (_variantScore(g) > _variantScore(best.get(key))) best.set(key, g);
+  }
+  return order.map(k => best.get(k));
+}
+
+// Tri de pertinence : jeux principaux d'abord, puis DLC, puis éditions
+// Utilise la catégorie IGDB si disponible, sinon des heuristiques sur le titre.
+function _searchTier(g) {
+  const c = g.category;
+  if (c != null) {
+    if ([1, 2, 3, 4, 6, 7, 13].includes(c)) return 1; // dlc/expansion/bundle/season/pack
+    if ([5, 12, 14].includes(c))            return 2; // mod/fork/update
+    // 0,8,9,10,11 (jeu / remake / remaster / port) → on vérifie quand même le titre
+  }
+  if (DLC_RE.test(g.title))     return 1; // DLC / pack / season pass
+  if (EDITION_RE.test(g.title)) return 2; // deluxe / GOTY / definitive…
+  return 0;                                // jeu principal
+}
+function _relevance(title, ql) {
+  if (!ql) return 0;
+  const tl = (title || '').toLowerCase();
+  if (tl === ql) return 100;
+  if (tl.startsWith(ql)) return 80;
+  if (tl.includes(ql)) return 60;
+  // recouvrement de mots
+  const qw = ql.split(/\s+/).filter(Boolean);
+  const hit = qw.filter(w => tl.includes(w)).length;
+  return qw.length ? Math.round(40 * hit / qw.length) : 0;
+}
+function _rankSearchResults(list, q) {
+  const ql = (q || '').trim().toLowerCase();
+  return list
+    .map((g, i) => ({ g, i, tier: _searchTier(g), rel: _relevance(g.title, ql) }))
+    .sort((a, b) =>
+      (a.tier - b.tier) ||
+      (b.rel - a.rel) ||
+      ((b.g.ratingCount || b.g.meta || 0) - (a.g.ratingCount || a.g.meta || 0)) ||
+      (a.i - b.i))
+    .map(s => s.g);
 }
 // game_modes: 1=Solo 2=Multi 3=Coop 4=Split 5=MMO 6=BattleRoyale
 function filterByTab(games) {
@@ -4616,22 +4668,24 @@ function filterByTab(games) {
   }
   return games;
 }
-async function igdbSearch(query, limit = 20) {
+async function igdbSearch(query, limit = 50) {
   const mode = obCurrentStatus === 'playing-multi' ? 'multi'
              : obCurrentStatus === 'playing-solo'  ? 'solo'
              : null;
   let data = await igdbFetch('search', { query, limit, mode });
   // If mode filter returned too few, retry without it
-  if (mode && (!data || data.length < 5)) {
+  if (mode && (!data || data.length < 8)) {
     data = await igdbFetch('search', { query, limit });
   }
   // If still sparse, widen the net
-  if (!data || data.length < 5) {
-    const wider = await igdbFetch('search', { query, limit: 40 });
+  if (!data || data.length < 8) {
+    const wider = await igdbFetch('search', { query, limit: Math.max(limit, 60) });
     if (wider?.length > (data?.length || 0)) data = wider;
   }
   if (!data?.length) return mockSearch(query);
-  const mapped = dedupByTitle(data.map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
+  // On garde les DLC (rangés plus bas), on exclut juste le vrai bruit (OST, artbook…)
+  let mapped = dedupByTitle(data.map(mapIgdbGame).filter(g => !JUNK_RE.test(g.title)));
+  mapped = _rankSearchResults(mapped, query);
   return mode ? filterByTab(mapped) : mapped;
 }
 
@@ -5480,7 +5534,7 @@ async function searchGames(q) {
   if (!q.trim()) { list.innerHTML='<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">Commence à taper…</div>'; return; }
   list.innerHTML='<div class="loading-dots"><span></span><span></span><span></span></div>';
   searchTimer = setTimeout(async ()=>{
-    const results = await igdbSearch(q, 30);
+    const results = await igdbSearch(q, 50);
     const qSafe = q.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     if (!results.length) { list.innerHTML=`<div style="text-align:center;padding:40px 0;color:var(--muted);font-size:13px">${t('discover.no_results')} « ${qSafe} »<br><span style="font-size:11px;opacity:.6">${t('discover.no_results_hint')}</span></div>`; return; }
     list.innerHTML = results.map(g=>{
