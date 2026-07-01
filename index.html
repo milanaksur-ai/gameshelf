@@ -1688,9 +1688,13 @@ html, body {
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 12px"></div>
       <div id="cas-collection-name" style="font-size:14px;font-weight:700;text-align:center;margin-bottom:16px"></div>
       <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="openCollectionBadges()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">🏷️</span>
+          <span data-i18n="collections.badges_menu">Infos affichées sur les jeux</span>
+        </button>
         <button onclick="openRenameCollection()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Renommer
+          <span data-i18n="collections.rename">Renommer</span>
         </button>
         <button onclick="confirmDeleteCollection()" style="width:100%;padding:14px 16px;background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:14px;font-size:14px;font-weight:600;color:var(--red);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6M14,11v6"/></svg>
@@ -1708,7 +1712,17 @@ html, body {
         <span id="rcm-emoji-display" style="font-size:22px">📚</span>Renommer
       </div>
       <input id="rcm-input" type="text" maxlength="50" placeholder="Nom de la collection…" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);outline:none;margin-bottom:14px;box-sizing:border-box" onkeydown="if(event.key==='Enter')confirmRenameCollection()">
-      <button onclick="confirmRenameCollection()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Renommer</button>
+      <button onclick="confirmRenameCollection()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.rename">Renommer</button>
+    </div>
+  </div>
+
+  <!-- COLLECTION BADGES MODAL -->
+  <div id="collection-badges-modal" onclick="closeCollectionBadges()" style="display:none;position:fixed;inset:0;z-index:930;background:rgba(0,0,0,0.75);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+24px)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px"></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px" data-i18n="collections.badges_title">Infos affichées sur les jeux</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="collections.badges_sub">Ces pastilles sont visibles par tout le monde sur cette collection.</div>
+      <div id="cbm-list" style="display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
 
@@ -2725,6 +2739,7 @@ html, body {
                 <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:5px">
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_1">Sur la fiche d'un jeu : note, vibes, heures jouées et avis de tes amis qui l'ont testé</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_2">Temps de jeu affiché aussi sur les avis des profils</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_3">Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️</li>
                 </ul>
               </div>
 
@@ -3237,6 +3252,7 @@ const LANG = {
       reviews:'👥 Avis des amis',
       reviews_1:'Sur la fiche d\'un jeu : note, vibes, heures jouées et avis de tes amis qui l\'ont testé',
       reviews_2:'Temps de jeu affiché aussi sur les avis des profils',
+      reviews_3:'Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3372,6 +3388,10 @@ const LANG = {
       delete_confirm:'Supprimer cette collection ?',
       saga_sub:'La saga complète',
       quiz_challenge:'⚡ Défier',
+      rename:'Renommer',
+      badges_menu:'Infos affichées sur les jeux',
+      badges_title:'Infos affichées sur les jeux',
+      badges_sub:'Ces pastilles sont visibles par tout le monde sur cette collection.',
     },
     profile: {
       edit:'Modifier le profil', total:'jeux au total',
@@ -3613,6 +3633,10 @@ const LANG = {
       new_mini:'+ New collection',
       no_game:'No games here',
       no_game_sub:'Add games from their detail pages',
+      rename:'Rename',
+      badges_menu:'Info shown on games',
+      badges_title:'Info shown on games',
+      badges_sub:'These badges are visible to everyone on this collection.',
       delete_confirm:'Delete this collection?',
       saga_sub:'The full saga',
       quiz_challenge:'⚡ Challenge',
@@ -3701,6 +3725,7 @@ const LANG = {
       reviews:'👥 Friend reviews',
       reviews_1:'On a game page: your friends\' score, vibes, playtime and review if they\'ve played it',
       reviews_2:'Playtime now also shown on profile reviews',
+      reviews_3:'Collections: configurable badges on each game (Metacritic, your rating, status, playtime) 🏷️',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -10359,10 +10384,12 @@ async function syncCollectionToSupabase(col) {
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
-    await _sb.from('collections').upsert({
-      id: col.id, user_id: user.id, name: col.name, emoji: col.emoji,
-      games: col.games || [], updated_at: new Date().toISOString()
-    }, { onConflict: 'id' });
+    const base = { id: col.id, user_id: user.id, name: col.name, emoji: col.emoji, games: col.games || [], updated_at: new Date().toISOString() };
+    const { error } = await _sb.from('collections').upsert({ ...base, game_badges: col.gameBadges || [] }, { onConflict: 'id' });
+    if (error) {
+      // La colonne game_badges n'existe peut-être pas encore (migration non lancée) → on sauvegarde au moins le reste
+      await _sb.from('collections').upsert(base, { onConflict: 'id' });
+    }
   } catch(e) {}
 }
 
@@ -10378,11 +10405,11 @@ async function fetchOwnCollectionsFromSupabase() {
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
-    const { data } = await _sb.from('collections').select('id,name,emoji,games,created_at').eq('user_id', user.id).order('created_at', { ascending: true });
+    const { data } = await _sb.from('collections').select('*').eq('user_id', user.id).order('created_at', { ascending: true });
     // Server is the single source of truth — replace local state entirely
     userCollections.length = 0;
     for (const d of (data || [])) {
-      userCollections.push({ id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], createdAt: d.created_at });
+      userCollections.push({ id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], gameBadges: Array.isArray(d.game_badges) ? d.game_badges : [], createdAt: d.created_at });
     }
     saveUserCollections();
     renderMyCollections();
@@ -10523,11 +10550,23 @@ async function openFriendCollection(colId, userId) {
     _colCache[`friend_${colId}`] = data.games || [];
     _currentCollectionId = null;
     _ucdIsOwner = false;
+    const _fbadges = Array.isArray(data.game_badges) ? data.game_badges : [];
+    // Charge les données perso du propriétaire si une pastille en dépend
+    _ucdOwnerGames = {};
+    if (_fbadges.some(k => k === 'score' || k === 'status' || k === 'hours')) {
+      const gids = (data.games || []).map(g => String(g.id));
+      if (gids.length) {
+        try {
+          const { data: og } = await _sb.from('user_games').select('game_id,score,status,hours').eq('user_id', userId).in('game_id', gids);
+          (og || []).forEach(r => { _ucdOwnerGames[String(r.game_id)] = r; });
+        } catch (e) {}
+      }
+    }
     document.getElementById('ucd-emoji').textContent = data.emoji || '📚';
     document.getElementById('ucd-title').textContent = data.name;
     document.getElementById('ucd-menu-btn').style.display = 'none';
     document.getElementById('ucd-add-btn').style.display = 'none';
-    _renderUCDGames({ games: data.games || [] });
+    _renderUCDGames({ games: data.games || [], gameBadges: _fbadges });
     document.getElementById('user-collection-detail').style.display = 'flex';
   } catch(e) { showToast('Erreur lors du chargement'); }
 }
@@ -10538,6 +10577,7 @@ function openUserCollection(id) {
   if (!c) return;
   _currentCollectionId = id;
   _ucdIsOwner = true;
+  _ucdOwnerGames = userGames; // le propriétaire lit ses propres données locales
   document.getElementById('ucd-emoji').textContent = c.emoji || '📚';
   document.getElementById('ucd-title').textContent = c.name;
   document.getElementById('ucd-menu-btn').style.display = 'flex';
@@ -10546,8 +10586,47 @@ function openUserCollection(id) {
   document.getElementById('user-collection-detail').style.display = 'flex';
 }
 
+// ── PASTILLES PAR JEU DANS UNE COLLECTION ─────────────────────────────
+// Config publique (game_badges) éditable seulement par le propriétaire.
+const COL_BADGES = [
+  { key:'meta',   icon:'🏆', label_fr:'Note Metacritic', label_en:'Metacritic score' },
+  { key:'score',  icon:'⭐', label_fr:'Ma note',          label_en:'My rating' },
+  { key:'status', icon:'🎮', label_fr:'Statut',           label_en:'Status' },
+  { key:'hours',  icon:'⏱',  label_fr:'Temps de jeu',     label_en:'Playtime' },
+];
+const _COL_STATUS_EMOJI = { 'finished':'✅', 'platine':'🏆', 'playing-solo':'▶️', 'playing-multi':'▶️', 'paused':'⏸️', 'backlog':'📥', 'abandoned':'🚫', 'wish':'🎁' };
+// Données perso du propriétaire pour la collection ouverte (game_id → {score,status,hours})
+let _ucdOwnerGames = {};
+
+function _colPill(content, color) {
+  return `<span style="font-size:9px;font-weight:800;background:rgba(0,0,0,0.62);border-radius:6px;padding:1.5px 5px;line-height:1.5;color:${color||'#fff'};white-space:nowrap">${content}</span>`;
+}
+function _colBadgeHtml(g, badges) {
+  if (!badges || !badges.length) return '';
+  const ug = _ucdOwnerGames[String(g.id)] || {};
+  const pills = [];
+  badges.forEach(key => {
+    if (key === 'meta') {
+      const m = g.meta || 0;
+      if (m > 0) { const col = m>=80?'#00e676':m>=60?'#ffca28':'#ff8080'; pills.push(_colPill('🏆 '+Math.round(m), col)); }
+    } else if (key === 'score') {
+      const s = ug.score || 0;
+      if (s > 0) pills.push(_colPill('⭐ '+(s%1?s:Math.round(s)), '#ffca28'));
+    } else if (key === 'status') {
+      const e = _COL_STATUS_EMOJI[ug.status];
+      if (e) pills.push(_colPill(e));
+    } else if (key === 'hours') {
+      const hm = {3:'🌱',10:'🎮',50:'🔥',200:'💯'}[hoursToRange(ug.hours||0)];
+      if (hm) pills.push(_colPill(hm));
+    }
+  });
+  if (!pills.length) return '';
+  return `<div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;gap:3px;padding:16px 4px 4px;background:linear-gradient(to top,rgba(0,0,0,0.82),transparent);pointer-events:none">${pills.join('')}</div>`;
+}
+
 function _renderUCDGames(c) {
   const games = c.games || [];
+  const badges = c.gameBadges || [];
   const count = document.getElementById('ucd-count');
   const grid  = document.getElementById('ucd-grid');
   const empty = document.getElementById('ucd-empty');
@@ -10564,7 +10643,8 @@ function _renderUCDGames(c) {
     return `<div style="position:relative">
       <div onclick="openGameFromCollection('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
-        ${_ucdIsOwner ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>` : ''}
+        ${_ucdIsOwner ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">×</button>` : ''}
+        ${_colBadgeHtml(g, badges)}
       </div>
       <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
     </div>`;
@@ -10613,6 +10693,48 @@ function openUserCollectionMenu() {
 
 function closeCollectionActionSheet() {
   document.getElementById('collection-action-sheet').style.display = 'none';
+}
+
+function _renderCollectionBadgesList() {
+  const c = userCollections.find(x => x.id === _currentCollectionId);
+  const list = document.getElementById('cbm-list');
+  if (!c || !list) return;
+  const active = c.gameBadges || [];
+  list.innerHTML = COL_BADGES.map(b => {
+    const on = active.includes(b.key);
+    const label = _lang === 'en' ? b.label_en : b.label_fr;
+    return `<button onclick="toggleCollectionBadge('${b.key}')" style="width:100%;padding:13px 15px;background:${on?'rgba(108,92,231,0.14)':'var(--s2)'};border:0.5px solid ${on?'var(--a)':'var(--border2)'};border-radius:14px;font-size:14px;font-weight:600;color:${on?'var(--a)':'var(--text)'};cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+      <span style="font-size:17px">${b.icon}</span>
+      <span style="flex:1">${label}</span>
+      <span style="width:20px;height:20px;border-radius:6px;background:${on?'var(--a)':'transparent'};border:1.5px solid ${on?'var(--a)':'var(--border2)'};display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px">${on?'✓':''}</span>
+    </button>`;
+  }).join('');
+}
+
+function openCollectionBadges() {
+  closeCollectionActionSheet();
+  const c = userCollections.find(x => x.id === _currentCollectionId);
+  if (!c) return;
+  if (!Array.isArray(c.gameBadges)) c.gameBadges = [];
+  _renderCollectionBadgesList();
+  document.getElementById('collection-badges-modal').style.display = 'flex';
+}
+
+function closeCollectionBadges() {
+  document.getElementById('collection-badges-modal').style.display = 'none';
+}
+
+function toggleCollectionBadge(key) {
+  const c = userCollections.find(x => x.id === _currentCollectionId);
+  if (!c) return;
+  if (!Array.isArray(c.gameBadges)) c.gameBadges = [];
+  const i = c.gameBadges.indexOf(key);
+  if (i >= 0) c.gameBadges.splice(i, 1); else c.gameBadges.push(key);
+  saveUserCollections();
+  syncCollectionToSupabase(c);
+  _renderCollectionBadgesList();
+  _ucdOwnerGames = userGames;
+  _renderUCDGames(c); // aperçu live sur la grille
 }
 
 function openRenameCollection() {
@@ -10695,6 +10817,7 @@ function confirmCreateCollection() {
     name,
     emoji: _ncmSelectedEmoji,
     games: _ncmPrefillGame ? [_ncmPrefillGame] : [],
+    gameBadges: ['meta'], // par défaut : la note Metacritic (modifiable ensuite)
     createdAt: new Date().toISOString(),
   };
   userCollections.unshift(c);
