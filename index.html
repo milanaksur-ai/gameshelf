@@ -1719,6 +1719,13 @@ html, body {
       <input id="ncm-name-input" type="text" maxlength="50" data-i18n-ph="collections.name_ph" placeholder="Ex : Mon top RPG…"
         style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;font-size:15px;color:var(--text);outline:none;margin-bottom:14px;box-sizing:border-box"
         onkeydown="if(event.key==='Enter')confirmCreateCollection()">
+      <!-- Collection automatique par vibe (optionnel) -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:700;color:var(--a)" data-i18n="collections.vibe_auto">✨ Collection automatique par vibe</div>
+        <div style="flex:1;height:0.5px;background:var(--border)"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted2);margin-bottom:10px;line-height:1.4" data-i18n="collections.vibe_auto_sub">Choisis une ou plusieurs vibes : tous les jeux qui les portent (maintenant et à l'avenir) rejoindront la collection automatiquement.</div>
+      <div id="ncm-vibe-row" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;max-height:104px;overflow-y:auto;padding:2px"></div>
       <button onclick="confirmCreateCollection()" style="width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:15px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.create">Créer</button>
     </div>
   </div>
@@ -2144,7 +2151,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07n</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07o</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2353,6 +2360,11 @@ html, body {
       <div id="fp-now-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="friend.playing">JEUX EN COURS</div>
         <div id="fp-now-list"></div>
+      </div>
+      <!-- Multi en cours -->
+      <div id="fp-multi-section" style="display:none;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:#fd79a8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="friend.playing_multi">👥 MULTI EN COURS</div>
+        <div id="fp-multi-list"></div>
       </div>
       <!-- Top | Activité (toggle, comme profil utilisateur) -->
       <div id="fp-topact-section" style="display:none;margin-bottom:16px">
@@ -2790,6 +2802,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_5">Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ — choisis des vibes, la collection se remplit toute seule</li>
                 </ul>
               </div>
 
@@ -3310,6 +3323,7 @@ const LANG = {
       reviews_5:'Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔',
       reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
+      reviews_8:'Collections automatiques par vibe ✨ — choisis des vibes, la collection se remplit toute seule',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3452,6 +3466,8 @@ const LANG = {
       badges_menu:'Infos affichées sur les jeux',
       badges_title:'Infos affichées sur les jeux',
       badges_sub:'Ces pastilles sont visibles par tout le monde sur cette collection.',
+      vibe_auto:'✨ Collection automatique par vibe',
+      vibe_auto_sub:'Choisis une ou plusieurs vibes : tous les jeux qui les portent (maintenant et à l\'avenir) rejoindront la collection automatiquement.',
     },
     profile: {
       edit:'Modifier le profil', total:'jeux au total',
@@ -3492,7 +3508,7 @@ const LANG = {
       screenshot_picker_sub:'Sélectionne le jeu lié à ta capture',
     },
     friend: {
-      recent:'✦ LES AVIS RÉCENTS', playing:'JEUX EN COURS',
+      recent:'✦ LES AVIS RÉCENTS', playing:'JEUX EN COURS', playing_multi:'👥 MULTI EN COURS',
       library:'SA BIBLIOTHÈQUE', full_library:'Bibliothèque complète',
       not_in_lib:'Pas dans ta bibliothèque',
       top:'★ Top', activity:'Activité',
@@ -3703,6 +3719,8 @@ const LANG = {
       badges_menu:'Info shown on games',
       badges_title:'Info shown on games',
       badges_sub:'These badges are visible to everyone on this collection.',
+      vibe_auto:'✨ Auto collection by vibe',
+      vibe_auto_sub:'Pick one or more vibes: every game tagged with them (now and in the future) automatically joins the collection.',
       delete_confirm:'Delete this collection?',
       saga_sub:'The full saga',
       quiz_challenge:'⚡ Challenge',
@@ -3746,7 +3764,7 @@ const LANG = {
       screenshot_picker_sub:'Select the game linked to your screenshot',
     },
     friend: {
-      recent:'✦ RECENT REVIEWS', playing:'CURRENTLY PLAYING',
+      recent:'✦ RECENT REVIEWS', playing:'CURRENTLY PLAYING', playing_multi:'👥 MULTIPLAYER NOW',
       library:'LIBRARY', full_library:'Full library',
       not_in_lib:'Not in your library',
       top:'★ Top', activity:'Activity',
@@ -3800,6 +3818,7 @@ const LANG = {
       reviews_5:'Daily leaderboard with friends 🏆 — play a quiz to unlock their scores, notified when a friend plays 🔔',
       reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
+      reviews_8:'Auto collections by vibe ✨ — pick vibes, the collection fills itself',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -7238,6 +7257,7 @@ function saveGame() {
   renderGameGrid();
   renderFeed();
   saveToStorage();
+  try { syncVibeCollections(); } catch(e) {} // collections auto par vibe
   if (!_hadNotes && ug.notes.trim() && !_xpFlags('noted').has(String(currentGame.id))) { _setXpFlag('noted', currentGame.id); gainXp(15, 'note', currentGame.title); }
   showToast(t('toast.saved'));
   setTimeout(() => appGoBack(), 600);
@@ -9637,6 +9657,7 @@ function fpRenderLibTab(tab, inModal) {
     'playing-solo': 'var(--a)',
     'finished':     'var(--green)',
     'platine':      'var(--amber)',
+    'paused':       '#fdcb6e',
     'backlog':      'var(--muted2)',
     'common':       '#00cec9',
     'abandoned':    'var(--red)',
@@ -9645,6 +9666,7 @@ function fpRenderLibTab(tab, inModal) {
   const tabDefs = [
     {key:'finished',     label:t('lib.finished'),   match:g=>g.status==='finished'},
     {key:'platine',      label:'100%',               match:g=>g.status==='platine'},
+    {key:'paused',       label:`⏸ ${t('status.paused')}`, match:g=>g.status==='paused'},
     {key:'backlog',      label:t('lib.backlog'),     match:g=>g.status==='backlog'},
     {key:'wish',         label:`✦ ${t('lib.wish')}`, match:g=>g.status==='wish'},
     {key:'common',       label:t('friend.tab_common'), match:g=>{ const gid=g.id||String(g.game_id||''); return _fpMyIds.has(gid)||_fpMyTitles.has((g.title||'').toLowerCase().trim()); }},
@@ -9899,10 +9921,16 @@ function renderFriendProfile(friend) {
     }).join('');
   } else if (topSec) topSec.style.display = 'none';
 
-  const nowIdx = _fpAllGames.map((g,i)=>(g.status==='playing-solo'||g.status==='playing-multi')?i:-1).filter(i=>i>=0);
+  const nowIdx   = _fpAllGames.map((g,i)=>g.status==='playing-solo'?i:-1).filter(i=>i>=0);
+  const multiIdx = _fpAllGames.map((g,i)=>g.status==='playing-multi'?i:-1).filter(i=>i>=0);
   const nowSec = document.getElementById('fp-now-section');
   nowSec.style.display = 'block';
-  document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : emptyRow(t('friend.no_playing'));
+  document.getElementById('fp-now-list').innerHTML = nowIdx.length ? nowIdx.map(i=>fpGameRow(i)).join('') : (multiIdx.length ? '' : emptyRow(t('friend.no_playing')));
+  const multiSec = document.getElementById('fp-multi-section');
+  if (multiSec) {
+    multiSec.style.display = multiIdx.length ? 'block' : 'none';
+    document.getElementById('fp-multi-list').innerHTML = multiIdx.map(i=>fpGameRow(i)).join('');
+  }
 
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
@@ -9910,7 +9938,7 @@ function renderFriendProfile(friend) {
   const libSec = document.getElementById('fp-lib-section');
   libSec.style.display = 'block';
   if (games.length) {
-    const firstTab = ['finished','platine','backlog','wish','abandoned'].find(t => games.some(g=>g.status===t)) || 'common';
+    const firstTab = ['finished','platine','paused','backlog','wish','abandoned'].find(t => games.some(g=>g.status===t)) || 'common';
     fpRenderLibTab(firstTab);
   } else {
     document.getElementById('fp-lib-tabs').innerHTML = '';
@@ -10053,7 +10081,7 @@ async function openFriendProfile(userId) {
   _fpFriendUserId = userId;
   document.getElementById('fp-remove-btn').style.display = 'none';
   document.getElementById('screen-friend-profile').style.display = 'flex';
-  ['fp-common-section','fp-now-section','fp-topact-section','fp-trouvailles-section','fp-lib-section'].forEach(id => document.getElementById(id).style.display='none');
+  ['fp-common-section','fp-now-section','fp-multi-section','fp-topact-section','fp-trouvailles-section','fp-lib-section'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display='none'; });
   document.getElementById('fp-title').textContent = '…';
   document.getElementById('fp-stats').innerHTML = '';
   document.getElementById('fp-platforms').style.display = 'none';
@@ -10693,9 +10721,9 @@ async function syncCollectionToSupabase(col) {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
     const base = { id: col.id, user_id: user.id, name: col.name, emoji: col.emoji, games: col.games || [], updated_at: new Date().toISOString() };
-    const { error } = await _sb.from('collections').upsert({ ...base, game_badges: col.gameBadges || [] }, { onConflict: 'id' });
+    const { error } = await _sb.from('collections').upsert({ ...base, game_badges: col.gameBadges || [], vibes: col.vibes || [] }, { onConflict: 'id' });
     if (error) {
-      // La colonne game_badges n'existe peut-être pas encore (migration non lancée) → on sauvegarde au moins le reste
+      // Colonnes game_badges/vibes peut-être absentes (migration non lancée) → on sauvegarde au moins le reste
       await _sb.from('collections').upsert(base, { onConflict: 'id' });
     }
   } catch(e) {}
@@ -10717,10 +10745,11 @@ async function fetchOwnCollectionsFromSupabase() {
     // Server is the single source of truth — replace local state entirely
     userCollections.length = 0;
     for (const d of (data || [])) {
-      userCollections.push({ id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], gameBadges: Array.isArray(d.game_badges) ? d.game_badges : [], createdAt: d.created_at });
+      userCollections.push({ id: d.id, name: d.name, emoji: d.emoji, games: d.games || [], gameBadges: Array.isArray(d.game_badges) ? d.game_badges : [], vibes: Array.isArray(d.vibes) ? d.vibes : [], createdAt: d.created_at });
     }
     saveUserCollections();
     renderMyCollections();
+    syncVibeCollections(); // les collections auto rattrapent les vibes posées depuis un autre appareil
   } catch(e) {}
 }
 
@@ -10889,7 +10918,8 @@ function openUserCollection(id) {
   document.getElementById('ucd-emoji').textContent = c.emoji || '📚';
   document.getElementById('ucd-title').textContent = c.name;
   document.getElementById('ucd-menu-btn').style.display = 'flex';
-  document.getElementById('ucd-add-btn').style.display = 'block';
+  // Collection auto (par vibe) : pas d'ajout manuel, elle se gère toute seule
+  document.getElementById('ucd-add-btn').style.display = (Array.isArray(c.vibes) && c.vibes.length) ? 'none' : 'block';
   _renderUCDGames(c);
   document.getElementById('user-collection-detail').style.display = 'flex';
 }
@@ -10965,11 +10995,13 @@ function _renderUCDGames(c) {
   _ucdCollection = c;
   const games = c.games || [];
   const badges = c.gameBadges || [];
+  const isAuto = Array.isArray(c.vibes) && c.vibes.length > 0;
   const count = document.getElementById('ucd-count');
   const grid  = document.getElementById('ucd-grid');
   const empty = document.getElementById('ucd-empty');
   const sortBtn = document.getElementById('ucd-sort-btn');
-  count.textContent = `${games.length} jeu${games.length!==1?'x':''}`;
+  const vibeLabels = isAuto ? c.vibes.map(k => (VIBES.find(v => v.key === k) || {}).label).filter(Boolean).join(' · ') : '';
+  count.innerHTML = `${games.length} jeu${games.length!==1?'x':''}${isAuto ? ` · <span style="color:var(--a);font-weight:700">✨ auto : ${_esc(vibeLabels)}</span>` : ''}`;
   if (sortBtn) {
     sortBtn.style.display = games.length > 1 ? 'inline-flex' : 'none';
     sortBtn.textContent = _ucdSortLabel(_ucdSort);
@@ -10986,7 +11018,7 @@ function _renderUCDGames(c) {
     return `<div style="position:relative">
       <div onclick="openGameFromCollection('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
-        ${_ucdIsOwner ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">×</button>` : ''}
+        ${_ucdIsOwner && !isAuto ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">×</button>` : ''}
         ${_colBadgeHtml(g, badges)}
       </div>
       <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
@@ -11119,12 +11151,54 @@ function confirmDeleteCollection() {
 }
 
 // ── CREATE COLLECTION ─────────────────
+let _ncmSelectedVibes = new Set();
+
+// Jeux de la bibliothèque portant au moins une des vibes données (format collection)
+function _vibeMatchGames(vibes) {
+  return GAMES.filter(g => {
+    const v = _vibeArr((userGames[g.id] || {}).vibe);
+    return v.some(x => vibes.includes(x));
+  }).map(g => ({ id: g.id, title: g.title, cover: g.cover, steamId: g.steamId, meta: g.meta }));
+}
+
+// Re-synchronise toutes les collections automatiques (appelé après un changement de vibe)
+function syncVibeCollections() {
+  let changed = false;
+  userCollections.forEach(c => {
+    if (!Array.isArray(c.vibes) || !c.vibes.length) return;
+    const fresh = _vibeMatchGames(c.vibes);
+    const oldIds = (c.games || []).map(g => String(g.id)).sort().join(',');
+    const newIds = fresh.map(g => String(g.id)).sort().join(',');
+    if (oldIds !== newIds) { c.games = fresh; changed = true; syncCollectionToSupabase(c); }
+  });
+  if (changed) { saveUserCollections(); renderMyCollections(); }
+}
+
+function toggleNcmVibe(key, el) {
+  if (_ncmSelectedVibes.has(key)) _ncmSelectedVibes.delete(key);
+  else _ncmSelectedVibes.add(key);
+  const on = _ncmSelectedVibes.has(key);
+  el.style.background = on ? 'rgba(108,92,231,0.18)' : 'var(--s2)';
+  el.style.borderColor = on ? 'var(--a)' : 'var(--border2)';
+  el.style.color = on ? 'var(--a)' : 'var(--muted2)';
+  // Suggestion de nom si le champ est vide et une seule vibe choisie
+  const inp = document.getElementById('ncm-name-input');
+  if (inp && !inp.value.trim() && _ncmSelectedVibes.size === 1) {
+    const v = VIBES.find(x => x.key === [..._ncmSelectedVibes][0]);
+    if (v) inp.value = v.label.replace(/^[^ ]+ /, '');
+  }
+}
+
 function openNewCollectionModal(context) {
   _ncmSelectedEmoji = '📚';
+  _ncmSelectedVibes = new Set();
   if (context !== 'from_atc') _ncmPrefillGame = null;
   const row = document.getElementById('ncm-emoji-row');
   row.innerHTML = COLLECTION_EMOJIS.map((e,i) => `
     <div onclick="selectCollectionEmoji('${e}',this)" style="width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;flex-shrink:0;background:${i===0?'var(--a)':'var(--s2)'};border:${i===0?'none':'0.5px solid var(--border2)'};">${e}</div>`).join('');
+  const vibeRow = document.getElementById('ncm-vibe-row');
+  if (vibeRow) vibeRow.innerHTML = VIBES.map(v =>
+    `<div onclick="toggleNcmVibe('${v.key}',this)" style="font-size:11px;font-weight:600;padding:6px 11px;border-radius:20px;background:var(--s2);border:1px solid var(--border2);color:var(--muted2);cursor:pointer;transition:all 0.12s">${v.label}</div>`).join('');
   document.getElementById('ncm-name-input').value = '';
   document.getElementById('new-collection-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('ncm-name-input').focus(), 150);
@@ -11155,11 +11229,13 @@ function confirmCreateCollection() {
     closeNewCollectionModal();
     return;
   }
+  const isVibeCol = _ncmSelectedVibes.size > 0;
   const c = {
     id: `col_${Date.now()}`,
     name,
     emoji: _ncmSelectedEmoji,
-    games: _ncmPrefillGame ? [_ncmPrefillGame] : [],
+    vibes: isVibeCol ? [..._ncmSelectedVibes] : [],
+    games: isVibeCol ? _vibeMatchGames([..._ncmSelectedVibes]) : (_ncmPrefillGame ? [_ncmPrefillGame] : []),
     gameBadges: ['meta'], // par défaut : la note Metacritic (modifiable ensuite)
     createdAt: new Date().toISOString(),
   };
@@ -11167,6 +11243,7 @@ function confirmCreateCollection() {
   saveUserCollections();
   syncCollectionToSupabase(c);
   closeNewCollectionModal();
+  if (isVibeCol) showToast(`✨ ${c.games.length} jeu${c.games.length !== 1 ? 'x' : ''} ajouté${c.games.length !== 1 ? 's' : ''} automatiquement`);
   if (_ncmPrefillGame) {
     showToast(`${_ncmPrefillGame.title} → ${name}`);
     closeAddToCollectionSheet();
@@ -11190,10 +11267,12 @@ function openAddToCollectionSheet(gameId, context) {
   _atcGameId = String(gameId);
   const list = document.getElementById('atc-list');
   const game = GAMES.find(g => String(g.id) === _atcGameId);
-  if (!userCollections.length) {
+  // Les collections automatiques (par vibe) se gèrent seules → pas d'ajout manuel
+  const manualCols = userCollections.filter(c => !(Array.isArray(c.vibes) && c.vibes.length));
+  if (!manualCols.length) {
     list.innerHTML = `<div style="text-align:center;padding:16px;color:var(--muted2);font-size:13px">${t('collections.empty_mine')}</div>`;
   } else {
-    list.innerHTML = userCollections.map(c => {
+    list.innerHTML = manualCols.map(c => {
       const inCol = (c.games||[]).some(g => String(g.id) === _atcGameId);
       return `<div onclick="toggleGameInCollection('${c.id}')" id="atc-row-${c.id}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:12px;cursor:pointer" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="font-size:20px">${c.emoji||'📚'}</div>
