@@ -2130,7 +2130,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07i</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07j</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2267,9 +2267,10 @@ html, body {
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.pending">Demandes reçues</div>
           <div id="social-pending-list"></div>
         </div>
-        <!-- Leaderboard -->
+        <!-- Leaderboard XP -->
         <div id="social-leaderboard" style="margin-bottom:18px;display:none">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px">🏆 Classement</div>
+          <div style="height:0.5px;background:var(--border);margin-bottom:16px"></div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.xp_leaderboard">⚡ Classement XP · Top 6</div>
           <div id="social-leaderboard-list" style="display:flex;flex-direction:column;gap:6px"></div>
         </div>
         <!-- Friends row (stories) -->
@@ -3499,6 +3500,7 @@ const LANG = {
     social: {
       title:'Amis', search_ph:'Chercher un pseudo…',
       pending:'Demandes reçues', my_friends:'Mes amis', activity:'Activité récente',
+      xp_leaderboard:'⚡ Classement XP · Top 6', see_more:'Voir plus', see_less:'Réduire',
       wants_friend:'veut être ton ami', add:'Ajouter',
       no_friends:'Cherche des amis par pseudo ci-dessus',
       request:'demande', requests:'demandes',
@@ -3752,6 +3754,7 @@ const LANG = {
     social: {
       title:'Friends', search_ph:'Search by username…',
       pending:'Friend requests', my_friends:'My friends', activity:'Recent activity',
+      xp_leaderboard:'⚡ XP Leaderboard · Top 6', see_more:'See more', see_less:'Collapse',
       wants_friend:'wants to be your friend', add:'Add',
       no_friends:'Search for friends by username above',
       request:'request', requests:'requests',
@@ -5834,6 +5837,8 @@ function launchApp() {
   // Retroactive XP — run only once, award XP for already-rated/vibed/noted games
   setTimeout(() => _backfillXp(), 800);
   setTimeout(checkAchievements, 2000);
+  // Quiz abandonné par fermeture brutale → finalise le score partiel
+  try { _restoreAbandonedQuiz(); } catch(e) {}
   // Récompense XP du classement quiz d'hier (une seule fois)
   setTimeout(() => { try { _awardYesterdayQuizXp(); } catch(e) {} }, 2500);
 }
@@ -9274,7 +9279,7 @@ function renderSocialLeaderboard() {
   if (entries.length < 2) { el.style.display = 'none'; return; }
   el.style.display = 'block';
   const medals = ['🥇','🥈','🥉'];
-  list.innerHTML = entries.map((e, i) => {
+  list.innerHTML = entries.slice(0, 6).map((e, i) => {
     const lvl = getLevel(e.xp || 0);
     const lvlTitle = _lang === 'en' ? lvl.title_en : lvl.title_fr;
     const medal = i < 3 ? medals[i] : String(i + 1);
@@ -9284,7 +9289,7 @@ function renderSocialLeaderboard() {
     const av = e.avatar_url
       ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${e.avatar_url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${e.avatar||'🎮'}';this.parentElement.style='width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px'"></div>`
       : `<div style="width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${e.avatar||'🎮'}</div>`;
-    return `<div style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px">
+    return `<div ${e.isMe ? '' : `onclick="openFriendProfile('${e.id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px${e.isMe ? '' : ';cursor:pointer;transition:opacity 0.15s'}">
       <div style="width:24px;text-align:center;font-size:${i<3?18:13}px;font-weight:700;flex-shrink:0${i>=3?';color:var(--muted2)':''}">${medal}</div>
       ${av}
       <div style="flex:1;min-width:0">
@@ -10207,16 +10212,14 @@ async function loadFriendActivity(friendIds) {
   const _coverHtml = (src, w, h, r) => `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;background:var(--s2);flex-shrink:0">${src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*0.32)}px">🎮</div>`}</div>`;
-  let lastGroup = null;
-  const html = data.map((item, i) => {
+  // Chaque entrée = { grp, html } pour pouvoir composer la version repliée ET complète
+  const actItems = data.map((item, i) => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     const ago = timeAgo(item.updated_at);
     const grp = _actDayGroup(item.updated_at);
-    const header = grp !== lastGroup ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:${lastGroup ? 14 : 0}px 0 4px">${grp}</div>` : '';
-    lastGroup = grp;
     const [bIcon, bBg, bColor] = BADGE[item.status] || ['•','var(--s2)','var(--muted2)'];
-    return header + `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+    const html = `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
       <div style="position:relative;flex-shrink:0">
         ${_coverHtml(src, 42, 56, 8)}
         <div style="position:absolute;right:-7px;bottom:-5px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 20)}</div>
@@ -10227,8 +10230,28 @@ async function loadFriendActivity(friendIds) {
       </div>
       <div style="width:26px;height:26px;border-radius:50%;background:${bBg};color:${bColor};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${bIcon}</div>
     </div>`;
-  }).join('');
-  if (actList)  actList.innerHTML  = html;
+    return { grp, html };
+  });
+  const _composeAct = list => {
+    let last = null;
+    return list.map(x => {
+      const h = x.grp !== last ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:${last ? 14 : 0}px 0 4px">${x.grp}</div>` : '';
+      last = x.grp;
+      return h + x.html;
+    }).join('');
+  };
+  const html = _composeAct(actItems);
+  // Fil repliable : 5 entrées visibles, le reste derrière "Voir plus"
+  const ACT_COLLAPSED = 5;
+  if (actList) {
+    if (actItems.length <= ACT_COLLAPSED) {
+      actList.innerHTML = html;
+    } else {
+      window._actFullHtml  = html + `<button onclick="toggleActivityFeed(false)" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:10px">${t('social.see_less')} ↑</button>`;
+      window._actShortHtml = _composeAct(actItems.slice(0, ACT_COLLAPSED)) + `<button onclick="toggleActivityFeed(true)" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:10px">${t('social.see_more')} (${actItems.length - ACT_COLLAPSED}) ↓</button>`;
+      actList.innerHTML = window._actShortHtml;
+    }
+  }
   if (homeList) homeList.innerHTML = data.slice(0,3).map((item, i) => {
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
@@ -10240,6 +10263,12 @@ async function loadFriendActivity(friendIds) {
       <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
     </div>`;
   }).join('');
+}
+
+function toggleActivityFeed(expand) {
+  const actList = document.getElementById('social-activity-list');
+  if (!actList) return;
+  actList.innerHTML = expand ? (window._actFullHtml || '') : (window._actShortHtml || '');
 }
 
 function timeAgo(iso) {
@@ -13154,7 +13183,7 @@ async function _renderQuizHubSocial(daily) {
       <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
       <div style="font-size:9px;font-weight:700;color:var(--amber)">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
     </div>
-    ${ranked.map(([uid, v], i) => `<div style="display:flex;align-items:center;gap:10px;background:${uid===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${uid===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:9px 12px;margin-bottom:6px">
+    ${ranked.map(([uid, v], i) => `<div ${uid===data.myId ? '' : `onclick="closeQuizPicker();openFriendProfile('${uid}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="display:flex;align-items:center;gap:10px;background:${uid===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${uid===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:9px 12px;margin-bottom:6px${uid===data.myId?'':';cursor:pointer'}">
       <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
       ${_quizUserAv(uid, data.myId)}
       <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
@@ -13165,31 +13194,72 @@ async function _renderQuizHubSocial(daily) {
 }
 
 // ── Mini-classement d'un quiz (scores du jour des amis) ──
+let _qlbData = null; // { quizId, rows, myId } — pour la vue comparaison
 async function openQuizLb(quizId) {
   const q = QUIZ_DATA.find(x => x.id === quizId);
   if (!q) return;
   const fr = _lang !== 'en';
   document.getElementById('qlb-title').textContent = `${q.emoji} ${q.title}`;
-  document.getElementById('qlb-sub').textContent = fr ? 'Les scores du jour · nouveaux quiz à la prochaine rotation' : "Today's scores · new quizzes at next rotation";
+  document.getElementById('qlb-sub').textContent = fr ? 'Les scores du jour · touche ↔ pour comparer les réponses' : "Today's scores · tap ↔ to compare answers";
   const list = document.getElementById('qlb-list');
   list.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted2);font-size:13px">${t('toast.loading')}</div>`;
   document.getElementById('quiz-lb-modal').style.display = 'flex';
   const data = await _fetchTodayQuizScores();
   if (!data) { list.innerHTML = ''; return; }
   const rows = data.rows.filter(r => r.quiz_id === quizId).sort((a, b) => b.score - a.score);
+  _qlbData = { quizId, rows, myId: data.myId };
   if (!rows.length) {
     list.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">${fr ? 'Personne n\'a encore joué ce quiz aujourd\'hui' : 'No one played this quiz today yet'}</div>`;
     return;
   }
+  const myRow = rows.find(r => r.user_id === data.myId);
   const medals = ['🥇', '🥈', '🥉'];
-  list.innerHTML = rows.map((r, i) => `<div style="display:flex;align-items:center;gap:10px;background:${r.user_id===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${r.user_id===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:10px 12px">
-    <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
-    ${_quizUserAv(r.user_id, data.myId)}
-    <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(r.user_id, data.myId))}</div>
-    <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${r.score}/${r.total}</div>
-  </div>`).join('');
+  list.innerHTML = rows.map((r, i) => {
+    const isMe = r.user_id === data.myId;
+    const canCompare = !isMe && myRow && Array.isArray(myRow.answers) && myRow.answers.length && Array.isArray(r.answers) && r.answers.length;
+    return `<div ${isMe ? '' : `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${r.user_id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="display:flex;align-items:center;gap:10px;background:${isMe?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${isMe?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:10px 12px${isMe?'':';cursor:pointer'}">
+      <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
+      ${_quizUserAv(r.user_id, data.myId)}
+      <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(r.user_id, data.myId))}</div>
+      <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${r.score}/${r.total}</div>
+      ${canCompare ? `<button onclick="event.stopPropagation();compareQuizAnswers('${r.user_id}')" style="flex-shrink:0;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.4);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer">↔</button>` : ''}
+    </div>`;
+  }).join('');
 }
-function closeQuizLb() { document.getElementById('quiz-lb-modal').style.display = 'none'; }
+function closeQuizLb() { document.getElementById('quiz-lb-modal').style.display = 'none'; _qlbData = null; }
+
+// ── Comparaison question par question de mes réponses vs celles d'un ami ──
+function compareQuizAnswers(friendUid) {
+  if (!_qlbData) return;
+  const q = QUIZ_DATA.find(x => x.id === _qlbData.quizId);
+  const myRow = _qlbData.rows.find(r => r.user_id === _qlbData.myId);
+  const frRow = _qlbData.rows.find(r => r.user_id === friendUid);
+  if (!q || !myRow || !frRow) return;
+  const fr = _lang !== 'en';
+  if (!Array.isArray(myRow.answers) || !myRow.answers.length || !Array.isArray(frRow.answers) || !frRow.answers.length) {
+    showToast(fr ? 'Réponses non disponibles pour ce score' : 'Answers not available for this score');
+    return;
+  }
+  const friendName = _esc(_quizUserName(friendUid, _qlbData.myId));
+  document.getElementById('qlb-sub').textContent = fr ? `Toi vs ${friendName} · question par question` : `You vs ${friendName} · question by question`;
+  const list = document.getElementById('qlb-list');
+  const cell = ok => `<div style="width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;background:${ok?'rgba(0,230,118,0.14)':'rgba(255,82,82,0.14)'};color:${ok?'var(--green)':'var(--red)'}">${ok?'✓':'✗'}</div>`;
+  list.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px;padding:0 2px">
+      <div style="flex:1"></div>
+      <div style="width:30px;text-align:center;font-size:10px;font-weight:700;color:var(--a)">${fr?'Toi':'You'}</div>
+      <div style="width:30px;text-align:center;font-size:10px;font-weight:700;color:var(--a2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${friendName.slice(0,6)}</div>
+    </div>
+    ${q.questions.map((question, i) => `<div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:2px">Q${i+1}</div>
+        <div style="font-size:12px;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${_esc(question.q)}</div>
+      </div>
+      ${cell(!!myRow.answers[i])}
+      ${cell(!!frRow.answers[i])}
+    </div>`).join('')}
+    <button onclick="openQuizLb('${_qlbData.quizId}')" style="width:100%;padding:12px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;margin-top:4px">← ${fr?'Retour au classement':'Back to leaderboard'}</button>`;
+}
 
 // ── Récompenses XP du classement quiz quotidien ──
 const QUIZ_RANK_XP = [150, 50, 25]; // 1er, 2e, 3e — autres participants : 5
@@ -13264,7 +13334,7 @@ async function renderDailyQuizCard() {
   const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const medals = ['🥇', '🥈', '🥉'];
   pod.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:12px">
-    ${ranked.map(([uid, pts], i) => `<div style="flex:1;display:flex;align-items:center;gap:7px;background:${uid === data.myId ? 'rgba(108,92,231,0.18)' : 'rgba(0,0,0,0.2)'};border-radius:12px;padding:7px 9px;min-width:0">
+    ${ranked.map(([uid, pts], i) => `<div ${uid === data.myId ? '' : `onclick="event.stopPropagation();openFriendProfile('${uid}')"`} style="flex:1;display:flex;align-items:center;gap:7px;background:${uid === data.myId ? 'rgba(108,92,231,0.18)' : 'rgba(0,0,0,0.2)'};border-radius:12px;padding:7px 9px;min-width:0${uid === data.myId ? '' : ';cursor:pointer'}">
       <span style="font-size:14px">${medals[i]}</span>
       ${_quizUserAv(uid, data.myId)}
       <div style="min-width:0;flex:1">
@@ -13336,9 +13406,46 @@ function openQuiz(id) {
 }
 
 function closeQuiz() {
+  // Anti-triche : quitter un quiz commencé = les questions restantes comptent fausses.
+  // Le score partiel est enregistré définitivement — pas de reset pour retenter.
+  if (_quizActive && _quizAnswerLog.length > 0 && _quizAnswerLog.length < _quizActive.questions.length) {
+    const total = _quizActive.questions.length;
+    while (_quizAnswerLog.length < total) _quizAnswerLog.push(false);
+    _quizScore = _quizAnswerLog.filter(Boolean).length;
+    _quizLocalScores[_quizActive.id] = { score: _quizScore, total, ts: Date.now() };
+    localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
+    saveQuizScore(_quizActive.id, _quizScore, total);
+    if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
+    if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20, 'quiz', _quizActive.title || ''); }
+    showToast(_lang === 'en' ? `Quiz abandoned — score saved: ${_quizScore}/${total}` : `Quiz abandonné — score enregistré : ${_quizScore}/${total}`);
+    renderDailyQuizCard();
+  }
+  localStorage.removeItem('gs_quiz_inprogress');
   document.getElementById('quiz-overlay').classList.remove('open');
   _quizActive = null;
   renderQuizHub();
+}
+
+// Si l'app a été tuée en plein quiz : finalise le quiz abandonné au relancement
+function _restoreAbandonedQuiz() {
+  try {
+    const raw = localStorage.getItem('gs_quiz_inprogress');
+    if (!raw) return;
+    localStorage.removeItem('gs_quiz_inprogress');
+    const st = JSON.parse(raw);
+    const q = QUIZ_DATA.find(x => x.id === st.id);
+    if (!q || !Array.isArray(st.log) || !st.log.length) return;
+    const total = q.questions.length;
+    const log = [...st.log];
+    while (log.length < total) log.push(false);
+    const score = log.filter(Boolean).length;
+    // N'écrase pas un score déjà enregistré ce jour-là
+    const existing = _quizLocalScores[st.id];
+    if (existing && existing.ts && Math.floor(existing.ts / 86400000) === st.day) return;
+    _quizLocalScores[st.id] = { score, total, ts: (st.day === _quizDayIndex()) ? Date.now() : st.day * 86400000 + 43200000 };
+    localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
+    saveQuizScore(st.id, score, total, st.day, log);
+  } catch (e) {}
 }
 
 // Open a quiz to answer an EXISTING challenge (no cooldown, no new row created)
@@ -13386,6 +13493,8 @@ function submitAnswer(idx) {
   const correct = idx === q.c;
   _quizAnswerLog.push(correct);
   if (correct) _quizScore++;
+  // Progression persistée : si l'app est tuée en plein quiz, le score partiel sera finalisé au retour
+  try { localStorage.setItem('gs_quiz_inprogress', JSON.stringify({ id: _quizActive.id, log: _quizAnswerLog, day: _quizDayIndex() })); } catch (e) {}
   document.querySelectorAll('#quiz-answers .answer-btn').forEach((btn, i) => {
     btn.classList.add('revealed');
     if (i === q.c) btn.classList.add('correct');
@@ -13402,6 +13511,7 @@ function submitAnswer(idx) {
 function nextQuizQuestion() { _quizQIdx++; renderQuizQuestion(); }
 
 function showQuizResults() {
+  localStorage.removeItem('gs_quiz_inprogress'); // quiz terminé normalement
   const total = _quizActive.questions.length;
   const rank  = getQuizRank(_quizScore, total);
   _quizLocalScores[_quizActive.id] = { score:_quizScore, total, ts:Date.now() };
@@ -13456,7 +13566,7 @@ async function _fetchTodayQuizScores() {
   const ids = [user.id, ...friendIds];
   try {
     const { data } = await _sb.from('quiz_scores')
-      .select('user_id,quiz_id,score,total,created_at')
+      .select('user_id,quiz_id,score,total,answers,created_at')
       .eq('day_index', _quizDayIndex())
       .in('user_id', ids);
     return { rows: data || [], myId: user.id };
@@ -13772,11 +13882,13 @@ async function _createQuizChallenge(quizId, quizName, friendId) {
   } catch(e) { return null; }
 }
 
-async function saveQuizScore(quizId, score, total) {
+async function saveQuizScore(quizId, score, total, dayIdx, answers) {
   try {
     const { data:{ user } } = await _sb.auth.getUser();
     if (!user) return;
-    const row = { user_id:user.id, quiz_id:quizId, score, total, day_index:_quizDayIndex(), answers:_quizAnswerLog || [] };
+    const row = { user_id:user.id, quiz_id:quizId, score, total,
+      day_index: (dayIdx !== undefined ? dayIdx : _quizDayIndex()),
+      answers: (answers !== undefined ? answers : (_quizAnswerLog || [])) };
     const { error } = await _sb.from('quiz_scores').upsert(row, { onConflict: 'user_id,quiz_id,day_index' });
     // Colonnes day_index/answers absentes (migration pas encore lancée) → insert simple
     if (error) await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
@@ -14529,6 +14641,8 @@ window.addEventListener('popstate', function() {
   if (visible('collection-action-sheet')){ closeCollectionActionSheet();   return; }
   if (visible('new-collection-modal'))   { closeNewCollectionModal();       return; }
   if (visible('add-to-collection-sheet')){ closeAddToCollectionSheet();     return; }
+  if (document.getElementById('quiz-overlay')?.classList.contains('open')) { closeQuiz(); return; }
+  if (visible('quiz-lb-modal'))          { closeQuizLb();                   return; }
   if (visible('quiz-picker-modal'))      { closeQuizPicker();               return; }
   if (visible('notif-drawer'))           { closeNotifDrawer();              return; }
   if (visible('col-search-overlay'))     { closeColSearch();                return; }
