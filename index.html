@@ -2106,7 +2106,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -8834,17 +8834,34 @@ function closeBracket() {
   }, 230);
 }
 
-function _updateFriendBadges(count) {
+function _updateFriendBadges(count, quizCount = 0) {
   const bellBadge = document.getElementById('bell-badge');
   const navBadge  = document.getElementById('nav-social-badge');
+  const bellTotal = count + quizCount; // la cloche = demandes d'amis + défis quiz reçus
   if (bellBadge) {
-    if (count > 0) { bellBadge.textContent = count; bellBadge.style.display = 'flex'; }
-    else           { bellBadge.style.display = 'none'; }
+    if (bellTotal > 0) { bellBadge.textContent = bellTotal; bellBadge.style.display = 'flex'; }
+    else               { bellBadge.style.display = 'none'; }
   }
-  if (navBadge) {
+  if (navBadge) { // l'onglet Amis ne compte que les demandes d'amis
     if (count > 0) { navBadge.textContent = count; navBadge.style.display = 'flex'; }
     else           { navBadge.style.display = 'none'; }
   }
+}
+
+// Défis quiz reçus et pas encore répondus (= "on t'a envoyé un quiz")
+async function _countIncomingQuizChallenges() {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return 0;
+    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+    const { data } = await _sb.from('quiz_challenges')
+      .select('id')
+      .eq('challenged_id', user.id)
+      .neq('status', 'completed')
+      .is('challenged_score', null)
+      .gte('created_at', since);
+    return (data || []).length;
+  } catch (e) { return 0; }
 }
 
 function closeNotifDrawer() {
@@ -8907,7 +8924,10 @@ async function openNotifDrawer() {
       ${recentChallenges.map(ch => renderQuizChallengeNotif(ch, uid)).join('')}` : '';
 
     body.innerHTML = friendReqHtml + quizHtml;
-    _updateFriendBadges((rows||[]).length);
+    const incomingQuiz = recentChallenges.filter(ch =>
+      ch.status !== 'completed' && ch.challenged_id === uid && (ch.challenged_score === null || ch.challenged_score === undefined)
+    ).length;
+    _updateFriendBadges((rows||[]).length, incomingQuiz);
   } catch(e) {
     body.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--red);font-size:13px">${t('toast.error_loading')}</div>`;
   }
@@ -8940,10 +8960,11 @@ async function checkPendingRequests() {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
     const uid = session.user.id;
-    const { data, error } = await _sb.from('friendships')
-      .select('id').eq('addressee_id', uid).eq('status', 'pending');
-    if (error) return;
-    _updateFriendBadges((data||[]).length);
+    const [{ data, error }, quizCount] = await Promise.all([
+      _sb.from('friendships').select('id').eq('addressee_id', uid).eq('status', 'pending'),
+      _countIncomingQuizChallenges()
+    ]);
+    _updateFriendBadges(error ? 0 : (data||[]).length, quizCount);
   } catch(e) {}
 }
 
@@ -12706,6 +12727,7 @@ async function submitQuizChallengeScore(score, total) {
       ? { challenger_score: score, challenger_total: total, challenger_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() }
       : { challenged_score: score, challenged_total: total, challenged_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() };
     const { data: updated } = await _sb.from('quiz_challenges').update(update).eq('id', _quizChallengeId).select('*').maybeSingle();
+    if (typeof checkPendingRequests === 'function') checkPendingRequests(); // rafraîchit la pastille (défi répondu)
     if (newStatus === 'completed') {
       // Notify the other player
       const otherId = isChallenger ? ch.challenged_id : ch.challenger_id;
