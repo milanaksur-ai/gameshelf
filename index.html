@@ -3451,6 +3451,7 @@ const LANG = {
       search_ph:'Chercher un jeu', empty:'Aucun résultat',
       no_results:'Aucun résultat pour',
       no_results_hint:'Essaie un autre titre ou vérifie l\'orthographe',
+      no_genre_match:'Aucun résultat dans ce genre — touche « Tous »',
     },
     social: {
       title:'Amis', search_ph:'Chercher un pseudo…',
@@ -3699,6 +3700,7 @@ const LANG = {
       search_ph:'Search a game', empty:'No results',
       no_results:'No results for',
       no_results_hint:'Try another title or check the spelling',
+      no_genre_match:'No results in this genre — tap "All"',
     },
     social: {
       title:'Friends', search_ph:'Search by username…',
@@ -4510,6 +4512,7 @@ function mapIgdbGame(g) {
     title: g.name,
     year: g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : 0,
     genre: g.genres?.[0]?.name || '',
+    genreIds: (g.genres || []).map(x => x.id).filter(v => v != null),
     steamId,
     emoji: '🎮',
     cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${imageId}.jpg` : null,
@@ -4807,9 +4810,11 @@ let _discOffset = 0;
 let _discPool   = [];
 let _discSearchMode = false;
 let _discSearchTimer;
+let _discSearchAll   = [];
+let _discSearchGenre = null;
 
 function initDiscoverScreen() {
-  _discGenre = null; _discOffset = 0; _discPool = []; _discSearchMode = false;
+  _discGenre = null; _discOffset = 0; _discPool = []; _discSearchMode = false; _discSearchAll = []; _discSearchGenre = null;
   const searchEl = document.getElementById('disc-search');
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('disc-search-clear');
@@ -4819,14 +4824,33 @@ function initDiscoverScreen() {
 }
 
 async function discByGenre(genreId, chipEl) {
-  _discGenre = genreId; _discOffset = 0; _discPool = []; _discSearchMode = false;
+  document.querySelectorAll('#disc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  if (_discSearchMode) {
+    _discSearchGenre = genreId;
+    _discRenderSearch();
+    return;
+  }
+  _discGenre = genreId; _discOffset = 0; _discPool = [];
   const searchEl = document.getElementById('disc-search');
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('disc-search-clear');
   if (clearBtn) clearBtn.style.display = 'none';
-  document.querySelectorAll('#disc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
-  if (chipEl) chipEl.classList.add('active');
   discLoadBrowse();
+}
+
+function _discRenderSearch() {
+  const grid = document.getElementById('discover-grid');
+  if (!grid) return;
+  const games = _discSearchGenre
+    ? _discSearchAll.filter(g => (g.genreIds || []).includes(_discSearchGenre))
+    : _discSearchAll;
+  _discPool = games;
+  const lmWrap = document.getElementById('disc-loadmore-wrap');
+  if (lmWrap) lmWrap.style.display = 'none';
+  grid.innerHTML = games.length
+    ? games.map(g => discCardHtml(g, 'ob')).join('')
+    : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${_discSearchGenre ? t('discover.no_genre_match') : t('discover.empty')}</div>`;
 }
 
 async function discLoadBrowse(append = false) {
@@ -4867,17 +4891,24 @@ function discSearch(q) {
   const clearBtn = document.getElementById('disc-search-clear');
   if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
   clearTimeout(_discSearchTimer);
-  if (!q.trim()) { _discSearchMode = false; discLoadBrowse(); return; }
+  if (!q.trim()) {
+    _discSearchMode = false; _discSearchGenre = null;
+    document.querySelectorAll('#disc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    discLoadBrowse(); return;
+  }
+  const wasSearching = _discSearchMode;
   _discSearchMode = true;
+  if (!wasSearching) {
+    _discSearchGenre = null;
+    document.querySelectorAll('#disc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  }
   const grid = document.getElementById('discover-grid');
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   _discSearchTimer = setTimeout(async () => {
     const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
-    const games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
-    _discPool = games;
-    const lmWrap = document.getElementById('disc-loadmore-wrap');
-    if (lmWrap) lmWrap.style.display = 'none';
-    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'ob')).join('') : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${t('discover.empty')}</div>`;
+    let games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !JUNK_RE.test(g.title)));
+    _discSearchAll = _rankSearchResults(games, q);
+    _discRenderSearch();
   }, 350);
 }
 
@@ -4886,8 +4917,9 @@ function discClearSearch() {
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('disc-search-clear');
   if (clearBtn) clearBtn.style.display = 'none';
-  _discSearchMode = false;
+  _discSearchMode = false; _discSearchGenre = null; _discSearchAll = [];
   _discOffset = 0; _discPool = [];
+  document.querySelectorAll('#disc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
   discLoadBrowse();
 }
 
@@ -4899,12 +4931,14 @@ let _ldiscOffset = 0;
 let _ldiscPool   = [];
 let _ldiscSearchMode = false;
 let _ldiscSearchTimer;
+let _ldiscSearchAll   = []; // résultats de recherche complets (avant filtre genre)
+let _ldiscSearchGenre = null; // genre IGDB filtrant les résultats de recherche
 
 function openLdisc() {
   const modal = document.getElementById('ldisc-modal');
   if (!modal) return;
   modal.style.display = 'flex';
-  _ldiscGenre = null; _ldiscOffset = 0; _ldiscPool = []; _ldiscSearchMode = false;
+  _ldiscGenre = null; _ldiscOffset = 0; _ldiscPool = []; _ldiscSearchMode = false; _ldiscSearchAll = []; _ldiscSearchGenre = null;
   const searchEl = document.getElementById('ldisc-search');
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('ldisc-search-clear');
@@ -4937,14 +4971,35 @@ function ldiscOpenDetail(id) {
 }
 
 async function ldiscByGenre(genreId, chipEl) {
-  _ldiscGenre = genreId; _ldiscOffset = 0; _ldiscPool = []; _ldiscSearchMode = false;
+  document.querySelectorAll('#ldisc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
+  if (chipEl) chipEl.classList.add('active');
+  // Si une recherche est active : le genre FILTRE les résultats (client-side)
+  if (_ldiscSearchMode) {
+    _ldiscSearchGenre = genreId;
+    _ldiscRenderSearch();
+    return;
+  }
+  // Sinon : navigation par genre (comportement d'origine)
+  _ldiscGenre = genreId; _ldiscOffset = 0; _ldiscPool = [];
   const searchEl = document.getElementById('ldisc-search');
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('ldisc-search-clear');
   if (clearBtn) clearBtn.style.display = 'none';
-  document.querySelectorAll('#ldisc-genre-row .g-chip').forEach(c => c.classList.remove('active'));
-  if (chipEl) chipEl.classList.add('active');
   ldiscLoadBrowse();
+}
+
+function _ldiscRenderSearch() {
+  const grid = document.getElementById('ldisc-grid');
+  if (!grid) return;
+  const games = _ldiscSearchGenre
+    ? _ldiscSearchAll.filter(g => (g.genreIds || []).includes(_ldiscSearchGenre))
+    : _ldiscSearchAll;
+  _ldiscPool = games;
+  const lmWrap = document.getElementById('ldisc-loadmore-wrap');
+  if (lmWrap) lmWrap.style.display = 'none';
+  grid.innerHTML = games.length
+    ? games.map(g => discCardHtml(g, 'lib')).join('')
+    : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${_ldiscSearchGenre ? t('discover.no_genre_match') : t('discover.empty')}</div>`;
 }
 
 async function ldiscLoadBrowse(append = false) {
@@ -4985,17 +5040,24 @@ function ldiscSearch(q) {
   const clearBtn = document.getElementById('ldisc-search-clear');
   if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
   clearTimeout(_ldiscSearchTimer);
-  if (!q.trim()) { _ldiscSearchMode = false; ldiscLoadBrowse(); return; }
+  if (!q.trim()) {
+    _ldiscSearchMode = false; _ldiscSearchGenre = null;
+    document.querySelectorAll('#ldisc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    ldiscLoadBrowse(); return;
+  }
+  const wasSearching = _ldiscSearchMode;
   _ldiscSearchMode = true;
+  if (!wasSearching) { // nouvelle recherche → on repart sur "Tous"
+    _ldiscSearchGenre = null;
+    document.querySelectorAll('#ldisc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+  }
   const grid = document.getElementById('ldisc-grid');
   if (grid) grid.innerHTML = '<div style="grid-column:1/-1;padding:32px 0;text-align:center"><div class="loading-dots"><span></span><span></span><span></span></div></div>';
   _ldiscSearchTimer = setTimeout(async () => {
     const data = await igdbFetch('search', { query: q.trim(), limit: 50 });
-    const games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !DLC_RE.test(g.title)));
-    _ldiscPool = games;
-    const lmWrap = document.getElementById('ldisc-loadmore-wrap');
-    if (lmWrap) lmWrap.style.display = 'none';
-    if (grid) grid.innerHTML = games.length ? games.map(g => discCardHtml(g,'lib')).join('') : `<div style="grid-column:1/-1;padding:32px;text-align:center;color:var(--muted);font-size:13px">${t('discover.empty')}</div>`;
+    let games = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !JUNK_RE.test(g.title)));
+    _ldiscSearchAll = _rankSearchResults(games, q);
+    _ldiscRenderSearch();
   }, 350);
 }
 
@@ -5004,8 +5066,9 @@ function ldiscClearSearch() {
   if (searchEl) searchEl.value = '';
   const clearBtn = document.getElementById('ldisc-search-clear');
   if (clearBtn) clearBtn.style.display = 'none';
-  _ldiscSearchMode = false;
+  _ldiscSearchMode = false; _ldiscSearchGenre = null; _ldiscSearchAll = [];
   _ldiscOffset = 0; _ldiscPool = [];
+  document.querySelectorAll('#ldisc-genre-row .g-chip').forEach((c,i) => c.classList.toggle('active', i===0));
   ldiscLoadBrowse();
 }
 
