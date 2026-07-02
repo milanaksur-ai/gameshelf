@@ -1800,13 +1800,13 @@ html, body {
 
       <!-- PINNED ACHIEVEMENTS (level 2+) -->
       <div id="pinned-ach-wrap" style="display:none;padding:0 16px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">🏅 Mes titres</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px" data-i18n="profile.my_titles">🏅 Mes titres</div>
         <div id="pinned-ach-slots" style="display:flex;gap:8px"></div>
       </div>
 
       <!-- PROFILE BACKGROUND (level 3+) -->
       <div id="profile-bg-wrap" style="display:none;padding:0 16px;margin-bottom:14px">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">🎨 Fond de profil</div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px" data-i18n="profile.profile_bg">🎨 Fond de profil</div>
         <div id="profile-bg-swatches" style="display:flex;gap:8px;flex-wrap:wrap"></div>
       </div>
 
@@ -3411,6 +3411,7 @@ const LANG = {
       quick_resume:'▶ Reprendre', quick_retry:'🔄 Nouvelle chance',
       quick_bought:'🛒 Je l\'ai acheté',
       add_game:'Ajouter un jeu', lucky_dip:'🎲 Tire-moi un jeu !',
+      my_titles:'🏅 Mes titres', profile_bg:'🎨 Fond de profil',
       games:'jeux', load_more:'Charger plus ↓',
       edit_title:'Modifier le profil', edit_avatar:'Photo de profil',
       edit_platforms:'Plateformes préférées', edit_sub:'Abonnement',
@@ -3660,6 +3661,7 @@ const LANG = {
       quick_resume:'▶ Resume', quick_retry:'🔄 Give it another shot',
       quick_bought:'🛒 I bought it',
       add_game:'Add a game', lucky_dip:'🎲 Pick a game for me!',
+      my_titles:'🏅 My titles', profile_bg:'🎨 Profile background',
       games:'games', load_more:'Load more ↓',
       edit_title:'Edit profile', edit_avatar:'Profile picture',
       edit_platforms:'Favorite platforms', edit_sub:'Subscription',
@@ -4334,6 +4336,13 @@ const ACHIEVEMENTS = [
 ];
 function _getUnlockedAchievements() {
   try { return new Set(JSON.parse(localStorage.getItem('gs_achievements')||'[]')); } catch(e) { return new Set(); }
+}
+// Ne compte que les vrais succès (le tableau contient aussi des clés techniques xp_chall_*)
+function _realAchCount(list) {
+  const ids = new Set(ACHIEVEMENTS.map(a => a.id));
+  let n = 0;
+  for (const id of (list || [])) if (ids.has(id)) n++;
+  return n;
 }
 let _checkingAchievements = false;
 async function checkAchievements() {
@@ -6146,7 +6155,7 @@ function _renderXpModal() {
   const unlocked = _getUnlockedAchievements();
   const achCountEl = document.getElementById('xpm-ach-count');
   const achEl = document.getElementById('xpm-achievements');
-  if (achCountEl) achCountEl.textContent = unlocked.size + ' / ' + ACHIEVEMENTS.length;
+  if (achCountEl) achCountEl.textContent = _realAchCount(unlocked) + ' / ' + ACHIEVEMENTS.length;
   if (achEl) {
     achEl.innerHTML = ACHIEVEMENTS.map(a => {
       const done   = unlocked.has(a.id);
@@ -9166,8 +9175,8 @@ function _renderFpVs(friend) {
   if (!el) return;
   const myXp  = obProfile.xp || 0;
   const fXp   = friend.xp || 0;
-  const myAch = _getUnlockedAchievements().size;
-  const fAch  = Array.isArray(friend.achievements) ? friend.achievements.length : 0;
+  const myAch = _realAchCount(_getUnlockedAchievements());
+  const fAch  = _realAchCount(friend.achievements);
   const myGames = GAMES.length;
   const fGames  = (friend.games||[]).length;
   const myDone = _finishedCount();
@@ -9614,7 +9623,7 @@ function renderFriendProfile(friend) {
   const _fpAchEl  = document.getElementById('fp-achievements');
   const _fpAchTxt = document.getElementById('fp-ach-text');
   if (_fpAchEl && Array.isArray(friend.achievements)) {
-    const achCount = friend.achievements.length;
+    const achCount = _realAchCount(friend.achievements);
     if (achCount > 0 && _fpAchTxt) {
       _fpAchTxt.textContent = achCount + ' / ' + ACHIEVEMENTS.length + (_lang === 'en' ? ' achievements' : ' succès');
       _fpAchEl.style.display = 'flex';
