@@ -2130,7 +2130,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07j</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07k</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2314,7 +2314,8 @@ html, body {
           <div id="fp-genre-tags" style="display:none;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
-          <button id="fp-quiz-btn" onclick="challengeFriendToQuiz()" style="display:none;margin-top:14px;padding:9px 20px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:20px;font-size:13px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.quiz_challenge">⚡ Défier</button>
+          <!-- Bouton "Défier" retiré : les quiz du jour (page Amis) remplacent le duel 1v1.
+               Les défis en cours restent répondables via la cloche (openQuizForChallenge). -->
         </div>
       </div>
       <!-- Comparaison 1v1 -->
@@ -9025,7 +9026,7 @@ async function openNotifDrawer() {
           ${_quizUserAv(r.user_id, quizData.myId)}
           <div style="flex:1;min-width:0">
             <div style="font-size:13px;font-weight:600">${name} a fait le quiz ${q ? q.emoji + ' ' + _esc(q.title) : ''}</div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:1px">${iDidIt ? `Score : <b style="color:var(--amber)">${r.score}/${r.total}</b>` : '🔒 Fais le quiz pour voir son score'}</div>
+            <div style="font-size:12px;color:var(--muted2);margin-top:2px">${iDidIt ? `Score : <b style="color:var(--amber)">${r.score}/${r.total}</b>` : '🔒 Fais le quiz pour voir son score'}</div>
           </div>
           <div style="font-size:16px;color:var(--muted2)">›</div>
         </div>`;
@@ -10060,7 +10061,6 @@ async function openFriendProfile(userId) {
   // Show remove + quiz challenge buttons if this person is in our accepted friends list
   const isFriend = (_socialFriends || []).some(f => f.id === userId);
   document.getElementById('fp-remove-btn').style.display = isFriend ? 'block' : 'none';
-  document.getElementById('fp-quiz-btn').style.display = isFriend ? 'inline-block' : 'none';
   _friendProfileData = { profile, games: games || [] };
   renderFriendProfile({
     username: profile.username || 'Gamer',
@@ -10232,24 +10232,30 @@ async function loadFriendActivity(friendIds) {
     </div>`;
     return { grp, html };
   });
-  const _composeAct = list => {
-    let last = null;
+  const _composeAct = (list, startLast) => {
+    let last = startLast || null;
     return list.map(x => {
-      const h = x.grp !== last ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:${last ? 14 : 0}px 0 4px">${x.grp}</div>` : '';
+      const h = x.grp !== last ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin:${last ? 16 : 2}px 2px 6px">${x.grp}</div>` : '';
       last = x.grp;
       return h + x.html;
     }).join('');
   };
-  const html = _composeAct(actItems);
-  // Fil repliable : 5 entrées visibles, le reste derrière "Voir plus"
+  // Fil repliable : 5 entrées visibles, le reste déjà dans le DOM mais masqué.
+  // Le bouton ne fait qu'un toggle de display → robuste, aucun re-render.
   const ACT_COLLAPSED = 5;
   if (actList) {
+    const wrapCard = inner => `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:8px 14px 12px">${inner}</div>`;
     if (actItems.length <= ACT_COLLAPSED) {
-      actList.innerHTML = html;
+      actList.innerHTML = wrapCard(_composeAct(actItems));
     } else {
-      window._actFullHtml  = html + `<button onclick="toggleActivityFeed(false)" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:10px">${t('social.see_less')} ↑</button>`;
-      window._actShortHtml = _composeAct(actItems.slice(0, ACT_COLLAPSED)) + `<button onclick="toggleActivityFeed(true)" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:10px">${t('social.see_more')} (${actItems.length - ACT_COLLAPSED}) ↓</button>`;
-      actList.innerHTML = window._actShortHtml;
+      const head = actItems.slice(0, ACT_COLLAPSED);
+      const rest = actItems.slice(ACT_COLLAPSED);
+      const restHtml = _composeAct(rest, head[head.length - 1].grp);
+      actList.innerHTML = wrapCard(
+        _composeAct(head) +
+        `<div id="act-more-wrap" style="display:none">${restHtml}</div>` +
+        `<button id="act-more-btn" onclick="toggleActivityFeed(this)" data-more="${t('social.see_more')} (${rest.length}) ↓" data-less="${t('social.see_less')} ↑" style="display:block;width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:11px;font-size:13px;font-weight:600;color:var(--muted2);cursor:pointer;margin-top:12px">${t('social.see_more')} (${rest.length}) ↓</button>`
+      );
     }
   }
   if (homeList) homeList.innerHTML = data.slice(0,3).map((item, i) => {
@@ -10265,10 +10271,12 @@ async function loadFriendActivity(friendIds) {
   }).join('');
 }
 
-function toggleActivityFeed(expand) {
-  const actList = document.getElementById('social-activity-list');
-  if (!actList) return;
-  actList.innerHTML = expand ? (window._actFullHtml || '') : (window._actShortHtml || '');
+function toggleActivityFeed(btn) {
+  const wrap = document.getElementById('act-more-wrap');
+  if (!wrap) return;
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if (btn) btn.textContent = isOpen ? (btn.dataset.more || 'Voir plus ↓') : (btn.dataset.less || 'Réduire ↑');
 }
 
 function timeAgo(iso) {
@@ -13128,7 +13136,7 @@ function renderQuizHub() {
       <div style="font-size:32px;margin-bottom:8px">${q.emoji}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
       <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
-      <div id="qcard-social-${q.id}" style="font-size:10px;font-weight:600;color:var(--muted2);margin-top:3px;min-height:13px"></div>
+      <div id="qcard-social-${q.id}" style="font-size:11px;font-weight:600;color:var(--muted2);margin-top:4px;min-height:14px"></div>
       ${rank && doneToday ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
       <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
     </div>`;
@@ -13166,7 +13174,7 @@ async function _renderQuizHubSocial(daily) {
     const nb = new Set(rows.map(r => r.user_id)).size;
     lbEl.innerHTML = `<div style="background:var(--s2);border:1px dashed var(--border2);border-radius:16px;padding:16px;text-align:center;margin-top:6px">
       <div style="font-size:22px;margin-bottom:6px">🔒</div>
-      <div style="font-size:12px;font-weight:600;color:var(--muted2)">${fr ? `${nb} joueur${nb>1?'s ont':' a'} déjà joué aujourd'hui — fais un quiz pour voir le classement !` : `${nb} player${nb>1?'s':''} already played today — play a quiz to see the leaderboard!`}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--muted2);line-height:1.5;padding:0 6px">${fr ? `${nb} joueur${nb>1?'s ont':' a'} déjà joué aujourd'hui — fais un quiz pour voir le classement !` : `${nb} player${nb>1?'s':''} already played today — play a quiz to see the leaderboard!`}</div>
     </div>`;
     return;
   }
@@ -13181,13 +13189,13 @@ async function _renderQuizHubSocial(daily) {
   lbEl.innerHTML = `<div style="margin-top:6px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
-      <div style="font-size:9px;font-weight:700;color:var(--amber)">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
+      <div style="font-size:10px;font-weight:700;color:var(--amber)">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
     </div>
     ${ranked.map(([uid, v], i) => `<div ${uid===data.myId ? '' : `onclick="closeQuizPicker();openFriendProfile('${uid}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="display:flex;align-items:center;gap:10px;background:${uid===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${uid===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:9px 12px;margin-bottom:6px${uid===data.myId?'':';cursor:pointer'}">
       <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
       ${_quizUserAv(uid, data.myId)}
       <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
-      <div style="font-size:10px;color:var(--muted2)">${v.done}/${QUIZ_PER_DAY} quiz</div>
+      <div style="font-size:11px;color:var(--muted2);flex-shrink:0">${v.done}/${QUIZ_PER_DAY} quiz</div>
       <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${v.score}<span style="font-size:10px;opacity:0.6">/${maxPts}</span></div>
     </div>`).join('')}
   </div>`;
@@ -13247,12 +13255,12 @@ function compareQuizAnswers(friendUid) {
   list.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:2px;padding:0 2px">
       <div style="flex:1"></div>
-      <div style="width:30px;text-align:center;font-size:10px;font-weight:700;color:var(--a)">${fr?'Toi':'You'}</div>
-      <div style="width:30px;text-align:center;font-size:10px;font-weight:700;color:var(--a2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${friendName.slice(0,6)}</div>
+      <div style="width:30px;text-align:center;font-size:11px;font-weight:700;color:var(--a)">${fr?'Toi':'You'}</div>
+      <div style="width:30px;text-align:center;font-size:11px;font-weight:700;color:var(--a2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${friendName.slice(0,6)}</div>
     </div>
-    ${q.questions.map((question, i) => `<div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 12px">
+    ${q.questions.map((question, i) => `<div style="display:flex;align-items:center;gap:11px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:11px 13px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:2px">Q${i+1}</div>
+        <div style="font-size:10px;font-weight:800;color:var(--muted);margin-bottom:3px">Q${i+1}</div>
         <div style="font-size:12px;line-height:1.35;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${_esc(question.q)}</div>
       </div>
       ${cell(!!myRow.answers[i])}
@@ -13286,7 +13294,7 @@ async function renderDailyQuizCard() {
   const chip = q => {
     const best = _quizLocalScores[q.id];
     const done = best && best.ts && Math.floor(best.ts / 86400000) === today;
-    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : '1.5px dashed rgba(255,255,255,0.18)'}">
       ${q.emoji}
       ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : ''}
     </div>`;
@@ -13297,20 +13305,20 @@ async function renderDailyQuizCard() {
   }).length;
 
   el.style.display = 'block';
-  el.innerHTML = `<div class="anim" onclick="openDailyQuizzes()" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(108,92,231,0.2) 0%,rgba(253,121,168,0.1) 100%);border:1px solid rgba(108,92,231,0.35);border-radius:20px;padding:16px;cursor:pointer">
+  el.innerHTML = `<div class="anim" onclick="openDailyQuizzes()" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(108,92,231,0.2) 0%,rgba(253,121,168,0.1) 100%);border:1px solid rgba(108,92,231,0.35);border-radius:20px;padding:18px 16px;cursor:pointer">
     <div style="position:absolute;top:-30px;right:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(253,121,168,0.22) 0%,transparent 70%);pointer-events:none"></div>
     <div style="position:absolute;bottom:-24px;left:-14px;width:90px;height:90px;background:radial-gradient(circle,rgba(108,92,231,0.2) 0%,transparent 70%);pointer-events:none"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">🧠 ${fr ? 'Quiz du jour' : 'Daily quizzes'}</div>
-      <div style="font-size:10px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:3px 10px">🔄 ${_hoursUntilNextRotation()}h</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">🧠 ${fr ? 'Quiz du jour' : 'Daily quizzes'}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 11px;flex-shrink:0">🔄 ${_hoursUntilNextRotation()}h</div>
     </div>
-    <div style="display:flex;gap:9px;justify-content:space-between;margin-bottom:12px">${daily.map(chip).join('')}</div>
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
-      <div style="font-size:11px;font-weight:700;color:${doneCount === QUIZ_PER_DAY ? 'var(--green)' : 'var(--muted2)'}">${doneCount}/${QUIZ_PER_DAY} ${fr ? 'fait' + (doneCount > 1 ? 's' : '') : 'done'} ${doneCount === QUIZ_PER_DAY ? '🎉' : ''}</div>
-      <div style="font-size:10px;font-weight:700;color:var(--amber);white-space:nowrap">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
+    <div style="display:flex;gap:8px;justify-content:space-between;margin-bottom:14px;padding:0 2px">${daily.map(chip).join('')}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:0 2px">
+      <div style="font-size:12px;font-weight:700;color:${doneCount === QUIZ_PER_DAY ? 'var(--green)' : 'var(--muted2)'}">${doneCount}/${QUIZ_PER_DAY} ${fr ? 'fait' + (doneCount > 1 ? 's' : '') : 'done'} ${doneCount === QUIZ_PER_DAY ? '🎉' : ''}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--amber);white-space:nowrap">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
     </div>
     <div id="dqc-podium" style="min-height:0"></div>
-    <button style="width:100%;padding:12px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;pointer-events:none">${doneCount === QUIZ_PER_DAY ? (fr ? '🏆 Voir le classement du jour' : '🏆 See today\'s leaderboard') : (fr ? '▶ Jouer aux quiz du jour' : '▶ Play today\'s quizzes')}</button>
+    <button style="width:100%;padding:13px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer;pointer-events:none">${doneCount === QUIZ_PER_DAY ? (fr ? '🏆 Voir le classement du jour' : '🏆 See today\'s leaderboard') : (fr ? '▶ Jouer aux quiz du jour' : '▶ Play today\'s quizzes')}</button>
   </div>`;
 
   // Podium (async) : top 3 du jour si j'ai joué, sinon teaser verrouillé
@@ -13323,9 +13331,9 @@ async function renderDailyQuizCard() {
   const iPlayed = rows.some(r => r.user_id === data.myId);
   if (!iPlayed) {
     const nb = new Set(rows.map(r => r.user_id)).size;
-    pod.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.2);border-radius:12px;padding:9px 12px;margin-bottom:12px">
-      <span style="font-size:15px">🔒</span>
-      <span style="font-size:11px;font-weight:600;color:var(--muted2)">${fr ? `${nb} ${nb > 1 ? 'joueurs ont' : 'joueur a'} déjà joué — fais un quiz pour voir le classement` : `${nb} already played — play to unlock the leaderboard`}</span>
+    pod.innerHTML = `<div style="display:flex;align-items:center;gap:9px;background:rgba(0,0,0,0.2);border-radius:12px;padding:11px 13px;margin-bottom:14px">
+      <span style="font-size:16px">🔒</span>
+      <span style="font-size:12px;font-weight:600;color:var(--muted2);line-height:1.4">${fr ? `${nb} ${nb > 1 ? 'joueurs ont' : 'joueur a'} déjà joué — fais un quiz pour voir le classement` : `${nb} already played — play to unlock the leaderboard`}</span>
     </div>`;
     return;
   }
@@ -13333,13 +13341,13 @@ async function renderDailyQuizCard() {
   rows.forEach(r => { totals[r.user_id] = (totals[r.user_id] || 0) + r.score; });
   const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
   const medals = ['🥇', '🥈', '🥉'];
-  pod.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:12px">
-    ${ranked.map(([uid, pts], i) => `<div ${uid === data.myId ? '' : `onclick="event.stopPropagation();openFriendProfile('${uid}')"`} style="flex:1;display:flex;align-items:center;gap:7px;background:${uid === data.myId ? 'rgba(108,92,231,0.18)' : 'rgba(0,0,0,0.2)'};border-radius:12px;padding:7px 9px;min-width:0${uid === data.myId ? '' : ';cursor:pointer'}">
-      <span style="font-size:14px">${medals[i]}</span>
+  pod.innerHTML = `<div style="display:flex;gap:7px;margin-bottom:14px">
+    ${ranked.map(([uid, pts], i) => `<div ${uid === data.myId ? '' : `onclick="event.stopPropagation();openFriendProfile('${uid}')"`} style="flex:1;display:flex;align-items:center;gap:8px;background:${uid === data.myId ? 'rgba(108,92,231,0.18)' : 'rgba(0,0,0,0.2)'};border-radius:12px;padding:9px 10px;min-width:0${uid === data.myId ? '' : ';cursor:pointer'}">
+      <span style="font-size:15px">${medals[i]}</span>
       ${_quizUserAv(uid, data.myId)}
       <div style="min-width:0;flex:1">
-        <div style="font-size:10px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
-        <div style="font-size:10px;font-weight:800;color:var(--amber)">${pts} pts</div>
+        <div style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
+        <div style="font-size:11px;font-weight:800;color:var(--amber)">${pts} pts</div>
       </div>
     </div>`).join('')}
   </div>`;
