@@ -2130,7 +2130,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07h</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07i</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2260,6 +2260,8 @@ html, body {
       </div>
       <!-- CONTENT -->
       <div class="scroll-area" style="padding:0 16px">
+        <!-- QUIZ DU JOUR (hero card) -->
+        <div id="daily-quiz-card" style="display:none;margin-bottom:20px"></div>
         <!-- Pending requests -->
         <div id="social-pending" style="display:none;margin-bottom:20px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.pending">Demandes reçues</div>
@@ -2771,6 +2773,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_4">60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_5">Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                 </ul>
               </div>
 
@@ -3290,6 +3293,7 @@ const LANG = {
       reviews_4:'60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄',
       reviews_5:'Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔',
       reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
+      reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3462,6 +3466,7 @@ const LANG = {
       xp_modal_title:'XP & Progression', xp_levels:'Paliers', xp_history:'Historique récent',
       xp_reason_score:'Note sur', xp_reason_vibe:'Vibe sur', xp_reason_note:'Note écrite sur',
       xp_reason_quiz:'Quiz complété', xp_reason_challenge:'Défi gagné', xp_reason_backfill:'Bibliothèque existante',
+      xp_reason_quiz_rank:'Classement quiz du jour',
       xp_no_history:'Aucune action encore', xp_slot_free:'Collections illimitées', achievements:'Succès',
       slot_full:'Collections limitées à {n} au niveau {lvl}. Note plus de jeux pour monter de niveau !',
       no_reviews:'Aucun avis récent',
@@ -3714,6 +3719,7 @@ const LANG = {
       xp_modal_title:'XP & Progress', xp_levels:'Levels', xp_history:'Recent history',
       xp_reason_score:'Rated', xp_reason_vibe:'Vibed', xp_reason_note:'Wrote a note for',
       xp_reason_quiz:'Quiz completed', xp_reason_challenge:'Challenge won', xp_reason_backfill:'Existing library',
+      xp_reason_quiz_rank:'Daily quiz ranking',
       xp_no_history:'No actions yet', xp_slot_free:'Unlimited collections', achievements:'Achievements',
       slot_full:'Collections capped at {n} for level {lvl}. Rate more games to level up!',
       no_reviews:'No recent reviews',
@@ -3775,6 +3781,7 @@ const LANG = {
       reviews_4:'60 quizzes total (35 new!) with daily rotation: 5 different quizzes every day 🧠🔄',
       reviews_5:'Daily leaderboard with friends 🏆 — play a quiz to unlock their scores, notified when a friend plays 🔔',
       reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
+      reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -5827,6 +5834,8 @@ function launchApp() {
   // Retroactive XP — run only once, award XP for already-rated/vibed/noted games
   setTimeout(() => _backfillXp(), 800);
   setTimeout(checkAchievements, 2000);
+  // Récompense XP du classement quiz d'hier (une seule fois)
+  setTimeout(() => { try { _awardYesterdayQuizXp(); } catch(e) {} }, 2500);
 }
 
 async function _backfillXp() {
@@ -6309,9 +6318,9 @@ function _renderXpModal() {
 
   // XP log
   const logEl = document.getElementById('xpm-log');
-  const REASON_ICONS  = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚' };
-  const REASON_KEY    = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill' };
-  const REASON_COLORS = { score:'rgba(253,203,110,0.18)', vibe:'rgba(108,92,231,0.18)', note:'rgba(0,206,201,0.18)', quiz:'rgba(108,92,231,0.18)', challenge:'rgba(253,121,168,0.2)', backfill:'rgba(108,92,231,0.12)' };
+  const REASON_ICONS  = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚', quiz_rank:'🏆' };
+  const REASON_KEY    = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill', quiz_rank:'xp_reason_quiz_rank' };
+  const REASON_COLORS = { score:'rgba(253,203,110,0.18)', vibe:'rgba(108,92,231,0.18)', note:'rgba(0,206,201,0.18)', quiz:'rgba(108,92,231,0.18)', challenge:'rgba(253,121,168,0.2)', backfill:'rgba(108,92,231,0.12)', quiz_rank:'rgba(255,202,40,0.18)' };
   try {
     const log = JSON.parse(localStorage.getItem('gs_xp_log') || '[]');
     if (!log.length) { logEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:10px 0;text-align:center">${t('profile.xp_no_history')}</div>`; return; }
@@ -9211,6 +9220,7 @@ async function loadSocialScreen() {
   }
   _socialFriends = [...friends];
   checkAchievements();
+  renderDailyQuizCard();
   renderSocialLeaderboard();
 
   // Fetch profiles for pending requesters
@@ -11271,6 +11281,8 @@ async function openSagaCollection(id) {
 // ── QUIZ CHALLENGE (friend profile) ──
 function challengeFriendToQuiz() {
   _quizChallengedFriendId = _fpFriendUserId || null;
+  const sub = document.getElementById('qpm-subtitle');
+  if (sub) sub.textContent = _lang === 'en' ? 'Pick a quiz to challenge your friend' : 'Choisis un quiz pour défier ton ami';
   openQuizPicker();
 }
 
@@ -13138,7 +13150,10 @@ async function _renderQuizHubSocial(daily) {
   const ranked = Object.entries(totals).sort((a, b) => b[1].score - a[1].score);
   const medals = ['🥇', '🥈', '🥉'];
   lbEl.innerHTML = `<div style="margin-top:6px">
-    <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
+      <div style="font-size:9px;font-weight:700;color:var(--amber)">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
+    </div>
     ${ranked.map(([uid, v], i) => `<div style="display:flex;align-items:center;gap:10px;background:${uid===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${uid===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:9px 12px;margin-bottom:6px">
       <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
       ${_quizUserAv(uid, data.myId)}
@@ -13175,6 +13190,126 @@ async function openQuizLb(quizId) {
   </div>`).join('');
 }
 function closeQuizLb() { document.getElementById('quiz-lb-modal').style.display = 'none'; }
+
+// ── Récompenses XP du classement quiz quotidien ──
+const QUIZ_RANK_XP = [150, 50, 25]; // 1er, 2e, 3e — autres participants : 5
+
+// Ouvre le hub des quiz du jour (hors contexte défi 1v1)
+function openDailyQuizzes() {
+  _quizChallengedFriendId = null;
+  const sub = document.getElementById('qpm-subtitle');
+  if (sub) sub.textContent = _lang === 'en'
+    ? 'Same quizzes for everyone · daily friend leaderboard'
+    : 'Les mêmes quiz pour tout le monde · classement quotidien entre amis';
+  openQuizPicker();
+}
+
+// ── Carte "Quiz du jour" sur la page Amis ──
+async function renderDailyQuizCard() {
+  const el = document.getElementById('daily-quiz-card');
+  if (!el) return;
+  const fr = _lang !== 'en';
+  const daily = getDailyQuizzes();
+  const today = _quizDayIndex();
+
+  // Pastilles des 5 quiz (état local, rendu immédiat)
+  const chip = q => {
+    const best = _quizLocalScores[q.id];
+    const done = best && best.ts && Math.floor(best.ts / 86400000) === today;
+    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:48px;height:48px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+      ${q.emoji}
+      ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : ''}
+    </div>`;
+  };
+  const doneCount = daily.filter(q => {
+    const b = _quizLocalScores[q.id];
+    return b && b.ts && Math.floor(b.ts / 86400000) === today;
+  }).length;
+
+  el.style.display = 'block';
+  el.innerHTML = `<div class="anim" onclick="openDailyQuizzes()" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(108,92,231,0.2) 0%,rgba(253,121,168,0.1) 100%);border:1px solid rgba(108,92,231,0.35);border-radius:20px;padding:16px;cursor:pointer">
+    <div style="position:absolute;top:-30px;right:-20px;width:110px;height:110px;background:radial-gradient(circle,rgba(253,121,168,0.22) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="position:absolute;bottom:-24px;left:-14px;width:90px;height:90px;background:radial-gradient(circle,rgba(108,92,231,0.2) 0%,transparent 70%);pointer-events:none"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">🧠 ${fr ? 'Quiz du jour' : 'Daily quizzes'}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:3px 10px">🔄 ${_hoursUntilNextRotation()}h</div>
+    </div>
+    <div style="display:flex;gap:9px;justify-content:space-between;margin-bottom:12px">${daily.map(chip).join('')}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">
+      <div style="font-size:11px;font-weight:700;color:${doneCount === QUIZ_PER_DAY ? 'var(--green)' : 'var(--muted2)'}">${doneCount}/${QUIZ_PER_DAY} ${fr ? 'fait' + (doneCount > 1 ? 's' : '') : 'done'} ${doneCount === QUIZ_PER_DAY ? '🎉' : ''}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--amber);white-space:nowrap">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
+    </div>
+    <div id="dqc-podium" style="min-height:0"></div>
+    <button style="width:100%;padding:12px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#fff;cursor:pointer;pointer-events:none">${doneCount === QUIZ_PER_DAY ? (fr ? '🏆 Voir le classement du jour' : '🏆 See today\'s leaderboard') : (fr ? '▶ Jouer aux quiz du jour' : '▶ Play today\'s quizzes')}</button>
+  </div>`;
+
+  // Podium (async) : top 3 du jour si j'ai joué, sinon teaser verrouillé
+  const data = await _fetchTodayQuizScores();
+  const pod = document.getElementById('dqc-podium');
+  if (!pod || !data) return;
+  const dailyIds = new Set(daily.map(q => q.id));
+  const rows = data.rows.filter(r => dailyIds.has(r.quiz_id));
+  if (!rows.length) { pod.innerHTML = ''; return; }
+  const iPlayed = rows.some(r => r.user_id === data.myId);
+  if (!iPlayed) {
+    const nb = new Set(rows.map(r => r.user_id)).size;
+    pod.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(0,0,0,0.2);border-radius:12px;padding:9px 12px;margin-bottom:12px">
+      <span style="font-size:15px">🔒</span>
+      <span style="font-size:11px;font-weight:600;color:var(--muted2)">${fr ? `${nb} ${nb > 1 ? 'joueurs ont' : 'joueur a'} déjà joué — fais un quiz pour voir le classement` : `${nb} already played — play to unlock the leaderboard`}</span>
+    </div>`;
+    return;
+  }
+  const totals = {};
+  rows.forEach(r => { totals[r.user_id] = (totals[r.user_id] || 0) + r.score; });
+  const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]).slice(0, 3);
+  const medals = ['🥇', '🥈', '🥉'];
+  pod.innerHTML = `<div style="display:flex;gap:6px;margin-bottom:12px">
+    ${ranked.map(([uid, pts], i) => `<div style="flex:1;display:flex;align-items:center;gap:7px;background:${uid === data.myId ? 'rgba(108,92,231,0.18)' : 'rgba(0,0,0,0.2)'};border-radius:12px;padding:7px 9px;min-width:0">
+      <span style="font-size:14px">${medals[i]}</span>
+      ${_quizUserAv(uid, data.myId)}
+      <div style="min-width:0;flex:1">
+        <div style="font-size:10px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
+        <div style="font-size:10px;font-weight:800;color:var(--amber)">${pts} pts</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Attribution des XP du classement quiz d'hier (au lancement de l'app) ──
+async function _awardYesterdayQuizXp() {
+  try {
+    const yday = _quizDayIndex() - 1;
+    // Déjà vérifié aujourd'hui sur cet appareil ?
+    if (localStorage.getItem('gs_qrank_checked') === String(yday)) return;
+    localStorage.setItem('gs_qrank_checked', String(yday));
+    const key = 'xp_qrank_' + yday;
+    const localAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+    if (localAch.has(key)) return; // déjà récompensé (cross-device via profiles.achievements)
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    await _ensureFriendsLoaded();
+    const friendIds = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+    const { data: rows } = await _sb.from('quiz_scores')
+      .select('user_id,score').eq('day_index', yday).in('user_id', [user.id, ...friendIds]);
+    const mine = (rows || []).filter(r => r.user_id === user.id);
+    if (!mine.length) return; // pas participé hier → 0 XP
+    const totals = {};
+    (rows || []).forEach(r => { totals[r.user_id] = (totals[r.user_id] || 0) + r.score; });
+    const ranked = Object.entries(totals).sort((a, b) => b[1] - a[1]);
+    const myRank = ranked.findIndex(([uid]) => uid === user.id) + 1;
+    // Podium seulement s'il y a au moins 2 participants (anti-farm en solo)
+    let xp = 5;
+    if (ranked.length >= 2 && myRank <= 3) xp = QUIZ_RANK_XP[myRank - 1];
+    // Marque AVANT d'attribuer pour bloquer tout double-gain
+    localAch.add(key);
+    localStorage.setItem('gs_achievements', JSON.stringify([...localAch]));
+    try { _sb.from('profiles').update({ achievements: [...localAch] }).eq('id', user.id).then(() => {}); } catch (e) {}
+    await gainXp(xp, 'quiz_rank', '');
+    const medal = myRank === 1 ? '🥇' : myRank === 2 ? '🥈' : myRank === 3 ? '🥉' : '🎖️';
+    const fr = _lang !== 'en';
+    showToast(`${medal} ${fr ? `Classement quiz d'hier : ${myRank}${myRank === 1 ? 'er' : 'e'} · +${xp} XP` : `Yesterday's quiz ranking: #${myRank} · +${xp} XP`}`);
+  } catch (e) {}
+}
 
 function openQuiz(id) {
   const isChallengeMode = !!_quizChallengedFriendId;
@@ -13298,6 +13433,7 @@ function showQuizResults() {
     </div>`;
   _renderQuizFriendsLb(qid);
   _maybeSendDailyQuizPush();
+  renderDailyQuizCard(); // met à jour la carte de la page Amis (pastilles ✓, podium)
   setTimeout(() => { if (typeof checkPendingRequests === 'function') checkPendingRequests(); }, 800);
 }
 
