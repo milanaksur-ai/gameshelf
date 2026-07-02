@@ -2106,7 +2106,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -11820,9 +11820,11 @@ function _clearStatusFx() {
 // particules resteraient gelées à l'écran → on nettoie dès que la page se cache.
 document.addEventListener('visibilitychange', () => { if (document.hidden) _clearStatusFx(); });
 
+// Animations 100% natives (Web Animations API) — aucune dépendance CDN,
+// fonctionne hors-ligne et même si anime.js n'a pas chargé.
 function celebrateStatus(status) {
-  if (typeof anime === 'undefined') return;
   _clearStatusFx(); // jamais deux célébrations superposées
+  if (!document.body.animate) return; // très vieux navigateur
   if (status === 'finished') return _celebrateFinishedLight();
   // ── 100% / platine : pluie dorée complète ──
   const emojis = ['⭐','✨','💎','🌟','💫','🏆'];
@@ -11835,24 +11837,19 @@ function celebrateStatus(status) {
     el.textContent = emojis[i % emojis.length];
     const size  = 22 + Math.random() * 20;
     const startX = Math.random() * vw;
-    const startY = -size;
-    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${startX}px;top:${startY}px;opacity:1`;
+    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${startX}px;top:${-size}px;opacity:0;will-change:transform,opacity`;
     document.body.appendChild(el);
     const delay = Math.floor(i / 4) * 55 + Math.random() * 25;
     const dur   = 1100 + Math.random() * 700;
     const fallY = vh * (0.72 + Math.random() * 0.35);
     const driftX = (Math.random() * 120) - 60;
     const rot   = (Math.random() * 540) - 270;
-    anime({
-      targets: el,
-      translateY: { value: fallY, duration: dur, easing: 'easeIn' },
-      translateX: { value: driftX, duration: dur, easing: 'linear' },
-      rotate:     { value: rot,    duration: dur, easing: 'linear' },
-      scale:      { value: 0.5,   duration: dur, easing: 'easeIn' },
-      opacity:    [{ value: 1, duration: dur * 0.78 }, { value: 0, duration: dur * 0.22 }],
-      delay,
-      complete() { el.remove(); }
-    });
+    const anim = el.animate([
+      { transform: 'translate(0,0) rotate(0deg) scale(1)', opacity: 1, offset: 0 },
+      { opacity: 1, offset: 0.78 },
+      { transform: `translate(${driftX}px,${fallY}px) rotate(${rot}deg) scale(0.5)`, opacity: 0, offset: 1 }
+    ], { duration: dur, delay, easing: 'ease-in', fill: 'forwards' });
+    anim.onfinish = () => el.remove();
     // Filet : suppression garantie même si l'animation est interrompue
     setTimeout(() => el.remove(), delay + dur + 1500);
   }
@@ -11869,21 +11866,21 @@ function _celebrateFinishedLight() {
     el.className = 'status-fx';
     el.textContent = emojis[i % emojis.length];
     const size = 16 + Math.random() * 14;
-    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${cx}px;top:${cy}px;opacity:0`;
+    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${cx}px;top:${cy}px;opacity:0;will-change:transform,opacity`;
     document.body.appendChild(el);
     const ang  = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
     const dist = 90 + Math.random() * 120;
     const dur  = 650 + Math.random() * 350;
-    anime({
-      targets: el,
-      translateX: Math.cos(ang) * dist,
-      translateY: Math.sin(ang) * dist - 46, // léger biais vers le haut
-      rotate: (Math.random() * 240) - 120,
-      scale:   [{ value: 1.2, duration: dur * 0.3, easing: 'easeOutBack' }, { value: 0.4, duration: dur * 0.7, easing: 'easeIn' }],
-      opacity: [{ value: 1, duration: 80 }, { value: 1, duration: dur * 0.5 }, { value: 0, duration: dur * 0.42 }],
-      duration: dur, easing: 'easeOutCubic',
-      complete() { el.remove(); }
-    });
+    const tx = Math.cos(ang) * dist;
+    const ty = Math.sin(ang) * dist - 46; // léger biais vers le haut
+    const rot = (Math.random() * 240) - 120;
+    const anim = el.animate([
+      { transform: 'translate(0,0) rotate(0deg) scale(0.4)', opacity: 0, offset: 0 },
+      { transform: `translate(${tx * 0.35}px,${ty * 0.35}px) rotate(${rot * 0.4}deg) scale(1.2)`, opacity: 1, offset: 0.3 },
+      { opacity: 1, offset: 0.58 },
+      { transform: `translate(${tx}px,${ty}px) rotate(${rot}deg) scale(0.4)`, opacity: 0, offset: 1 }
+    ], { duration: dur, easing: 'cubic-bezier(0.22,1,0.36,1)', fill: 'forwards' });
+    anim.onfinish = () => el.remove();
     setTimeout(() => el.remove(), dur + 1200);
   }
 }
