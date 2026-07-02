@@ -1611,9 +1611,11 @@ html, body {
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">⚡ Choisir un quiz</div>
       <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" id="qpm-subtitle">Choisis un quiz pour défier ton ami</div>
       <div style="overflow-y:auto;flex:1">
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px" data-i18n="explore.by_licence">Par Licence</div>
-        <div id="quiz-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -20px;padding:0 20px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-        <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:4px 0 10px" data-i18n="explore.by_genre">Par Genre</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase" data-i18n="explore.daily_quizzes">⚡ Les 5 quiz du jour</div>
+          <div id="quiz-rotation-timer" style="font-size:10px;font-weight:600;color:var(--a)"></div>
+        </div>
+        <div id="quiz-licence-scroll" style="display:none"></div>
         <div id="quiz-genre-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:8px"></div>
       </div>
     </div>
@@ -2117,7 +2119,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2755,6 +2757,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_1">Sur la fiche d'un jeu : note, vibes, heures jouées et avis de tes amis qui l'ont testé</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_2">Temps de jeu affiché aussi sur les avis des profils</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_3">Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_4">60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄</li>
                 </ul>
               </div>
 
@@ -3271,6 +3274,7 @@ const LANG = {
       reviews_1:'Sur la fiche d\'un jeu : note, vibes, heures jouées et avis de tes amis qui l\'ont testé',
       reviews_2:'Temps de jeu affiché aussi sur les avis des profils',
       reviews_3:'Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️',
+      reviews_4:'60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3382,6 +3386,7 @@ const LANG = {
     explore: {
       title:'Jeux & Culture', subtitle:'Quiz · Tier List',
       quiz:'❓ Quiz', by_licence:'Par Licence', by_genre:'Par Genre',
+      daily_quizzes:'⚡ Les 5 quiz du jour',
       tier_list:'🏆 Tier List', new_tl:'➕ Nouvelle',
       my_games:'Mes jeux', my_games_sub:'Classe ta bibliothèque en tiers S→F',
       top:'★ Top', activity:'Activité',
@@ -3633,6 +3638,7 @@ const LANG = {
     explore: {
       title:'Games & Culture', subtitle:'Quiz · Tier List',
       quiz:'❓ Quiz', by_licence:'By Franchise', by_genre:'By Genre',
+      daily_quizzes:"⚡ Today's 5 quizzes",
       tier_list:'🏆 Tier List', new_tl:'➕ New',
       my_games:'My games', my_games_sub:'Rank your library in S→F tiers',
       top:'★ Top', activity:'Activity',
@@ -3751,6 +3757,7 @@ const LANG = {
       reviews_1:'On a game page: your friends\' score, vibes, playtime and review if they\'ve played it',
       reviews_2:'Playtime now also shown on profile reviews',
       reviews_3:'Collections: configurable badges on each game (Metacritic, your rating, status, playtime) 🏷️',
+      reviews_4:'60 quizzes total (35 new!) with daily rotation: 5 different quizzes every day 🧠🔄',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -12559,6 +12566,393 @@ const QUIZ_DATA = [
       { q:"Dans Skyrim, quel dragon est le grand antagoniste ?", a:["Paarthurnax","Miraak","Alduin","Odahviing"], c:2 },
       { q:"Dans Oblivion, quel est le nom de la guilde des assassins ?", a:["La Confrérie Noire","La Guilde des Mages","La Guilde des Voleurs","Les Compagnons"], c:0 },
     ]},
+  // ══ NOUVELLES LICENCES ═══════════════════════════════════════════════
+  { id:'witcher', cat:'licence', title:'The Witcher', emoji:'🐺', color:'#b2bec3', gradient:'linear-gradient(135deg,#636e72,#b2bec3)',
+    questions:[
+      { q:"Quel écrivain polonais a créé l'univers de The Witcher ?", a:["Stanisław Lem","Andrzej Sapkowski","Adam Mickiewicz","Jacek Dukaj"], c:1 },
+      { q:"Quel studio développe la saga The Witcher ?", a:["Techland","CD Projekt Red","11 bit studios","People Can Fly"], c:1 },
+      { q:"Comment s'appelle la jument de Geralt ?", a:["Ablette","Épona","Perle","Vesemir"], c:0 },
+      { q:"À quelle école de sorceleurs appartient Geralt ?", a:["École du Griffon","École de la Vipère","École du Loup","École du Chat"], c:2 },
+      { q:"Quel est le sous-titre de The Witcher 3 ?", a:["Blood and Wine","Wild Hunt","Assassins of Kings","Hearts of Stone"], c:1 },
+      { q:"Quel barde accompagne souvent Geralt ?", a:["Lambert","Jaskier","Eskel","Zoltan"], c:1 },
+      { q:"Quelle extension de The Witcher 3 se déroule à Toussaint ?", a:["Hearts of Stone","Blood and Wine","Wild Hunt","Thronebreaker"], c:1 },
+      { q:"Les sorceleurs portent deux épées : une d'acier et une... ?", a:["De bronze","D'argent","D'or","De météorite"], c:1 },
+    ]},
+  { id:'godofwar', cat:'licence', title:'God of War', emoji:'🪓', color:'#ff7675', gradient:'linear-gradient(135deg,#c0392b,#ff7675)',
+    questions:[
+      { q:"Quel dieu grec Kratos servait-il au début de la saga ?", a:["Zeus","Hadès","Arès","Poséidon"], c:2 },
+      { q:"Quelles armes iconiques Kratos utilise-t-il dans les premiers opus ?", a:["Les Lames du Chaos","L'Épée de l'Olympe","Le Marteau de Thor","Les Griffes d'Hadès"], c:0 },
+      { q:"Quelle mythologie sert de cadre à God of War (2018) ?", a:["Grecque","Égyptienne","Nordique","Celtique"], c:2 },
+      { q:"Comment s'appelle la hache de Kratos ?", a:["Mjöllnir","Léviathan","Gungnir","Fenrir"], c:1 },
+      { q:"Quel acteur incarne Kratos depuis 2018 ?", a:["Terry Crews","Christopher Judge","Idris Elba","Dave Bautista"], c:1 },
+      { q:"En quelle année est sorti God of War Ragnarök ?", a:["2020","2021","2022","2023"], c:2 },
+      { q:"Quel est le nom du fils de Kratos ?", a:["Baldur","Atreus","Modi","Magni"], c:1 },
+      { q:"Quel studio développe God of War ?", a:["Naughty Dog","Sucker Punch","Santa Monica Studio","Bend Studio"], c:2 },
+    ]},
+  { id:'eldenring', cat:'licence', title:'Elden Ring & Souls', emoji:'💍', color:'#fdcb6e', gradient:'linear-gradient(135deg,#6c5b3e,#fdcb6e)',
+    questions:[
+      { q:"Quel écrivain célèbre a co-créé le lore d'Elden Ring ?", a:["Stephen King","George R.R. Martin","J.K. Rowling","Brandon Sanderson"], c:1 },
+      { q:"Comment s'appelle la monture spectrale d'Elden Ring ?", a:["Torrent","Tempête","Sombrale","Mistral"], c:0 },
+      { q:"En quelle année est sorti Elden Ring ?", a:["2020","2021","2022","2023"], c:2 },
+      { q:"Quel est le nom du DLC d'Elden Ring ?", a:["Shadow of the Erdtree","Crown of the Sunken King","The Old Hunters","Ashes of Ariandel"], c:0 },
+      { q:"Qui dirige FromSoftware et la saga Souls ?", a:["Hideo Kojima","Hidetaka Miyazaki","Yoko Taro","Masahiro Sakurai"], c:1 },
+      { q:"Dans Dark Souls, quel objet permet de se soigner ?", a:["La Fiole d'Estus","L'Herbe de lune","Le Sang de bête","La Larme cramoisie"], c:0 },
+      { q:"Dans Sekiro, quelle mécanique est au cœur des combats ?", a:["Le tir de précision","La posture et la parade","La magie","Le craft"], c:1 },
+      { q:"Comment s'appelle la zone de départ d'Elden Ring ?", a:["Caelid","Liurnia","Nécrolimbe","Le Piémont altusien"], c:2 },
+    ]},
+  { id:'rdr', cat:'licence', title:'Red Dead Redemption', emoji:'🤠', color:'#e17055', gradient:'linear-gradient(135deg,#a0522d,#e17055)',
+    questions:[
+      { q:"Qui est le protagoniste de Red Dead Redemption 2 ?", a:["John Marston","Arthur Morgan","Dutch van der Linde","Micah Bell"], c:1 },
+      { q:"Comment s'appelle le chef du gang dans RDR2 ?", a:["Bill Williamson","Hosea Matthews","Dutch van der Linde","Javier Escuella"], c:2 },
+      { q:"Qui incarne-t-on dans le premier Red Dead Redemption ?", a:["Arthur Morgan","John Marston","Jack Marston","Sadie Adler"], c:1 },
+      { q:"RDR2 est chronologiquement... ?", a:["Une suite du 1er","Une préquelle du 1er","Un remake","Un spin-off sans lien"], c:1 },
+      { q:"Quel studio développe Red Dead Redemption ?", a:["Ubisoft","Rockstar Games","Bethesda","Naughty Dog"], c:1 },
+      { q:"En quelle année est sorti RDR2 ?", a:["2016","2017","2018","2019"], c:2 },
+      { q:"De quelle maladie souffre Arthur Morgan ?", a:["Choléra","Tuberculose","Typhoïde","Scorbut"], c:1 },
+      { q:"Où débute l'aventure de RDR2 ?", a:["Dans le désert","Dans les montagnes enneigées","À Saint Denis","Dans un bayou"], c:1 },
+    ]},
+  { id:'cyberpunk', cat:'licence', title:'Cyberpunk 2077', emoji:'🌃', color:'#00cec9', gradient:'linear-gradient(135deg,#e84393,#00cec9)',
+    questions:[
+      { q:"Dans quelle ville se déroule Cyberpunk 2077 ?", a:["Neo Tokyo","Night City","Mega City One","New Angeles"], c:1 },
+      { q:"Quel acteur incarne Johnny Silverhand ?", a:["Norman Reedus","Keanu Reeves","Idris Elba","Brad Pitt"], c:1 },
+      { q:"Quel studio a développé Cyberpunk 2077 ?", a:["CD Projekt Red","Techland","Bloober Team","Rockstar"], c:0 },
+      { q:"En quelle année est sorti Cyberpunk 2077 ?", a:["2019","2020","2021","2022"], c:1 },
+      { q:"Quel est le nom de l'extension de Cyberpunk 2077 ?", a:["Phantom Liberty","Blood and Chrome","Ghost Protocol","Night Corp"], c:0 },
+      { q:"Comment s'appelle l'anime Netflix dérivé du jeu ?", a:["Cyberpunk: Edgerunners","Cyberpunk: Night City","Cyberpunk: Chrome","Cyberpunk: Trauma Team"], c:0 },
+      { q:"Quel est le nom du personnage principal ?", a:["J","V","X","K"], c:1 },
+      { q:"Cyberpunk 2077 est adapté d'un jeu de rôle papier créé par... ?", a:["Gary Gygax","Mike Pondsmith","Monte Cook","Kevin Siembieda"], c:1 },
+    ]},
+  { id:'overwatch', cat:'licence', title:'Overwatch', emoji:'🛡️', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#fdcb6e)',
+    questions:[
+      { q:"Quel studio a créé Overwatch ?", a:["Valve","Riot Games","Blizzard","Epic Games"], c:2 },
+      { q:"Quel héros est un gorille scientifique ?", a:["Doomfist","Winston","Hammond","Roadhog"], c:1 },
+      { q:"Quelle héroïne peut remonter le temps ?", a:["D.Va","Sombra","Tracer","Sojourn"], c:2 },
+      { q:"Overwatch 2 se joue en équipes de... ?", a:["4","5","6","7"], c:1 },
+      { q:"Quel est le nouveau nom du cowboy McCree ?", a:["Cole Cassidy","Jesse Walker","Sam Colt","Clint Harris"], c:0 },
+      { q:"Quelle héroïne ange peut ressusciter ses alliés ?", a:["Brigitte","Ana","Mercy","Kiriko"], c:2 },
+      { q:"En quelle année est sorti le premier Overwatch ?", a:["2014","2015","2016","2017"], c:2 },
+      { q:"Quels sont les trois rôles d'Overwatch 2 ?", a:["Tank, Dégâts, Soutien","Assaut, Défense, Soin","Bruiser, Sniper, Médic","Avant, Milieu, Arrière"], c:0 },
+    ]},
+  { id:'rocketleague', cat:'licence', title:'Rocket League', emoji:'🚗', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#ff7675)',
+    questions:[
+      { q:"Rocket League, c'est du football avec... ?", a:["Des motos","Des voitures","Des avions","Des robots"], c:1 },
+      { q:"Quel studio a créé Rocket League ?", a:["Psyonix","Epic Games","Criterion","Playground Games"], c:0 },
+      { q:"En quelle année est sorti Rocket League ?", a:["2013","2014","2015","2016"], c:2 },
+      { q:"Rocket League est devenu free-to-play en... ?", a:["2018","2019","2020","2021"], c:2 },
+      { q:"Quelle entreprise a racheté Psyonix ?", a:["Microsoft","Epic Games","EA","Tencent"], c:1 },
+      { q:"Combien de joueurs par équipe en mode standard ?", a:["2","3","4","5"], c:1 },
+      { q:"Que se passe-t-il quand un but est marqué ?", a:["La balle explose","La balle rétrécit","Le terrain change","Rien de spécial"], c:0 },
+      { q:"Comment s'appelle le prédécesseur de Rocket League ?", a:["Supersonic Acrobatic Rocket-Powered Battle-Cars","Rocket Cars Arena","Battle Ball Turbo","Nitro League"], c:0 },
+    ]},
+  { id:'animalcrossing', cat:'licence', title:'Animal Crossing', emoji:'🍃', color:'#55efc4', gradient:'linear-gradient(135deg,#00b894,#a0d468)',
+    questions:[
+      { q:"Quel est le sous-titre de l'opus Switch ?", a:["New Leaf","Wild World","New Horizons","City Folk"], c:2 },
+      { q:"Quel personnage vous vend votre maison à crédit ?", a:["Kéké","Tom Nook","Marie","Thibou"], c:1 },
+      { q:"En quelle année est sorti New Horizons ?", a:["2018","2019","2020","2021"], c:2 },
+      { q:"Quel chien musicien donne des concerts le samedi soir ?", a:["Kéké Laglisse","Méli","Rounard","Racoon"], c:0 },
+      { q:"Quelle est la monnaie du jeu ?", a:["Les pièces d'or","Les clochettes","Les feuilles","Les noix"], c:1 },
+      { q:"Où s'installe-t-on dans New Horizons ?", a:["Un village","Une ville","Une île déserte","Une montagne"], c:2 },
+      { q:"Qui édite Animal Crossing ?", a:["Sony","Sega","Nintendo","Bandai"], c:2 },
+      { q:"Que collectionne le hibou Thibou dans son musée ?", a:["Fossiles, poissons, insectes et œuvres d'art","Vêtements","Meubles","Cartes amiibo"], c:0 },
+    ]},
+  { id:'sonic', cat:'licence', title:'Sonic', emoji:'💨', color:'#74b9ff', gradient:'linear-gradient(135deg,#0984e3,#74b9ff)',
+    questions:[
+      { q:"Quelle entreprise a créé Sonic ?", a:["Nintendo","Sega","Capcom","Namco"], c:1 },
+      { q:"Quel animal est Sonic ?", a:["Un écureuil","Une souris","Un hérisson","Un porc-épic"], c:2 },
+      { q:"Comment s'appelle le renard à deux queues ami de Sonic ?", a:["Knuckles","Tails","Shadow","Silver"], c:1 },
+      { q:"Qui est l'ennemi juré de Sonic ?", a:["Dr. Eggman","Metal Sonic","Chaos","Wario"], c:0 },
+      { q:"Que collecte Sonic dans les niveaux ?", a:["Des pièces","Des anneaux","Des étoiles","Des émeraudes uniquement"], c:1 },
+      { q:"En quelle année est sorti le premier Sonic ?", a:["1989","1990","1991","1992"], c:2 },
+      { q:"Sur quelle console le premier Sonic est-il sorti ?", a:["Master System","Mega Drive","Game Gear","Saturn"], c:1 },
+      { q:"Quel échidné rouge garde l'Émeraude Mère ?", a:["Shadow","Knuckles","Big","Espio"], c:1 },
+    ]},
+  { id:'metalgear', cat:'licence', title:'Metal Gear', emoji:'🐍', color:'#a4b0be', gradient:'linear-gradient(135deg,#2f3542,#a4b0be)',
+    questions:[
+      { q:"Qui est le créateur de Metal Gear ?", a:["Shinji Mikami","Hideo Kojima","Hironobu Sakaguchi","Suda51"], c:1 },
+      { q:"Quel est le héros emblématique de Metal Gear Solid ?", a:["Big Boss","Solid Snake","Raiden","Ocelot"], c:1 },
+      { q:"Quel genre Metal Gear a-t-il popularisé ?", a:["Le FPS","L'infiltration","Le survival horror","Le battle royale"], c:1 },
+      { q:"Sous quel objet Snake se cache-t-il souvent ?", a:["Un tonneau","Un carton","Une poubelle","Une caisse en métal"], c:1 },
+      { q:"Quel est le sous-titre de Metal Gear Solid V ?", a:["Ground Zeroes","The Phantom Pain","Guns of the Patriots","Peace Walker"], c:1 },
+      { q:"Quel éditeur possède la licence Metal Gear ?", a:["Capcom","Sega","Konami","Square Enix"], c:2 },
+      { q:"Sur quelle île se déroule le premier Metal Gear Solid ?", a:["Shadow Moses","Zanzibar Land","Outer Heaven","Mother Base"], c:0 },
+      { q:"Quel jeu Kojima a-t-il créé après avoir quitté Konami ?", a:["Death Stranding","Ghostwire Tokyo","The Evil Within","Returnal"], c:0 },
+    ]},
+  { id:'doom', cat:'licence', title:'Doom', emoji:'😈', color:'#ff5252', gradient:'linear-gradient(135deg,#8b0000,#ff5252)',
+    questions:[
+      { q:"Quel studio a créé Doom ?", a:["3D Realms","id Software","Raven Software","Monolith"], c:1 },
+      { q:"En quelle année est sorti le Doom original ?", a:["1991","1992","1993","1994"], c:2 },
+      { q:"Quel est le surnom du héros de Doom ?", a:["Master Chief","Doom Slayer","Duke Nukem","BJ Blazkowicz"], c:1 },
+      { q:"Qu'affronte-t-on dans Doom ?", a:["Des aliens","Des zombies","Des démons","Des robots"], c:2 },
+      { q:"Quelle suite a reçu Doom (2016) ?", a:["Doom Forever","Doom Eternal","Doom Reborn","Doom II"], c:1 },
+      { q:"Où se déroule le premier Doom ?", a:["Sur Terre","Sur les lunes de Mars","Sur Vénus","En Enfer uniquement"], c:1 },
+      { q:"Quels sont les deux célèbres co-créateurs de Doom ?", a:["Carmack et Romero","Miyamoto et Aonuma","Kojima et Mikami","Newell et Faliszek"], c:0 },
+      { q:"Quel genre Doom a-t-il défini en 1993 ?", a:["Le RPG","Le FPS","La plateforme","Le RTS"], c:1 },
+    ]},
+  { id:'diablo', cat:'licence', title:'Diablo', emoji:'👿', color:'#ff5252', gradient:'linear-gradient(135deg,#4a0000,#ff5252)',
+    questions:[
+      { q:"Quel studio développe Diablo ?", a:["Blizzard","Obsidian","BioWare","Grinding Gear"], c:0 },
+      { q:"Dans quelle ville débute le premier Diablo ?", a:["Nouvelle-Tristram","Tristram","Caldeum","Westmarch"], c:1 },
+      { q:"Diablo est le Seigneur de la... ?", a:["Destruction","Haine","Terreur","Douleur"], c:2 },
+      { q:"En quelle année est sorti Diablo IV ?", a:["2021","2022","2023","2024"], c:2 },
+      { q:"De quelle couleur sont les objets légendaires dans Diablo III/IV ?", a:["Verts","Bleus","Orange","Violets"], c:2 },
+      { q:"À quel genre appartient Diablo ?", a:["Hack'n'slash","City builder","FPS","Metroidvania"], c:0 },
+      { q:"Comment s'appelle le monde de Diablo ?", a:["Azeroth","Sanctuaire","Tamriel","Teyvat"], c:1 },
+      { q:"En quelle année est sorti Diablo II: Resurrected ?", a:["2019","2020","2021","2022"], c:2 },
+    ]},
+  { id:'fallout', cat:'licence', title:'Fallout', emoji:'☢️', color:'#fdcb6e', gradient:'linear-gradient(135deg,#2c3e50,#fdcb6e)',
+    questions:[
+      { q:"Comment s'appellent les abris antiatomiques de Fallout ?", a:["Bunkers","Vaults (Abris)","Silos","Arches"], c:1 },
+      { q:"Quelle est la mascotte de la série ?", a:["Pip Boy","Vault Boy","Atom Boy","Nuka Boy"], c:1 },
+      { q:"Quel studio développe Fallout depuis le 3e opus ?", a:["Obsidian","Bethesda","inXile","Black Isle"], c:1 },
+      { q:"Quelle est la monnaie du wasteland ?", a:["Les dollars","Les capsules","Les vis","Les jetons"], c:1 },
+      { q:"Où se déroule Fallout 4 ?", a:["Washington","Las Vegas","Boston","La Californie"], c:2 },
+      { q:"Quel appareil porte-t-on au poignet dans Fallout ?", a:["Le Pip-Boy","Le Vault-Tec 3000","L'Atom-Watch","Le Geiger-Boy"], c:0 },
+      { q:"Sur quelle plateforme la série TV Fallout est-elle sortie en 2024 ?", a:["Netflix","Prime Video","HBO Max","Disney+"], c:1 },
+      { q:"Quel studio a développé Fallout: New Vegas ?", a:["Bethesda","Obsidian","id Software","Arkane"], c:1 },
+    ]},
+  { id:'masseffect', cat:'licence', title:'Mass Effect', emoji:'🚀', color:'#74b9ff', gradient:'linear-gradient(135deg,#130f40,#74b9ff)',
+    questions:[
+      { q:"Quel est le nom du héros de la trilogie Mass Effect ?", a:["Commandant Shepard","Capitaine Anderson","Kaidan Alenko","Jeff Moreau"], c:0 },
+      { q:"Quel studio a créé Mass Effect ?", a:["Bethesda","BioWare","Obsidian","Bungie"], c:1 },
+      { q:"Comment s'appelle le vaisseau de Shepard ?", a:["L'Enterprise","Le Normandy","Le Nostromo","L'Icarus"], c:1 },
+      { q:"Quelle menace ancienne pèse sur la galaxie ?", a:["Les Geths","Les Moissonneurs","Les Butariens","Les Rachni"], c:1 },
+      { q:"De quelle espèce est Garrus Vakarian ?", a:["Krogan","Galarien","Turien","Quarien"], c:2 },
+      { q:"Qu'est-ce que la Citadelle ?", a:["Une planète","Une station spatiale","Un vaisseau","Une lune"], c:1 },
+      { q:"En quelle année est sorti Mass Effect: Andromeda ?", a:["2015","2016","2017","2018"], c:2 },
+      { q:"De quelle espèce est Liara T'Soni ?", a:["Asari","Quarienne","Drell","Humaine"], c:0 },
+    ]},
+  { id:'bioshock', cat:'licence', title:'BioShock', emoji:'🌊', color:'#00cec9', gradient:'linear-gradient(135deg,#130f40,#00cec9)',
+    questions:[
+      { q:"Comment s'appelle la ville sous-marine de BioShock ?", a:["Columbia","Rapture","Atlantis","Nautilus"], c:1 },
+      { q:"De quel jeu vient la phrase culte « Would you kindly » ?", a:["BioShock","BioShock 2","BioShock Infinite","System Shock"], c:0 },
+      { q:"Qui est le créateur de BioShock ?", a:["Ken Levine","Warren Spector","Harvey Smith","Cliff Bleszinski"], c:0 },
+      { q:"Comment s'appellent les colosses en scaphandre ?", a:["Big Brothers","Big Daddies","Deep Fathers","Iron Men"], c:1 },
+      { q:"Qui accompagnent les Big Daddies ?", a:["Les Little Sisters","Les Splicers","Les Houdini","Les Rosies"], c:0 },
+      { q:"Quelle ville volante explore-t-on dans BioShock Infinite ?", a:["Rapture","Columbia","Elysium","Laputa"], c:1 },
+      { q:"Comment s'appellent les pouvoirs de BioShock ?", a:["Les Vigueurs","Les Plasmides","Les Toniques","Les Sérums"], c:1 },
+      { q:"Qui est la jeune femme que l'on escorte dans Infinite ?", a:["Eleanor","Elizabeth","Tenenbaum","Lucy"], c:1 },
+    ]},
+  { id:'valve', cat:'licence', title:'Portal & Half-Life', emoji:'🌀', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
+    questions:[
+      { q:"Quelle IA sarcastique teste le joueur dans Portal ?", a:["SHODAN","GLaDOS","Cortana","EDI"], c:1 },
+      { q:"Quel cube devient culte dans Portal ?", a:["Le Companion Cube","Le Portal Cube","Le Buddy Box","L'Aperture Cube"], c:0 },
+      { q:"Selon Portal, que dire du gâteau promis ?", a:["Il est délicieux","C'est un mensonge","Il est au chocolat","Il n'existe qu'en DLC"], c:1 },
+      { q:"Quel studio a créé Portal et Half-Life ?", a:["Valve","id Software","Epic","Irrational"], c:0 },
+      { q:"Qui est le héros silencieux de Half-Life ?", a:["Barney Calhoun","Gordon Freeman","Adrian Shephard","Eli Vance"], c:1 },
+      { q:"Quelle est l'arme emblématique de Half-Life ?", a:["Le fusil à gravité","Le pied de biche","La clé à molette","La batte"], c:1 },
+      { q:"En quelle année est sorti Portal 2 ?", a:["2009","2010","2011","2012"], c:2 },
+      { q:"Comment s'appelle le laboratoire de Portal ?", a:["Black Mesa","Aperture Science","City 17 Labs","Cave Labs"], c:1 },
+    ]},
+  { id:'uncharted', cat:'licence', title:'Uncharted', emoji:'🗺️', color:'#fdcb6e', gradient:'linear-gradient(135deg,#b8860b,#fdcb6e)',
+    questions:[
+      { q:"Qui est le héros d'Uncharted ?", a:["Nathan Drake","Sam Fisher","Lara Croft","Nolan North"], c:0 },
+      { q:"Quel studio développe Uncharted ?", a:["Insomniac","Naughty Dog","Santa Monica","Guerrilla"], c:1 },
+      { q:"Comment s'appelle le mentor de Nathan ?", a:["Victor Sullivan","Charlie Cutter","Harry Flynn","Rafe Adler"], c:0 },
+      { q:"Quel est le sous-titre d'Uncharted 4 ?", a:["Drake's Fortune","Among Thieves","A Thief's End","The Lost Legacy"], c:2 },
+      { q:"Quelle journaliste devient la compagne de Nathan ?", a:["Chloe Frazer","Elena Fisher","Nadine Ross","Cassie Drake"], c:1 },
+      { q:"Qui joue Nathan Drake dans le film de 2022 ?", a:["Chris Pratt","Tom Holland","Nathan Fillion","Ryan Reynolds"], c:1 },
+      { q:"Comment s'appelle le frère de Nathan ?", a:["Sam","Jack","Rafe","Harry"], c:0 },
+      { q:"Quel trésor cherche-t-on dans le premier Uncharted ?", a:["L'Atlantide","El Dorado","Shambhala","La cité d'Ubar"], c:1 },
+    ]},
+  { id:'horizon', cat:'licence', title:'Horizon', emoji:'🏹', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#fdcb6e)',
+    questions:[
+      { q:"Comment s'appelle l'héroïne d'Horizon ?", a:["Aloy","Freya","Senua","Ellie"], c:0 },
+      { q:"Quel studio développe Horizon ?", a:["Guerrilla Games","Sucker Punch","Remedy","Ninja Theory"], c:0 },
+      { q:"Que chasse-t-on principalement dans Horizon ?", a:["Des dragons","Des machines","Des mutants","Des dinosaures"], c:1 },
+      { q:"Quel est le sous-titre du premier Horizon ?", a:["Forbidden West","Zero Dawn","Burning Shores","The Frozen Wilds"], c:1 },
+      { q:"Quel est le sous-titre du deuxième opus ?", a:["Forbidden West","New Dawn","Wild Frontier","Red Sands"], c:0 },
+      { q:"Dans quelle tribu Aloy a-t-elle grandi ?", a:["Carja","Oseram","Nora","Banuk"], c:2 },
+      { q:"En quelle année est sorti Horizon Zero Dawn ?", a:["2015","2016","2017","2018"], c:2 },
+      { q:"Quelle IA est au cœur de l'histoire d'Aloy ?", a:["HADES","GAIA","APOLLO","MINERVA"], c:1 },
+    ]},
+  { id:'tombraider', cat:'licence', title:'Tomb Raider', emoji:'⛏️', color:'#55efc4', gradient:'linear-gradient(135deg,#00b894,#2d3436)',
+    questions:[
+      { q:"Qui est l'héroïne de Tomb Raider ?", a:["Jill Valentine","Lara Croft","Samus Aran","Faith Connors"], c:1 },
+      { q:"En quelle année est sorti le premier Tomb Raider ?", a:["1994","1995","1996","1997"], c:2 },
+      { q:"Quel studio a signé le reboot de 2013 ?", a:["Core Design","Crystal Dynamics","Eidos Montréal","Avalanche"], c:1 },
+      { q:"Quelle est la nationalité de Lara Croft ?", a:["Américaine","Française","Britannique","Australienne"], c:2 },
+      { q:"Quelle actrice incarne Lara dans les films de 2001 et 2003 ?", a:["Angelina Jolie","Charlize Theron","Milla Jovovich","Uma Thurman"], c:0 },
+      { q:"Quelle actrice reprend le rôle dans le film de 2018 ?", a:["Daisy Ridley","Alicia Vikander","Emma Watson","Brie Larson"], c:1 },
+      { q:"Quelles sont les armes iconiques de la Lara classique ?", a:["Un arc","Deux pistolets","Un fusil à pompe","Des couteaux"], c:1 },
+      { q:"Quelle est la profession de Lara Croft ?", a:["Espionne","Archéologue-aventurière","Journaliste","Mercenaire"], c:1 },
+    ]},
+  { id:'streetfighter', cat:'licence', title:'Street Fighter', emoji:'🥊', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#fdcb6e)',
+    questions:[
+      { q:"Quel éditeur développe Street Fighter ?", a:["SNK","Capcom","Namco","Sega"], c:1 },
+      { q:"Quel karatéka au bandeau est l'icône de la série ?", a:["Ken","Ryu","Akuma","Dan"], c:1 },
+      { q:"Comment s'appelle la boule d'énergie de Ryu ?", a:["Kamehameha","Hadoken","Shoryuken","Sonic Boom"], c:1 },
+      { q:"En quelle année est sorti Street Fighter II ?", a:["1989","1990","1991","1992"], c:2 },
+      { q:"Qui est le rival blond et ami de Ryu ?", a:["Guile","Ken","Cody","Alex"], c:1 },
+      { q:"Qui est la première grande combattante de la série ?", a:["Cammy","Chun-Li","Sakura","Juri"], c:1 },
+      { q:"En quelle année est sorti Street Fighter 6 ?", a:["2021","2022","2023","2024"], c:2 },
+      { q:"Qui est le dictateur boss emblématique de la série ?", a:["M. Bison","Sagat","Gill","Seth"], c:0 },
+    ]},
+  // ══ NOUVEAUX THÈMES ══════════════════════════════════════════════════
+  { id:'retro', cat:'genre', title:'Rétro 80s-90s', emoji:'🕹️', color:'#fdcb6e', gradient:'linear-gradient(135deg,#e17055,#fdcb6e)',
+    questions:[
+      { q:"En quelle année est sorti Pac-Man ?", a:["1978","1980","1982","1984"], c:1 },
+      { q:"Qui a créé Tetris ?", a:["Shigeru Miyamoto","Alexey Pajitnov","Toru Iwatani","Yu Suzuki"], c:1 },
+      { q:"En quelle année est sorti Space Invaders ?", a:["1976","1978","1980","1982"], c:1 },
+      { q:"Quel jeu de 1972 a lancé l'industrie de l'arcade ?", a:["Asteroids","Pong","Breakout","Galaga"], c:1 },
+      { q:"Quel accessoire NES servait à jouer à Duck Hunt ?", a:["Le Power Glove","Le Zapper","Le R.O.B.","Le Super Scope"], c:1 },
+      { q:"Dans Donkey Kong (1981), comment s'appelait le héros ?", a:["Mario","Jumpman","Luigi","Stanley"], c:1 },
+      { q:"En quelle année est sortie la Game Boy ?", a:["1987","1988","1989","1990"], c:2 },
+      { q:"Quel cri conclut les combats de Mortal Kombat ?", a:["Finish Him... Fatality !","K.O. !","Perfect !","Game Over !"], c:0 },
+    ]},
+  { id:'consoles', cat:'genre', title:'Consoles & Hardware', emoji:'🖥️', color:'#a29bfe', gradient:'linear-gradient(135deg,#2d3436,#a29bfe)',
+    questions:[
+      { q:"Quelle est la console la plus vendue de l'histoire ?", a:["PS4","Nintendo DS","PlayStation 2","Switch"], c:2 },
+      { q:"Qui a fabriqué la Dreamcast ?", a:["Sony","Sega","Atari","NEC"], c:1 },
+      { q:"En quelle année la première PlayStation est-elle sortie au Japon ?", a:["1992","1993","1994","1995"], c:2 },
+      { q:"Combien de branches avait la manette Nintendo 64 ?", a:["1","2","3","4"], c:2 },
+      { q:"En quelle année est sortie la Nintendo Switch ?", a:["2015","2016","2017","2018"], c:2 },
+      { q:"Quelle entreprise fabrique la Xbox ?", a:["Sony","Microsoft","Apple","Amazon"], c:1 },
+      { q:"Quelle était la grande innovation de la manette Wii ?", a:["L'écran tactile","La détection de mouvement","Le retour haptique","Les palettes arrière"], c:1 },
+      { q:"Quel ingénieur Nintendo a créé la Game Boy ?", a:["Gunpei Yokoi","Shigeru Miyamoto","Masayuki Uemura","Satoru Iwata"], c:0 },
+    ]},
+  { id:'studios', cat:'genre', title:'Studios & Créateurs', emoji:'🏢', color:'#00cec9', gradient:'linear-gradient(135deg,#00b894,#00cec9)',
+    questions:[
+      { q:"Quel studio développe Zelda et Mario ?", a:["Sega","Nintendo","Capcom","Square Enix"], c:1 },
+      { q:"Rockstar Games est surtout célèbre pour... ?", a:["FIFA","GTA","Halo","Zelda"], c:1 },
+      { q:"Quel éditeur français est derrière Assassin's Creed ?", a:["Quantic Dream","Ubisoft","Focus","Dontnod"], c:1 },
+      { q:"Quel studio a créé Fortnite ?", a:["Epic Games","Valve","Bungie","Respawn"], c:0 },
+      { q:"Quel studio polonais développe The Witcher ?", a:["Techland","CD Projekt Red","Bloober Team","Flying Wild Hog"], c:1 },
+      { q:"À quel groupe appartient Naughty Dog ?", a:["Microsoft","Sony (PlayStation)","Tencent","Embracer"], c:1 },
+      { q:"Qui a racheté Mojang (Minecraft) en 2014 ?", a:["Sony","Microsoft","EA","Apple"], c:1 },
+      { q:"Quel studio actuel appartient à Hideo Kojima ?", a:["Kojima Productions","Konami Digital","Team Silent","Monolith Soft"], c:0 },
+    ]},
+  { id:'persos', cat:'genre', title:'Personnages Iconiques', emoji:'🦸', color:'#fd79a8', gradient:'linear-gradient(135deg,#e84393,#fd79a8)',
+    questions:[
+      { q:"Comment s'appelle le héros de The Legend of Zelda ?", a:["Zelda","Link","Ganon","Impa"], c:1 },
+      { q:"Quelle chasseuse de primes porte une armure Nintendo culte ?", a:["Samus Aran","Bayonetta","Zero Suit","Palutena"], c:0 },
+      { q:"Kratos est le dieu grec de la... ?", a:["Guerre","Mort","Foudre","Vengeance"], c:0 },
+      { q:"Quel plombier moustachu est la star de Nintendo ?", a:["Luigi","Wario","Mario","Waluigi"], c:2 },
+      { q:"Quel bandicoot était la mascotte PlayStation des années 90 ?", a:["Spyro","Crash","Rayman","Gex"], c:1 },
+      { q:"De quel type est Pikachu ?", a:["Feu","Eau","Électrik","Plante"], c:2 },
+      { q:"Qui est le rival jaune et cupide de Mario ?", a:["Bowser","Wario","Waluigi","Kamek"], c:1 },
+      { q:"Quelle est la profession de Lara Croft ?", a:["Pilote","Archéologue","Espionne","Chirurgienne"], c:1 },
+    ]},
+  { id:'esport', cat:'genre', title:'Esport', emoji:'🏟️', color:'#ffd32a', gradient:'linear-gradient(135deg,#f9ca24,#f0932b)',
+    questions:[
+      { q:"The International est le tournoi majeur de quel jeu ?", a:["LoL","Dota 2","CS2","Valorant"], c:1 },
+      { q:"Comment s'appelle le championnat du monde de League of Legends ?", a:["Majors","Worlds","Champions","Masters"], c:1 },
+      { q:"Quel studio édite Counter-Strike ?", a:["Riot","Valve","Blizzard","Krafton"], c:1 },
+      { q:"Quelle structure esport française est portée par Kameto ?", a:["Vitality","Karmine Corp","Solary","LDLC"], c:1 },
+      { q:"Faker est une légende de quel jeu ?", a:["StarCraft","League of Legends","Overwatch","Dota 2"], c:1 },
+      { q:"L'EVO est la grand-messe de quel genre ?", a:["Les FPS","Les jeux de combat","Les MOBA","Les jeux de course"], c:1 },
+      { q:"Qui a remporté la Fortnite World Cup solo en 2019 ?", a:["Ninja","Bugha","Tfue","Mongraal"], c:1 },
+      { q:"ZywOo est un prodige français de quel jeu ?", a:["Counter-Strike","Rocket League","Apex","Rainbow Six"], c:0 },
+    ]},
+  { id:'musique', cat:'genre', title:'Musiques de Jeux', emoji:'🎵', color:'#a29bfe', gradient:'linear-gradient(135deg,#6c5ce7,#fd79a8)',
+    questions:[
+      { q:"Qui compose les thèmes historiques de Mario et Zelda ?", a:["Nobuo Uematsu","Koji Kondo","Yoko Shimomura","Yasunori Mitsuda"], c:1 },
+      { q:"De quel jeu vient « One-Winged Angel » ?", a:["Final Fantasy VII","Kingdom Hearts","Chrono Trigger","NieR"], c:0 },
+      { q:"« Still Alive » est la chanson de fin de quel jeu ?", a:["Half-Life 2","Portal","BioShock","Fallout 3"], c:1 },
+      { q:"De quel jeu vient le morceau « Megalovania » ?", a:["Deltarune","Undertale","Cuphead","Hollow Knight"], c:1 },
+      { q:"Qui a créé et composé Undertale ?", a:["Toby Fox","Scott Cawthon","Eric Barone","Lena Raine"], c:0 },
+      { q:"Qui a composé la musique de Minecraft ?", a:["C418","Mick Gordon","Darren Korb","Jesper Kyd"], c:0 },
+      { q:"« Snake Eater » est le thème chanté de quel jeu ?", a:["MGS2","Metal Gear Solid 3","MGS V","Death Stranding"], c:1 },
+      { q:"Qui a composé les BO de Doom (2016) et Eternal ?", a:["Mick Gordon","Hans Zimmer","Akira Yamaoka","Jeremy Soule"], c:0 },
+    ]},
+  { id:'horreur', cat:'genre', title:'Horreur', emoji:'👻', color:'#ff5252', gradient:'linear-gradient(135deg,#2d3436,#ff5252)',
+    questions:[
+      { q:"Quel éditeur possède Silent Hill ?", a:["Capcom","Konami","EA","Sony"], c:1 },
+      { q:"Quel Resident Evil se déroule dans un village roumain ?", a:["RE7","Resident Evil Village","RE4 Remake","Code Veronica"], c:1 },
+      { q:"Dans Outlast, comment se défend-on ?", a:["Avec des armes","On ne peut que fuir et se cacher","Avec la magie","Avec des pièges"], c:1 },
+      { q:"Où se déroule Five Nights at Freddy's ?", a:["Un hôpital","Une pizzeria","Une école","Un manoir"], c:1 },
+      { q:"Quel studio a créé Amnesia: The Dark Descent ?", a:["Frictional Games","Red Barrels","Bloober Team","Supermassive"], c:0 },
+      { q:"Quel est le format des parties de Dead by Daylight ?", a:["5 contre 5","4 survivants contre 1 tueur","Battle royale","2 contre 2"], c:1 },
+      { q:"P.T. était la démo jouable de quel projet annulé ?", a:["Resident Evil 7","Silent Hills","Death Stranding","Allison Road"], c:1 },
+      { q:"Quel est le métier d'Alan Wake ?", a:["Détective","Écrivain","Journaliste","Photographe"], c:1 },
+    ]},
+  { id:'indiecult', cat:'genre', title:'Indés Cultes', emoji:'💎', color:'#00e676', gradient:'linear-gradient(135deg,#00b894,#00e676)',
+    questions:[
+      { q:"Quel studio a créé Hollow Knight ?", a:["Team Cherry","Motion Twin","Supergiant","Playdead"], c:0 },
+      { q:"Que gravit-on dans Celeste ?", a:["Une tour","Une montagne","Un volcan","Un glacier"], c:1 },
+      { q:"Qui a développé Stardew Valley (quasi) seul ?", a:["Toby Fox","ConcernedApe","Notch","Lucas Pope"], c:1 },
+      { q:"Quel studio a créé Hades ?", a:["Supergiant Games","Team Cherry","Devolver","Klei"], c:0 },
+      { q:"Quel style visuel rend Cuphead unique ?", a:["Pixel art","Cartoon des années 30","Aquarelle","Low poly"], c:1 },
+      { q:"Qui a créé Undertale ?", a:["Toby Fox","Edmund McMillen","Terry Cavanagh","Jonathan Blow"], c:0 },
+      { q:"Quel studio français a créé Dead Cells ?", a:["Sloclap","Motion Twin","Shiro Games","Asobo"], c:1 },
+      { q:"Balatro est un roguelike basé sur... ?", a:["Les échecs","Le poker","Les dés","Le tarot"], c:1 },
+    ]},
+  { id:'openworld', cat:'genre', title:'Mondes Ouverts', emoji:'🌍', color:'#55efc4', gradient:'linear-gradient(135deg,#00b894,#74b9ff)',
+    questions:[
+      { q:"En quelle année est sorti Breath of the Wild ?", a:["2015","2016","2017","2018"], c:2 },
+      { q:"Dans quelle ville se déroule GTA V ?", a:["Vice City","Liberty City","Los Santos","San Fierro"], c:2 },
+      { q:"Sur quel continent se trouve la province de Bordeciel (Skyrim) ?", a:["Tamriel","Azeroth","Thedas","Hyrule"], c:0 },
+      { q:"Ghost of Tsushima se déroule pendant... ?", a:["La guerre de Corée","L'invasion mongole du Japon","L'ère Meiji","La 2nde Guerre mondiale"], c:1 },
+      { q:"Comment le monde de Minecraft est-il créé ?", a:["Dessiné à la main","Généré procéduralement","Téléchargé","Identique pour tous"], c:1 },
+      { q:"Quel éditeur publie Far Cry ?", a:["EA","Ubisoft","Activision","Bethesda"], c:1 },
+      { q:"No Man's Sky promettait combien de planètes ?", a:["18 millions","18 milliards","18 trillions","Plus de 18 quintillions"], c:3 },
+      { q:"Quelle map utilise Fortnite Battle Royale ?", a:["Une île","Un continent","Une ville","Un archipel de 12 îles"], c:0 },
+    ]},
+  { id:'nintendofan', cat:'genre', title:'Nintendo', emoji:'🍄', color:'#ff7675', gradient:'linear-gradient(135deg,#d63031,#ff7675)',
+    questions:[
+      { q:"En quelle année Nintendo a-t-elle été fondée ?", a:["1889","1929","1965","1983"], c:0 },
+      { q:"Qui a créé Mario et Zelda ?", a:["Gunpei Yokoi","Shigeru Miyamoto","Satoru Iwata","Eiji Aonuma"], c:1 },
+      { q:"Quelle console Nintendo est hybride salon/portable ?", a:["Wii U","3DS","Switch","GameCube"], c:2 },
+      { q:"De quelle couleur est Kirby ?", a:["Bleu","Rose","Jaune","Vert"], c:1 },
+      { q:"Quel champignon est l'ennemi de base de Mario ?", a:["Koopa","Goomba","Boo","Lakitu"], c:1 },
+      { q:"Quelle console Nintendo avait deux écrans ?", a:["Game Boy Advance","Nintendo DS","Virtual Boy","Game & Watch"], c:1 },
+      { q:"Dans Splatoon, avec quoi tire-t-on ?", a:["De l'eau","De la peinture/encre","Des bulles","Du sable"], c:1 },
+      { q:"Dans quelle ville japonaise siège Nintendo ?", a:["Tokyo","Osaka","Kyoto","Nagoya"], c:2 },
+    ]},
+  { id:'playstationfan', cat:'genre', title:'PlayStation', emoji:'🎮', color:'#74b9ff', gradient:'linear-gradient(135deg,#003791,#74b9ff)',
+    questions:[
+      { q:"En quelle année est sortie la PS5 ?", a:["2019","2020","2021","2022"], c:1 },
+      { q:"Qui est considéré comme le père de la PlayStation ?", a:["Ken Kutaragi","Shawn Layden","Jim Ryan","Kazuo Hirai"], c:0 },
+      { q:"Quel dragon violet est une icône PlayStation ?", a:["Spyro","Charizard","Ridley","Bahamut"], c:0 },
+      { q:"Bloodborne est une exclusivité de quelle console ?", a:["PS3","PS4","PS5","PS Vita"], c:1 },
+      { q:"Quels symboles ornent la manette PlayStation ?", a:["A, B, X, Y","Croix, rond, carré, triangle","Flèches","1, 2, 3, 4"], c:1 },
+      { q:"En quelle année est sortie la PS2 ?", a:["1999","2000","2001","2002"], c:1 },
+      { q:"Quel studio développe Ratchet & Clank ?", a:["Naughty Dog","Insomniac Games","Sucker Punch","Japan Studio"], c:1 },
+      { q:"Astro Bot est la mascotte de... ?", a:["Xbox","PlayStation","Nintendo","Steam"], c:1 },
+    ]},
+  { id:'xboxfan', cat:'genre', title:'Xbox', emoji:'💚', color:'#00e676', gradient:'linear-gradient(135deg,#107c10,#00e676)',
+    questions:[
+      { q:"En quelle année la première Xbox est-elle sortie ?", a:["1999","2000","2001","2002"], c:2 },
+      { q:"Quel jeu a porté le lancement de la première Xbox ?", a:["Gears of War","Halo: Combat Evolved","Fable","Forza"], c:1 },
+      { q:"Comment s'appelle l'abonnement jeux de Microsoft ?", a:["Xbox Now","Game Pass","Play Anywhere","Xbox Prime"], c:1 },
+      { q:"En quelle année sont sorties les Xbox Series X/S ?", a:["2019","2020","2021","2022"], c:1 },
+      { q:"Quelle série Xbox est dédiée à la course automobile ?", a:["Gran Turismo","Forza","Ridge Racer","Project CARS"], c:1 },
+      { q:"Qui dirige la marque Xbox depuis 2014 ?", a:["Phil Spencer","Satya Nadella","Don Mattrick","Peter Moore"], c:0 },
+      { q:"Quel rachat géant Microsoft a-t-il finalisé en 2023 ?", a:["EA","Ubisoft","Activision Blizzard","Take-Two"], c:2 },
+      { q:"Microsoft a racheté ZeniMax/Bethesda en... ?", a:["2019","2020","2021","2022"], c:2 },
+    ]},
+  { id:'goty', cat:'genre', title:'GOTY & Récompenses', emoji:'🏆', color:'#ffd32a', gradient:'linear-gradient(135deg,#f0932b,#ffd32a)',
+    questions:[
+      { q:"Quel jeu a remporté le GOTY 2022 aux Game Awards ?", a:["God of War Ragnarök","Elden Ring","Horizon FW","Stray"], c:1 },
+      { q:"GOTY 2020 aux Game Awards ?", a:["Ghost of Tsushima","Hades","The Last of Us Part II","Doom Eternal"], c:2 },
+      { q:"GOTY 2018 aux Game Awards ?", a:["RDR2","God of War","Spider-Man","Celeste"], c:1 },
+      { q:"GOTY 2019 aux Game Awards ?", a:["Death Stranding","Control","Sekiro","RE2 Remake"], c:2 },
+      { q:"GOTY 2021 aux Game Awards ?", a:["Deathloop","It Takes Two","Metroid Dread","Returnal"], c:1 },
+      { q:"Qui anime la cérémonie des Game Awards ?", a:["Geoff Keighley","Todd Howard","Jeff Kaplan","Reggie Fils-Aimé"], c:0 },
+      { q:"GOTY 2017 aux Game Awards ?", a:["Horizon Zero Dawn","Zelda: Breath of the Wild","Mario Odyssey","Persona 5"], c:1 },
+      { q:"GOTY 2024 aux Game Awards ?", a:["Final Fantasy VII Rebirth","Astro Bot","Balatro","Metaphor"], c:1 },
+    ]},
+  { id:'multijoueur', cat:'genre', title:'Multijoueur Culte', emoji:'👥', color:'#fd79a8', gradient:'linear-gradient(135deg,#e84393,#6c5ce7)',
+    questions:[
+      { q:"Dans Among Us, comment s'appellent les traîtres ?", a:["Les Espions","Les Imposteurs","Les Saboteurs","Les Aliens"], c:1 },
+      { q:"À quoi ressemblent les personnages de Fall Guys ?", a:["Des robots","Des haricots","Des animaux","Des bonbons"], c:1 },
+      { q:"Quel studio développe Valorant ?", a:["Valve","Riot Games","Blizzard","Ubisoft"], c:1 },
+      { q:"Apex Legends partage son univers avec quelle série ?", a:["Call of Duty","Titanfall","Halo","Destiny"], c:1 },
+      { q:"Que signifie PUBG ?", a:["Public Battle Ground","PlayerUnknown's Battlegrounds","Player Universe BG","Pro Ultimate BG"], c:1 },
+      { q:"Comment se joue It Takes Two ?", a:["En solo","Uniquement en coop à deux","Jusqu'à 4 joueurs","En ligne massivement"], c:1 },
+      { q:"Warzone est le battle royale de quelle licence ?", a:["Battlefield","Call of Duty","Halo","Far Cry"], c:1 },
+      { q:"Quel est le thème de Sea of Thieves ?", a:["Les vikings","Les pirates","Les cowboys","Les chevaliers"], c:1 },
+    ]},
+  { id:'records', cat:'genre', title:'Ventes & Records', emoji:'📈', color:'#00e676', gradient:'linear-gradient(135deg,#00b894,#ffd32a)',
+    questions:[
+      { q:"Quel est le jeu le plus vendu de tous les temps ?", a:["GTA V","Tetris","Minecraft","Wii Sports"], c:2 },
+      { q:"GTA V s'est vendu à plus de... ?", a:["50 millions","100 millions","200 millions","400 millions"], c:2 },
+      { q:"Quel jeu était fourni avec la Wii en Occident ?", a:["Wii Play","Wii Sports","Mario Kart Wii","Wii Fit"], c:1 },
+      { q:"Quelle est la franchise multimédia la plus lucrative au monde ?", a:["Mario","Star Wars","Pokémon","Call of Duty"], c:2 },
+      { q:"Quel puzzle game culte s'est vendu à plusieurs centaines de millions d'exemplaires ?", a:["Candy Crush","Tetris","Bejeweled","Puyo Puyo"], c:1 },
+      { q:"Quel jeu détient le record de financement participatif ?", a:["Star Citizen","Shenmue III","Bloodstained","Pillars of Eternity"], c:0 },
+      { q:"Quel RPG de Bethesda est célèbre pour ses innombrables rééditions ?", a:["Oblivion","Fallout 4","Skyrim","Morrowind"], c:2 },
+      { q:"Quelle console Nintendo la Switch a-t-elle dépassée en ventes ?", a:["La Wii","La NES","La 3DS","Aucune"], c:0 },
+    ]},
 ];
 
 const QUIZ_RANKS = [
@@ -12586,26 +12980,47 @@ function getQuizRank(score, total) {
   return QUIZ_RANKS.find(r => s >= r.min && s <= r.max) || QUIZ_RANKS[0];
 }
 
+// ── ROTATION QUOTIDIENNE : 5 quiz différents par jour ──────────────────
+// Basée sur le jour UTC → tous les joueurs voient les mêmes 5 quiz le même
+// jour (indispensable pour les défis entre amis). Chaque quiz apparaît une
+// fois par cycle (60 quiz / 5 = 12 jours), l'ordre est remélangé à chaque cycle.
+const QUIZ_PER_DAY = 5;
+function _quizDayIndex() { return Math.floor(Date.now() / 86400000); }
+function _quizSeededRng(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function getDailyQuizzes() {
+  const day = _quizDayIndex();
+  const slotsPerCycle = Math.max(1, Math.floor(QUIZ_DATA.length / QUIZ_PER_DAY));
+  const cycle = Math.floor(day / slotsPerCycle);
+  const slot  = day % slotsPerCycle;
+  const rng = _quizSeededRng(cycle + 1);
+  const order = QUIZ_DATA
+    .map(q => ({ q, r: rng() }))
+    .sort((a, b) => a.r - b.r)
+    .map(x => x.q);
+  return order.slice(slot * QUIZ_PER_DAY, slot * QUIZ_PER_DAY + QUIZ_PER_DAY);
+}
+function _hoursUntilNextRotation() {
+  return Math.max(1, Math.ceil(((_quizDayIndex() + 1) * 86400000 - Date.now()) / 3600000));
+}
+
 function renderQuizHub() {
   const licenceScroll = document.getElementById('quiz-licence-scroll');
   const genreGrid     = document.getElementById('quiz-genre-grid');
-  if (!licenceScroll || !genreGrid) return;
+  if (!genreGrid) return;
+  if (licenceScroll) licenceScroll.style.display = 'none';
 
-  const licenceQuizzes = QUIZ_DATA.filter(q => q.cat === 'licence');
-  const genreQuizzes   = QUIZ_DATA.filter(q => q.cat === 'genre');
+  const daily = getDailyQuizzes();
+  const timerEl = document.getElementById('quiz-rotation-timer');
+  if (timerEl) timerEl.textContent = (_lang === 'en' ? '🔄 New quizzes in ' : '🔄 Nouveaux quiz dans ') + _hoursUntilNextRotation() + 'h';
 
-  licenceScroll.innerHTML = licenceQuizzes.map(q => {
-    const best = _quizLocalScores[q.id];
-    const rank = best ? getQuizRank(best.score, best.total) : null;
-    return `<div onclick="openQuiz('${q.id}')" style="flex-shrink:0;width:120px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 10px;cursor:pointer;position:relative;overflow:hidden;text-align:center;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.95)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
-      <div style="font-size:30px;margin-bottom:8px;line-height:1">${q.emoji}</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px">${q.title}</div>
-      ${rank ? `<div style="font-size:10px;color:${rank.color};font-weight:700">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
-      <div style="position:absolute;inset:0;border-radius:14px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
-    </div>`;
-  }).join('');
-
-  genreGrid.innerHTML = genreQuizzes.map(q => {
+  genreGrid.innerHTML = daily.map(q => {
     const best = _quizLocalScores[q.id];
     const rank = best ? getQuizRank(best.score, best.total) : null;
     return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
