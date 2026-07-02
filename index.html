@@ -1639,7 +1639,7 @@ html, body {
   <div id="quiz-compare-modal" onclick="closeQuizCompare()" style="display:none;position:fixed;inset:0;z-index:885;background:rgba(0,0,0,0.78);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom)+20px);max-height:90vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px">↔ <span data-i18n="quiz.compare_title">Comparaison du jour</span></div>
+      <div id="qcmp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px">↔ Comparaison du jour</div>
       <div id="qcmp-sub" style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.4"></div>
       <div id="qcmp-chips" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 14px;flex-shrink:0"></div>
       <div id="qcmp-body" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;padding-bottom:6px"></div>
@@ -2144,7 +2144,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07m</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07n</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -5854,6 +5854,8 @@ function launchApp() {
   setTimeout(checkAchievements, 2000);
   // Quiz abandonné par fermeture brutale → finalise le score partiel
   try { _restoreAbandonedQuiz(); } catch(e) {}
+  // Synchronise mes scores quiz depuis le cloud (état multi-appareils)
+  setTimeout(() => { try { _syncMyQuizScoresFromCloud(); } catch(e) {} }, 1200);
   // Récompense XP du classement quiz d'hier (une seule fois)
   setTimeout(() => { try { _awardYesterdayQuizXp(); } catch(e) {} }, 2500);
 }
@@ -13298,6 +13300,7 @@ async function openQuizCompare() {
   const modal = document.getElementById('quiz-compare-modal');
   const body  = document.getElementById('qcmp-body');
   const chips = document.getElementById('qcmp-chips');
+  document.getElementById('qcmp-title').textContent = fr ? '↔ Comparaison du jour' : '↔ Daily comparison';
   document.getElementById('qcmp-sub').textContent = fr
     ? 'Jusqu\'à 3 amis · touche un avatar pour l\'ajouter ou le retirer · touche une question pour la lire en entier'
     : 'Up to 3 friends · tap an avatar to toggle · tap a question to read it fully';
@@ -13393,6 +13396,40 @@ function _renderQuizCompare() {
 // ── Récompenses XP du classement quiz quotidien ──
 const QUIZ_RANK_XP = [150, 50, 25]; // 1er, 2e, 3e — autres participants : 5
 
+// Synchronise MES scores de quiz depuis Supabase vers cet appareil.
+// Sans ça, l'état "quiz fait aujourd'hui" restait en localStorage : sur un
+// second appareil les quiz semblaient rejouables (re-XP + score boostable).
+async function _syncMyQuizScoresFromCloud() {
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return;
+    const { data } = await _sb.from('quiz_scores')
+      .select('quiz_id,score,total,day_index')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(300);
+    if (!data || !data.length) return;
+    const today = _quizDayIndex();
+    let changed = false;
+    const qFlags = _xpFlags('quizzed');
+    data.forEach(r => {
+      // Flag XP par quiz (les +20 XP ne peuvent pas être re-gagnés sur un autre appareil)
+      if (!qFlags.has(String(r.quiz_id))) { _setXpFlag('quizzed', r.quiz_id); qFlags.add(String(r.quiz_id)); }
+      // État "fait aujourd'hui" (cooldown + cartes ✓ + verrou de rejeu)
+      if (r.day_index === today) {
+        const loc = _quizLocalScores[r.quiz_id];
+        const locToday = loc && loc.ts && Math.floor(loc.ts / 86400000) === today;
+        if (!locToday) { _quizLocalScores[r.quiz_id] = { score: r.score, total: r.total, ts: Date.now() }; changed = true; }
+      }
+    });
+    if (changed) {
+      localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
+      renderDailyQuizCard();
+      renderQuizHub();
+    }
+  } catch (e) {}
+}
+
 // Ouvre le hub des quiz du jour (hors contexte défi 1v1)
 function openDailyQuizzes() {
   _quizChallengedFriendId = null;
@@ -13400,6 +13437,7 @@ function openDailyQuizzes() {
   if (sub) sub.textContent = _lang === 'en'
     ? 'Same quizzes for everyone · daily friend leaderboard'
     : 'Les mêmes quiz pour tout le monde · classement quotidien entre amis';
+  _syncMyQuizScoresFromCloud(); // re-render automatique si un autre appareil a joué entre-temps
   openQuizPicker();
 }
 
@@ -14018,7 +14056,9 @@ async function saveQuizScore(quizId, score, total, dayIdx, answers) {
     const row = { user_id:user.id, quiz_id:quizId, score, total,
       day_index: (dayIdx !== undefined ? dayIdx : _quizDayIndex()),
       answers: (answers !== undefined ? answers : (_quizAnswerLog || [])) };
-    const { error } = await _sb.from('quiz_scores').upsert(row, { onConflict: 'user_id,quiz_id,day_index' });
+    // ignoreDuplicates : premier score du jour = définitif. Un rejeu (autre
+    // appareil, triche…) ne peut jamais écraser ni améliorer le score serveur.
+    const { error } = await _sb.from('quiz_scores').upsert(row, { onConflict: 'user_id,quiz_id,day_index', ignoreDuplicates: true });
     // Colonnes day_index/answers absentes (migration pas encore lancée) → insert simple
     if (error) await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
   } catch(e) { /* Silently skip if table doesn't exist yet */ }
