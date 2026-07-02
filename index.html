@@ -1096,6 +1096,9 @@ html, body {
 .quiz-card { background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden }
 .quiz-card:active { transform:scale(0.97) }
 .quiz-best-badge { position:absolute;top:10px;right:10px;background:rgba(255,202,40,0.15);border:0.5px solid rgba(255,202,40,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--amber) }
+/* Comparaison des réponses : intitulé replié sur 1 ligne, déplié au tap */
+.qcmp-qrow .qt { display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden; }
+.qcmp-qrow.open .qt { -webkit-line-clamp:unset; }
 #quiz-overlay { display:none;position:fixed;inset:0;z-index:800;background:var(--bg);flex-direction:column }
 #quiz-overlay.open { display:flex }
 .quiz-progress-bar { height:3px;background:rgba(255,255,255,0.07);flex-shrink:0 }
@@ -1632,6 +1635,17 @@ html, body {
     </div>
   </div>
 
+  <!-- QUIZ COMPARE SHEET (moi + 3 amis max, tous les quiz du jour) -->
+  <div id="quiz-compare-modal" onclick="closeQuizCompare()" style="display:none;position:fixed;inset:0;z-index:885;background:rgba(0,0,0,0.78);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom)+20px);max-height:90vh;display:flex;flex-direction:column">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px">↔ <span data-i18n="quiz.compare_title">Comparaison du jour</span></div>
+      <div id="qcmp-sub" style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.4"></div>
+      <div id="qcmp-chips" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 14px;flex-shrink:0"></div>
+      <div id="qcmp-body" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;padding-bottom:6px"></div>
+    </div>
+  </div>
+
   <!-- IN-COLLECTION SEARCH OVERLAY -->
   <div id="col-search-overlay" style="display:none;position:fixed;inset:0;z-index:870;background:var(--bg);flex-direction:column">
     <div style="padding:calc(var(--safe-t)+12px) 16px 10px;flex-shrink:0;display:flex;align-items:center;gap:12px;border-bottom:0.5px solid var(--border)">
@@ -2130,7 +2144,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07l</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07m</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -13186,7 +13200,13 @@ async function _renderQuizHubSocial(daily) {
   const maxPts = daily.reduce((s, q) => s + q.questions.length, 0);
   const ranked = Object.entries(totals).sort((a, b) => b[1].score - a[1].score);
   const medals = ['🥇', '🥈', '🥉'];
-  lbEl.innerHTML = `<div style="margin-top:6px">
+  const friendsPlayed = rows.some(r => r.user_id !== data.myId);
+  const compareBtn = friendsPlayed
+    ? `<button onclick="openQuizCompare()" style="position:relative;overflow:hidden;width:100%;margin:6px 0 14px;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">↔ ${fr ? 'Comparer les réponses avec tes amis' : 'Compare answers with your friends'}
+        <span style="position:absolute;top:0;bottom:0;left:0;width:45%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent);animation:xpShimmer 2.6s ease-in-out 1s infinite;transform:translateX(-150%);pointer-events:none"></span>
+      </button>`
+    : '';
+  lbEl.innerHTML = compareBtn + `<div style="margin-top:6px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
       <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
       <div style="font-size:10px;font-weight:700;color:var(--amber)">🥇+${QUIZ_RANK_XP[0]} · 🥈+${QUIZ_RANK_XP[1]} · 🥉+${QUIZ_RANK_XP[2]} XP</div>
@@ -13267,6 +13287,107 @@ function compareQuizAnswers(friendUid) {
       ${cell(!!frRow.answers[i])}
     </div>`).join('')}
     <button onclick="openQuizLb('${_qlbData.quizId}')" style="width:100%;padding:12px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;margin-top:4px">← ${fr?'Retour au classement':'Back to leaderboard'}</button>`;
+}
+
+// ══ COMPARAISON DU JOUR — moi + 3 amis max, tous les quiz ══════════════
+let _qcmpState = null;
+
+async function openQuizCompare() {
+  closeQuizLb();
+  const fr = _lang !== 'en';
+  const modal = document.getElementById('quiz-compare-modal');
+  const body  = document.getElementById('qcmp-body');
+  const chips = document.getElementById('qcmp-chips');
+  document.getElementById('qcmp-sub').textContent = fr
+    ? 'Jusqu\'à 3 amis · touche un avatar pour l\'ajouter ou le retirer · touche une question pour la lire en entier'
+    : 'Up to 3 friends · tap an avatar to toggle · tap a question to read it fully';
+  chips.innerHTML = '';
+  body.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">${t('toast.loading')}</div>`;
+  modal.style.display = 'flex';
+  const data = await _fetchTodayQuizScores();
+  if (!data) { body.innerHTML = ''; return; }
+  const daily = getDailyQuizzes();
+  const dailyIds = new Set(daily.map(q => q.id));
+  const rows = data.rows.filter(r => dailyIds.has(r.quiz_id));
+  const totals = {};
+  rows.forEach(r => { totals[r.user_id] = (totals[r.user_id] || 0) + r.score; });
+  // Amis ayant joué aujourd'hui, meilleurs d'abord — les 3 premiers pré-sélectionnés
+  const friends = Object.keys(totals).filter(uid => uid !== data.myId).sort((a, b) => totals[b] - totals[a]);
+  _qcmpState = { daily, rows, myId: data.myId, friends, totals, selected: new Set(friends.slice(0, 3)) };
+  _renderQuizCompare();
+}
+function closeQuizCompare() { document.getElementById('quiz-compare-modal').style.display = 'none'; _qcmpState = null; }
+
+function qcmpToggle(uid) {
+  const st = _qcmpState; if (!st) return;
+  if (st.selected.has(uid)) st.selected.delete(uid);
+  else {
+    if (st.selected.size >= 3) { showToast(_lang === 'en' ? '3 friends max — remove one first' : '3 amis max — retire-en un d\'abord'); return; }
+    st.selected.add(uid);
+  }
+  _renderQuizCompare();
+}
+
+function _renderQuizCompare() {
+  const st = _qcmpState; if (!st) return;
+  const fr = _lang !== 'en';
+  const chips = document.getElementById('qcmp-chips');
+  const body  = document.getElementById('qcmp-body');
+
+  // Rangée d'avatars : moi (fixe) + amis togglables
+  const chipHtml = (uid, isMe) => {
+    const on = isMe || st.selected.has(uid);
+    return `<div ${isMe ? '' : `onclick="qcmpToggle('${uid}')"`} style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 10px;border-radius:14px;min-width:64px;cursor:${isMe ? 'default' : 'pointer'};background:${on ? 'rgba(108,92,231,0.15)' : 'var(--s2)'};border:1.5px solid ${on ? 'var(--a)' : 'var(--border2)'};opacity:${on ? 1 : 0.55};transition:all 0.15s">
+      ${_quizUserAv(uid, st.myId)}
+      <div style="font-size:10px;font-weight:700;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${on ? 'var(--text)' : 'var(--muted2)'}">${_esc(_quizUserName(uid, st.myId))}</div>
+      <div style="font-size:10px;font-weight:800;color:var(--amber)">${st.totals[uid] || 0} pts</div>
+    </div>`;
+  };
+  chips.innerHTML = chipHtml(st.myId, true) + st.friends.map(uid => chipHtml(uid, false)).join('');
+
+  // Participants affichés : moi + les sélectionnés (ordre : meilleurs d'abord)
+  const parts = [st.myId, ...st.friends.filter(u => st.selected.has(u))];
+  const byUQ = {};
+  st.rows.forEach(r => { byUQ[r.user_id + '|' + r.quiz_id] = r; });
+
+  const cell = a => `<div style="width:30px;height:26px;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;${a === null ? 'background:var(--s3);color:var(--muted)' : a ? 'background:rgba(0,230,118,0.14);color:var(--green)' : 'background:rgba(255,82,82,0.14);color:var(--red)'}">${a === null ? '–' : a ? '✓' : '✗'}</div>`;
+
+  body.innerHTML = st.daily.map(q => {
+    const mine = byUQ[st.myId + '|' + q.id];
+    // Verrou : je n'ai pas fait ce quiz → pas le droit de voir les réponses des autres
+    if (!mine) {
+      return `<div onclick="closeQuizCompare();openQuiz('${q.id}')" style="display:flex;align-items:center;gap:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:16px;padding:14px;cursor:pointer">
+        <span style="font-size:20px">🔒</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700">${q.emoji} ${q.title}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:1px">${fr ? 'Fais ce quiz pour débloquer la comparaison' : 'Play this quiz to unlock the comparison'}</div>
+        </div>
+        <span style="font-size:15px;color:var(--muted2)">›</span>
+      </div>`;
+    }
+    // En-tête : titre + colonnes avatars avec score /8
+    const header = `<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
+      <div style="flex:1;min-width:0;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;padding-bottom:2px">${q.emoji} ${q.title}</div>
+      ${parts.map(uid => {
+        const r = byUQ[uid + '|' + q.id];
+        return `<div style="width:30px;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0">
+          ${_quizUserAv(uid, st.myId)}
+          <div style="font-size:10px;font-weight:800;color:${r ? (r.score >= 6 ? 'var(--green)' : r.score >= 4 ? 'var(--amber)' : 'var(--red)') : 'var(--muted)'}">${r ? r.score : '–'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+    const rowsHtml = q.questions.map((question, i) => `<div class="qcmp-qrow" onclick="this.classList.toggle('open')" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-top:0.5px solid var(--border);cursor:pointer">
+      <div style="flex:1;min-width:0">
+        <div class="qt" style="font-size:12px;line-height:1.4;color:var(--muted2)"><b style="color:var(--muted);font-size:10px">Q${i + 1}</b> ${_esc(question.q)}</div>
+      </div>
+      ${parts.map(uid => {
+        const r = byUQ[uid + '|' + q.id];
+        const a = (r && Array.isArray(r.answers) && r.answers.length > i) ? !!r.answers[i] : null;
+        return cell(a);
+      }).join('')}
+    </div>`).join('');
+    return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:13px 14px 6px">${header}${rowsHtml}</div>`;
+  }).join('');
 }
 
 // ── Récompenses XP du classement quiz quotidien ──
@@ -14650,6 +14771,7 @@ window.addEventListener('popstate', function() {
   if (visible('new-collection-modal'))   { closeNewCollectionModal();       return; }
   if (visible('add-to-collection-sheet')){ closeAddToCollectionSheet();     return; }
   if (document.getElementById('quiz-overlay')?.classList.contains('open')) { closeQuiz(); return; }
+  if (visible('quiz-compare-modal'))     { closeQuizCompare();              return; }
   if (visible('quiz-lb-modal'))          { closeQuizLb();                   return; }
   if (visible('quiz-picker-modal'))      { closeQuizPicker();               return; }
   if (visible('notif-drawer'))           { closeNotifDrawer();              return; }
