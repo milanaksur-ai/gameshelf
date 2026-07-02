@@ -250,7 +250,8 @@ html, body {
   #app-nav   { max-width: 100%; }
 }
 @media (min-width: 431px) {
-  #ucd-grid { grid-template-columns: repeat(4, 1fr) !important; }
+  /* Desktop : colonnes auto — les jaquettes gardent une taille raisonnable quel que soit l'écran */
+  #ucd-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; }
   #my-collections-row > div, #friend-collections-row > div { width: 130px !important; }
   #saga-collections-row > div { width: 86px !important; }
 }
@@ -1096,6 +1097,12 @@ html, body {
 .quiz-card { background:var(--s2);border:0.5px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform 0.15s,border-color 0.15s;position:relative;overflow:hidden }
 .quiz-card:active { transform:scale(0.97) }
 .quiz-best-badge { position:absolute;top:10px;right:10px;background:rgba(255,202,40,0.15);border:0.5px solid rgba(255,202,40,0.3);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;color:var(--amber) }
+/* Cartes de collections : lueur douce pulsante · les collections auto (vibe) alternent violet→rose */
+@keyframes colGlow     { 0%,100% { box-shadow:0 0 0 rgba(108,92,231,0); }  50% { box-shadow:0 0 13px rgba(108,92,231,0.28); } }
+@keyframes colGlowAuto { 0%,100% { box-shadow:0 0 5px rgba(108,92,231,0.2); border-color:rgba(108,92,231,0.45); } 50% { box-shadow:0 0 16px rgba(253,121,168,0.45); border-color:rgba(253,121,168,0.65); } }
+.col-card-anim  { animation: colGlow 3.8s ease-in-out infinite; }
+.col-card-smart { animation: colGlowAuto 2.6s ease-in-out infinite; }
+
 /* Comparaison des réponses : intitulé replié sur 1 ligne, déplié au tap */
 .qcmp-qrow .qt { display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden; }
 .qcmp-qrow.open .qt { -webkit-line-clamp:unset; }
@@ -2151,7 +2158,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07p</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07q</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2803,6 +2810,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 nouveaux fonds de profil animés : sakura 🌸, lave 🌋, cyber 🌆, orage ⛈️, rétro 👾</li>
                 </ul>
               </div>
 
@@ -3324,6 +3332,7 @@ const LANG = {
       reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
+      reviews_9:'5 nouveaux fonds de profil animés : sakura 🌸, lave 🌋, cyber 🌆, orage ⛈️, rétro 👾',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3819,6 +3828,7 @@ const LANG = {
       reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
+      reviews_9:'5 new animated profile backgrounds: sakura 🌸, lava 🌋, cyber 🌆, storm ⛈️, retro 👾',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -4276,6 +4286,21 @@ const PROFILE_BG_PRESETS = [
   { key: 'gold',    label: '✨', grad: 'linear-gradient(135deg,#ffd84d,#8a6100)',
     overlay: 'linear-gradient(180deg,#b8860b 0%,#7a5600 45%,#241800 100%)',
     fx: { kind:'sparkle', colors:['#ffd84d','#ffe98a','#fff3c4'], count:36, emoji:'✨' } },
+  { key: 'sakura',  label: '🌸', grad: 'linear-gradient(135deg,#ffb7d5,#8e4162)',
+    overlay: 'linear-gradient(180deg,#b0577f 0%,#7a3a58 45%,#241019 100%)',
+    fx: { kind:'leaves', colors:['#ffb7d5','#ff8fb8','#ffd6e8'], count:20, emoji:'🌸' } },
+  { key: 'lava',    label: '🌋', grad: 'linear-gradient(135deg,#ff7b00,#5c0f00)',
+    overlay: 'linear-gradient(180deg,#8a2500 0%,#5c1400 45%,#170502 100%)',
+    fx: { kind:'embers', colors:['#ffb347','#ff6b35','#ffd700'], count:52, emoji:'🌋' } },
+  { key: 'cyber',   label: '🌆', grad: 'linear-gradient(135deg,#00f0ff,#7a00ff)',
+    overlay: 'linear-gradient(180deg,#2a0a5e 0%,#170a3a 45%,#060210 100%)',
+    fx: { kind:'rain', colors:['#00f0ff','#ff00e5','#7a68ff'], count:36 } },
+  { key: 'storm',   label: '⛈️', grad: 'linear-gradient(135deg,#7f8fa6,#192a56)',
+    overlay: 'linear-gradient(180deg,#3d4a66 0%,#242f47 45%,#0a0e18 100%)',
+    fx: { kind:'storm', colors:['#9db4d8','#7f9cc9','#c3d3ee'], count:70, lightning:true } },
+  { key: 'retro',   label: '👾', grad: 'linear-gradient(135deg,#ff2e97,#2e1a8f)',
+    overlay: 'linear-gradient(180deg,#4a1a7a 0%,#2c1258 45%,#0c0620 100%)',
+    fx: { kind:'pixels', colors:['#ff2e97','#00f0ff','#ffe600','#00ff85'], count:44, emoji:'👾' } },
 ];
 
 function renderPinnedAchievements() {
@@ -5235,6 +5260,9 @@ function _mkThemePart(cfg, W, H, atTop) {
     case 'leaves':  return { x:_rnd(0,W), y:_rnd(-H,H), r:_rnd(3,6), c, vy:_rnd(0.4,1.05), sway:_rnd(12,32), ph:_rnd(0,6.28), spin:_rnd(0.01,0.03) };
     case 'bubbles': return { x:_rnd(0,W), y:atTop?_rnd(0,H):_rnd(H*0.4,H), r:_rnd(2,6.5), c, vy:-_rnd(0.4,1.15), sway:_rnd(8,24), ph:_rnd(0,6.28) };
     case 'sparkle': return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(1.6,4.2), c, ph:_rnd(0,6.28), tw:_rnd(0.02,0.06) };
+    case 'rain':    return { x:_rnd(0,W), y:_rnd(-H,0), len:_rnd(18,46), sp:_rnd(4,9), c };
+    case 'storm':   return { x:_rnd(-40,W+40), y:_rnd(-H,0), len:_rnd(9,16), sp:_rnd(7,12), c };
+    case 'pixels':  return { x:_rnd(0,W), y:_rnd(0,H), s:_rnd(3,7), c, ph:_rnd(0,6.28), tw:_rnd(0.02,0.07) };
     default:        return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(16,48), c, o:_rnd(0.04,0.13), vx:_rnd(-0.14,0.14), vy:-_rnd(0.04,0.28), ph:_rnd(0,6.28), tw:_rnd(0.004,0.018) };
   }
 }
@@ -5289,6 +5317,24 @@ function _drawThemePart(ctx, p, cfg, W, H) {
       p.ph += p.tw; const s = Math.abs(Math.sin(p.ph)); _drawStar4(ctx, p.x, p.y, p.r * (0.4 + 0.6 * s), _hexA(p.c, 0.2 + 0.8 * s));
       break;
     }
+    case 'rain': { // pluie néon verticale (cyberpunk)
+      ctx.strokeStyle = _hexA(p.c, 0.45); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.y + p.len); ctx.stroke();
+      p.y += p.sp; if (p.y > H) { p.y = -p.len; p.x = Math.random() * W; }
+      break;
+    }
+    case 'storm': { // gouttes de pluie inclinées
+      ctx.strokeStyle = _hexA(p.c, 0.4); ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - 2.5, p.y + p.len); ctx.stroke();
+      p.y += p.sp; p.x -= 0.8;
+      if (p.y > H) { p.y = -p.len; p.x = Math.random() * (W + 40); }
+      break;
+    }
+    case 'pixels': { // pixels rétro qui scintillent
+      p.ph += p.tw; const o = 0.15 + 0.65 * Math.abs(Math.sin(p.ph));
+      ctx.fillStyle = _hexA(p.c, o); ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, p.s);
+      break;
+    }
     default: { // bokeh
       p.ph += p.tw; const o = p.o * (0.6 + 0.4 * Math.sin(p.ph));
       const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
@@ -5318,6 +5364,7 @@ function startThemeBg(canvas, themeKey) {
   if (cfg.emoji) { const ne = cfg.kind === 'leaves' ? 5 : 4; for (let i = 0; i < ne; i++) emojis.push({ x:_rnd(0,W), y:_rnd(0,H), size:_rnd(24,52), o:_rnd(0.05,0.15), vy:_rnd(0.12,0.45), vx:_rnd(-0.18,0.18), rot:_rnd(0,6.28), vr:_rnd(-0.008,0.008) }); }
   let t = 0;
   let shoot = null;
+  let bolt = null;
   function frame() {
     t++;
     ctx.clearRect(0, 0, W, H);
@@ -5330,6 +5377,20 @@ function startThemeBg(canvas, themeKey) {
       if (e.x < -60) e.x = W + 60; if (e.x > W + 60) e.x = -60;
     });
     for (const p of parts) _drawThemePart(ctx, p, cfg, W, H);
+    if (cfg.lightning) {
+      // Éclair : zigzag blanc + flash d'écran, quelques fois par minute
+      if (!bolt && Math.random() < 0.005) {
+        const pts = []; let bx = _rnd(W * 0.15, W * 0.85), by = 0;
+        while (by < H * _rnd(0.4, 0.65)) { pts.push([bx, by]); bx += _rnd(-34, 34); by += _rnd(24, 50); }
+        bolt = { pts, life: 1 };
+      }
+      if (bolt) {
+        ctx.fillStyle = `rgba(255,255,255,${(0.10 * bolt.life).toFixed(3)})`; ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = _hexA('#eaf2ff', 0.85 * bolt.life); ctx.lineWidth = 2.2;
+        ctx.beginPath(); bolt.pts.forEach((pt, i) => i ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1])); ctx.stroke();
+        bolt.life -= 0.08; if (bolt.life <= 0) bolt = null;
+      }
+    }
     if (cfg.shooting) {
       if (!shoot && Math.random() < 0.006) shoot = { x:_rnd(W * 0.1, W * 0.7), y:_rnd(0, H * 0.4), len:_rnd(60, 130), life:1 };
       if (shoot) {
@@ -5968,7 +6029,7 @@ function renderProfileCollections() {
   }
   el.innerHTML = userCollections.slice(0, 5).map(c => {
     const src = coverUrl((c.games||[])[0]);
-    return `<div onclick="openUserCollection('${c.id}')" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="height:65px;background:var(--s3);position:relative;display:flex;align-items:center;justify-content:center">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:22px">${c.emoji||'📚'}</span>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)"></div>
@@ -10825,7 +10886,7 @@ function _userCollectionCard(c) {
       : `<div style="flex:1;background:var(--s3)"></div>`;
   });
   while (covers.length < 3) covers.push(`<div style="flex:1;background:var(--s${Math.min(covers.length+2,4)})"></div>`);
-  return `<div onclick="openUserCollection('${c.id}')" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+  return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
     <div style="height:85px;display:flex;position:relative">
       ${covers.join('')}
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 50%)"></div>
