@@ -371,6 +371,7 @@ html, body {
 .game-bottom { display: flex; align-items: center; justify-content: space-between; }
 .status-badge    { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; }
 .status-playing  { color: #a29bfe; background: rgba(108,92,231,0.18); }
+.status-multi    { color: #fd79a8; background: rgba(253,121,168,0.15); }
 .status-finished { color: var(--green); background: rgba(0,230,118,0.12); }
 .status-platine  { color: var(--amber); background: rgba(255,202,40,0.15); }
 .status-backlog  { color: var(--muted2); background: rgba(255,255,255,0.06); }
@@ -402,6 +403,7 @@ html, body {
 .status-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
 .status-btn  { font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: 20px; border: 0.5px solid var(--border2); background: var(--s2); color: var(--muted2); cursor: pointer; transition: all 0.15s; }
 .status-btn.sel-playing   { background: rgba(108,92,231,0.2); border-color: var(--a); color: #a29bfe; }
+.status-btn.sel-multi     { background: rgba(253,121,168,0.15); border-color: var(--a2); color: #fd79a8; }
 .status-btn.sel-finished  { background: rgba(0,230,118,0.12); border-color: var(--green); color: var(--green); }
 .status-btn.sel-platine   { background: rgba(255,202,40,0.15); border-color: var(--amber); color: var(--amber); }
 .status-btn.sel-backlog   { background: var(--s3); border-color: var(--border2); color: var(--muted2); }
@@ -1434,6 +1436,15 @@ html, body {
         <div class="sec-label" style="padding:0;margin:0" data-i18n="feed.playing">En cours</div>
       </div>
       <div id="playing-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+
+      <!-- MULTI EN COURS (visible seulement s'il y a des jeux multi) -->
+      <div id="multi-section" style="display:none">
+        <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
+          <div class="sec-label" style="padding:0;margin:0;color:#fd79a8" data-i18n="feed.playing_multi">👥 Multi en cours</div>
+        </div>
+        <div id="multi-playing-slots" style="padding:0 16px;display:flex;flex-direction:column;gap:8px;margin-bottom:4px"></div>
+      </div>
+
       <!-- hidden divs for compat -->
       <div id="playing-solo-slots" style="display:none"></div>
       <div id="playing-multi-slots" style="display:none"></div>
@@ -2106,7 +2117,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2152,6 +2163,7 @@ html, body {
           <div class="rating-label" data-i18n="detail.status">Statut</div>
           <div class="status-row" id="status-row">
             <button class="status-btn" data-s="playing-solo"  onclick="setStatus('playing-solo')"  id="btn-playing-solo"  data-i18n="status_btn.playing">▶ En cours</button>
+            <button class="status-btn" data-s="playing-multi" onclick="setStatus('playing-multi')" id="btn-playing-multi" data-i18n="status_btn.playing_multi">👥 Multi</button>
             <button class="status-btn" data-s="paused"        onclick="setStatus('paused')"        id="btn-paused"        data-i18n="status_btn.paused">⏸ En pause</button>
             <button class="status-btn" data-s="finished"      onclick="setStatus('finished')"                             data-i18n="status_btn.finished">✓ Fini</button>
             <button class="status-btn" data-s="platine"       onclick="setStatus('platine')"                              data-i18n="status_btn.platine">⭐ 100%</button>
@@ -2794,6 +2806,8 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_2">La recherche couvre toute la bibliothèque</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_3">Filtre "non notés" dans la catégorie Finis</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_4">Bouton "Nouvelle chance" sur les jeux abandonnés</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_5">Nouveau statut 👥 Multi : section dédiée à l'accueil, sans limite de jeux</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.library_6">Jusqu'à 10 jeux solo en cours (au lieu de 5)</li>
                 </ul>
               </div>
 
@@ -3116,6 +3130,7 @@ const LANG = {
   fr: {
     status: {
       playing:   'En cours',
+      playing_multi: '👥 Multi',
       paused:    'En pause',
       finished:  'Fini',
       platine:   '100%',
@@ -3168,7 +3183,7 @@ const LANG = {
     added:     'Ajouté',
     nav: { home:'Accueil', library:'Biblio', friends:'Amis', collections:'Collections', profile:'Profil' },
     status_btn: {
-      playing:'▶ En cours', paused:'⏸ En pause', finished:'✓ Fini',
+      playing:'▶ En cours', playing_multi:'👥 Multi', paused:'⏸ En pause', finished:'✓ Fini',
       platine:'⭐ 100%', backlog:'Backlog', abandoned:'Abandonné', wish:'✦ Souhait',
     },
     detail: {
@@ -3191,7 +3206,7 @@ const LANG = {
       obsessed:'💯 Obsédé', obsessed_range:'100h+',
     },
     feed: {
-      playing:'En cours', friends:'Chez tes amis', trending:'Tendances du moment',
+      playing:'En cours', playing_multi:'👥 Multi en cours', friends:'Chez tes amis', trending:'Tendances du moment',
       gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
     },
@@ -3276,6 +3291,8 @@ const LANG = {
       library_2:'La recherche couvre toute la bibliothèque',
       library_3:'Filtre "non notés" dans la catégorie Finis',
       library_4:'Bouton "Nouvelle chance" sur les jeux abandonnés',
+      library_5:'Nouveau statut 👥 Multi : section dédiée à l\'accueil, sans limite de jeux',
+      library_6:'Jusqu\'à 10 jeux solo en cours (au lieu de 5)',
       notifs:'🔔 Notifs & App',
       notifs_1:'Notifications push : demandes d\'amis et récap hebdo',
       notifs_2:'Play Store bêta 🚀 · Vrai plein écran Android 🎉',
@@ -3465,6 +3482,7 @@ const LANG = {
   en: {
     status: {
       playing:   'Playing',
+      playing_multi: '👥 Multi',
       paused:    'Paused',
       finished:  'Finished',
       platine:   '100%',
@@ -3517,7 +3535,7 @@ const LANG = {
     added:     'Added',
     nav: { home:'Home', library:'Library', friends:'Friends', collections:'Collections', profile:'Profile' },
     status_btn: {
-      playing:'▶ Playing', paused:'⏸ Paused', finished:'✓ Finished',
+      playing:'▶ Playing', playing_multi:'👥 Multi', paused:'⏸ Paused', finished:'✓ Finished',
       platine:'⭐ 100%', backlog:'Backlog', abandoned:'Abandoned', wish:'✦ Wishlist',
     },
     detail: {
@@ -3540,7 +3558,7 @@ const LANG = {
       obsessed:'💯 Obsessed', obsessed_range:'100h+',
     },
     feed: {
-      playing:'Playing', friends:'Friends activity', trending:'Trending now',
+      playing:'Playing', playing_multi:'👥 Multiplayer', friends:'Friends activity', trending:'Trending now',
       gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
     },
@@ -3753,6 +3771,8 @@ const LANG = {
       library_2:'Search covers your entire library',
       library_3:'"Unrated" filter in the Finished category',
       library_4:'"Give another shot" button on abandoned games',
+      library_5:'New 👥 Multi status: dedicated home section, no game limit',
+      library_6:'Up to 10 solo games in progress (was 5)',
       notifs:'🔔 Notifications & App',
       notifs_1:'Push notifications: friend requests and weekly recap',
       notifs_2:'Play Store beta 🚀 · True fullscreen on Android 🎉',
@@ -3826,7 +3846,7 @@ function t(k) {
 function statusLabel(s) {
   const map = {
     'playing-solo':  t('status.playing'),
-    'playing-multi': t('status.playing'),
+    'playing-multi': t('status.playing_multi'),
     finished:        t('status.finished'),
     platine:         '100%',
     backlog:         t('status.backlog'),
@@ -7115,7 +7135,7 @@ function renderStatus(s) {
   document.querySelectorAll('.status-btn').forEach(b => {
     b.className = 'status-btn';
     if (b.dataset.s === s) {
-      const cls = isPlaying(s) ? 'sel-playing' : `sel-${s}`;
+      const cls = s === 'playing-multi' ? 'sel-multi' : isPlaying(s) ? 'sel-playing' : `sel-${s}`;
       b.classList.add(cls);
     }
   });
@@ -7125,7 +7145,8 @@ function setStatus(s) {
   if (!currentGame) return;
   const ug = userGames[currentGame.id];
   const prev = ug.status;
-  if (isPlaying(s) && s !== prev && getSlotCount(s) >= 10) {
+  // Seul le solo est limité (10) — le multi en cours est illimité
+  if (s === 'playing-solo' && s !== prev && getSlotCount(s) >= 10) {
     showToast(t('toast.slots_full')); return;
   }
   ug.status = s;
@@ -8050,7 +8071,7 @@ function renderGameGrid(games=GAMES){
   }
   games.forEach((g,i)=>{
     const ug=userGames[g.id]||{status:g.status,score:g.score};
-    const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-playing','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish','paused':'status-paused'};
+    const badgeMap  = {'playing-solo':'status-playing','playing-multi':'status-multi','finished':'status-finished','platine':'status-platine','backlog':'status-backlog','abandoned':'status-abandoned','wish':'status-wish','paused':'status-paused'};
     const label = statusLabel(ug.status) || t('lib.backlog');
     const badge = badgeMap[ug.status]  || 'status-backlog';
     const src = coverUrl(g);
@@ -8170,14 +8191,22 @@ function renderFeed(){
     </div>`;
   }
 
-  const playingEl = document.getElementById('playing-slots');
-  if (playingEl) playingEl.innerHTML = playingAll.map((g,i) => slotCard(g,i)).join('') || `<div style="margin:4px 0 8px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:16px;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+  // "En cours" = solo · "Multi en cours" = section dédiée (illimitée)
+  const emptyStateHtml = `<div style="margin:4px 0 8px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:16px;padding:18px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
     <div>
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">${t('profile.playing_empty')}</div>
       <div style="font-size:11px;color:var(--muted2)">${t('profile.playing_empty_sub')}</div>
     </div>
     <button onclick="showTirageIntroIfNeeded()" style="flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:9px 14px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap">${t('profile.lucky_dip')}</button>
   </div>`;
+  const playingEl = document.getElementById('playing-slots');
+  if (playingEl) playingEl.innerHTML = playingSolo.map((g,i) => slotCard(g,i)).join('') || (playingAll.length ? '' : emptyStateHtml);
+  const multiSection = document.getElementById('multi-section');
+  const multiEl = document.getElementById('multi-playing-slots');
+  if (multiSection && multiEl) {
+    multiSection.style.display = playingMulti.length ? 'block' : 'none';
+    multiEl.innerHTML = playingMulti.map((g,i) => slotCard(g, playingSolo.length + i)).join('');
+  }
 
   // Update count labels
 
