@@ -2106,7 +2106,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.1 · build 02.07c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -6525,6 +6525,8 @@ function appGoTo(screen) {
   closeFriendProfile();
   closeShelf();
 
+  // Écran inconnu → fallback sur le feed (évite un écran noir si aucun .screen actif)
+  if (!document.getElementById('screen-' + screen)) screen = 'feed';
   if(screen===appCurrentScreen) return;
   // Stop gyro when leaving detail
   if (appCurrentScreen === 'detail') {
@@ -13709,7 +13711,7 @@ window.addEventListener('popstate', function() {
   if (visible('user-collection-detail')) { closeUserCollection();           return; }
   if (visible('screen-friend-profile'))  { closeFriendProfile();            return; }
   if (appCurrentScreen === 'detail')     { appGoBack();                     return; }
-  if (appCurrentScreen !== 'home')       { appGoTo('home');                 return; }
+  if (appCurrentScreen !== 'feed')       { appGoTo('feed');                 return; }
 });
 </script>
 </body>
