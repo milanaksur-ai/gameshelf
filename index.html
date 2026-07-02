@@ -7134,7 +7134,6 @@ function setStatus(s) {
   renderFeed();
   saveToStorage();
   if ((s === 'finished' || s === 'platine') && prev !== 'finished' && prev !== 'platine') {
-    ug._justFinished = true;
     try { celebrateStatus(s); } catch(e) {}
     // Pre-fill hours from IGDB time_to_beat if user hasn't entered anything
     const hoursInput = document.getElementById('hours-input');
@@ -7161,7 +7160,6 @@ function saveGame() {
   renderGameGrid();
   renderFeed();
   saveToStorage();
-  if (ug._justFinished) { try { celebrateStatus(ug.status); } catch(e) {} delete ug._justFinished; }
   if (!_hadNotes && ug.notes.trim() && !_xpFlags('noted').has(String(currentGame.id))) { _setXpFlag('noted', currentGame.id); gainXp(15, 'note', currentGame.title); }
   showToast(t('toast.saved'));
   setTimeout(() => appGoBack(), 600);
@@ -11814,16 +11812,26 @@ function addGameFromModal(g, btn) {
 let toastT;
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400); }
 
+// Supprime toute particule de célébration encore à l'écran (filet anti "étoiles bloquées")
+function _clearStatusFx() {
+  document.querySelectorAll('.status-fx').forEach(e => e.remove());
+}
+// Si l'app passe en arrière-plan pendant une animation, le rAF est suspendu et les
+// particules resteraient gelées à l'écran → on nettoie dès que la page se cache.
+document.addEventListener('visibilitychange', () => { if (document.hidden) _clearStatusFx(); });
+
 function celebrateStatus(status) {
   if (typeof anime === 'undefined') return;
-  const emojis = status === 'platine'
-    ? ['⭐','✨','💎','🌟','💫','🏆']
-    : ['✨','🌟','💫','⭐','🎉','🎊'];
+  _clearStatusFx(); // jamais deux célébrations superposées
+  if (status === 'finished') return _celebrateFinishedLight();
+  // ── 100% / platine : pluie dorée complète ──
+  const emojis = ['⭐','✨','💎','🌟','💫','🏆'];
   const vh = window.innerHeight;
   const vw = window.innerWidth;
   const count = 44;
   for (let i = 0; i < count; i++) {
     const el = document.createElement('div');
+    el.className = 'status-fx';
     el.textContent = emojis[i % emojis.length];
     const size  = 22 + Math.random() * 20;
     const startX = Math.random() * vw;
@@ -11845,6 +11853,38 @@ function celebrateStatus(status) {
       delay,
       complete() { el.remove(); }
     });
+    // Filet : suppression garantie même si l'animation est interrompue
+    setTimeout(() => el.remove(), delay + dur + 1500);
+  }
+}
+
+// ── Fini : burst léger et rapide (✨ qui éclatent depuis le centre) ──
+function _celebrateFinishedLight() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const cx = vw / 2, cy = vh * 0.55;
+  const emojis = ['✨','🎉','⭐','💚'];
+  const count = 16;
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'status-fx';
+    el.textContent = emojis[i % emojis.length];
+    const size = 16 + Math.random() * 14;
+    el.style.cssText = `position:fixed;font-size:${size}px;pointer-events:none;z-index:9999;left:${cx}px;top:${cy}px;opacity:0`;
+    document.body.appendChild(el);
+    const ang  = (Math.PI * 2 * i) / count + (Math.random() * 0.5 - 0.25);
+    const dist = 90 + Math.random() * 120;
+    const dur  = 650 + Math.random() * 350;
+    anime({
+      targets: el,
+      translateX: Math.cos(ang) * dist,
+      translateY: Math.sin(ang) * dist - 46, // léger biais vers le haut
+      rotate: (Math.random() * 240) - 120,
+      scale:   [{ value: 1.2, duration: dur * 0.3, easing: 'easeOutBack' }, { value: 0.4, duration: dur * 0.7, easing: 'easeIn' }],
+      opacity: [{ value: 1, duration: 80 }, { value: 1, duration: dur * 0.5 }, { value: 0, duration: dur * 0.42 }],
+      duration: dur, easing: 'easeOutCubic',
+      complete() { el.remove(); }
+    });
+    setTimeout(() => el.remove(), dur + 1200);
   }
 }
 
