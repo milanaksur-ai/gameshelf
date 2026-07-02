@@ -1617,7 +1617,18 @@ html, body {
         </div>
         <div id="quiz-licence-scroll" style="display:none"></div>
         <div id="quiz-genre-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:8px"></div>
+        <div id="quiz-daily-lb" style="padding-bottom:8px"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- QUIZ LEADERBOARD SHEET (per-quiz, friends' scores of the day) -->
+  <div id="quiz-lb-modal" onclick="closeQuizLb()" style="display:none;position:fixed;inset:0;z-index:880;background:rgba(0,0,0,0.7);align-items:flex-end">
+    <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+24px);max-height:75vh;display:flex;flex-direction:column">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px"></div>
+      <div id="qlb-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">🏆 Classement</div>
+      <div id="qlb-sub" style="font-size:12px;color:var(--muted2);margin-bottom:14px"></div>
+      <div id="qlb-list" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px"></div>
     </div>
   </div>
 
@@ -2119,7 +2130,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2758,6 +2769,8 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_2">Temps de jeu affiché aussi sur les avis des profils</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_3">Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_4">60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_5">Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
                 </ul>
               </div>
 
@@ -3275,6 +3288,8 @@ const LANG = {
       reviews_2:'Temps de jeu affiché aussi sur les avis des profils',
       reviews_3:'Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️',
       reviews_4:'60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄',
+      reviews_5:'Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔',
+      reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3758,6 +3773,8 @@ const LANG = {
       reviews_2:'Playtime now also shown on profile reviews',
       reviews_3:'Collections: configurable badges on each game (Metacritic, your rating, status, playtime) 🏷️',
       reviews_4:'60 quizzes total (35 new!) with daily rotation: 5 different quizzes every day 🧠🔄',
+      reviews_5:'Daily leaderboard with friends 🏆 — play a quiz to unlock their scores, notified when a friend plays 🔔',
+      reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -8900,6 +8917,22 @@ async function _countIncomingQuizChallenges() {
   } catch (e) { return 0; }
 }
 
+// Quiz du jour joués par des amis depuis ma dernière visite de la cloche
+async function _countFreshQuizActivity() {
+  try {
+    await _ensureFriendsLoaded();
+    const ids = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+    if (!ids.length) return 0;
+    const seenTs = new Date(parseInt(localStorage.getItem('gs_quiz_seen_ts') || '0', 10)).toISOString();
+    const { data } = await _sb.from('quiz_scores')
+      .select('id')
+      .eq('day_index', _quizDayIndex())
+      .in('user_id', ids)
+      .gt('created_at', seenTs);
+    return (data || []).length;
+  } catch (e) { return 0; }
+}
+
 function closeNotifDrawer() {
   const el = document.getElementById('notif-drawer');
   if (el) el.style.display = 'none';
@@ -8916,10 +8949,11 @@ async function openNotifDrawer() {
     if (!session) { body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Connecte-toi pour voir tes notifications.</div>'; return; }
     const uid = session.user.id;
 
-    // Fetch friend requests and quiz challenges in parallel
-    const [{ data: rows }, challenges] = await Promise.all([
+    // Fetch friend requests, quiz challenges and daily quiz activity in parallel
+    const [{ data: rows }, challenges, quizData] = await Promise.all([
       _sb.from('friendships').select('*').eq('addressee_id', uid).eq('status', 'pending'),
-      loadQuizChallenges()
+      loadQuizChallenges(),
+      _fetchTodayQuizScores()
     ]);
 
     const recentChallenges = (challenges || []).filter(ch => {
@@ -8927,7 +8961,15 @@ async function openNotifDrawer() {
       return age < 7 * 24 * 3600 * 1000; // last 7 days
     });
 
-    if ((!rows || rows.length === 0) && !recentChallenges.length) {
+    // Activité quiz du jour des amis (scores masqués tant que je n'ai pas fait le quiz)
+    const _dailyIds = new Set(getDailyQuizzes().map(q => q.id));
+    const _friendQuizRows = quizData ? quizData.rows.filter(r => r.user_id !== quizData.myId && _dailyIds.has(r.quiz_id))
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) : [];
+    const _myDoneQuizIds = quizData ? new Set(quizData.rows.filter(r => r.user_id === quizData.myId).map(r => r.quiz_id)) : new Set();
+    // Marque l'activité comme vue (la pastille repart à zéro pour ces événements)
+    localStorage.setItem('gs_quiz_seen_ts', String(Date.now()));
+
+    if ((!rows || rows.length === 0) && !recentChallenges.length && !_friendQuizRows.length) {
       body.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="color:var(--muted2);font-size:14px">Aucune notification pour l\'instant</div></div>';
       _updateFriendBadges(0);
       return;
@@ -8959,7 +9001,23 @@ async function openNotifDrawer() {
       <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${(rows||[]).length?'18px':'0'}">Défis Quiz</div>
       ${recentChallenges.map(ch => renderQuizChallengeNotif(ch, uid)).join('')}` : '';
 
-    body.innerHTML = friendReqHtml + quizHtml;
+    const dailyQuizHtml = _friendQuizRows.length ? `
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${((rows||[]).length||recentChallenges.length)?'18px':'0'}">🧠 Quiz du jour</div>
+      ${_friendQuizRows.map(r => {
+        const q = QUIZ_DATA.find(x => x.id === r.quiz_id);
+        const iDidIt = _myDoneQuizIds.has(r.quiz_id);
+        const name = _esc(_quizUserName(r.user_id, quizData.myId));
+        return `<div onclick="closeNotifDrawer();openQuizPicker()" style="background:var(--s2);border:0.5px solid ${iDidIt?'var(--border2)':'rgba(108,92,231,0.35)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer">
+          ${_quizUserAv(r.user_id, quizData.myId)}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${name} a fait le quiz ${q ? q.emoji + ' ' + _esc(q.title) : ''}</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:1px">${iDidIt ? `Score : <b style="color:var(--amber)">${r.score}/${r.total}</b>` : '🔒 Fais le quiz pour voir son score'}</div>
+          </div>
+          <div style="font-size:16px;color:var(--muted2)">›</div>
+        </div>`;
+      }).join('')}` : '';
+
+    body.innerHTML = friendReqHtml + quizHtml + dailyQuizHtml;
     const incomingQuiz = recentChallenges.filter(ch =>
       ch.status !== 'completed' && ch.challenged_id === uid && (ch.challenged_score === null || ch.challenged_score === undefined)
     ).length;
@@ -8996,11 +9054,12 @@ async function checkPendingRequests() {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
     const uid = session.user.id;
-    const [{ data, error }, quizCount] = await Promise.all([
+    const [{ data, error }, quizCount, activityCount] = await Promise.all([
       _sb.from('friendships').select('id').eq('addressee_id', uid).eq('status', 'pending'),
-      _countIncomingQuizChallenges()
+      _countIncomingQuizChallenges(),
+      _countFreshQuizActivity()
     ]);
-    _updateFriendBadges(error ? 0 : (data||[]).length, quizCount);
+    _updateFriendBadges(error ? 0 : (data||[]).length, quizCount + activityCount);
   } catch(e) {}
 }
 
@@ -13022,31 +13081,111 @@ function renderQuizHub() {
 
   genreGrid.innerHTML = daily.map(q => {
     const best = _quizLocalScores[q.id];
+    const doneToday = best && best.ts && Math.floor(best.ts / 86400000) === _quizDayIndex();
     const rank = best ? getQuizRank(best.score, best.total) : null;
     return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
       <div style="font-size:32px;margin-bottom:8px">${q.emoji}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
       <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
-      ${rank ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
+      <div id="qcard-social-${q.id}" style="font-size:10px;font-weight:600;color:var(--muted2);margin-top:3px;min-height:13px"></div>
+      ${rank && doneToday ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
       <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
     </div>`;
   }).join('');
+
+  _renderQuizHubSocial(daily);
 }
 
+// Classement du jour + badges sociaux du hub (async, injecté après le rendu)
+async function _renderQuizHubSocial(daily) {
+  const lbEl = document.getElementById('quiz-daily-lb');
+  const data = await _fetchTodayQuizScores();
+  if (!data) { if (lbEl) lbEl.innerHTML = ''; return; }
+  const dailyIds = new Set(daily.map(q => q.id));
+  const rows = data.rows.filter(r => dailyIds.has(r.quiz_id));
+  const iPlayedToday = rows.some(r => r.user_id === data.myId);
+
+  // Badges par carte : 👥 si j'ai fait le quiz, 🔒 sinon
+  daily.forEach(q => {
+    const el = document.getElementById('qcard-social-' + q.id);
+    if (!el) return;
+    const friendRows = rows.filter(r => r.quiz_id === q.id && r.user_id !== data.myId);
+    const mineDone = rows.some(r => r.quiz_id === q.id && r.user_id === data.myId);
+    if (!friendRows.length) { el.textContent = ''; return; }
+    el.innerHTML = mineDone
+      ? `<span style="color:var(--a)">👥 ${friendRows.length} ami${friendRows.length>1?'s':''}</span>`
+      : `🔒 ${friendRows.length} ami${friendRows.length>1?'s':''} ${friendRows.length>1?'l\'ont fait':'l\'a fait'}`;
+  });
+
+  // Classement général du jour (total /40) — verrouillé tant que je n'ai rien joué
+  if (!lbEl) return;
+  if (!rows.length) { lbEl.innerHTML = ''; return; }
+  const fr = _lang !== 'en';
+  if (!iPlayedToday) {
+    const nb = new Set(rows.map(r => r.user_id)).size;
+    lbEl.innerHTML = `<div style="background:var(--s2);border:1px dashed var(--border2);border-radius:16px;padding:16px;text-align:center;margin-top:6px">
+      <div style="font-size:22px;margin-bottom:6px">🔒</div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted2)">${fr ? `${nb} joueur${nb>1?'s ont':' a'} déjà joué aujourd'hui — fais un quiz pour voir le classement !` : `${nb} player${nb>1?'s':''} already played today — play a quiz to see the leaderboard!`}</div>
+    </div>`;
+    return;
+  }
+  const totals = {};
+  rows.forEach(r => {
+    if (!totals[r.user_id]) totals[r.user_id] = { score: 0, done: 0 };
+    totals[r.user_id].score += r.score; totals[r.user_id].done++;
+  });
+  const maxPts = daily.reduce((s, q) => s + q.questions.length, 0);
+  const ranked = Object.entries(totals).sort((a, b) => b[1].score - a[1].score);
+  const medals = ['🥇', '🥈', '🥉'];
+  lbEl.innerHTML = `<div style="margin-top:6px">
+    <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">🏆 ${fr ? 'Classement du jour' : "Today's leaderboard"}</div>
+    ${ranked.map(([uid, v], i) => `<div style="display:flex;align-items:center;gap:10px;background:${uid===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${uid===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:9px 12px;margin-bottom:6px">
+      <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
+      ${_quizUserAv(uid, data.myId)}
+      <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(uid, data.myId))}</div>
+      <div style="font-size:10px;color:var(--muted2)">${v.done}/${QUIZ_PER_DAY} quiz</div>
+      <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${v.score}<span style="font-size:10px;opacity:0.6">/${maxPts}</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ── Mini-classement d'un quiz (scores du jour des amis) ──
+async function openQuizLb(quizId) {
+  const q = QUIZ_DATA.find(x => x.id === quizId);
+  if (!q) return;
+  const fr = _lang !== 'en';
+  document.getElementById('qlb-title').textContent = `${q.emoji} ${q.title}`;
+  document.getElementById('qlb-sub').textContent = fr ? 'Les scores du jour · nouveaux quiz à la prochaine rotation' : "Today's scores · new quizzes at next rotation";
+  const list = document.getElementById('qlb-list');
+  list.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted2);font-size:13px">${t('toast.loading')}</div>`;
+  document.getElementById('quiz-lb-modal').style.display = 'flex';
+  const data = await _fetchTodayQuizScores();
+  if (!data) { list.innerHTML = ''; return; }
+  const rows = data.rows.filter(r => r.quiz_id === quizId).sort((a, b) => b.score - a.score);
+  if (!rows.length) {
+    list.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">${fr ? 'Personne n\'a encore joué ce quiz aujourd\'hui' : 'No one played this quiz today yet'}</div>`;
+    return;
+  }
+  const medals = ['🥇', '🥈', '🥉'];
+  list.innerHTML = rows.map((r, i) => `<div style="display:flex;align-items:center;gap:10px;background:${r.user_id===data.myId?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${r.user_id===data.myId?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:10px 12px">
+    <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
+    ${_quizUserAv(r.user_id, data.myId)}
+    <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(r.user_id, data.myId))}</div>
+    <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${r.score}/${r.total}</div>
+  </div>`).join('');
+}
+function closeQuizLb() { document.getElementById('quiz-lb-modal').style.display = 'none'; }
+
 function openQuiz(id) {
-  closeQuizPicker();
   const isChallengeMode = !!_quizChallengedFriendId;
   _quizActive = QUIZ_DATA.find(q => q.id === id);
   if (!_quizActive) return;
-  // 24h cooldown per quiz
+  // Déjà fait aujourd'hui (jour UTC, aligné sur la rotation) → on ouvre le
+  // classement du quiz au lieu de rejouer. Le mode défi reste jouable.
   const prev = _quizLocalScores[id];
-  if (prev && prev.ts) {
-    const hoursLeft = Math.ceil((24 * 3600000 - (Date.now() - prev.ts)) / 3600000);
-    if (hoursLeft > 0) {
-      showToast(`Déjà complété ! Reviens dans ${hoursLeft}h`);
-      return;
-    }
-  }
+  const doneToday = prev && prev.ts && Math.floor(prev.ts / 86400000) === _quizDayIndex();
+  if (doneToday && !isChallengeMode) { openQuizLb(id); return; }
+  closeQuizPicker();
   _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizAnswerLog = []; _quizIsChallenge = isChallengeMode;
   _quizChallengeId = null;
   _quizPublished.delete(id);
@@ -13153,8 +13292,88 @@ function showQuizResults() {
         <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px">En attente de l'adversaire</div>
         <div style="font-size:12px;color:var(--muted2)">Ton score est enregistré. Tu seras notifié quand il aura répondu.</div>
       </div>` : ''}
+      <div id="quiz-friends-lb" style="width:100%;text-align:left"></div>
+      <button onclick="shareQuizResult()" style="width:100%;padding:14px;margin-bottom:10px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">🔗 ${_lang==='en'?'Share my score':'Partager mon score'}</button>
       <button onclick="closeQuiz()" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
     </div>`;
+  _renderQuizFriendsLb(qid);
+  _maybeSendDailyQuizPush();
+  setTimeout(() => { if (typeof checkPendingRequests === 'function') checkPendingRequests(); }, 800);
+}
+
+// ── Partage façon Wordle : grille 🟩🟥 des réponses ──
+function shareQuizResult() {
+  if (!_quizActive) return;
+  const total = _quizActive.questions.length;
+  const grid  = (_quizAnswerLog || []).map(ok => ok ? '🟩' : '🟥').join('');
+  const txt = `GameShelf · Quiz ${_quizActive.title} ${_quizActive.emoji} — ${_quizScore}/${total}\n${grid}\n${window.location.origin}`;
+  if (navigator.share) navigator.share({ text: txt }).catch(() => {});
+  else navigator.clipboard.writeText(txt).then(() => showToast(t('toast.copied'))).catch(() => {});
+}
+
+// ── Scores du jour (moi + amis) pour les quiz quotidiens ──
+async function _fetchTodayQuizScores() {
+  await _ensureFriendsLoaded();
+  const { data: { user } } = await _sb.auth.getUser();
+  if (!user) return null;
+  const friendIds = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+  const ids = [user.id, ...friendIds];
+  try {
+    const { data } = await _sb.from('quiz_scores')
+      .select('user_id,quiz_id,score,total,created_at')
+      .eq('day_index', _quizDayIndex())
+      .in('user_id', ids);
+    return { rows: data || [], myId: user.id };
+  } catch (e) { return { rows: [], myId: user.id }; }
+}
+function _quizUserName(uid, myId) {
+  if (uid === myId) return _lang === 'en' ? 'You' : 'Toi';
+  const f = (_socialFriends || []).find(x => x.id === uid);
+  return f ? (f.username || 'Ami') : 'Ami';
+}
+function _quizUserAv(uid, myId) {
+  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl }, 30);
+  const f = (_socialFriends || []).find(x => x.id === uid) || {};
+  return _friendAvHtml(f, 30);
+}
+
+// Classement du quiz affiché sous le résultat (une fois le quiz fait)
+async function _renderQuizFriendsLb(quizId) {
+  const el = document.getElementById('quiz-friends-lb');
+  if (!el) return;
+  const data = await _fetchTodayQuizScores();
+  if (!data) return;
+  const rows = data.rows.filter(r => r.quiz_id === quizId && r.user_id !== data.myId);
+  if (!rows.length) return;
+  rows.sort((a, b) => b.score - a.score);
+  el.innerHTML = `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;margin-bottom:12px">
+    <div style="font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">👥 ${_lang==='en'?'Your friends today':'Tes amis aujourd\'hui'}</div>
+    ${rows.map(r => `<div style="display:flex;align-items:center;gap:10px;padding:5px 0">
+      ${_quizUserAv(r.user_id, data.myId)}
+      <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(r.user_id, data.myId))}</div>
+      <div style="font-size:13px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:${r.score > _quizScore ? 'var(--a2)' : r.score < _quizScore ? 'var(--green)' : 'var(--amber)'}">${r.score}/${r.total}</div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// Push "quiz du jour" : envoyé une seule fois par jour, au premier quiz complété
+async function _maybeSendDailyQuizPush() {
+  try {
+    const day = String(_quizDayIndex());
+    if (localStorage.getItem('gs_quiz_push_day') === day) return;
+    localStorage.setItem('gs_quiz_push_day', day);
+    await _ensureFriendsLoaded();
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    const ids = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+    ids.forEach(fid => {
+      fetch(PUSH_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
+        body: JSON.stringify({ type: 'quiz_daily', to: fid })
+      }).catch(() => {});
+    });
+  } catch (e) {}
 }
 
 async function submitQuizChallengeScore(score, total) {
@@ -13421,7 +13640,10 @@ async function saveQuizScore(quizId, score, total) {
   try {
     const { data:{ user } } = await _sb.auth.getUser();
     if (!user) return;
-    await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
+    const row = { user_id:user.id, quiz_id:quizId, score, total, day_index:_quizDayIndex(), answers:_quizAnswerLog || [] };
+    const { error } = await _sb.from('quiz_scores').upsert(row, { onConflict: 'user_id,quiz_id,day_index' });
+    // Colonnes day_index/answers absentes (migration pas encore lancée) → insert simple
+    if (error) await _sb.from('quiz_scores').insert({ user_id:user.id, quiz_id:quizId, score, total });
   } catch(e) { /* Silently skip if table doesn't exist yet */ }
 }
 

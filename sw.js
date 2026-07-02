@@ -1,5 +1,5 @@
 // GameShelf Service Worker — network-first, shell fallback
-const CACHE = 'gs-v2';
+const CACHE = 'gs-v3';
 const SHELL = ['/'];
 
 self.addEventListener('install', e => {
@@ -23,6 +23,9 @@ self.addEventListener('push', e => {
     body: d.body || '',
     icon: '/icon-192.png',
     badge: '/icon-192.png',
+    // tag: les notifications du même type se remplacent (ex. "quiz du jour"
+    // envoyé par plusieurs amis → une seule notification visible)
+    tag: d.tag || undefined,
     data: { url: d.url || '/' }
   }));
 });
