@@ -2158,7 +2158,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07t</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07u</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4306,8 +4306,8 @@ const PROFILE_BG_PRESETS = [
     overlay: 'linear-gradient(180deg,#4a1a7a 0%,#2c1258 45%,#0c0620 100%)',
     fx: { kind:'pixels', colors:['#ff2e97','#00f0ff','#ffe600','#00ff85'], count:44, emoji:'👾' } },
   { key: 'platine', label: '💎', minLevel: 5, grad: 'linear-gradient(135deg,#eaf4ff,#7b8ca8)',
-    overlay: 'linear-gradient(180deg,#9fb4d0 0%,#55688a 45%,#0e1522 100%)',
-    fx: { kind:'crystal', colors:['#ffffff','#cfe8ff','#e3d9ff','#b8e6ff'], count:28, emoji:'💎' } },
+    overlay: 'radial-gradient(130% 55% at 50% 0%, rgba(255,255,255,0.30) 0%, transparent 58%), linear-gradient(180deg,#a8bdd8 0%,#5b6f92 42%,#0e1522 100%)',
+    fx: { kind:'crystal', colors:['#ffffff','#cfe8ff','#e3d9ff','#b8e6ff','#9fd9ff'], count:44, emoji:'💎', sweep:true, flare:true } },
 ];
 
 function renderPinnedAchievements() {
@@ -5283,7 +5283,15 @@ function _mkThemePart(cfg, W, H, atTop) {
     case 'rain':    return { x:_rnd(0,W), y:_rnd(-H,0), len:_rnd(18,46), sp:_rnd(4,9), c };
     case 'storm':   return { x:_rnd(-40,W+40), y:_rnd(-H,0), len:_rnd(9,16), sp:_rnd(7,12), c };
     case 'pixels':  return { x:_rnd(0,W), y:_rnd(0,H), s:_rnd(3,7), c, ph:_rnd(0,6.28), tw:_rnd(0.02,0.07) };
-    case 'crystal': return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(3.5,9), c, ph:_rnd(0,6.28), tw:_rnd(0.008,0.022), vy:-_rnd(0.08,0.3), vx:_rnd(-0.06,0.06), rot:_rnd(0,6.28), vr:_rnd(-0.012,0.012), glint: Math.random() < 0.4 };
+    case 'crystal': {
+      const tier = Math.random();
+      if (tier < 0.45) // poussière de diamant : micro-points blancs à scintillement rapide
+        return { x:_rnd(0,W), y:_rnd(0,H), kind2:'dust', r:_rnd(0.6,1.6), c:'#ffffff', ph:_rnd(0,6.28), tw:_rnd(0.04,0.09), vy:-_rnd(0.03,0.1), vx:0 };
+      if (tier < 0.82) // gemmes moyennes
+        return { x:_rnd(0,W), y:_rnd(0,H), kind2:'gem', r:_rnd(4,8), c, ph:_rnd(0,6.28), tw:_rnd(0.008,0.02), vy:-_rnd(0.1,0.28), vx:_rnd(-0.05,0.05), rot:_rnd(0,6.28), vr:_rnd(-0.012,0.012), sway:_rnd(4,10) };
+      // grosses gemmes taillées, halo lumineux
+      return { x:_rnd(0,W), y:_rnd(0,H), kind2:'bigem', r:_rnd(9,17), c, ph:_rnd(0,6.28), tw:_rnd(0.006,0.014), vy:-_rnd(0.06,0.16), vx:_rnd(-0.04,0.04), rot:_rnd(0,6.28), vr:_rnd(-0.008,0.008), sway:_rnd(6,14) };
+    }
     default:        return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(16,48), c, o:_rnd(0.04,0.13), vx:_rnd(-0.14,0.14), vy:-_rnd(0.04,0.28), ph:_rnd(0,6.28), tw:_rnd(0.004,0.018) };
   }
 }
@@ -5356,24 +5364,45 @@ function _drawThemePart(ctx, p, cfg, W, H) {
       ctx.fillStyle = _hexA(p.c, o); ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, p.s);
       break;
     }
-    case 'crystal': { // diamants facettés en lévitation + éclats de lumière
-      p.ph += p.tw; const o = 0.25 + 0.55 * Math.abs(Math.sin(p.ph));
-      if (p.glint) {
-        _drawStar4(ctx, p.x, p.y, p.r * 0.7 * (0.5 + 0.5 * Math.abs(Math.sin(p.ph * 3))), _hexA(p.c, o));
+    case 'crystal': { // joaillerie : diamants taillés, poussière scintillante, halos
+      p.ph += p.tw; const o = 0.3 + 0.55 * Math.abs(Math.sin(p.ph));
+      if (p.kind2 === 'dust') {
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.28);
+        ctx.fillStyle = _hexA('#ffffff', o * 0.8); ctx.fill();
       } else {
         p.rot += p.vr;
-        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        const x = p.x + Math.sin(p.ph * 2) * (p.sway || 0) * 0.3;
+        ctx.save(); ctx.translate(x, p.y); ctx.rotate(p.rot);
+        const r = p.r;
+        // Silhouette "taille brillant" : table plate, couronne, culasse en pointe
         ctx.beginPath();
-        ctx.moveTo(0, -p.r); ctx.lineTo(p.r * 0.62, 0); ctx.lineTo(0, p.r); ctx.lineTo(-p.r * 0.62, 0); ctx.closePath();
-        ctx.fillStyle = _hexA(p.c, o * 0.5); ctx.fill();
-        ctx.strokeStyle = _hexA('#ffffff', o * 0.8); ctx.lineWidth = 0.8; ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(-p.r * 0.62, 0); ctx.lineTo(p.r * 0.62, 0);
-        ctx.strokeStyle = _hexA('#ffffff', o * 0.35); ctx.stroke();
+        ctx.moveTo(-r * 0.55, -r * 0.75); ctx.lineTo(r * 0.55, -r * 0.75);   // table
+        ctx.lineTo(r * 0.95, -r * 0.15);                                      // épaule droite
+        ctx.lineTo(0, r);                                                     // pointe
+        ctx.lineTo(-r * 0.95, -r * 0.15);                                     // épaule gauche
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(0, -r, 0, r);
+        grad.addColorStop(0, _hexA('#ffffff', o * 0.95));
+        grad.addColorStop(0.45, _hexA(p.c, o * 0.65));
+        grad.addColorStop(1, _hexA(p.c, o * 0.18));
+        if (p.kind2 === 'bigem') { ctx.shadowBlur = 14; ctx.shadowColor = _hexA(p.c, 0.8); }
+        ctx.fillStyle = grad; ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = _hexA('#ffffff', o * 0.9); ctx.lineWidth = p.kind2 === 'bigem' ? 1.1 : 0.7; ctx.stroke();
+        // Facettes internes : rayons de la table vers la pointe + ligne de rondiste
+        ctx.strokeStyle = _hexA('#ffffff', o * 0.4); ctx.lineWidth = 0.6;
+        ctx.beginPath();
+        ctx.moveTo(-r * 0.95, -r * 0.15); ctx.lineTo(r * 0.95, -r * 0.15);
+        ctx.moveTo(-r * 0.55, -r * 0.75); ctx.lineTo(0, r);
+        ctx.moveTo(r * 0.55, -r * 0.75); ctx.lineTo(0, r);
+        ctx.stroke();
+        // Pointe de lumière sur la table
+        if (p.kind2 === 'bigem') _drawStar4(ctx, -r * 0.25, -r * 0.55, r * 0.28 * (0.5 + 0.5 * Math.abs(Math.sin(p.ph * 3))), _hexA('#ffffff', o));
         ctx.restore();
       }
       p.x += p.vx; p.y += p.vy;
-      if (p.y < -p.r) { p.y = H + p.r; p.x = Math.random() * W; }
-      if (p.x < -p.r) p.x = W + p.r; if (p.x > W + p.r) p.x = -p.r;
+      if (p.y < -p.r * 2) { p.y = H + p.r * 2; p.x = Math.random() * W; }
+      if (p.x < -p.r * 2) p.x = W + p.r * 2; if (p.x > W + p.r * 2) p.x = -p.r * 2;
       break;
     }
     default: { // bokeh
@@ -5406,6 +5435,7 @@ function startThemeBg(canvas, themeKey) {
   let t = 0;
   let shoot = null;
   let bolt = null;
+  let flare = null;
   function frame() {
     t++;
     ctx.clearRect(0, 0, W, H);
@@ -5418,6 +5448,38 @@ function startThemeBg(canvas, themeKey) {
       if (e.x < -60) e.x = W + 60; if (e.x > W + 60) e.x = -60;
     });
     for (const p of parts) _drawThemePart(ctx, p, cfg, W, H);
+    if (cfg.sweep) {
+      // Balayage diagonal de lumière : reflet sur du platine poli, toutes les ~7s
+      const period = 430;
+      const prog = (t % period) / period;
+      if (prog < 0.32) {
+        const px = -W * 0.7 + (W * 2.1) * (prog / 0.32);
+        const g = ctx.createLinearGradient(px, 0, px + W * 0.55, H);
+        g.addColorStop(0, 'rgba(255,255,255,0)');
+        g.addColorStop(0.42, 'rgba(255,255,255,0.05)');
+        g.addColorStop(0.5, 'rgba(255,255,255,0.11)');
+        g.addColorStop(0.58, 'rgba(255,255,255,0.05)');
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      }
+    }
+    if (cfg.flare) {
+      // Éclat de bijouterie : grande étoile qui naît, brille et s'éteint
+      if (!flare && Math.random() < 0.009) flare = { x: _rnd(W * 0.1, W * 0.9), y: _rnd(H * 0.08, H * 0.72), r: _rnd(16, 30), life: 1, rot: _rnd(0, 3.14) };
+      if (flare) {
+        const a = Math.sin((1 - flare.life) * Math.PI); // fondu entrée/sortie
+        const R = flare.r * (0.55 + 0.45 * a);
+        ctx.save(); ctx.translate(flare.x, flare.y); ctx.rotate(flare.rot);
+        const hg = ctx.createRadialGradient(0, 0, 0, 0, 0, R);
+        hg.addColorStop(0, `rgba(255,255,255,${(0.5 * a).toFixed(3)})`);
+        hg.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, 6.28); ctx.fillStyle = hg; ctx.fill();
+        _drawStar4(ctx, 0, 0, R, _hexA('#ffffff', 0.9 * a));
+        ctx.rotate(0.785); _drawStar4(ctx, 0, 0, R * 0.55, _hexA('#cfe8ff', 0.8 * a));
+        ctx.restore();
+        flare.life -= 0.016; if (flare.life <= 0) flare = null;
+      }
+    }
     if (cfg.lightning) {
       // Éclair : zigzag blanc + flash d'écran, quelques fois par minute
       if (!bolt && Math.random() < 0.005) {
