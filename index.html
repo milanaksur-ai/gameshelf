@@ -2158,7 +2158,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07s</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07t</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2810,7 +2810,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 nouveaux fonds de profil animés : sakura 🌸, lave 🌋, cyber 🌆, orage ⛈️, rétro 👾</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX</li>
                 </ul>
               </div>
 
@@ -3332,7 +3332,7 @@ const LANG = {
       reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
-      reviews_9:'5 nouveaux fonds de profil animés : sakura 🌸, lave 🌋, cyber 🌆, orage ⛈️, rétro 👾',
+      reviews_9:'5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3828,7 +3828,7 @@ const LANG = {
       reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
-      reviews_9:'5 new animated profile backgrounds: sakura 🌸, lava 🌋, cyber 🌆, storm ⛈️, retro 👾',
+      reviews_9:'5 exclusive level-4 ⭐ animated backgrounds (sakura, lava, cyber, storm, retro) + level-MAX Crystal 💎',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -3999,7 +3999,9 @@ function getLevelPerks(level, fr) {
     perks.push(fr ? '🏅 3 succès épinglés sur ton profil' : '🏅 3 pinned achievements on your profile');
     perks.push(fr ? '✨ Collections automatiques par vibe' : '✨ Auto collections by vibe');
   }
-  if (level === 3) perks.push(fr ? '🎨 Fond de profil personnalisable' : '🎨 Custom profile background');
+  if (level === 3) perks.push(fr ? '🎨 Fond de profil personnalisable (6 thèmes)' : '🎨 Custom profile background (6 themes)');
+  if (level === 4) perks.push(fr ? '🌸 5 fonds animés exclusifs (sakura, lave, cyber, orage, rétro)' : '🌸 5 exclusive animated backgrounds');
+  if (level === 5) perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
   return perks;
 }
 function getLevel(xp) {
@@ -4194,8 +4196,10 @@ function _celebrateLevelUp(lvl) {
     benefits.push({ icon:'🎨', text: fr ? 'Personnalisation du fond de profil' : 'Custom profile background' });
   } else if (lvl.level === 4) {
     benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
+    benefits.push({ icon:'🌸', text: fr ? '5 fonds animés exclusifs' : '5 exclusive animated backgrounds' });
   } else if (lvl.level === 5) {
     benefits.push({ icon:'📚', text: fr ? 'Collections illimitées !' : 'Unlimited collections!' });
+    benefits.push({ icon:'💎', text: fr ? 'Fond Cristal exclusif' : 'Exclusive Crystal background' });
   }
   if (nextLvl) {
     const needed = nextLvl.xp - lvl.xp;
@@ -4286,21 +4290,24 @@ const PROFILE_BG_PRESETS = [
   { key: 'gold',    label: '✨', grad: 'linear-gradient(135deg,#ffd84d,#8a6100)',
     overlay: 'linear-gradient(180deg,#b8860b 0%,#7a5600 45%,#241800 100%)',
     fx: { kind:'sparkle', colors:['#ffd84d','#ffe98a','#fff3c4'], count:36, emoji:'✨' } },
-  { key: 'sakura',  label: '🌸', grad: 'linear-gradient(135deg,#ffb7d5,#8e4162)',
+  { key: 'sakura',  label: '🌸', minLevel: 4, grad: 'linear-gradient(135deg,#ffb7d5,#8e4162)',
     overlay: 'linear-gradient(180deg,#b0577f 0%,#7a3a58 45%,#241019 100%)',
     fx: { kind:'leaves', colors:['#ffb7d5','#ff8fb8','#ffd6e8'], count:20, emoji:'🌸' } },
-  { key: 'lava',    label: '🌋', grad: 'linear-gradient(135deg,#ff7b00,#5c0f00)',
+  { key: 'lava',    label: '🌋', minLevel: 4, grad: 'linear-gradient(135deg,#ff7b00,#5c0f00)',
     overlay: 'linear-gradient(180deg,#8a2500 0%,#5c1400 45%,#170502 100%)',
     fx: { kind:'embers', colors:['#ffb347','#ff6b35','#ffd700'], count:52, emoji:'🌋' } },
-  { key: 'cyber',   label: '🌆', grad: 'linear-gradient(135deg,#00f0ff,#7a00ff)',
+  { key: 'cyber',   label: '🌆', minLevel: 4, grad: 'linear-gradient(135deg,#00f0ff,#7a00ff)',
     overlay: 'linear-gradient(180deg,#2a0a5e 0%,#170a3a 45%,#060210 100%)',
     fx: { kind:'rain', colors:['#00f0ff','#ff00e5','#7a68ff'], count:36 } },
-  { key: 'storm',   label: '⛈️', grad: 'linear-gradient(135deg,#7f8fa6,#192a56)',
+  { key: 'storm',   label: '⛈️', minLevel: 4, grad: 'linear-gradient(135deg,#7f8fa6,#192a56)',
     overlay: 'linear-gradient(180deg,#3d4a66 0%,#242f47 45%,#0a0e18 100%)',
     fx: { kind:'storm', colors:['#9db4d8','#7f9cc9','#c3d3ee'], count:70, lightning:true } },
-  { key: 'retro',   label: '👾', grad: 'linear-gradient(135deg,#ff2e97,#2e1a8f)',
+  { key: 'retro',   label: '👾', minLevel: 4, grad: 'linear-gradient(135deg,#ff2e97,#2e1a8f)',
     overlay: 'linear-gradient(180deg,#4a1a7a 0%,#2c1258 45%,#0c0620 100%)',
     fx: { kind:'pixels', colors:['#ff2e97','#00f0ff','#ffe600','#00ff85'], count:44, emoji:'👾' } },
+  { key: 'platine', label: '💎', minLevel: 5, grad: 'linear-gradient(135deg,#eaf4ff,#7b8ca8)',
+    overlay: 'linear-gradient(180deg,#9fb4d0 0%,#55688a 45%,#0e1522 100%)',
+    fx: { kind:'crystal', colors:['#ffffff','#cfe8ff','#e3d9ff','#b8e6ff'], count:28, emoji:'💎' } },
 ];
 
 function renderPinnedAchievements() {
@@ -4381,13 +4388,26 @@ function renderProfileBgPicker() {
   const current = obProfile.profileBg || null;
   const sw = document.getElementById('profile-bg-swatches');
   if (!sw) return;
+  const myLvl = getLevel(obProfile.xp || 0).level;
   sw.innerHTML = PROFILE_BG_PRESETS.map(p => {
     const active = (p.key || null) === current;
-    return '<div onclick="setProfileBg(\'' + (p.key||'') + '\')" style="width:44px;height:44px;border-radius:12px;background:' + p.grad + ';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid ' + (active?'rgba(255,255,255,0.85)':'transparent') + ';box-shadow:' + (active?'0 0 0 1.5px var(--a)':'none') + ';transition:border-color 0.2s;flex-shrink:0">' + p.label + '</div>';
+    const locked = myLvl < (p.minLevel || 3);
+    return '<div onclick="setProfileBg(\'' + (p.key||'') + '\')" style="position:relative;width:44px;height:44px;border-radius:12px;background:' + p.grad + ';cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;border:2px solid ' + (active?'rgba(255,255,255,0.85)':'transparent') + ';box-shadow:' + (active?'0 0 0 1.5px var(--a)':'none') + ';transition:border-color 0.2s;flex-shrink:0;' + (locked?'opacity:0.4;filter:saturate(0.5)':'') + '">' + p.label
+      + (locked ? '<div style="position:absolute;bottom:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--s3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:9px;opacity:1;filter:none">🔒</div>' : '')
+      + '</div>';
   }).join('');
 }
 
 async function setProfileBg(key) {
+  // Paliers : fonds de base au niveau 3, les 5 nouveaux au niveau 4, Cristal au niveau MAX
+  const _preset = PROFILE_BG_PRESETS.find(p => (p.key || null) === (key || null)) || PROFILE_BG_PRESETS[0];
+  const _need = _preset.minLevel || 3;
+  if (getLevel(obProfile.xp || 0).level < _need) {
+    const _ld = XP_LEVELS.find(l => l.level === _need);
+    const _lt = _ld ? (_lang === 'en' ? _ld.title_en : _ld.title_fr) : '';
+    showToast(`🔒 ${_lang === 'en' ? 'Unlocked at level' : 'Débloqué au niveau'} ${_need} · ${_lt}`);
+    return;
+  }
   obProfile.profileBg = key || null;
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   applyProfileBg();
@@ -5263,6 +5283,7 @@ function _mkThemePart(cfg, W, H, atTop) {
     case 'rain':    return { x:_rnd(0,W), y:_rnd(-H,0), len:_rnd(18,46), sp:_rnd(4,9), c };
     case 'storm':   return { x:_rnd(-40,W+40), y:_rnd(-H,0), len:_rnd(9,16), sp:_rnd(7,12), c };
     case 'pixels':  return { x:_rnd(0,W), y:_rnd(0,H), s:_rnd(3,7), c, ph:_rnd(0,6.28), tw:_rnd(0.02,0.07) };
+    case 'crystal': return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(3.5,9), c, ph:_rnd(0,6.28), tw:_rnd(0.008,0.022), vy:-_rnd(0.08,0.3), vx:_rnd(-0.06,0.06), rot:_rnd(0,6.28), vr:_rnd(-0.012,0.012), glint: Math.random() < 0.4 };
     default:        return { x:_rnd(0,W), y:_rnd(0,H), r:_rnd(16,48), c, o:_rnd(0.04,0.13), vx:_rnd(-0.14,0.14), vy:-_rnd(0.04,0.28), ph:_rnd(0,6.28), tw:_rnd(0.004,0.018) };
   }
 }
@@ -5333,6 +5354,26 @@ function _drawThemePart(ctx, p, cfg, W, H) {
     case 'pixels': { // pixels rétro qui scintillent
       p.ph += p.tw; const o = 0.15 + 0.65 * Math.abs(Math.sin(p.ph));
       ctx.fillStyle = _hexA(p.c, o); ctx.fillRect(Math.round(p.x), Math.round(p.y), p.s, p.s);
+      break;
+    }
+    case 'crystal': { // diamants facettés en lévitation + éclats de lumière
+      p.ph += p.tw; const o = 0.25 + 0.55 * Math.abs(Math.sin(p.ph));
+      if (p.glint) {
+        _drawStar4(ctx, p.x, p.y, p.r * 0.7 * (0.5 + 0.5 * Math.abs(Math.sin(p.ph * 3))), _hexA(p.c, o));
+      } else {
+        p.rot += p.vr;
+        ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+        ctx.beginPath();
+        ctx.moveTo(0, -p.r); ctx.lineTo(p.r * 0.62, 0); ctx.lineTo(0, p.r); ctx.lineTo(-p.r * 0.62, 0); ctx.closePath();
+        ctx.fillStyle = _hexA(p.c, o * 0.5); ctx.fill();
+        ctx.strokeStyle = _hexA('#ffffff', o * 0.8); ctx.lineWidth = 0.8; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-p.r * 0.62, 0); ctx.lineTo(p.r * 0.62, 0);
+        ctx.strokeStyle = _hexA('#ffffff', o * 0.35); ctx.stroke();
+        ctx.restore();
+      }
+      p.x += p.vx; p.y += p.vy;
+      if (p.y < -p.r) { p.y = H + p.r; p.x = Math.random() * W; }
+      if (p.x < -p.r) p.x = W + p.r; if (p.x > W + p.r) p.x = -p.r;
       break;
     }
     default: { // bokeh
