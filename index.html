@@ -2158,7 +2158,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07r</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07s</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -13305,12 +13305,13 @@ function renderQuizHub() {
     const best = _quizLocalScores[q.id];
     const doneToday = best && best.ts && Math.floor(best.ts / 86400000) === _quizDayIndex();
     const rank = best ? getQuizRank(best.score, best.total) : null;
+    const _paused = !doneToday && (() => { const st = _qipGet(q.id); return st && st.day === _quizDayIndex() && st.log.length > 0; })();
     return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
       <div style="font-size:32px;margin-bottom:8px">${q.emoji}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${q.title}</div>
       <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
       <div id="qcard-social-${q.id}" style="font-size:11px;font-weight:600;color:var(--muted2);margin-top:4px;min-height:14px"></div>
-      ${rank && doneToday ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : ''}
+      ${rank && doneToday ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : (_paused ? `<div class="quiz-best-badge">⏸ ${_qipGet(q.id).log.length}/${q.questions.length}</div>` : '')}
       <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
     </div>`;
   }).join('');
@@ -13610,9 +13611,11 @@ async function renderDailyQuizCard() {
   const chip = q => {
     const best = _quizLocalScores[q.id];
     const done = best && best.ts && Math.floor(best.ts / 86400000) === today;
-    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+    const st = _qipGet(q.id);
+    const paused = !done && st && st.day === today && st.log.length > 0;
+    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : paused ? 'rgba(253,203,110,0.1)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : paused ? '1.5px solid rgba(253,203,110,0.55)' : '1.5px dashed rgba(255,255,255,0.18)'}">
       ${q.emoji}
-      ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : ''}
+      ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : paused ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:#fdcb6e;display:flex;align-items:center;justify-content:center;font-size:9px;color:#3a2b00;font-weight:800">⏸</div>' : ''}
     </div>`;
   };
   const doneCount = daily.filter(q => {
@@ -13717,6 +13720,16 @@ function openQuiz(id) {
   closeQuizPicker();
   _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizAnswerLog = []; _quizIsChallenge = isChallengeMode;
   _quizChallengeId = null;
+  // Reprise d'un quiz mis en pause aujourd'hui (solo) : les réponses données restent gelées
+  if (!isChallengeMode) {
+    const _st = _qipGet(id);
+    if (_st && _st.day === _quizDayIndex() && Array.isArray(_st.log) && _st.log.length > 0 && _st.log.length < _quizActive.questions.length) {
+      _quizAnswerLog = [..._st.log];
+      _quizScore = _quizAnswerLog.filter(Boolean).length;
+      _quizQIdx = _quizAnswerLog.length;
+      showToast(_lang === 'en' ? `▶ Resuming at question ${_quizQIdx + 1}` : `▶ Reprise à la question ${_quizQIdx + 1}`);
+    }
+  }
   _quizPublished.delete(id);
   const overlay = document.getElementById('quiz-overlay');
   overlay.classList.add('open');
@@ -13730,45 +13743,69 @@ function openQuiz(id) {
 }
 
 function closeQuiz() {
-  // Anti-triche : quitter un quiz commencé = les questions restantes comptent fausses.
-  // Le score partiel est enregistré définitivement — pas de reset pour retenter.
-  if (_quizActive && _quizAnswerLog.length > 0 && _quizAnswerLog.length < _quizActive.questions.length) {
+  const inProgress = _quizActive && _quizAnswerLog.length > 0 && _quizAnswerLog.length < _quizActive.questions.length;
+  if (inProgress && _quizIsChallenge) {
+    // Défi 1v1 : abandonner = les questions restantes comptent fausses (sinon
+    // on pourrait recommencer le défi en connaissant les questions).
     const total = _quizActive.questions.length;
     while (_quizAnswerLog.length < total) _quizAnswerLog.push(false);
     _quizScore = _quizAnswerLog.filter(Boolean).length;
     _quizLocalScores[_quizActive.id] = { score: _quizScore, total, ts: Date.now() };
     localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
     saveQuizScore(_quizActive.id, _quizScore, total);
-    if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
+    submitQuizChallengeScore(_quizScore, total);
     if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20, 'quiz', _quizActive.title || ''); }
-    showToast(_lang === 'en' ? `Quiz abandoned — score saved: ${_quizScore}/${total}` : `Quiz abandonné — score enregistré : ${_quizScore}/${total}`);
+    showToast(_lang === 'en' ? `Challenge abandoned — score saved: ${_quizScore}/${total}` : `Défi abandonné — score enregistré : ${_quizScore}/${total}`);
+    _qipClear(_quizActive.id);
+    renderDailyQuizCard();
+  } else if (inProgress) {
+    // Solo : les réponses données sont gelées, on reprendra à la question suivante.
+    showToast(_lang === 'en'
+      ? `⏸ Paused at ${_quizAnswerLog.length}/${_quizActive.questions.length} — resume anytime today`
+      : `⏸ Pause à ${_quizAnswerLog.length}/${_quizActive.questions.length} — reprends quand tu veux aujourd'hui`);
     renderDailyQuizCard();
   }
-  localStorage.removeItem('gs_quiz_inprogress');
   document.getElementById('quiz-overlay').classList.remove('open');
   _quizActive = null;
   renderQuizHub();
 }
 
-// Si l'app a été tuée en plein quiz : finalise le quiz abandonné au relancement
+// ── Progression de quiz en pause (par quiz, reprenable dans la journée) ──
+function _qipAll() {
+  try {
+    const o = JSON.parse(localStorage.getItem('gs_quiz_inprogress') || '{}');
+    if (!o || typeof o !== 'object' || Array.isArray(o)) return {};
+    // Migration de l'ancien format mono-quiz {id, log, day}
+    if (o.id && Array.isArray(o.log)) return { [o.id]: { log: o.log, day: o.day } };
+    return o;
+  } catch (e) { return {}; }
+}
+function _qipGet(id) { return _qipAll()[id] || null; }
+function _qipSet(id, log, day) { const o = _qipAll(); o[id] = { log: [...log], day }; localStorage.setItem('gs_quiz_inprogress', JSON.stringify(o)); }
+function _qipClear(id) { const o = _qipAll(); delete o[id]; localStorage.setItem('gs_quiz_inprogress', JSON.stringify(o)); }
+
+// Au lancement : les pauses d'un JOUR PASSÉ sont finalisées pour ce jour-là
+// (questions restantes fausses) ; celles d'aujourd'hui restent reprenables.
 function _restoreAbandonedQuiz() {
   try {
-    const raw = localStorage.getItem('gs_quiz_inprogress');
-    if (!raw) return;
-    localStorage.removeItem('gs_quiz_inprogress');
-    const st = JSON.parse(raw);
-    const q = QUIZ_DATA.find(x => x.id === st.id);
-    if (!q || !Array.isArray(st.log) || !st.log.length) return;
-    const total = q.questions.length;
-    const log = [...st.log];
-    while (log.length < total) log.push(false);
-    const score = log.filter(Boolean).length;
-    // N'écrase pas un score déjà enregistré ce jour-là
-    const existing = _quizLocalScores[st.id];
-    if (existing && existing.ts && Math.floor(existing.ts / 86400000) === st.day) return;
-    _quizLocalScores[st.id] = { score, total, ts: (st.day === _quizDayIndex()) ? Date.now() : st.day * 86400000 + 43200000 };
-    localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
-    saveQuizScore(st.id, score, total, st.day, log);
+    const all = _qipAll();
+    const today = _quizDayIndex();
+    let dirty = false;
+    Object.keys(all).forEach(id => {
+      const st = all[id];
+      const q = QUIZ_DATA.find(x => x.id === id);
+      if (!q || !Array.isArray(st.log) || !st.log.length) { delete all[id]; dirty = true; return; }
+      if (st.day === today) return; // reprenable aujourd'hui
+      const total = q.questions.length;
+      const log = [...st.log];
+      while (log.length < total) log.push(false);
+      const score = log.filter(Boolean).length;
+      const existing = _quizLocalScores[id];
+      const doneThatDay = existing && existing.ts && Math.floor(existing.ts / 86400000) === st.day;
+      if (!doneThatDay) saveQuizScore(id, score, total, st.day, log); // ignoreDuplicates = sans risque
+      delete all[id]; dirty = true;
+    });
+    if (dirty) localStorage.setItem('gs_quiz_inprogress', JSON.stringify(all));
   } catch (e) {}
 }
 
@@ -13817,8 +13854,8 @@ function submitAnswer(idx) {
   const correct = idx === q.c;
   _quizAnswerLog.push(correct);
   if (correct) _quizScore++;
-  // Progression persistée : si l'app est tuée en plein quiz, le score partiel sera finalisé au retour
-  try { localStorage.setItem('gs_quiz_inprogress', JSON.stringify({ id: _quizActive.id, log: _quizAnswerLog, day: _quizDayIndex() })); } catch (e) {}
+  // Réponse gelée immédiatement : la progression survit à la fermeture (pause/reprise)
+  try { _qipSet(_quizActive.id, _quizAnswerLog, _quizDayIndex()); } catch (e) {}
   document.querySelectorAll('#quiz-answers .answer-btn').forEach((btn, i) => {
     btn.classList.add('revealed');
     if (i === q.c) btn.classList.add('correct');
@@ -13835,7 +13872,7 @@ function submitAnswer(idx) {
 function nextQuizQuestion() { _quizQIdx++; renderQuizQuestion(); }
 
 function showQuizResults() {
-  localStorage.removeItem('gs_quiz_inprogress'); // quiz terminé normalement
+  _qipClear(_quizActive.id); // quiz terminé normalement
   const total = _quizActive.questions.length;
   const rank  = getQuizRank(_quizScore, total);
   _quizLocalScores[_quizActive.id] = { score:_quizScore, total, ts:Date.now() };
