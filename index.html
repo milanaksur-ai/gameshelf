@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07i</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07j</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -12601,6 +12601,7 @@ function _lbShow() {
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('any').catch(() => {}); } catch (e) {}
 }
 function closeLightbox() {
+  if (window._lbResetRot) window._lbResetRot();
   if (window._lbResetZoom) window._lbResetZoom();
   document.getElementById('lightbox').style.display = 'none';
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait-primary').catch(() => { try { screen.orientation.unlock(); } catch (e2) {} }); } catch (e) {}
@@ -12637,12 +12638,20 @@ function lbEditCurrent() {
   const lb = document.getElementById('lightbox');
   const img = document.getElementById('lb-img');
   if (!lb || !img) return;
-  let scale = 1, tx = 0, ty = 0;
+  let scale = 1, tx = 0, ty = 0, rot = 0;
   let startDist = 0, startScale = 1, lastTap = 0;
   let panX = 0, panY = 0, startTx = 0, startTy = 0, swipeX = null, swipeY = null;
   img.style.touchAction = 'none';
   img.style.transition = 'transform 0.15s ease-out';
-  const apply = () => { img.style.transform = `translate(${tx}px,${ty}px) scale(${scale})`; };
+  const apply = () => { img.style.transform = `translate(${tx}px,${ty}px) rotate(${rot}deg) scale(${scale})`; };
+  // Mode paysage manuel : la TWA est verrouillée portrait au niveau natif,
+  // donc on pivote l'image elle-même et on l'ajuste aux dimensions inversées.
+  const _applyRotSizing = () => {
+    if (rot) { img.style.maxWidth = 'calc(100dvh - 32px)'; img.style.maxHeight = 'calc(100dvw - 16px)'; }
+    else { img.style.maxWidth = 'calc(100% - 40px)'; img.style.maxHeight = '85dvh'; }
+  };
+  window._lbToggleRotate = () => { rot = rot ? 0 : 90; scale = 1; tx = 0; ty = 0; _applyRotSizing(); apply(); };
+  window._lbResetRot = () => { if (rot) { rot = 0; _applyRotSizing(); } };
   window._lbResetZoom = () => { scale = 1; tx = 0; ty = 0; apply(); };
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
@@ -15332,6 +15341,7 @@ async function exportTierList() {
   <img id="lb-img" src="" style="max-width:calc(100% - 40px);max-height:85dvh;object-fit:contain;border-radius:8px">
   <button id="lb-next" onclick="lightboxNav(1)" style="position:absolute;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">›</button>
   <div id="lb-counter" style="position:absolute;bottom:20px;color:rgba(255,255,255,0.45);font-size:12px"></div>
+  <button id="lb-rotate" onclick="if(window._lbToggleRotate)window._lbToggleRotate()" style="position:absolute;bottom:14px;right:14px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:18px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">🔄</button>
 </div>
 
 <div id="tirage-intro" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);align-items:flex-end;justify-content:center;padding-bottom:0">
