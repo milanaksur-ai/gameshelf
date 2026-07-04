@@ -1996,11 +1996,11 @@ html, body {
       <div style="padding:20px 16px 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase" data-i18n="profile.screenshots">📷 Captures d'écran</div>
-          <button onclick="openProfileScreenshotPicker()" style="background:var(--a);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer;font-weight:300">+</button>
+          <button onclick="uploadProfileScreenshots()" style="background:var(--a);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer;font-weight:300">+</button>
         </div>
         <div id="profile-media"></div>
       </div>
-      <input type="file" id="profile-screenshot-input" accept="image/*" style="display:none" onchange="handleProfileScreenshot(this)">
+      <input type="file" id="profile-screenshot-input" accept="image/*" multiple style="display:none" onchange="handleProfileScreenshot(this)">
 
       <!-- CONNECTER STEAM (hidden) -->
       <div class="connect-section anim" style="animation-delay:0.2s;display:none">
@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -5757,6 +5757,12 @@ async function onAuthSuccess(user) {
           localStorage.setItem('gs_achievements', JSON.stringify([..._gsAch]));
         } catch(e) {}
       }
+      // Captures non assignées : fusion cloud → local (multi-appareils)
+      if (Array.isArray(profile.unassigned_screenshots) && profile.unassigned_screenshots.length) {
+        const _known = new Set(_unassignedShots.map(x => x.url));
+        profile.unassigned_screenshots.forEach(x => { if (x && x.url && !_known.has(x.url)) _unassignedShots.push(x); });
+        localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
+      }
       // Cross-device backfill guard: if Supabase says already done, mark locally
       if (profile.xp_backfilled) {
         localStorage.setItem('gs_xp_backfilled', '1');
@@ -6293,6 +6299,12 @@ async function syncFromSupabase(user) {
           profile.achievements.forEach(id => _gsAch2.add(id));
           localStorage.setItem('gs_achievements', JSON.stringify([..._gsAch2]));
         } catch(e) {}
+      }
+      // Captures non assignées : fusion cloud → local (multi-appareils)
+      if (Array.isArray(profile.unassigned_screenshots) && profile.unassigned_screenshots.length) {
+        const _known = new Set(_unassignedShots.map(x => x.url));
+        profile.unassigned_screenshots.forEach(x => { if (x && x.url && !_known.has(x.url)) _unassignedShots.push(x); });
+        localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
       }
       if (profile.xp_backfilled) {
         localStorage.setItem('gs_xp_backfilled', '1');
@@ -7681,59 +7693,98 @@ async function removeMedia(gameId, idx) {
   renderFeed();
 }
 
-// ── PROFILE SCREENSHOT PICKER ─────────────────────────────────────────────────
-let _pspSelectedGameId = null;
+// ── SCREENSHOTS : galerie libre + assignation différée ─────────────────────
+// On uploade d'abord (sans jeu), on assigne plus tard depuis la galerie.
+let _unassignedShots = JSON.parse(localStorage.getItem('gs_unassigned_shots') || '[]'); // [{url, storagePath, ts}]
+let _pspAssignIdx = null; // index de la capture à assigner via le picker
 
-function openProfileScreenshotPicker() {
-  _pspSelectedGameId = null;
+function _saveUnassigned() {
+  localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
+  _sb.auth.getSession().then(({ data: { session } }) => {
+    if (session) _sb.from('profiles').update({ unassigned_screenshots: _unassignedShots }).eq('id', session.user.id).then(() => {});
+  }).catch(() => {});
+}
+
+// Bouton + : upload direct, multi-fichiers, aucun jeu requis
+function uploadProfileScreenshots() {
+  _pspAssignIdx = null;
+  document.getElementById('profile-screenshot-input').click();
+}
+
+async function handleProfileScreenshot(input) {
+  if (!input.files?.length) return;
+  showToast(_lang === 'en' ? 'Uploading…' : 'Envoi en cours…');
+  const { data: { session } } = await _sb.auth.getSession();
+  let added = 0;
+  for (const file of Array.from(input.files)) {
+    const compressed = await compressImage(file);
+    let url = null, storagePath = null;
+    if (session) {
+      const path = `${session.user.id}/unassigned/${Date.now()}_${Math.floor(Math.random()*1e4)}.jpg`;
+      const { error } = await _sb.storage.from('screenshots').upload(path, compressed, { upsert: false, contentType: 'image/jpeg' });
+      if (!error) { url = _sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl; storagePath = path; }
+    }
+    if (!url) url = URL.createObjectURL(compressed);
+    _unassignedShots.unshift({ url, storagePath, ts: Date.now() });
+    added++;
+  }
+  input.value = '';
+  _saveUnassigned();
+  renderProfileStats();
+  showToast(`✓ ${added} capture${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''} — ${_lang === 'en' ? 'tap to assign a game' : 'touche-les pour assigner un jeu'}`);
+}
+
+// Tap sur une capture "à trier" → choisir le jeu
+function openAssignShotPicker(idx) {
+  _pspAssignIdx = idx;
+  const shot = _unassignedShots[idx];
+  if (!shot) return;
   const games = GAMES.slice().sort((a, b) => (a.title||'').localeCompare(b.title||''));
-  document.getElementById('psp-game-list').innerHTML = games.map(g => {
-    const src = coverUrl(g);
-    return `<div onclick="selectPspGame('${g.id}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
-      <div style="width:36px;height:48px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
-        ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>'}
-      </div>
-      <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${g.title}</div>
-    </div>`;
-  }).join('');
+  document.getElementById('psp-game-list').innerHTML =
+    `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <img src="${shot.url}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0">
+      <button onclick="deleteUnassignedShot(${idx})" style="background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer">🗑 ${_lang === 'en' ? 'Delete' : 'Supprimer'}</button>
+    </div>` +
+    games.map(g => {
+      const src = coverUrl(g);
+      return `<div onclick="selectPspGame('${g.id}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
+        <div style="width:36px;height:48px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
+          ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>'}
+        </div>
+        <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${g.title}</div>
+      </div>`;
+    }).join('');
   document.getElementById('profile-screenshot-picker').style.display = 'flex';
 }
 
 function closeProfileScreenshotPicker() {
   document.getElementById('profile-screenshot-picker').style.display = 'none';
+  _pspAssignIdx = null;
+}
+
+function deleteUnassignedShot(idx) {
+  const shot = _unassignedShots[idx];
+  if (!shot) return;
+  if (shot.storagePath) { try { _sb.storage.from('screenshots').remove([shot.storagePath]); } catch (e) {} }
+  _unassignedShots.splice(idx, 1);
+  _saveUnassigned();
+  closeProfileScreenshotPicker();
+  renderProfileStats();
+  showToast(_lang === 'en' ? 'Screenshot deleted' : 'Capture supprimée');
 }
 
 function selectPspGame(gameId, el) {
-  _pspSelectedGameId = gameId;
+  if (_pspAssignIdx === null) return;
+  const shot = _unassignedShots[_pspAssignIdx];
+  if (!shot) { closeProfileScreenshotPicker(); return; }
+  _unassignedShots.splice(_pspAssignIdx, 1);
   closeProfileScreenshotPicker();
-  document.getElementById('profile-screenshot-input').click();
-}
-
-async function handleProfileScreenshot(input) {
-  if (!input.files?.length || !_pspSelectedGameId) return;
-  const gameId = _pspSelectedGameId;
-  _pspSelectedGameId = null;
-  showToast('Envoi en cours…');
-  const { data: { session } } = await _sb.auth.getSession();
-  for (const file of Array.from(input.files)) {
-    const compressed = await compressImage(file);
-    if (session) {
-      const path = `${session.user.id}/${gameId}/${Date.now()}.jpg`;
-      const { data, error } = await _sb.storage.from('screenshots').upload(path, compressed, { upsert: false, contentType: 'image/jpeg' });
-      if (!error) {
-        const { data: { publicUrl } } = _sb.storage.from('screenshots').getPublicUrl(path);
-        addMedia(gameId, { type: 'image', url: publicUrl, name: file.name, storagePath: path });
-        persistScreenshots(gameId);
-      } else {
-        addMedia(gameId, { type: 'image', url: URL.createObjectURL(compressed), name: file.name });
-      }
-    } else {
-      addMedia(gameId, { type: 'image', url: URL.createObjectURL(compressed), name: file.name });
-    }
-  }
-  input.value = '';
-  renderFeed();
-  showToast('✓ Capture ajoutée !');
+  addMedia(gameId, { type: 'image', url: shot.url, name: 'screenshot', storagePath: shot.storagePath || undefined });
+  persistScreenshots(gameId);
+  _saveUnassigned();
+  renderProfileStats();
+  const g = GAMES.find(x => x.id === gameId);
+  showToast(`✓ ${_lang === 'en' ? 'Assigned to' : 'Assignée à'} ${g ? g.title : ''}`);
 }
 
 function renderProfileTierLists() {
@@ -7930,13 +7981,21 @@ function renderProfileStats() {
     const allMedia = Object.entries(gameMedia).flatMap(([gid, items]) =>
       items.map(m => ({...m, gameId:gid, gameTitle: GAMES.find(g=>g.id===gid)?.title||''}))
     );
-    if (allMedia.length === 0) {
-      profileMedia.innerHTML = `<div onclick="openProfileScreenshotPicker()" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;cursor:pointer;color:var(--muted2);font-size:12px;font-weight:600">
+    const unassignedHtml = _unassignedShots.map((sh, i) => `
+      <div style="cursor:pointer" onclick="openAssignShotPicker(${i})">
+        <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px;border:1.5px dashed rgba(108,92,231,0.55)">
+          <img src="${sh.url}" style="width:100%;height:100%;object-fit:cover">
+          <div style="position:absolute;bottom:3px;left:3px;background:rgba(108,92,231,0.92);border-radius:6px;padding:1px 6px;font-size:8px;font-weight:800;color:#fff">📌 ${_lang === 'en' ? 'to sort' : 'à trier'}</div>
+        </div>
+        <div style="font-size:9px;color:var(--a);font-weight:700;padding:0 1px">${_lang === 'en' ? 'Assign a game →' : 'Assigner un jeu →'}</div>
+      </div>`).join('');
+    if (allMedia.length === 0 && !_unassignedShots.length) {
+      profileMedia.innerHTML = `<div onclick="uploadProfileScreenshots()" style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;cursor:pointer;color:var(--muted2);font-size:12px;font-weight:600">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
         ${t('profile.add_first_screenshot')}
       </div>`;
     } else {
-      profileMedia.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">` +
+      profileMedia.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">` + unassignedHtml +
         allMedia.map((m, idx) => `
           <div style="cursor:pointer" onclick="openLightbox('${m.gameId}',${(gameMedia[m.gameId]||[]).indexOf(m)})">
             <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px">
