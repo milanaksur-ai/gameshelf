@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -8077,7 +8077,7 @@ function renderProfileStats() {
     );
     window._shotsOpen = (localStorage.getItem('gs_shots_open') === '1');
     const unassignedHtml = _unassignedShots.map((sh, i) => `
-      <div style="cursor:pointer" onclick="openAssignShotPicker(${i})">
+      <div style="cursor:pointer" onclick="openProfileLightbox(${i})">
         <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px;border:1.5px dashed rgba(108,92,231,0.55)">
           <img src="${sh.url}" style="width:100%;height:100%;object-fit:cover">
           <div style="position:absolute;bottom:3px;left:3px;background:rgba(108,92,231,0.92);border-radius:6px;padding:1px 6px;font-size:8px;font-weight:800;color:#fff">📌 ${_lang === 'en' ? 'to sort' : 'à trier'}</div>
@@ -12580,7 +12580,13 @@ let _lbRefs = null; // provenance de chaque photo (profil) → bouton Éditer
 function updateLightbox() {
   if (window._lbResetZoom) window._lbResetZoom();
   const editBtn = document.getElementById('lb-edit');
-  if (editBtn) editBtn.style.display = (_lbRefs && _lbRefs[_lbIdx]) ? 'flex' : 'none';
+  if (editBtn) {
+    const ref = _lbRefs && _lbRefs[_lbIdx];
+    editBtn.style.display = ref ? 'flex' : 'none';
+    if (ref) editBtn.textContent = ref.kind === 'unassigned'
+      ? (_lang === 'en' ? '📌 Assign' : '📌 Assigner')
+      : (_lang === 'en' ? '✏️ Edit' : '✏️ Éditer');
+  }
   document.getElementById('lb-img').src = _lbMedia[_lbIdx].url;
   const cap = _lbCaptions[_lbIdx] || '';
   document.getElementById('lb-counter').textContent =
