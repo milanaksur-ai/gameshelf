@@ -260,7 +260,10 @@ html, body {
    TABLETTE (≥768px) — on exploite la largeur au lieu du couloir 430px
 ══════════════════════════════════════ */
 @media (min-width: 768px) {
-  #app-shell, #app-nav { max-width: 720px; }
+  /* !important : la règle de base #app-nav (max-width:430px) est déclarée
+     plus bas dans la feuille et gagnerait sinon à spécificité égale */
+  #app-shell { max-width: 720px; }
+  #app-nav { max-width: 720px !important; }
   /* Bibliothèque : la grille passe de 2 colonnes fixes à des colonnes auto */
   .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
   /* Pages plein écran (hors shell) : contenu centré et cappé à la largeur du shell */
@@ -2186,7 +2189,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07x</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.2 · build 02.07y</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
