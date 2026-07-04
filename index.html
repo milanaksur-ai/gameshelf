@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -12556,6 +12556,7 @@ function _celebrateFinishedLight() {
 let _lbMedia = []; let _lbIdx = 0;
 function openLightbox(gameId, idx) {
   _lbMedia = (gameMedia[gameId]||[]).filter(m => m.type === 'image');
+  _lbCaptions = []; _lbRefs = null;
   if (!_lbMedia.length) return;
   _lbIdx = idx % _lbMedia.length;
   updateLightbox();
@@ -12564,6 +12565,7 @@ function openLightbox(gameId, idx) {
 let _fpScreenshotUrls = [];
 function openFriendScreenshot(idx) {
   _lbMedia = _fpScreenshotUrls.map(url => ({ type:'image', url }));
+  _lbCaptions = []; _lbRefs = null;
   if (!_lbMedia.length) return;
   _lbIdx = idx % _lbMedia.length;
   updateLightbox();
@@ -12574,8 +12576,11 @@ function lightboxNav(dir) {
   updateLightbox();
 }
 let _lbCaptions = [];
+let _lbRefs = null; // provenance de chaque photo (profil) → bouton Éditer
 function updateLightbox() {
   if (window._lbResetZoom) window._lbResetZoom();
+  const editBtn = document.getElementById('lb-edit');
+  if (editBtn) editBtn.style.display = (_lbRefs && _lbRefs[_lbIdx]) ? 'flex' : 'none';
   document.getElementById('lb-img').src = _lbMedia[_lbIdx].url;
   const cap = _lbCaptions[_lbIdx] || '';
   document.getElementById('lb-counter').textContent =
@@ -12591,16 +12596,27 @@ function closeLightbox() {
 // Visionneuse du profil : navigue sur TOUTES les captures (à trier + assignées)
 function openProfileLightbox(idx) {
   const items = [
-    ..._unassignedShots.map(sh => ({ url: sh.url, cap: _lang === 'en' ? '📌 to sort' : '📌 à trier' })),
+    ..._unassignedShots.map((sh, i) => ({ url: sh.url, cap: _lang === 'en' ? '📌 to sort' : '📌 à trier', ref: { kind: 'unassigned', idx: i } })),
     ...Object.entries(gameMedia).flatMap(([gid, arr]) =>
-      (arr || []).filter(m => m.type === 'image').map(m => ({ url: m.url, cap: GAMES.find(g => g.id === gid)?.title || '' })))
+      (arr || []).map((m, gi) => ({ m, gi })).filter(x => x.m.type === 'image')
+        .map(x => ({ url: x.m.url, cap: GAMES.find(g => g.id === gid)?.title || '', ref: { kind: 'game', gameId: gid, gameIdx: x.gi } })))
   ];
   if (!items.length) return;
   _lbMedia = items.map(x => ({ type: 'image', url: x.url }));
   _lbCaptions = items.map(x => x.cap);
+  _lbRefs = items.map(x => x.ref);
   _lbIdx = Math.min(Math.max(idx, 0), items.length - 1);
   updateLightbox();
   document.getElementById('lightbox').style.display = 'flex';
+}
+
+// Bouton Éditer de la visionneuse : assignation (à trier) ou gestion (assignée)
+function lbEditCurrent() {
+  const ref = _lbRefs && _lbRefs[_lbIdx];
+  if (!ref) return;
+  closeLightbox();
+  if (ref.kind === 'unassigned') openAssignShotPicker(ref.idx);
+  else openManageShot(ref.gameId, ref.gameIdx);
 }
 
 // ── Gestes de la visionneuse : pinch-zoom, double-tap, pan, swipe ──
@@ -15298,6 +15314,7 @@ async function exportTierList() {
 
 <div id="lightbox" style="display:none;position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,0.95);flex-direction:column;align-items:center;justify-content:center" onclick="if(event.target===this)closeLightbox()">
   <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:24px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">✕</button>
+  <button id="lb-edit" onclick="lbEditCurrent()" style="position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;height:44px;padding:0 16px;border-radius:22px;display:none;align-items:center;gap:6px">✏️ Éditer</button>
   <button id="lb-prev" onclick="lightboxNav(-1)" style="position:absolute;left:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">‹</button>
   <img id="lb-img" src="" style="max-width:calc(100% - 40px);max-height:85dvh;object-fit:contain;border-radius:8px">
   <button id="lb-next" onclick="lightboxNav(1)" style="position:absolute;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">›</button>
