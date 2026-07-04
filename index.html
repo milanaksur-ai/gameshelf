@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07j</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07k</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -12298,6 +12298,27 @@ function applyProfileToUI() {
     try { const p = JSON.parse(savedProfile); obProfile = {...obProfile, ...p}; } catch(e) {}
   }
 
+  // ── Reconnexion instantanée ────────────────────────────────────────
+  // Si un utilisateur était connecté sur cet appareil, on affiche l'app
+  // IMMÉDIATEMENT depuis le cache local — la session et la synchro se
+  // valident en arrière-plan. Réseau lent ou absent : on reste connecté.
+  let _bootedFromCache = false;
+  if (localStorage.getItem('gs_user_id') && localStorage.getItem('gs_games')) {
+    if (loadFromStorage()) {
+      applyProfileToUI();
+      document.getElementById('view-onboarding').style.display = 'none';
+      document.getElementById('view-app').style.display = 'flex';
+      initApp();
+      _bootedFromCache = true;
+    }
+  }
+
+  // Retour au premier plan : force un getSession() → le JWT expiré se
+  // rafraîchit tout de suite au lieu d'expirer au milieu d'une action.
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { try { _sb.auth.getSession(); } catch (e) {} }
+  });
+
   // Register BEFORE any await — Supabase fires SIGNED_IN from the OAuth hash
   // asynchronously during initialisation; if we register late we miss it entirely.
   // TOKEN_REFRESHED / INITIAL_SESSION keep the user logged in across reloads.
@@ -12306,7 +12327,14 @@ function applyProfileToUI() {
   _sb.auth.onAuthStateChange(async (event, session) => {
     if (!session) return;
     const appVisible = document.getElementById('view-app').style.display === 'flex';
-    if (appVisible) return;
+    if (appVisible) {
+      // App déjà affichée (boot depuis le cache) → une resynchro silencieuse suffit
+      if (!window._bgSynced && (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN')) {
+        window._bgSynced = true;
+        try { syncFromSupabase(session.user); fetchOwnCollectionsFromSupabase(); } catch (e) {}
+      }
+      return;
+    }
     if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
       await onAuthSuccess(session.user);
     } else if (event === 'SIGNED_IN') {
@@ -12327,7 +12355,7 @@ function applyProfileToUI() {
   }
 
   if (session) {
-    const hasLocal = loadFromStorage();
+    const hasLocal = _bootedFromCache || loadFromStorage();
     if (hasLocal) {
       // Guard against cross-account data leakage.
       // If gs_user_id is not set (pre-fix session) or belongs to a different user, discard cache.
@@ -12340,8 +12368,10 @@ function applyProfileToUI() {
         return;
       }
       // Returning user with local data → check if account was wiped server-side
-      const { data: _profileCheck } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
-      if (!_profileCheck) {
+      const { data: _profileCheck, error: _pcErr } = await _sb.from('profiles').select('id').eq('id', session.user.id).maybeSingle();
+      // Wipe UNIQUEMENT si le serveur répond "profil inexistant" — jamais sur
+      // une erreur réseau (sinon un boot hors-ligne effacerait la bibliothèque)
+      if (!_profileCheck && !_pcErr) {
         // Stale local data from a different account — clear it and go through normal auth flow
         ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
         GAMES.length = 0;
@@ -12353,16 +12383,32 @@ function applyProfileToUI() {
       applyProfileToUI();
       loadUserCollections();
       fetchOwnCollectionsFromSupabase();
-      document.getElementById('view-onboarding').style.display = 'none';
-      document.getElementById('view-app').style.display = 'flex';
-      initApp();
+      if (!_bootedFromCache) {
+        document.getElementById('view-onboarding').style.display = 'none';
+        document.getElementById('view-app').style.display = 'flex';
+        initApp();
+      }
       // Pull from Supabase first — server is source of truth across devices.
       // Local cache shown immediately for speed, then updated when server responds.
+      window._bgSynced = true;
       syncFromSupabase(session.user);
     } else {
       // No local data → new user or returning without cache → onAuthSuccess decides
       await onAuthSuccess(session.user);
     }
+  } else if (_bootedFromCache) {
+    // Session pas encore récupérable (hors-ligne / réseau lent) mais l'utilisateur
+    // était connecté ici → on RESTE dans l'app avec le cache. On réessaie en
+    // arrière-plan et on synchronise dès que la session revient.
+    const _retry = setInterval(async () => {
+      try {
+        const { data: { session: s2 } } = await _sb.auth.getSession();
+        if (s2) {
+          clearInterval(_retry);
+          if (!window._bgSynced) { window._bgSynced = true; syncFromSupabase(s2.user); fetchOwnCollectionsFromSupabase(); }
+        }
+      } catch (e) {}
+    }, 8000);
   } else {
     // No active session
     // Detect a failed OAuth redirect (Supabase returns error params in URL)
