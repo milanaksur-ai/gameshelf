@@ -1829,8 +1829,8 @@ html, body {
   <div id="profile-screenshot-picker" onclick="closeProfileScreenshotPicker()" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.7);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+20px);max-height:75vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="profile.screenshot_picker_title">Pour quel jeu ?</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px" data-i18n="profile.screenshot_picker_sub">Sélectionne le jeu lié à ta capture</div>
+      <div id="psp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px">✏️ Éditer la capture</div>
+      <div id="psp-sub" style="font-size:12px;color:var(--muted2);margin-bottom:16px;line-height:1.4"></div>
       <div id="psp-game-list" style="overflow-y:auto;flex:1"></div>
     </div>
   </div>
@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7701,7 +7701,6 @@ async function removeMedia(gameId, idx) {
 // ── SCREENSHOTS : galerie libre + assignation différée ─────────────────────
 // On uploade d'abord (sans jeu), on assigne plus tard depuis la galerie.
 let _unassignedShots = JSON.parse(localStorage.getItem('gs_unassigned_shots') || '[]'); // [{url, storagePath, ts}]
-let _pspAssignIdx = null; // index de la capture à assigner via le picker
 
 function _saveUnassigned() {
   localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
@@ -7729,36 +7728,17 @@ function _shotLimitToast() {
 
 // Bouton + : upload direct, multi-fichiers, aucun jeu requis
 function uploadProfileScreenshots() {
-  _pspAssignIdx = null;
   if (_shotCount() >= _shotLimit()) { _shotLimitToast(); return; }
   document.getElementById('profile-screenshot-input').click();
 }
 
-// ── Gestion d'une capture DÉJÀ assignée : changer de jeu ou supprimer ──
-let _pspManage = null; // { gameId, idx }
-function openManageShot(gameId, idx) {
-  const shot = (gameMedia[gameId] || [])[idx];
-  if (!shot) return;
-  _pspManage = { gameId, idx };
-  _pspAssignIdx = null;
-  const games = GAMES.slice().sort((a, b) => (a.title||'').localeCompare(b.title||''));
-  const fr = _lang !== 'en';
-  document.getElementById('psp-game-list').innerHTML =
-    `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      <img src="${shot.url}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0">
-      <div style="flex:1;font-size:11px;color:var(--muted2)">${fr ? 'Choisis un autre jeu pour la déplacer, ou supprime-la' : 'Pick another game to move it, or delete it'}</div>
-      <button onclick="deleteAssignedShot()" style="background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer;flex-shrink:0">🗑 ${fr ? 'Supprimer' : 'Delete'}</button>
-    </div>` +
-    games.map(g => {
-      const src = coverUrl(g);
-      return `<div onclick="selectPspGame('${g.id}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border2);cursor:pointer${g.id === gameId ? ';opacity:0.4' : ''}" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
-        <div style="width:36px;height:48px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
-          ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>'}
-        </div>
-        <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${g.title}${g.id === gameId ? (fr ? ' · actuel' : ' · current') : ''}</div>
-      </div>`;
-    }).join('');
-  document.getElementById('profile-screenshot-picker').style.display = 'flex';
+// ── ÉDITEUR DE CAPTURE (unifié) : aperçu, recherche, assigner/déplacer, supprimer ──
+let _shotEd = null;       // { kind:'unassigned', idx } | { kind:'game', gameId, gameIdx }
+let _shotEdFilter = '';
+
+function _shotEdCurrent() {
+  if (!_shotEd) return null;
+  return _shotEd.kind === 'unassigned' ? _unassignedShots[_shotEd.idx] : (gameMedia[_shotEd.gameId] || [])[_shotEd.gameIdx];
 }
 
 // Chemin storage d'une capture persistée (reconstruit depuis l'URL publique si absent)
@@ -7768,17 +7748,72 @@ function _shotStoragePath(shot) {
   return m.length > 1 ? decodeURIComponent(m[1]) : null;
 }
 
-function deleteAssignedShot() {
-  if (!_pspManage) return;
-  const { gameId, idx } = _pspManage;
-  const shot = (gameMedia[gameId] || [])[idx];
+function openShotEditor(ref) {
+  _shotEd = ref; _shotEdFilter = '';
+  const shot = _shotEdCurrent();
+  if (!shot) return;
+  const fr = _lang !== 'en';
+  const curGame = ref.kind === 'game' ? GAMES.find(g => g.id === ref.gameId) : null;
+  const titleEl = document.getElementById('psp-title');
+  const subEl = document.getElementById('psp-sub');
+  if (titleEl) titleEl.textContent = fr ? '✏️ Éditer la capture' : '✏️ Edit screenshot';
+  if (subEl) subEl.textContent = curGame
+    ? (fr ? 'Déplace-la vers un autre jeu, ou supprime-la' : 'Move it to another game, or delete it')
+    : (fr ? 'Assigne-la à un jeu, ou supprime-la' : 'Assign it to a game, or delete it');
+  document.getElementById('psp-game-list').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:12px;margin-bottom:14px">
+      <img src="${shot.url}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${fr ? 'Jeu actuel' : 'Current game'}</div>
+        <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${curGame ? 'var(--text)' : 'var(--a)'}">${curGame ? _esc(curGame.title) : (fr ? '📌 À trier' : '📌 To sort')}</div>
+      </div>
+      <button onclick="deleteEditedShot()" style="background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:12px;width:44px;height:44px;font-size:17px;color:var(--red);cursor:pointer;flex-shrink:0">🗑</button>
+    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${curGame ? (fr ? '↔ Déplacer vers' : '↔ Move to') : (fr ? '📌 Assigner à' : '📌 Assign to')}</div>
+    <input id="psp-search" type="text" placeholder="${fr ? '🔍 Chercher un jeu…' : '🔍 Search a game…'}" oninput="_shotEdFilter=this.value;_renderShotEdList()"
+      style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:11px 14px;font-size:14px;color:var(--text);outline:none;margin-bottom:10px;box-sizing:border-box">
+    <div id="psp-games-scroll"></div>`;
+  _renderShotEdList();
+  document.getElementById('profile-screenshot-picker').style.display = 'flex';
+}
+
+function _renderShotEdList() {
+  const el = document.getElementById('psp-games-scroll');
+  if (!el || !_shotEd) return;
+  const fr = _lang !== 'en';
+  const q = (_shotEdFilter || '').toLowerCase().trim();
+  const curId = _shotEd.kind === 'game' ? _shotEd.gameId : null;
+  let games = GAMES.slice().sort((a, b) => (a.title||'').localeCompare(b.title||''));
+  if (q) games = games.filter(g => (g.title||'').toLowerCase().includes(q));
+  if (!games.length) { el.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted2);font-size:13px">${fr ? 'Aucun jeu trouvé' : 'No game found'}</div>`; return; }
+  const MAXL = 30;
+  const shown = games.slice(0, MAXL);
+  el.innerHTML = shown.map(g => {
+    const src = coverUrl(g);
+    const isCur = g.id === curId;
+    return `<div onclick="selectPspGame('${g.id}')" style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:0.5px solid var(--border);cursor:pointer${isCur ? ';opacity:0.4;pointer-events:none' : ''}" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
+      <div style="width:34px;height:46px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
+        ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>'}
+      </div>
+      <div style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
+      ${isCur ? `<div style="font-size:10px;font-weight:700;color:var(--muted2);flex-shrink:0">${fr ? 'actuel' : 'current'}</div>` : '<div style="font-size:14px;color:var(--muted2);flex-shrink:0">›</div>'}
+    </div>`;
+  }).join('') + (games.length > MAXL ? `<div style="text-align:center;font-size:11px;color:var(--muted2);padding:12px 0">+ ${games.length - MAXL} ${fr ? 'autres — affine ta recherche' : 'more — refine your search'}</div>` : '');
+}
+
+// Points d'entrée (vignettes + visionneuse)
+function openAssignShotPicker(idx) { openShotEditor({ kind: 'unassigned', idx }); }
+function openManageShot(gameId, idx) { openShotEditor({ kind: 'game', gameId, gameIdx: idx }); }
+
+function deleteEditedShot() {
+  if (!_shotEd) return;
+  const shot = _shotEdCurrent();
   if (shot) {
     const sp = _shotStoragePath(shot);
     if (sp) { try { _sb.storage.from('screenshots').remove([sp]); } catch (e) {} }
-    gameMedia[gameId].splice(idx, 1);
-    persistScreenshots(gameId);
+    if (_shotEd.kind === 'unassigned') { _unassignedShots.splice(_shotEd.idx, 1); _saveUnassigned(); }
+    else { gameMedia[_shotEd.gameId].splice(_shotEd.gameIdx, 1); persistScreenshots(_shotEd.gameId); }
   }
-  _pspManage = null;
   closeProfileScreenshotPicker();
   renderProfileStats();
   renderFeed();
@@ -7809,76 +7844,39 @@ async function handleProfileScreenshot(input) {
   showToast(`✓ ${added} capture${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''} — ${_lang === 'en' ? 'tap to assign a game' : 'touche-les pour assigner un jeu'}`);
 }
 
-// Tap sur une capture "à trier" → choisir le jeu
-function openAssignShotPicker(idx) {
-  _pspAssignIdx = idx;
-  const shot = _unassignedShots[idx];
-  if (!shot) return;
-  const games = GAMES.slice().sort((a, b) => (a.title||'').localeCompare(b.title||''));
-  document.getElementById('psp-game-list').innerHTML =
-    `<div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      <img src="${shot.url}" style="width:64px;height:64px;object-fit:cover;border-radius:10px;flex-shrink:0">
-      <button onclick="deleteUnassignedShot(${idx})" style="background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer">🗑 ${_lang === 'en' ? 'Delete' : 'Supprimer'}</button>
-    </div>` +
-    games.map(g => {
-      const src = coverUrl(g);
-      return `<div onclick="selectPspGame('${g.id}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
-        <div style="width:36px;height:48px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
-          ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>'}
-        </div>
-        <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)">${g.title}</div>
-      </div>`;
-    }).join('');
-  document.getElementById('profile-screenshot-picker').style.display = 'flex';
-}
-
 function closeProfileScreenshotPicker() {
   document.getElementById('profile-screenshot-picker').style.display = 'none';
-  _pspAssignIdx = null;
-  _pspManage = null;
+  _shotEd = null;
 }
 
-function deleteUnassignedShot(idx) {
-  const shot = _unassignedShots[idx];
-  if (!shot) return;
-  if (shot.storagePath) { try { _sb.storage.from('screenshots').remove([shot.storagePath]); } catch (e) {} }
-  _unassignedShots.splice(idx, 1);
-  _saveUnassigned();
-  closeProfileScreenshotPicker();
-  renderProfileStats();
-  showToast(_lang === 'en' ? 'Screenshot deleted' : 'Capture supprimée');
-}
-
-function selectPspGame(gameId, el) {
-  // Mode réassignation d'une capture déjà liée à un jeu
-  if (_pspManage) {
-    const { gameId: oldId, idx } = _pspManage;
-    _pspManage = null;
+function selectPspGame(gameId) {
+  if (!_shotEd) return;
+  const fr = _lang !== 'en';
+  const g = GAMES.find(x => x.id === gameId);
+  if (_shotEd.kind === 'unassigned') {
+    const shot = _unassignedShots[_shotEd.idx];
+    if (!shot) { closeProfileScreenshotPicker(); return; }
+    _unassignedShots.splice(_shotEd.idx, 1);
+    closeProfileScreenshotPicker();
+    addMedia(gameId, { type: 'image', url: shot.url, name: 'screenshot', storagePath: shot.storagePath || undefined });
+    persistScreenshots(gameId);
+    _saveUnassigned();
+    renderProfileStats();
+    showToast(`✓ ${fr ? 'Assignée à' : 'Assigned to'} ${g ? g.title : ''}`);
+  } else {
+    const { gameId: oldId, gameIdx } = _shotEd;
     if (gameId === oldId) { closeProfileScreenshotPicker(); return; }
-    const shot = (gameMedia[oldId] || [])[idx];
+    const shot = (gameMedia[oldId] || [])[gameIdx];
+    closeProfileScreenshotPicker();
     if (shot) {
-      gameMedia[oldId].splice(idx, 1);
+      gameMedia[oldId].splice(gameIdx, 1);
       persistScreenshots(oldId);
       addMedia(gameId, shot);
       persistScreenshots(gameId);
     }
-    closeProfileScreenshotPicker();
     renderProfileStats();
-    const g2 = GAMES.find(x => x.id === gameId);
-    showToast(`✓ ${_lang === 'en' ? 'Moved to' : 'Déplacée vers'} ${g2 ? g2.title : ''}`);
-    return;
+    showToast(`✓ ${fr ? 'Déplacée vers' : 'Moved to'} ${g ? g.title : ''}`);
   }
-  if (_pspAssignIdx === null) return;
-  const shot = _unassignedShots[_pspAssignIdx];
-  if (!shot) { closeProfileScreenshotPicker(); return; }
-  _unassignedShots.splice(_pspAssignIdx, 1);
-  closeProfileScreenshotPicker();
-  addMedia(gameId, { type: 'image', url: shot.url, name: 'screenshot', storagePath: shot.storagePath || undefined });
-  persistScreenshots(gameId);
-  _saveUnassigned();
-  renderProfileStats();
-  const g = GAMES.find(x => x.id === gameId);
-  showToast(`✓ ${_lang === 'en' ? 'Assigned to' : 'Assignée à'} ${g ? g.title : ''}`);
 }
 
 function renderProfileTierLists() {
@@ -8081,8 +8079,9 @@ function renderProfileStats() {
         <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px;border:1.5px dashed rgba(108,92,231,0.55)">
           <img src="${sh.url}" style="width:100%;height:100%;object-fit:cover">
           <div style="position:absolute;bottom:3px;left:3px;background:rgba(108,92,231,0.92);border-radius:6px;padding:1px 6px;font-size:8px;font-weight:800;color:#fff">📌 ${_lang === 'en' ? 'to sort' : 'à trier'}</div>
+          <div onclick="event.stopPropagation();openAssignShotPicker(${i})" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">✏️</div>
         </div>
-        <div style="font-size:9px;color:var(--a);font-weight:700;padding:0 1px">${_lang === 'en' ? 'Assign a game →' : 'Assigner un jeu →'}</div>
+        <div style="font-size:9px;color:var(--a);font-weight:700;padding:0 1px">${_lang === 'en' ? 'To sort' : 'À trier'}</div>
       </div>`).join('');
     const _totalShots = allMedia.length + _unassignedShots.length;
     // Replié : pile de polaroids en éventail (un tap déplie la grille)
@@ -12581,11 +12580,8 @@ function updateLightbox() {
   if (window._lbResetZoom) window._lbResetZoom();
   const editBtn = document.getElementById('lb-edit');
   if (editBtn) {
-    const ref = _lbRefs && _lbRefs[_lbIdx];
-    editBtn.style.display = ref ? 'flex' : 'none';
-    if (ref) editBtn.textContent = ref.kind === 'unassigned'
-      ? (_lang === 'en' ? '📌 Assign' : '📌 Assigner')
-      : (_lang === 'en' ? '✏️ Edit' : '✏️ Éditer');
+    editBtn.style.display = (_lbRefs && _lbRefs[_lbIdx]) ? 'flex' : 'none';
+    editBtn.textContent = _lang === 'en' ? '✏️ Edit' : '✏️ Éditer';
   }
   document.getElementById('lb-img').src = _lbMedia[_lbIdx].url;
   const cap = _lbCaptions[_lbIdx] || '';
