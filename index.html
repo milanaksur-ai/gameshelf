@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4095,6 +4095,27 @@ function applyLangToDOM() {
 const IGDB_PROXY = 'https://gameshelf-back-end.vercel.app/api/igdb';
 
 // ══════════════════════════════════════
+// ── DEBUG : bandeau d'erreur visible à l'écran (diagnostic à distance) ──
+// Toute exception JS non interceptée s'affiche en rouge en haut de l'app.
+function _gsShowErrBanner(msg) {
+  try {
+    let b = document.getElementById('gs-err-banner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'gs-err-banner';
+      b.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top) + 8px);left:10px;right:10px;z-index:99999;background:#b71c1c;color:#fff;font:600 11px/1.45 monospace;padding:9px 12px;border-radius:12px;box-shadow:0 6px 20px rgba(0,0,0,0.5);word-break:break-word';
+      b.onclick = () => b.remove();
+      document.body.appendChild(b);
+    }
+    b.textContent = '⚠️ ' + msg + '  (tape pour fermer)';
+  } catch (e) {}
+}
+window.addEventListener('error', e => _gsShowErrBanner((e.message || 'Erreur') + (e.lineno ? ' · ligne ' + e.lineno : '')));
+window.addEventListener('unhandledrejection', e => {
+  const r = e.reason;
+  _gsShowErrBanner('Promise : ' + ((r && r.message ? r.message + (r.stack ? ' · ' + String(r.stack).split('\n')[1] : '') : String(r))).slice(0, 200));
+});
+
 // SUPABASE CLIENT
 // ══════════════════════════════════════
 const SUPABASE_URL = 'https://tphspftxnfhqhhykavbw.supabase.co';
@@ -5345,6 +5366,7 @@ function mockSearch(query) {
 }
 
 function coverUrl(g) {
+  if (!g) return null; // collection vide, entrée manquante… → pas de cover
   if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.imageId}.jpg`;
   if (g.cover?.startsWith('https://images.igdb.com')) return g.cover;
   if (g.steamId && g.steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`;
@@ -9914,9 +9936,6 @@ async function loadSocialScreen() {
     friends = profiles || [];
   }
   _socialFriends = [...friends];
-  checkAchievements();
-  renderDailyQuizCard();
-  renderSocialLeaderboard();
 
   // Fetch profiles for pending requesters
   let pendingWithProfiles = [];
@@ -9930,7 +9949,12 @@ async function loadSocialScreen() {
   }
   _socialPending = pendingWithProfiles;
 
-  renderSocialScreen(uid);
+  // Les amis d'abord — un crash dans un module annexe (quiz, podium, succès)
+  // ne doit JAMAIS laisser la page Amis vide.
+  try { renderSocialScreen(uid); } catch (e) { console.error('renderSocialScreen', e); _gsShowErrBanner('Amis : ' + e.message); }
+  try { checkAchievements(); } catch (e) { console.warn('checkAchievements', e); }
+  try { renderDailyQuizCard(); } catch (e) { console.warn('renderDailyQuizCard', e); _gsShowErrBanner('Quiz : ' + e.message); }
+  try { renderSocialLeaderboard(); } catch (e) { console.warn('renderSocialLeaderboard', e); _gsShowErrBanner('Podium : ' + e.message); }
   if (friends.length) {
     loadFriendActivity(acceptedIds);
   } else {
@@ -9970,8 +9994,8 @@ function renderSocialLeaderboard() {
   el.style.display = 'block';
   const medals = ['🥇','🥈','🥉'];
   list.innerHTML = entries.slice(0, 6).map((e, i) => {
-    const lvl = getLevel(e.xp || 0);
-    const lvlTitle = _lang === 'en' ? lvl.title_en : lvl.title_fr;
+    const lvl = getLevel(e.xp || 0) || {};
+    const lvlTitle = (_lang === 'en' ? lvl.title_en : lvl.title_fr) || '';
     const medal = i < 3 ? medals[i] : String(i + 1);
     const border = e.isMe ? 'border:1.5px solid var(--a)' : 'border:0.5px solid var(--border2)';
     const bg = e.isMe ? 'background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(162,155,254,0.08))' : 'background:var(--s1)';
@@ -10071,7 +10095,7 @@ function renderSocialScreen(uid) {
   const friendsList = document.getElementById('social-friends-list');
   if (_socialFriends.length) {
     friendsList.innerHTML = _socialFriends.map(p => {
-      const _fLvl = getLevel(p.xp || 0);
+      const _fLvl = getLevel(p.xp || 0) || {};
       const _fLvlEmoji = (_fLvl.title_fr || '').split(' ')[0] || '🎮';
       return `
       <div onclick="openFriendProfile('${p.id}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;width:70px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
