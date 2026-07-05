@@ -2202,7 +2202,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.3 · build 03.07k</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07l</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2855,6 +2855,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série de quiz hebdo 🔥 (7 jours = +100 XP)</li>
                 </ul>
               </div>
 
@@ -3377,6 +3378,7 @@ const LANG = {
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
       reviews_9:'5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX',
+      reviews_10:'Progression étendue : 10 rangs 🎯 · série de quiz hebdo 🔥 (7 jours = +100 XP)',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3552,6 +3554,7 @@ const LANG = {
       xp_reason_score:'Note sur', xp_reason_vibe:'Vibe sur', xp_reason_note:'Note écrite sur',
       xp_reason_quiz:'Quiz complété', xp_reason_challenge:'Défi gagné', xp_reason_backfill:'Bibliothèque existante',
       xp_reason_quiz_rank:'Classement quiz du jour',
+      xp_reason_quiz_streak:'Série de quiz hebdo',
       xp_no_history:'Aucune action encore', xp_slot_free:'Collections illimitées', achievements:'Succès',
       slot_full:'Collections limitées à {n} au niveau {lvl}. Note plus de jeux pour monter de niveau !',
       no_reviews:'Aucun avis récent',
@@ -3808,6 +3811,7 @@ const LANG = {
       xp_reason_score:'Rated', xp_reason_vibe:'Vibed', xp_reason_note:'Wrote a note for',
       xp_reason_quiz:'Quiz completed', xp_reason_challenge:'Challenge won', xp_reason_backfill:'Existing library',
       xp_reason_quiz_rank:'Daily quiz ranking',
+      xp_reason_quiz_streak:'Weekly quiz streak',
       xp_no_history:'No actions yet', xp_slot_free:'Unlimited collections', achievements:'Achievements',
       slot_full:'Collections capped at {n} for level {lvl}. Rate more games to level up!',
       no_reviews:'No recent reviews',
@@ -3873,6 +3877,7 @@ const LANG = {
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
       reviews_9:'5 exclusive level-4 ⭐ animated backgrounds (sakura, lava, cyber, storm, retro) + level-MAX Crystal 💎',
+      reviews_10:'Extended progression: 10 ranks 🎯 · weekly quiz streak 🔥 (7 days = +100 XP)',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -4030,11 +4035,16 @@ const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
 
 // ── XP & LEVELS ──────────────────────────────────────────────────────────
 const XP_LEVELS = [
-  { level:1, xp:0,    title_fr:'🎮 Joueur',      title_en:'🎮 Player',   slots:3  },
-  { level:2, xp:175,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer', slots:5  },
-  { level:3, xp:475,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',  slots:10 },
-  { level:4, xp:1050, title_fr:'⭐ Expert',        title_en:'⭐ Expert',   slots:15 },
-  { level:5, xp:2400, title_fr:'💎 Légende',       title_en:'💎 Legend',  slots:Infinity },
+  { level:1,  xp:0,    title_fr:'🎮 Joueur',       title_en:'🎮 Player',    slots:3  },
+  { level:2,  xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer',  slots:5  },
+  { level:3,  xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',   slots:8  },
+  { level:4,  xp:750,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',    slots:10 },
+  { level:5,  xp:1200, title_fr:'🎯 Maître',       title_en:'🎯 Master',    slots:12 },
+  { level:6,  xp:1800, title_fr:'🏆 Champion',     title_en:'🏆 Champion',  slots:15 },
+  { level:7,  xp:2600, title_fr:'💠 Élite',        title_en:'💠 Elite',     slots:18 },
+  { level:8,  xp:3600, title_fr:'🌟 Icône',        title_en:'🌟 Icon',      slots:22 },
+  { level:9,  xp:4800, title_fr:'👑 Immortel',     title_en:'👑 Immortal',  slots:26 },
+  { level:10, xp:6200, title_fr:'💎 Légende',      title_en:'💎 Legend',    slots:Infinity },
 ];
 // Tous les avantages débloqués à chaque palier (hors collections, géré à part)
 function getLevelPerks(level, fr) {
@@ -4048,7 +4058,7 @@ function getLevelPerks(level, fr) {
     perks.push(fr ? '📷 50 captures d\'écran (au lieu de 25)' : '📷 50 screenshots (up from 25)');
   }
   if (level === 4) perks.push(fr ? '🌸 5 fonds animés exclusifs (sakura, lave, cyber, orage, rétro)' : '🌸 5 exclusive animated backgrounds');
-  if (level === 5) perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
+  if (level === 10) perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
   return perks;
 }
 function getLevel(xp) {
@@ -4234,21 +4244,11 @@ function _celebrateLevelUp(lvl) {
     : lvl.slots + (fr ? ' collections' : ' collections');
   const nextLvl = XP_LEVELS.find(l => l.level === lvl.level + 1);
   const benefits = [];
-  if (lvl.level === 2) {
-    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-    benefits.push({ icon:'🏅', text: fr ? '3 titres épinglés sur ton profil' : '3 achievement badges on your profile' });
-    benefits.push({ icon:'✨', text: fr ? 'Collections automatiques par vibe' : 'Auto collections by vibe' });
-  } else if (lvl.level === 3) {
-    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-    benefits.push({ icon:'🎨', text: fr ? 'Personnalisation du fond de profil' : 'Custom profile background' });
-    benefits.push({ icon:'📷', text: fr ? '50 captures d\'écran' : '50 screenshots' });
-  } else if (lvl.level === 4) {
-    benefits.push({ icon:'📚', text: fr ? slots + ' disponibles' : slots + ' available' });
-    benefits.push({ icon:'🌸', text: fr ? '5 fonds animés exclusifs' : '5 exclusive animated backgrounds' });
-  } else if (lvl.level === 5) {
-    benefits.push({ icon:'📚', text: fr ? 'Collections illimitées !' : 'Unlimited collections!' });
-    benefits.push({ icon:'💎', text: fr ? 'Fond Cristal exclusif' : 'Exclusive Crystal background' });
-  }
+  benefits.push({ icon:'📚', text: lvl.slots === Infinity ? (fr ? 'Collections illimitées !' : 'Unlimited collections!') : (fr ? slots + ' disponibles' : slots + ' available') });
+  getLevelPerks(lvl.level, fr).forEach(pk => {
+    const sp = pk.indexOf(' ');
+    benefits.push({ icon: pk.slice(0, sp), text: pk.slice(sp + 1) });
+  });
   if (nextLvl) {
     const needed = nextLvl.xp - lvl.xp;
     benefits.push({ icon:'🎯', text: fr ? `Prochain rang à ${nextLvl.xp} XP` : `Next rank at ${nextLvl.xp} XP` });
@@ -4260,7 +4260,7 @@ function _celebrateLevelUp(lvl) {
   if (!luEmoji) return;
   luEmoji.textContent = emoji;
   luTitle.textContent = name;
-  luLevel.textContent = (fr ? 'Niveau ' : 'Level ') + lvl.level + (lvl.level === 5 ? ' · MAX' : '');
+  luLevel.textContent = (fr ? 'Niveau ' : 'Level ') + lvl.level + (lvl.slots === Infinity ? ' · MAX' : '');
   luBenefits.innerHTML = benefits.map(b =>
     `<div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);border-radius:12px;padding:12px 16px;font-size:14px;color:#e8e0ff">`+
     `<span style="font-size:20px">${b.icon}</span><span>${b.text}</span></div>`
@@ -4353,7 +4353,7 @@ const PROFILE_BG_PRESETS = [
   { key: 'retro',   label: '👾', minLevel: 4, grad: 'linear-gradient(135deg,#ff2e97,#2e1a8f)',
     overlay: 'linear-gradient(180deg,#4a1a7a 0%,#2c1258 45%,#0c0620 100%)',
     fx: { kind:'pixels', colors:['#ff2e97','#00f0ff','#ffe600','#00ff85'], count:44, emoji:'👾' } },
-  { key: 'platine', label: '💎', minLevel: 5, grad: 'linear-gradient(135deg,#eaf4ff,#7b8ca8)',
+  { key: 'platine', label: '💎', minLevel: 10, grad: 'linear-gradient(135deg,#eaf4ff,#7b8ca8)',
     overlay: 'linear-gradient(0deg, rgba(8,11,20,0.34), rgba(8,11,20,0.34)), radial-gradient(130% 55% at 50% 0%, rgba(255,255,255,0.22) 0%, transparent 58%), linear-gradient(180deg,#a8bdd8 0%,#5b6f92 42%,#0e1522 100%)',
     fx: { kind:'crystal', colors:['#ffffff','#cfe8ff','#e3d9ff','#b8e6ff','#9fd9ff'], count:44, emoji:'💎', sweep:true, flare:true } },
 ];
@@ -4517,7 +4517,8 @@ const ACHIEVEMENTS = [
   { id:'col_3',     emoji:'🗂️', title_fr:'Organisateur',       title_en:'Organizer',         desc_fr:'3 collections créées',      desc_en:'3 collections created',    xp:50, check:()=>(userCollections||[]).length>=3 },
   // ── Niveaux ──
   { id:'lvl_3',     emoji:'🔥', title_fr:'Vétéran',             title_en:'Veteran',           desc_fr:'Atteindre le niveau 3',   desc_en:'Reach level 3',   xp:0, check:()=>getLevel(obProfile.xp||0).level>=3 },
-  { id:'lvl_5',     emoji:'👑', title_fr:'Légende',             title_en:'Legend',            desc_fr:'Atteindre le niveau MAX', desc_en:'Reach max level', xp:0, check:()=>getLevel(obProfile.xp||0).level>=5 },
+  { id:'lvl_5',     emoji:'🎯', title_fr:'Maître',              title_en:'Master',            desc_fr:'Atteindre le niveau 5',   desc_en:'Reach level 5',   xp:0, check:()=>getLevel(obProfile.xp||0).level>=5 },
+  { id:'lvl_10',    emoji:'💎', title_fr:'Légende',             title_en:'Legend',            desc_fr:'Atteindre le niveau MAX', desc_en:'Reach max level', xp:0, check:()=>getLevel(obProfile.xp||0).level>=10 },
 ];
 function _getUnlockedAchievements() {
   try { return new Set(JSON.parse(localStorage.getItem('gs_achievements')||'[]')); } catch(e) { return new Set(); }
@@ -6116,7 +6117,7 @@ async function _backfillXp() {
   for (const g of GAMES) {
     const ug = userGames[g.id] || {};
     const id = String(g.id);
-    if (ug.score > 0)                                        { scoredIds.add(id);  total += 10; }
+    if (ug.score > 0)                                        { scoredIds.add(id);  total += 5; }
     const vs = Array.isArray(ug.vibe) ? ug.vibe : (ug.vibe ? [ug.vibe] : []);
     if (vs.length > 0)                                       { vibedIds.add(id);   total += 5;  }
     if (ug.notes && ug.notes.trim())                         { notedIds.add(id);   total += 15; }
@@ -6124,7 +6125,7 @@ async function _backfillXp() {
 
   try {
     const qs = JSON.parse(localStorage.getItem('gs_quiz_scores') || '{}');
-    Object.keys(qs).forEach(qid => { quizzedIds.add(qid); total += 20; });
+    Object.keys(qs).forEach(qid => { quizzedIds.add(qid); total += 5; });
   } catch(e) {}
 
   // Stamp per-device flags so future gainXp calls don't double-award
@@ -6588,9 +6589,9 @@ function _renderXpModal() {
 
   // XP log
   const logEl = document.getElementById('xpm-log');
-  const REASON_ICONS  = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚', quiz_rank:'🏆' };
-  const REASON_KEY    = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill', quiz_rank:'xp_reason_quiz_rank' };
-  const REASON_COLORS = { score:'rgba(253,203,110,0.18)', vibe:'rgba(108,92,231,0.18)', note:'rgba(0,206,201,0.18)', quiz:'rgba(108,92,231,0.18)', challenge:'rgba(253,121,168,0.2)', backfill:'rgba(108,92,231,0.12)', quiz_rank:'rgba(255,202,40,0.18)' };
+  const REASON_ICONS  = { score:'⭐', vibe:'🎯', note:'✏️', quiz:'❓', challenge:'⚡', backfill:'📚', quiz_rank:'🏆', quiz_streak:'🔥' };
+  const REASON_KEY    = { score:'xp_reason_score', vibe:'xp_reason_vibe', note:'xp_reason_note', quiz:'xp_reason_quiz', challenge:'xp_reason_challenge', backfill:'xp_reason_backfill', quiz_rank:'xp_reason_quiz_rank', quiz_streak:'xp_reason_quiz_streak' };
+  const REASON_COLORS = { score:'rgba(253,203,110,0.18)', vibe:'rgba(108,92,231,0.18)', note:'rgba(0,206,201,0.18)', quiz:'rgba(108,92,231,0.18)', challenge:'rgba(253,121,168,0.2)', backfill:'rgba(108,92,231,0.12)', quiz_rank:'rgba(255,202,40,0.18)', quiz_streak:'rgba(255,159,67,0.18)' };
   try {
     const log = JSON.parse(localStorage.getItem('gs_xp_log') || '[]');
     if (!log.length) { logEl.innerHTML = `<div style="font-size:12px;color:var(--muted2);padding:10px 0;text-align:center">${t('profile.xp_no_history')}</div>`; return; }
@@ -7405,7 +7406,7 @@ function renderStars(cur, status, doAnim = false) {
       renderStars(ug.score, ug.status, true);
       updateScoreDisplay(ug.score, ug.status);
       saveToStorage();
-      if (!_xpFlags('scored').has(String(currentGame.id))) { _setXpFlag('scored', currentGame.id); gainXp(10, 'score', currentGame.title); }
+      if (!_xpFlags('scored').has(String(currentGame.id))) { _setXpFlag('scored', currentGame.id); gainXp(5, 'score', currentGame.title); }
     };
     row.appendChild(b);
   }
@@ -12947,7 +12948,7 @@ async function saveEditProfile() {
 // CLEAR LIBRARY
 // ══════════════════════════════════════
 // Achievement IDs that depend on the game library + their XP values
-const _LIB_ACH_XP = { lib_10:30, lib_25:50, lib_50:100, lib_100:160, lib_250:280, lib_500:450, score_5:20, score_20:50, score_50:110, score_100:200, note_3:25, note_15:70, note_50:160, finish_5:40, finish_25:100, finish_50:170, finish_100:280, finish_250:450, lvl_3:0, lvl_5:0 };
+const _LIB_ACH_XP = { lib_10:30, lib_25:50, lib_50:100, lib_100:160, lib_250:280, lib_500:450, score_5:20, score_20:50, score_50:110, score_100:200, note_3:25, note_15:70, note_50:160, finish_5:40, finish_25:100, finish_50:170, finish_100:280, finish_250:450, lvl_3:0, lvl_5:0, lvl_10:0 };
 
 async function clearLibrary() {
   if (!confirm('Vider la bibliothèque ? Tous tes jeux seront supprimés, ton profil sera conservé.')) return;
@@ -14046,6 +14047,40 @@ function _renderQuizCompare() {
 // ── Récompenses XP du classement quiz quotidien ──
 const QUIZ_RANK_XP = [150, 50, 25]; // 1er, 2e, 3e — autres participants : 5
 
+// ── Série hebdo : jouer au moins un quiz chaque jour · 7 jours = +100 XP ──
+function _quizStreak() {
+  try { return JSON.parse(localStorage.getItem('gs_quiz_streak') || '{"last":0,"count":0}'); } catch (e) { return { last: 0, count: 0 }; }
+}
+// Série affichée : encore vivante si on a joué aujourd'hui ou hier
+function _quizStreakCount() {
+  const st = _quizStreak();
+  const today = _quizDayIndex();
+  return (st.last === today || st.last === today - 1) ? st.count : 0;
+}
+function _bumpQuizStreak() {
+  const today = _quizDayIndex();
+  const st = _quizStreak();
+  if (st.last === today) return; // déjà compté aujourd'hui
+  st.count = (st.last === today - 1) ? st.count + 1 : 1;
+  st.last = today;
+  localStorage.setItem('gs_quiz_streak', JSON.stringify(st));
+  if (st.count > 0 && st.count % 7 === 0) {
+    // Semaine complète — +100 XP, gardé anti-double multi-appareils
+    const key = 'xp_qstreak_' + today;
+    const ach = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+    if (!ach.has(key)) {
+      ach.add(key);
+      localStorage.setItem('gs_achievements', JSON.stringify([...ach]));
+      try { _sb.auth.getUser().then(({ data: { user } }) => { if (user) _sb.from('profiles').update({ achievements: [...ach] }).eq('id', user.id).then(() => {}); }); } catch (e) {}
+      gainXp(100, 'quiz_streak', '');
+      showToast(_lang === 'en' ? '🔥 7-day quiz streak! +100 XP' : '🔥 7 jours de quiz d\'affilée ! +100 XP');
+    }
+  } else {
+    const left = 7 - (st.count % 7);
+    showToast(_lang === 'en' ? `🔥 Streak: day ${st.count} — ${left} more for +100 XP` : `🔥 Série : jour ${st.count} — encore ${left} pour +100 XP`);
+  }
+}
+
 // Synchronise MES scores de quiz depuis Supabase vers cet appareil.
 // Sans ça, l'état "quiz fait aujourd'hui" restait en localStorage : sur un
 // second appareil les quiz semblaient rejouables (re-XP + score boostable).
@@ -14076,6 +14111,15 @@ async function _syncMyQuizScoresFromCloud() {
       localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
       renderDailyQuizCard();
       renderQuizHub();
+    }
+    // Reconstruit la série hebdo depuis l'historique cloud (multi-appareils)
+    const days = new Set(data.map(r => r.day_index).filter(d => d != null));
+    const anchor = days.has(today) ? today : (days.has(today - 1) ? today - 1 : 0);
+    if (anchor) {
+      let cnt = 0, d = anchor;
+      while (days.has(d)) { cnt++; d--; }
+      const st = _quizStreak();
+      if (anchor > st.last || cnt > st.count) localStorage.setItem('gs_quiz_streak', JSON.stringify({ last: anchor, count: cnt }));
     }
   } catch (e) {}
 }
@@ -14121,7 +14165,10 @@ async function renderDailyQuizCard() {
     <div style="position:absolute;bottom:-24px;left:-14px;width:90px;height:90px;background:radial-gradient(circle,rgba(108,92,231,0.2) 0%,transparent 70%);pointer-events:none"></div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">🧠 ${fr ? 'Quiz du jour' : 'Daily quizzes'}</div>
-      <div style="font-size:11px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 11px;flex-shrink:0">🔄 ${_hoursUntilNextRotation()}h</div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        ${_quizStreakCount() > 0 ? `<div style="font-size:11px;font-weight:700;color:#ff9f43;background:rgba(255,159,67,0.12);border:0.5px solid rgba(255,159,67,0.4);border-radius:50px;padding:4px 11px">🔥 ${_quizStreakCount() % 7 === 0 ? 7 : _quizStreakCount() % 7}/7</div>` : ''}
+        <div style="font-size:11px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:4px 11px">🔄 ${_hoursUntilNextRotation()}h</div>
+      </div>
     </div>
     <div style="display:flex;gap:8px;justify-content:space-between;margin-bottom:14px;padding:0 2px">${daily.map(chip).join('')}</div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;padding:0 2px">
@@ -14246,8 +14293,9 @@ function closeQuiz() {
     localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
     saveQuizScore(_quizActive.id, _quizScore, total);
     submitQuizChallengeScore(_quizScore, total);
-    if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20, 'quiz', _quizActive.title || ''); }
+    if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(5, 'quiz', _quizActive.title || ''); }
     showToast(_lang === 'en' ? `Challenge abandoned — score saved: ${_quizScore}/${total}` : `Défi abandonné — score enregistré : ${_quizScore}/${total}`);
+    try { _bumpQuizStreak(); } catch (e) {}
     _qipClear(_quizActive.id);
     renderDailyQuizCard();
   } else if (inProgress) {
@@ -14371,7 +14419,7 @@ function showQuizResults() {
   localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
   saveQuizScore(_quizActive.id, _quizScore, total);
   if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
-  if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(20, 'quiz', _quizActive.title || ''); }
+  if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(5, 'quiz', _quizActive.title || ''); }
   document.getElementById('quiz-progress-fill').style.width = '100%';
   document.getElementById('quiz-next-btn-wrap').style.display = 'none';
   const pct = Math.round((_quizScore / total) * 100);
@@ -14395,6 +14443,7 @@ function showQuizResults() {
       <button onclick="closeQuiz()" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
     </div>`;
   _renderQuizFriendsLb(qid);
+  try { _bumpQuizStreak(); } catch (e) {}
   _maybeSendDailyQuizPush();
   renderDailyQuizCard(); // met à jour la carte de la page Amis (pastilles ✓, podium)
   setTimeout(() => { if (typeof checkPendingRequests === 'function') checkPendingRequests(); }, 800);
