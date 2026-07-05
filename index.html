@@ -265,7 +265,7 @@ html, body {
   #app-shell { max-width: 720px; }
   #app-nav { max-width: 720px !important; }
   /* Bibliothèque : la grille passe de 2 colonnes fixes à des colonnes auto */
-  .game-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .game-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
   /* Pages plein écran (hors shell) : contenu centré et cappé à la largeur du shell */
   #user-collection-detail > *, #col-search-overlay > *, #ldisc-modal > *, #fp-lib-modal > *,
   #gp-all-overlay > *, #quiz-overlay > *, #quiz-confrontation > * {
@@ -1632,6 +1632,7 @@ html, body {
           <div class="sec-label" style="padding:0" data-i18n="collections.tier_lists">🏆 Tier Lists</div>
           <button onclick="openNewTierListModal()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--muted2);cursor:pointer" data-i18n="explore.new_tl">➕ Nouvelle</button>
         </div>
+        <div id="tl-my-lists" style="padding:0 16px 4px"></div>
         <div style="padding:0 16px;display:flex;flex-direction:column;gap:8px">
           <div onclick="openTierList('library')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;gap:12px;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.opacity='.7'" onmouseup="this.style.opacity='1'" ontouchend="this.style.opacity='1'">
             <div style="font-size:28px">📚</div>
@@ -1653,7 +1654,6 @@ html, body {
         <div style="padding:0 16px">
           <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin:16px 0 8px" data-i18n="explore.by_licence">Par Licence</div>
           <div id="tl-licence-scroll" style="display:flex;gap:10px;overflow-x:auto;margin:0 -16px;padding:0 16px 12px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
-          <div id="tl-my-lists" style="margin-top:4px"></div>
         </div>
 
       </div>
@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2655,6 +2655,16 @@ html, body {
     <div id="tl-compare-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(24px + var(--safe-b))"></div>
   </div>
 
+  <!-- TIER LIST RENAME MODAL -->
+  <div id="tl-rename-modal" style="display:none;position:fixed;inset:0;z-index:930;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">✏️ Renommer la tier list</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Le nouveau nom sera gardé à la sauvegarde</div>
+      <input id="tl-rn-input" type="text" maxlength="40" placeholder="Nom de la tier list…" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')confirmTlRename()">
+      <button onclick="confirmTlRename()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">OK</button>
+    </div>
+  </div>
+
   <!-- TIER EDIT MODAL (renommer + couleur) -->
   <div id="tl-tier-edit-modal" style="display:none;position:fixed;inset:0;z-index:930;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTierEdit()">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
@@ -2663,6 +2673,7 @@ html, body {
       <input id="tl-te-input" type="text" maxlength="14" placeholder="Nom du tier…" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:14px">
       <div id="tl-te-colors" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px"></div>
       <button onclick="applyTierEdit()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">OK</button>
+      <button onclick="deleteTierRow()" style="width:100%;margin-top:10px;padding:12px;background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:14px;font-size:13px;font-weight:600;color:var(--red);cursor:pointer">🗑 Supprimer cette ligne — ses jeux repartent à classer</button>
     </div>
   </div>
 
@@ -15555,7 +15566,13 @@ function openTierList(mode, opts = {}) {
   }
 
   const titles = { library:`📚 ${t('explore.my_games')}`, popular:`🔥 ${t('explore.tl_popular')}`, custom: _tlCustomTitle || `✨ ${t('explore.tl_custom_name')}`, licence: _tlCustomTitle || '🎮 Licence', view: opts.name || '👁 Tier List' };
-  document.getElementById('tl-title').textContent = titles[mode] || '🏆 Tier List';
+  const tEl = document.getElementById('tl-title');
+  if (tEl) {
+    const nm = titles[mode] || '🏆 Tier List';
+    tEl.innerHTML = _tlReadOnly ? _esc(nm) : `${_esc(nm)} <span style="font-size:10px;opacity:0.6">✏️</span>`;
+    tEl.onclick = _tlReadOnly ? null : openTlRename;
+    tEl.style.cursor = _tlReadOnly ? 'default' : 'pointer';
+  }
 
   const searchWrap = document.getElementById('tl-search-wrap');
   if (searchWrap) searchWrap.style.display = _tlReadOnly ? 'none' : 'block';
@@ -15673,7 +15690,7 @@ async function saveTierList() {
   const saveBtn = document.getElementById('tl-save-btn');
   if (saveBtn) { saveBtn.textContent = '⏳…'; saveBtn.disabled = true; }
   const titles = { library:`📚 ${t('explore.my_games')}`, popular:`🔥 ${t('explore.tl_popular')}`, custom: _tlCustomTitle || `✨ ${t('explore.tl_custom_name')}`, licence: _tlCustomTitle || '🎮 Licence' };
-  const name = titles[_tlMode] || '🏆 Tier List';
+  const name = _tlCustomTitle || titles[_tlMode] || '🏆 Tier List'; // un renommage manuel gagne toujours
   const profile = JSON.parse(localStorage.getItem('gs_profile') || '{}');
   const rankedCount = Object.values(_tlTiers).flat().length;
   let uid = null;
@@ -16043,7 +16060,8 @@ function renderTierListTiers() {
       <div class="tier-games" id="tl-games-${d.id}">
         ${(_tlTiers[d.id]||[]).map(g => _tlTierCardHtml(g, d.id)).join('')}
       </div>
-    </div>`).join('');
+    </div>`).join('') + (_tlReadOnly ? '' : `
+    <div onclick="addTierRow()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;cursor:pointer;color:var(--muted2);font-size:12px;font-weight:700;border-bottom:0.5px solid rgba(255,255,255,0.07)">➕ Ajouter une ligne</div>`);
 }
 
 function _tlTierCardHtml(g, tierId) {
@@ -16252,6 +16270,58 @@ function closeTierEdit() {
   const m = document.getElementById('tl-tier-edit-modal');
   if (m) m.style.display = 'none';
   _tlEditTierId = null;
+}
+
+// ── Lignes de tiers ajoutables / supprimables ──
+function addTierRow() {
+  if (_tlReadOnly) return;
+  if (_tlDefs.length >= 10) { showToast('Maximum 10 lignes'); return; }
+  let i = 1;
+  while (_tlDefs.find(d => d.id === 't' + i)) i++;
+  const preset = TL_COLOR_PRESETS[_tlDefs.length % TL_COLOR_PRESETS.length];
+  const def = { id: 't' + i, label: '✦', bg: preset.bg, color: preset.color };
+  _tlDefs.push(def);
+  if (!_tlTiers[def.id]) _tlTiers[def.id] = [];
+  renderTierListTiers();
+  _tlRenderCardActions();
+  openTierEdit(def.id); // on la nomme tout de suite
+}
+
+function deleteTierRow() {
+  if (_tlDefs.length <= 2) { showToast('Minimum 2 lignes'); return; }
+  const id = _tlEditTierId;
+  const di = _tlDefs.findIndex(x => x.id === id);
+  if (di < 0) return;
+  const games = _tlTiers[id] || [];
+  _tlPool.unshift(...games); // jamais de jeux perdus : retour dans « À classer »
+  delete _tlTiers[id];
+  _tlDefs.splice(di, 1);
+  if (_tlTierSel && _tlTierSel.tier === id) _tlTierSel = null;
+  closeTierEdit();
+  renderTierListTiers();
+  renderTierListPool();
+  _tlRenderCardActions();
+  showToast(games.length ? `Ligne supprimée — ${games.length} jeu${games.length > 1 ? 'x' : ''} à reclasser` : 'Ligne supprimée');
+}
+
+// ── Renommage de la tier list entière ──
+function openTlRename() {
+  const inp = document.getElementById('tl-rn-input');
+  const cur = (document.getElementById('tl-title')?.textContent || '').replace(/\s*✏️\s*$/, '').trim();
+  if (inp) inp.value = _tlCustomTitle || cur;
+  const m = document.getElementById('tl-rename-modal');
+  if (m) { m.style.display = 'flex'; setTimeout(() => inp?.focus(), 150); }
+}
+
+function confirmTlRename() {
+  const name = (document.getElementById('tl-rn-input')?.value || '').trim();
+  const m = document.getElementById('tl-rename-modal');
+  if (m) m.style.display = 'none';
+  if (!name) return;
+  _tlCustomTitle = name;
+  const tEl = document.getElementById('tl-title');
+  if (tEl) tEl.innerHTML = `${_esc(name)} <span style="font-size:10px;opacity:0.6">✏️</span>`;
+  showToast('💾 Pense à sauvegarder pour garder le nom');
 }
 
 function applyTierEdit() {
