@@ -1521,10 +1521,14 @@ html, body {
         <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
       </div>
 
-      <!-- 🗓️ SORTIES À VENIR (souhaits uniquement) -->
+      <!-- 🗓️ SORTIES À VENIR : souhaits + toutes les sorties attendues -->
       <div id="upcoming-section" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
-          <div class="sec-label" style="padding:0" data-i18n="feed.upcoming">🗓️ Bientôt · tes souhaits</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="feed.upcoming">🗓️ Sorties à venir</div>
+          <div style="display:flex;gap:6px;flex-shrink:0">
+            <button id="upc-tab-wish" onclick="renderUpcomingWishes('wish')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);cursor:pointer">✦ <span data-i18n="feed.upc_wish">Souhaits</span></button>
+            <button id="upc-tab-all" onclick="renderUpcomingWishes('all')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);cursor:pointer">🌍 <span data-i18n="feed.upc_all">Tout</span></button>
+          </div>
         </div>
         <div id="upcoming-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
       </div>
@@ -2211,7 +2215,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07o</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07p</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3318,7 +3322,7 @@ const LANG = {
     },
     feed: {
       playing:'En cours', playing_multi:'👥 Multi en cours', friends:'Chez tes amis', trending:'Tendances du moment',
-      upcoming:'🗓️ Bientôt · tes souhaits',
+      upcoming:'🗓️ Sorties à venir', upc_wish:'Souhaits', upc_all:'Tout',
       gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
     },
@@ -3685,7 +3689,7 @@ const LANG = {
     },
     feed: {
       playing:'Playing', playing_multi:'👥 Multiplayer', friends:'Friends activity', trending:'Trending now',
-      upcoming:'🗓️ Coming soon · your wishlist',
+      upcoming:'🗓️ Coming soon', upc_wish:'Wishlist', upc_all:'All',
       gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
     },
@@ -7926,49 +7930,139 @@ function selectPspGame(gameId) {
   }
 }
 
-// ── SORTIES À VENIR : jeux en souhait avec date IGDB future ──
-async function renderUpcomingWishes() {
+// ── SORTIES À VENIR : deux onglets — tes souhaits / toutes les sorties ──
+let _upcTab = null;        // 'wish' | 'all'
+let _upcAllGames = [];     // jeux mappés de l'onglet "Tout" (pour ouvrir la fiche)
+
+function _upcCardHtml(g, fr, extra) {
+  const d = new Date(g.date * 1000);
+  const days = Math.ceil((d - Date.now()) / 86400000);
+  const dateStr = d.toLocaleDateString(fr ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' }) + (d.getFullYear() > new Date().getFullYear() ? ' ' + d.getFullYear() : '');
+  const chip = days <= 7 ? (fr ? `🔥 dans ${days}j` : `🔥 in ${days}d`) : (days <= 60 ? (fr ? `dans ${days}j` : `in ${days}d`) : dateStr);
+  const src = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg` : null;
+  return `<div onclick="${g.onclick}" style="flex-shrink:0;width:104px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);margin-bottom:5px">
+      ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">🎮</div>`}
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 45%)"></div>
+      ${extra || ''}
+      <div style="position:absolute;bottom:5px;left:5px;right:5px;background:${days <= 7 ? 'rgba(255,159,67,0.95)' : 'rgba(108,92,231,0.92)'};border-radius:7px;padding:2px 6px;font-size:9px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${chip}</div>
+    </div>
+    <div style="font-size:10px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
+    <div style="font-size:9px;color:var(--muted2);margin-top:1px">${dateStr}</div>
+  </div>`;
+}
+
+function _upcSetTabStyles() {
+  const w = document.getElementById('upc-tab-wish');
+  const a = document.getElementById('upc-tab-all');
+  [[w, 'wish'], [a, 'all']].forEach(([el, k]) => {
+    if (!el) return;
+    const on = _upcTab === k;
+    el.style.background = on ? 'var(--a)' : 'var(--s2)';
+    el.style.color = on ? '#fff' : 'var(--muted2)';
+    el.style.borderColor = on ? 'var(--a)' : 'var(--border2)';
+  });
+}
+
+async function renderUpcomingWishes(tab) {
   const section = document.getElementById('upcoming-section');
   const row = document.getElementById('upcoming-row');
   if (!section || !row) return;
   const fr = _lang !== 'en';
-  // Souhaits avec un id IGDB numérique (requis pour récupérer la date exacte)
+  const now = Math.floor(Date.now() / 1000);
+
+  // ── Onglet Souhaits : dates exactes des jeux de ta wishlist ──
   const wishIds = GAMES.filter(g => (userGames[g.id] || g).status === 'wish' && /^\d+$/.test(String(g.id)))
     .map(g => Number(g.id)).slice(0, 40);
-  if (!wishIds.length) { section.style.display = 'none'; return; }
-  // Cache 24h — les dates de sortie ne bougent pas à la minute
-  let data = null;
-  try {
-    const cached = JSON.parse(localStorage.getItem('gs_upcoming_cache') || 'null');
-    if (cached && Date.now() - cached.ts < 24 * 3600000 && cached.key === wishIds.join(',')) data = cached.items;
-  } catch (e) {}
-  if (!data) {
-    const raw = await igdbFetch('game', { ids: wishIds, limit: wishIds.length });
-    if (!raw) { section.style.display = 'none'; return; }
-    const now = Math.floor(Date.now() / 1000);
-    data = raw.filter(g => g.first_release_date && g.first_release_date > now)
-      .sort((a, b) => a.first_release_date - b.first_release_date)
-      .map(g => ({ id: String(g.id), title: g.name, imageId: g.cover?.image_id || null, date: g.first_release_date }));
-    try { localStorage.setItem('gs_upcoming_cache', JSON.stringify({ ts: Date.now(), key: wishIds.join(','), items: data })); } catch (e) {}
+  let wishItems = [];
+  if (wishIds.length) {
+    try {
+      const cached = JSON.parse(localStorage.getItem('gs_upcoming_cache') || 'null');
+      if (cached && Date.now() - cached.ts < 24 * 3600000 && cached.key === wishIds.join(',')) wishItems = cached.items;
+    } catch (e) {}
+    if (!wishItems.length) {
+      const raw = await igdbFetch('game', { ids: wishIds, limit: wishIds.length });
+      if (raw) {
+        wishItems = raw.filter(g => g.first_release_date && g.first_release_date > now)
+          .sort((a, b) => a.first_release_date - b.first_release_date)
+          .map(g => ({ id: String(g.id), title: g.name, imageId: g.cover?.image_id || null, date: g.first_release_date }));
+        try { localStorage.setItem('gs_upcoming_cache', JSON.stringify({ ts: Date.now(), key: wishIds.join(','), items: wishItems })); } catch (e) {}
+      }
+    }
   }
-  if (!data.length) { section.style.display = 'none'; return; }
+
+  // Onglet par défaut : souhaits s'il y en a, sinon tout
+  if (!tab) tab = wishItems.length ? 'wish' : 'all';
+  _upcTab = tab;
   section.style.display = 'block';
-  row.innerHTML = data.map(g => {
-    const d = new Date(g.date * 1000);
-    const days = Math.ceil((d - Date.now()) / 86400000);
-    const dateStr = d.toLocaleDateString(fr ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' }) + (d.getFullYear() > new Date().getFullYear() ? ' ' + d.getFullYear() : '');
-    const chip = days <= 7 ? (fr ? `🔥 dans ${days}j` : `🔥 in ${days}d`) : (days <= 60 ? (fr ? `dans ${days}j` : `in ${days}d`) : dateStr);
-    const src = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg` : null;
-    return `<div onclick="openDetail('${g.id}')" style="flex-shrink:0;width:104px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
-      <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);margin-bottom:5px">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">🎮</div>`}
-        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 45%)"></div>
-        <div style="position:absolute;bottom:5px;left:5px;right:5px;background:${days <= 7 ? 'rgba(255,159,67,0.95)' : 'rgba(108,92,231,0.92)'};border-radius:7px;padding:2px 6px;font-size:9px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${chip}</div>
-      </div>
-      <div style="font-size:10px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
-      <div style="font-size:9px;color:var(--muted2);margin-top:1px">${dateStr}</div>
-    </div>`;
+  _upcSetTabStyles();
+
+  if (tab === 'wish') {
+    if (!wishItems.length) {
+      row.innerHTML = `<div style="padding:14px 0;color:var(--muted2);font-size:12px;font-style:italic">${fr ? 'Aucune sortie à venir dans tes souhaits — explore l\'onglet 🌍 Tout !' : 'No upcoming releases in your wishlist — check the 🌍 All tab!'}</div>`;
+      return;
+    }
+    row.innerHTML = wishItems.map(g => _upcCardHtml({ ...g, onclick: `openDetail('${g.id}')` }, fr)).join('');
+    return;
+  }
+
+  // ── Onglet Tout : les sorties les plus attendues (IGDB hype) ──
+  row.innerHTML = `<div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>`;
+  let allItems = [];
+  try {
+    const cached = JSON.parse(localStorage.getItem('gs_upcoming_all_cache') || 'null');
+    if (cached && Date.now() - cached.ts < 12 * 3600000) allItems = cached.items;
+  } catch (e) {}
+  if (!allItems.length) {
+    const raw = await igdbFetch('upcoming', { limit: 20 });
+    if (raw && raw.length) {
+      allItems = raw.map(g => ({ ...mapIgdbGame(g), date: g.first_release_date }))
+        .filter(g => g.date)
+        .sort((a, b) => a.date - b.date);
+      try { localStorage.setItem('gs_upcoming_all_cache', JSON.stringify({ ts: Date.now(), items: allItems })); } catch (e) {}
+    }
+  }
+  _upcAllGames = allItems;
+  if (!allItems.length) {
+    row.innerHTML = `<div style="padding:14px 0;color:var(--muted2);font-size:12px;font-style:italic">${fr ? 'Rien à l\'horizon pour l\'instant' : 'Nothing on the horizon yet'}</div>`;
+    return;
+  }
+  row.innerHTML = allItems.map((g, i) => {
+    const inLib = GAMES.some(x => String(x.id) === String(g.id));
+    const wishBtn = inLib
+      ? `<div style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,230,118,0.9);display:flex;align-items:center;justify-content:center;font-size:11px;color:#03130a;font-weight:800">✓</div>`
+      : `<div onclick="event.stopPropagation();upcAddWish(${i})" style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(108,92,231,0.92);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800">✦</div>`;
+    return _upcCardHtml({ ...g, onclick: `upcOpenDetail(${i})` }, fr, wishBtn);
   }).join('');
+}
+
+// Ouvre la fiche d'un jeu de l'onglet "Tout" (jeu pas forcément en bibliothèque)
+function upcOpenDetail(i) {
+  const g = _upcAllGames[i];
+  if (!g) return;
+  const sid = String(g.id);
+  if (!GAMES.find(x => String(x.id) === sid)) {
+    GAMES.push({ ...g, status: null, score: 0, notes: '', hours: 0 });
+    userGames[sid] = { status: null, score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null };
+  }
+  openDetail(sid);
+}
+
+// ✦ direct : ajoute une sortie attendue à la liste de souhaits
+function upcAddWish(i) {
+  const g = _upcAllGames[i];
+  if (!g) return;
+  const sid = String(g.id);
+  if (!GAMES.find(x => String(x.id) === sid)) {
+    GAMES.push({ ...g, status: 'wish', score: 0, notes: '', hours: 0 });
+    userGames[sid] = { status: 'wish', score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null, lastActivityAt: new Date().toISOString() };
+  } else {
+    userGames[sid].status = 'wish';
+  }
+  saveToStorage();
+  localStorage.removeItem('gs_upcoming_cache'); // la wishlist a changé → re-calcul de l'onglet Souhaits
+  showToast(`✦ ${g.title} → ${_lang === 'en' ? 'wishlist' : 'souhaits'}`);
+  renderUpcomingWishes('all');
 }
 
 function renderProfileTierLists() {
