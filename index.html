@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -9904,6 +9904,7 @@ async function loadSocialScreen() {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) {
     renderSocialScreen(null);
+    _renderSocialSessionLost(); // session morte → carte "Se reconnecter" au lieu d'une page vide
     return;
   }
   // Reset badges when user opens Amis tab
@@ -9916,6 +9917,7 @@ async function loadSocialScreen() {
   if (!rows) {
     renderSocialScreen(uid);
     renderDummyActivity();
+    _gsShowErrBanner('Amis : lecture du serveur impossible (session expirée ? réseau ?) — essaie de te reconnecter');
     return;
   }
 
@@ -9967,6 +9969,28 @@ async function loadSocialScreen() {
     if (homeSection) homeSection.style.display = 'none';
     if (homeList) homeList.innerHTML = '';
   }
+}
+
+// Session Supabase morte : carte visible sur la page Amis avec bouton de reconnexion.
+// Les données locales (bibliothèque, notes…) restent intactes — seul le serveur est coupé.
+function _renderSocialSessionLost() {
+  const el = document.getElementById('daily-quiz-card');
+  if (!el) return;
+  el.style.display = 'block';
+  el.innerHTML = `<div style="background:linear-gradient(135deg,rgba(255,82,82,0.12),rgba(255,159,67,0.08));border:1px solid rgba(255,82,82,0.35);border-radius:20px;padding:18px 16px">
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;margin-bottom:6px">🔌 Session expirée</div>
+    <div style="font-size:12.5px;color:var(--muted2);line-height:1.5;margin-bottom:14px">Ta connexion au serveur a expiré — tes jeux et notes restent intacts sur cet appareil, mais les amis, quiz et la synchro sont en pause. Reconnecte-toi pour tout réactiver.</div>
+    <button onclick="forceRelogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">Se reconnecter →</button>
+  </div>`;
+}
+
+// Ré-affiche l'écran de connexion SANS toucher aux données locales
+function forceRelogin() {
+  document.getElementById('view-app').style.display = 'none';
+  const ob = document.getElementById('view-onboarding');
+  if (ob) ob.style.display = 'flex';
+  obStep(1);
+  setAuthMode('login');
 }
 
 function _friendAvHtml(p, size) {
@@ -12686,6 +12710,16 @@ function applyProfileToUI() {
       _bootedFromCache = true;
     }
   }
+
+  // Boot depuis le cache : si le réseau est là mais que la session est morte,
+  // on prévient tout de suite au lieu de laisser les pages serveur muettes.
+  if (_bootedFromCache) setTimeout(async () => {
+    try {
+      if (navigator.onLine === false) return;
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) showToast('🔌 Session expirée — onglet Amis → « Se reconnecter »');
+    } catch (e) {}
+  }, 4000);
 
   // Retour au premier plan : force un getSession() → le JWT expiré se
   // rafraîchit tout de suite au lieu d'expirer au milieu d'une action.
