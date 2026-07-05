@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2559,19 +2559,18 @@ html, body {
     <!-- Barre d'actions : carte sélectionnée dans un tier (réordonner / déplacer / retirer) -->
     <div id="tl-card-actions" style="display:none;flex-shrink:0;align-items:center;gap:6px;padding:8px 12px;background:var(--s2);border-top:0.5px solid var(--border2)">
       <div id="tl-ca-title" style="flex:1;min-width:0;font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div>
-      <button onclick="_tlMoveSel(-1)" style="width:30px;height:30px;border-radius:9px;background:var(--s3);border:0.5px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer;flex-shrink:0">◀</button>
-      <button onclick="_tlMoveSel(1)" style="width:30px;height:30px;border-radius:9px;background:var(--s3);border:0.5px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer;flex-shrink:0">▶</button>
+      <div id="tl-ca-move" style="display:flex;gap:6px;flex-shrink:0">
+        <button onclick="_tlMoveSel(-1)" style="width:30px;height:30px;border-radius:9px;background:var(--s3);border:0.5px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer">◀</button>
+        <button onclick="_tlMoveSel(1)" style="width:30px;height:30px;border-radius:9px;background:var(--s3);border:0.5px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer">▶</button>
+      </div>
       <div id="tl-ca-tiers" style="display:flex;gap:4px;flex-shrink:0"></div>
-      <button onclick="_tlRemoveSel()" style="width:30px;height:30px;border-radius:9px;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.35);color:var(--red);font-size:13px;cursor:pointer;flex-shrink:0">✕</button>
+      <button id="tl-ca-back" onclick="_tlRemoveSel()" title="Renvoyer dans « À classer »" style="width:30px;height:30px;border-radius:9px;background:var(--s3);border:0.5px solid var(--border2);color:var(--text);font-size:13px;cursor:pointer;flex-shrink:0">↩</button>
+      <button onclick="_tlBarDelete()" title="Retirer de la liste" style="width:30px;height:30px;border-radius:9px;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.35);color:var(--red);font-size:13px;cursor:pointer;flex-shrink:0">🗑</button>
     </div>
     <!-- Pool -->
     <div style="flex-shrink:0;border-top:0.5px solid var(--border);background:var(--s1)">
       <div id="tl-search-wrap" style="display:none;padding:8px 16px 4px">
-        <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-          <input id="tl-search-input" type="text" placeholder="Ajouter un jeu…" oninput="_tlSearchDebounce(this.value)" style="background:none;border:none;outline:none;font-size:13px;color:var(--text);flex:1;font-family:'DM Sans',sans-serif" autocomplete="off">
-        </div>
-        <div id="tl-search-results" style="display:flex;gap:8px;overflow-x:auto;padding:8px 0 0;scrollbar-width:none;min-height:0"></div>
+        <button onclick="openTlAdd()" style="width:100%;padding:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">➕ Ajouter des jeux</button>
       </div>
       <div style="padding:8px 16px 4px;display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">À classer</div>
@@ -2612,6 +2611,27 @@ html, body {
       <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Donne un titre à ta tier list</div>
       <input id="tl-custom-title-input" type="text" placeholder="Ex : Mes jeux PS5, Meilleurs RPG…" maxlength="40" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px">
       <button onclick="startCustomTierList()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Créer →</button>
+    </div>
+  </div>
+
+  <!-- TIER LIST : fenêtre dédiée d'ajout de jeux -->
+  <div id="tl-add-modal" style="display:none;position:fixed;inset:0;z-index:935;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlAdd()">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;max-width:560px;width:100%;height:82vh;display:flex;flex-direction:column;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 0;flex-shrink:0"></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 10px;flex-shrink:0">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">➕ Ajouter des jeux</div>
+          <div id="tl-add-count" style="font-size:11px;color:var(--muted2);margin-top:1px"></div>
+        </div>
+        <button onclick="closeTlAdd()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Terminé</button>
+      </div>
+      <div style="padding:0 16px 10px;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 12px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="tl-add-input" type="text" placeholder="Chercher un jeu…" oninput="_tlAddDebounce(this.value)" style="background:none;border:none;outline:none;font-size:14px;color:var(--text);flex:1;font-family:'DM Sans',sans-serif" autocomplete="off">
+        </div>
+      </div>
+      <div id="tl-add-results" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px calc(16px + env(safe-area-inset-bottom))"></div>
     </div>
   </div>
 
@@ -9672,17 +9692,11 @@ async function openNotifDrawer() {
     if (!session) { body.innerHTML = '<div style="text-align:center;padding:32px 0;color:var(--muted2);font-size:14px">Connecte-toi pour voir tes notifications.</div>'; return; }
     const uid = session.user.id;
 
-    // Fetch friend requests, quiz challenges and daily quiz activity in parallel
-    const [{ data: rows }, challenges, quizData] = await Promise.all([
+    // Demandes d'amis + activité quiz du jour (les vieux "Défis Quiz" 1v1 sont retirés)
+    const [{ data: rows }, quizData] = await Promise.all([
       _sb.from('friendships').select('*').eq('addressee_id', uid).eq('status', 'pending'),
-      loadQuizChallenges(),
       _fetchTodayQuizScores()
     ]);
-
-    const recentChallenges = (challenges || []).filter(ch => {
-      const age = Date.now() - new Date(ch.created_at).getTime();
-      return age < 7 * 24 * 3600 * 1000; // last 7 days
-    });
 
     // Activité quiz du jour des amis (scores masqués tant que je n'ai pas fait le quiz)
     const _dailyIds = new Set(getDailyQuizzes().map(q => q.id));
@@ -9692,7 +9706,32 @@ async function openNotifDrawer() {
     // Marque l'activité comme vue (la pastille repart à zéro pour ces événements)
     localStorage.setItem('gs_quiz_seen_ts', String(Date.now()));
 
-    if ((!rows || rows.length === 0) && !recentChallenges.length && !_friendQuizRows.length) {
+    // Fil d'actu récent des amis (jeux + tier lists) — remplace les vieux défis
+    let actHtml = '';
+    try {
+      await _ensureFriendsLoaded();
+      const fids = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+      if (fids.length) {
+        const since7 = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+        const [ug, tls] = await Promise.all([
+          _sb.from('user_games').select('user_id,title,status,score,updated_at').in('user_id', fids).gte('updated_at', since7).order('updated_at', { ascending: false }).limit(6).then(r => r, () => ({ data: [] })),
+          _sb.from('tier_lists').select('id,name,user_id,is_public,updated_at,created_at').in('user_id', fids).gte('updated_at', since7).order('updated_at', { ascending: false }).limit(3).then(r => r, () => ({ data: [] })),
+        ]);
+        const evts = [
+          ...(ug.data || []).map(r => ({ ts: r.updated_at, emoji: '🎮', txt: `<b>${_esc(_quizUserName(r.user_id, uid))}</b> · ${FP_SL[r.status] || r.status || ''} · ${_esc(r.title)}${r.score ? ' <span style="color:var(--amber)">★' + r.score + '</span>' : ''}` })),
+          ...((tls.data || []).filter(l => l.is_public !== false)).map(l => ({ ts: l.updated_at || l.created_at, emoji: '🏆', txt: `<b>${_esc(_quizUserName(l.user_id, uid))}</b> a publié la tier list ${_esc(l.name)}` })),
+        ].sort((a, b) => new Date(b.ts) - new Date(a.ts)).slice(0, 6);
+        if (evts.length) actHtml = `
+          <div class="ndr-sec" style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">📰 Fil d'actu</div>
+          ${evts.map(e => `<div onclick="closeNotifDrawer();appGoTo('social')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer">
+            <span style="font-size:16px;flex-shrink:0">${e.emoji}</span>
+            <div style="flex:1;min-width:0;font-size:12.5px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.txt}</div>
+            <span style="font-size:11px;color:var(--muted);flex-shrink:0">${timeAgo(e.ts)}</span>
+          </div>`).join('')}`;
+      }
+    } catch (e) {}
+
+    if ((!rows || rows.length === 0) && !_friendQuizRows.length && !actHtml) {
       body.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="color:var(--muted2);font-size:14px">Aucune notification pour l\'instant</div></div>';
       _updateFriendBadges(0);
       return;
@@ -9720,12 +9759,8 @@ async function openNotifDrawer() {
         </div>`;
       }).join('')}` : '';
 
-    const quizHtml = recentChallenges.length ? `
-      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${(rows||[]).length?'18px':'0'}">Défis Quiz</div>
-      ${recentChallenges.map(ch => renderQuizChallengeNotif(ch, uid)).join('')}` : '';
-
     const dailyQuizHtml = _friendQuizRows.length ? `
-      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${((rows||[]).length||recentChallenges.length)?'18px':'0'}">🧠 Quiz du jour</div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;margin-top:${(rows||[]).length?'18px':'0'}">🧠 Quiz du jour</div>
       ${_friendQuizRows.map(r => {
         const q = QUIZ_DATA.find(x => x.id === r.quiz_id);
         const iDidIt = _myDoneQuizIds.has(r.quiz_id);
@@ -9740,11 +9775,9 @@ async function openNotifDrawer() {
         </div>`;
       }).join('')}` : '';
 
-    body.innerHTML = friendReqHtml + quizHtml + dailyQuizHtml;
-    const incomingQuiz = recentChallenges.filter(ch =>
-      ch.status !== 'completed' && ch.challenged_id === uid && (ch.challenged_score === null || ch.challenged_score === undefined)
-    ).length;
-    _updateFriendBadges((rows||[]).length, incomingQuiz);
+    if (actHtml && ((rows||[]).length || _friendQuizRows.length)) actHtml = actHtml.replace('class="ndr-sec" style="', 'class="ndr-sec" style="margin-top:18px;');
+    body.innerHTML = friendReqHtml + dailyQuizHtml + actHtml;
+    _updateFriendBadges((rows||[]).length);
   } catch(e) {
     body.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--red);font-size:13px">${t('toast.error_loading')}</div>`;
   }
@@ -9777,12 +9810,11 @@ async function checkPendingRequests() {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
     const uid = session.user.id;
-    const [{ data, error }, quizCount, activityCount] = await Promise.all([
+    const [{ data, error }, activityCount] = await Promise.all([
       _sb.from('friendships').select('id').eq('addressee_id', uid).eq('status', 'pending'),
-      _countIncomingQuizChallenges(),
-      _countFreshQuizActivity()
+      _countFreshQuizActivity() // seuls les quiz du jour (nouveau système) comptent pour la cloche
     ]);
-    _updateFriendBadges(error ? 0 : (data||[]).length, quizCount + activityCount);
+    _updateFriendBadges(error ? 0 : (data||[]).length, activityCount);
   } catch(e) {}
 }
 
@@ -15990,6 +16022,7 @@ function closeTierList() {
   _tlMode = null; _tlSelected = null; _tlReadOnly = false; _tlCustomTitle = '';
   _tlTierSel = null; _tlPopToken++; _tlViewData = null;
   const ca = document.getElementById('tl-card-actions'); if (ca) ca.style.display = 'none';
+  const am = document.getElementById('tl-add-modal'); if (am) am.style.display = 'none';
   const cbar = document.getElementById('tl-compare-bar'); if (cbar) cbar.style.display = 'none';
   const sw = document.getElementById('tl-search-wrap'); if (sw) sw.style.display = 'none';
   const si = document.getElementById('tl-search-input'); if (si) si.value = '';
@@ -16049,11 +16082,12 @@ function renderTierListPool() {
 
 function selectPoolCard(id) {
   _tlSelected = (_tlSelected === id) ? null : id;
-  if (_tlTierSel) { _tlTierSel = null; renderTierListTiers(); _tlRenderCardActions(); }
+  if (_tlTierSel) { _tlTierSel = null; renderTierListTiers(); }
   document.getElementById('tl-hint').textContent = _tlSelected
-    ? 'Choisis un tier pour le placer'
+    ? 'Tape un tier pour le placer · 🗑 pour le retirer'
     : 'Sélectionne un jeu puis choisis son tier';
   renderTierListPool();
+  _tlRenderCardActions();
 }
 
 function placeTierCard(tierId) {
@@ -16071,6 +16105,7 @@ function placeTierCard(tierId) {
   document.getElementById('tl-hint').textContent = 'Sélectionne un jeu puis choisis son tier';
   _tlRenderTierRow(tierId);
   renderTierListPool();
+  _tlRenderCardActions();
 }
 
 function removeTierCard(gameId, tierId) {
@@ -16107,15 +16142,50 @@ function selectTierCard(gameId, tierId) {
 function _tlRenderCardActions() {
   const bar = document.getElementById('tl-card-actions');
   if (!bar) return;
-  if (!_tlTierSel) { bar.style.display = 'none'; return; }
+  const mode = _tlTierSel ? 'tier' : (_tlSelected ? 'pool' : null);
+  if (!mode) { bar.style.display = 'none'; return; }
   bar.style.display = 'flex';
-  const g = (_tlTiers[_tlTierSel.tier] || []).find(x => x.id === _tlTierSel.id);
+  const g = mode === 'tier'
+    ? (_tlTiers[_tlTierSel.tier] || []).find(x => x.id === _tlTierSel.id)
+    : _tlPool.find(x => x.id === _tlSelected);
   const titleEl = document.getElementById('tl-ca-title');
   if (titleEl) titleEl.textContent = g ? g.title : '';
+  // ◀ ▶ et ↩ n'ont de sens que pour une carte déjà classée
+  const mv = document.getElementById('tl-ca-move');
+  if (mv) mv.style.display = mode === 'tier' ? 'flex' : 'none';
+  const back = document.getElementById('tl-ca-back');
+  if (back) back.style.display = mode === 'tier' ? 'flex' : 'none';
+  const cur = mode === 'tier' ? _tlTierSel.tier : null;
   const chips = document.getElementById('tl-ca-tiers');
   if (chips) chips.innerHTML = _tlDefs.map(d =>
-    `<button onclick="_tlMoveSelTo('${d.id}')" style="min-width:24px;height:24px;padding:0 4px;border-radius:7px;border:${d.id === _tlTierSel.tier ? '1.5px solid #fff' : 'none'};cursor:pointer;font-size:10px;font-weight:800;font-family:'Space Grotesk',sans-serif;background:${d.bg};color:${d.color};opacity:${d.id === _tlTierSel.tier ? '1' : '0.6'}">${(d.label || d.id).slice(0, 2)}</button>`
+    `<button onclick="_tlBarTier('${d.id}')" style="min-width:24px;height:24px;padding:0 4px;border-radius:7px;border:${d.id === cur ? '1.5px solid #fff' : 'none'};cursor:pointer;font-size:10px;font-weight:800;font-family:'Space Grotesk',sans-serif;background:${d.bg};color:${d.color};opacity:${d.id === cur ? '1' : '0.6'}">${(d.label || d.id).slice(0, 2)}</button>`
   ).join('');
+}
+
+// Tap sur une pastille de tier dans la barre : placer (pool) ou déplacer (déjà classé)
+function _tlBarTier(tierId) {
+  if (_tlSelected) { placeTierCard(tierId); return; }
+  if (_tlTierSel) _tlMoveSelTo(tierId);
+}
+
+// 🗑 : retire complètement le jeu sélectionné de la tier list (pool ou tier)
+function _tlBarDelete() {
+  if (_tlTierSel) {
+    const arr = _tlTiers[_tlTierSel.tier] || [];
+    const i = arr.findIndex(g => g.id === _tlTierSel.id);
+    const tid = _tlTierSel.tier;
+    _tlTierSel = null;
+    if (i >= 0) arr.splice(i, 1);
+    _tlRenderTierRow(tid);
+  } else if (_tlSelected) {
+    const i = _tlPool.findIndex(g => g.id === _tlSelected);
+    _tlSelected = null;
+    if (i >= 0) _tlPool.splice(i, 1);
+    renderTierListPool();
+  } else return;
+  _tlRenderCardActions();
+  document.getElementById('tl-hint').textContent = 'Sélectionne un jeu puis choisis son tier';
+  showToast('🗑 Jeu retiré de la liste');
 }
 
 function _tlMoveSel(dir) {
@@ -16198,6 +16268,116 @@ function applyTierEdit() {
     _tlRenderCardActions();
   }
   closeTierEdit();
+}
+
+// ══ FENÊTRE DÉDIÉE D'AJOUT DE JEUX (recherche IGDB + suggestions bibliothèque) ══
+let _tlAddTimer = null;
+let _tlAddCand = {};
+
+// Le jeu est-il déjà dans la liste (pool ou classé) ? Match par id puis par titre
+function _tlInList(id, title) {
+  const tl = (title || '').toLowerCase().trim();
+  return [..._tlPool, ...Object.values(_tlTiers).flat()]
+    .find(g => g.id === id || (tl && (g.title || '').toLowerCase().trim() === tl)) || null;
+}
+
+function openTlAdd() {
+  const m = document.getElementById('tl-add-modal');
+  if (!m) return;
+  m.style.display = 'flex';
+  const inp = document.getElementById('tl-add-input');
+  if (inp) inp.value = '';
+  _tlAddRenderDefault();
+  _tlAddUpdateCount();
+  setTimeout(() => document.getElementById('tl-add-input')?.focus(), 200);
+}
+
+function closeTlAdd() {
+  const m = document.getElementById('tl-add-modal');
+  if (m) m.style.display = 'none';
+  renderTierListPool();
+}
+
+function _tlAddUpdateCount() {
+  const el = document.getElementById('tl-add-count');
+  if (!el) return;
+  const total = _tlPool.length + Object.values(_tlTiers).flat().length;
+  el.textContent = total ? `${total} jeu${total > 1 ? 'x' : ''} dans la liste` : 'Tape un jeu pour l\'ajouter';
+}
+
+function _tlAddRow(g) {
+  _tlAddCand[g.id] = g;
+  const existing = _tlInList(g.id, g.title);
+  const placed = existing && !_tlPool.find(x => x.id === existing.id);
+  const src = _tlCoverSrc(g);
+  const sub = [g.year || null, g.genre || null].filter(Boolean).join(' · ');
+  return `<div id="tlar-${g.id}" onclick="tlAddToggle('${g.id}')" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;opacity:${placed ? 0.55 : 1}">
+    ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:44px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--s3)" onerror="this.style.visibility='hidden'">` : `<div style="width:44px;height:60px;border-radius:8px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>`}
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+      ${sub ? `<div style="font-size:11px;color:var(--muted2);margin-top:2px">${sub}</div>` : ''}
+    </div>
+    ${placed
+      ? '<div style="font-size:10px;font-weight:700;color:var(--muted2);background:var(--s3);border-radius:8px;padding:4px 8px;flex-shrink:0">Classé</div>'
+      : existing
+        ? '<div style="width:26px;height:26px;border-radius:50%;background:rgba(0,230,118,0.15);border:1.5px solid var(--green);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0">✓</div>'
+        : '<div style="width:26px;height:26px;border-radius:50%;background:var(--a);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;flex-shrink:0">+</div>'}
+  </div>`;
+}
+
+// Tap sur une ligne : ajoute au pool, ou retire si pas encore classé
+function tlAddToggle(id) {
+  const g = _tlAddCand[id];
+  if (!g) return;
+  const existing = _tlInList(g.id, g.title);
+  if (existing) {
+    const pi = _tlPool.findIndex(x => x.id === existing.id);
+    if (pi < 0) { showToast('Déjà classé — retire-le depuis la tier list (🗑 dans la barre)'); return; }
+    _tlPool.splice(pi, 1);
+  } else {
+    _tlPool.push({ id: g.id, title: g.title, imageId: g.imageId || null, steamId: g.steamId || 0, cover: g.cover || null });
+  }
+  _tlAddUpdateCount();
+  const row = document.getElementById('tlar-' + id);
+  if (row) row.outerHTML = _tlAddRow(g);
+  renderTierListPool();
+}
+
+// Sans recherche : suggestions depuis ma bibliothèque (finis et 100% d'abord)
+function _tlAddRenderDefault() {
+  const res = document.getElementById('tl-add-results');
+  if (!res) return;
+  _tlAddCand = {};
+  const order = { platine: 0, finished: 1, 'playing-solo': 2, 'playing-multi': 3, paused: 4, abandoned: 5, backlog: 6 };
+  const lib = GAMES.map(g => ({ id: g.id, title: g.title, imageId: g.imageId || null, cover: g.cover || null, steamId: g.steamId || 0, year: g.year, genre: g.genre, _st: (userGames[g.id] || {}).status || g.status }))
+    .filter(g => g._st && g._st !== 'wish')
+    .sort((a, b) => ((order[a._st] ?? 9) - (order[b._st] ?? 9)) || a.title.localeCompare(b.title));
+  res.innerHTML = lib.length
+    ? `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:6px 0 4px">📚 Ta bibliothèque</div>` + lib.slice(0, 80).map(_tlAddRow).join('')
+    : `<div style="text-align:center;padding:28px 0;color:var(--muted2);font-size:13px">Cherche un jeu ci-dessus 👆</div>`;
+}
+
+function _tlAddDebounce(q) {
+  clearTimeout(_tlAddTimer);
+  if (!q.trim()) { _tlAddRenderDefault(); return; }
+  _tlAddTimer = setTimeout(() => _tlAddSearch(q.trim()), 350);
+}
+
+async function _tlAddSearch(q) {
+  const res = document.getElementById('tl-add-results');
+  if (!res) return;
+  res.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">Recherche…</div>`;
+  try {
+    const data = await igdbFetch('search', { query: q, limit: 40 });
+    if ((document.getElementById('tl-add-input')?.value || '').trim() !== q) return; // réponse obsolète
+    let mapped = dedupByTitle((data || []).map(mapIgdbGame).filter(g => !JUNK_RE.test(g.title)));
+    mapped = _rankSearchResults(mapped, q).slice(0, 30)
+      .map(r => ({ id: 'igdb_' + r.id, title: r.title, imageId: r.imageId || null, cover: null, steamId: 0, year: r.year, genre: r.genre }));
+    _tlAddCand = {};
+    res.innerHTML = mapped.length ? mapped.map(_tlAddRow).join('') : `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">Aucun résultat</div>`;
+  } catch (e) {
+    res.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--red);font-size:13px">Erreur réseau — réessaie</div>`;
+  }
 }
 
 async function exportTierList() {
