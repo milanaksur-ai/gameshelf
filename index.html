@@ -1526,8 +1526,8 @@ html, body {
         <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:20px 16px 10px">
           <div class="sec-label" style="padding:0" data-i18n="feed.upcoming">🗓️ Sorties à venir</div>
           <div style="display:flex;gap:6px;flex-shrink:0">
-            <button id="upc-tab-wish" onclick="renderUpcomingWishes('wish')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);cursor:pointer">✦ <span data-i18n="feed.upc_wish">Souhaits</span></button>
             <button id="upc-tab-all" onclick="renderUpcomingWishes('all')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);cursor:pointer">🌍 <span data-i18n="feed.upc_all">Tout</span></button>
+            <button id="upc-tab-wish" onclick="renderUpcomingWishes('wish')" style="padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:0.5px solid var(--border2);background:var(--s2);color:var(--muted2);cursor:pointer">✦ <span data-i18n="feed.upc_wish">Souhaits</span></button>
           </div>
         </div>
         <div id="upcoming-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
@@ -2215,7 +2215,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07p</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07q</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7973,7 +7973,7 @@ async function renderUpcomingWishes(tab) {
 
   // ── Onglet Souhaits : dates exactes des jeux de ta wishlist ──
   const wishIds = GAMES.filter(g => (userGames[g.id] || g).status === 'wish' && /^\d+$/.test(String(g.id)))
-    .map(g => Number(g.id)).slice(0, 40);
+    .map(g => Number(g.id)).slice(0, 150);
   let wishItems = [];
   if (wishIds.length) {
     try {
@@ -7991,8 +7991,8 @@ async function renderUpcomingWishes(tab) {
     }
   }
 
-  // Onglet par défaut : souhaits s'il y en a, sinon tout
-  if (!tab) tab = wishItems.length ? 'wish' : 'all';
+  // Onglet par défaut : Tout (le radar général)
+  if (!tab) tab = 'all';
   _upcTab = tab;
   section.style.display = 'block';
   _upcSetTabStyles();
@@ -8030,26 +8030,33 @@ async function renderUpcomingWishes(tab) {
   row.innerHTML = allItems.map((g, i) => {
     const inLib = GAMES.some(x => String(x.id) === String(g.id));
     const wishBtn = inLib
-      ? `<div style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,230,118,0.9);display:flex;align-items:center;justify-content:center;font-size:11px;color:#03130a;font-weight:800">✓</div>`
-      : `<div onclick="event.stopPropagation();upcAddWish(${i})" style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(108,92,231,0.92);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:800">✦</div>`;
+      ? `<div style="position:absolute;top:5px;right:5px;width:24px;height:24px;border-radius:50%;background:rgba(0,230,118,0.92);border:1.5px solid rgba(255,255,255,0.4);display:flex;align-items:center;justify-content:center;font-size:12px;color:#03130a;font-weight:800">✓</div>`
+      : `<div onclick="event.stopPropagation();upcAddWish(${i},this)" style="position:absolute;top:5px;right:5px;width:27px;height:27px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:1.5px solid rgba(255,255,255,0.45);box-shadow:0 2px 10px rgba(253,121,168,0.55);display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;font-weight:800;transition:transform 0.15s" ontouchstart="this.style.transform='scale(0.85)'" ontouchend="this.style.transform=''">✦</div>`;
     return _upcCardHtml({ ...g, onclick: `upcOpenDetail(${i})` }, fr, wishBtn);
   }).join('');
 }
 
-// Ouvre la fiche d'un jeu de l'onglet "Tout" (jeu pas forcément en bibliothèque)
+// Ouvre la fiche d'un jeu de l'onglet "Tout" — entrée TEMPORAIRE : elle est
+// retirée de la bibliothèque si on repart sans donner de statut au jeu.
+// (Cliquer la carte = consulter la fiche ; le souhait, c'est le bouton ✦.)
 function upcOpenDetail(i) {
   const g = _upcAllGames[i];
   if (!g) return;
   const sid = String(g.id);
   if (!GAMES.find(x => String(x.id) === sid)) {
+    if (_tempRecoId && _tempRecoId !== sid) {
+      const prevIdx = GAMES.findIndex(x => String(x.id) === String(_tempRecoId) && !(userGames[_tempRecoId] || {}).status);
+      if (prevIdx >= 0) { GAMES.splice(prevIdx, 1); delete userGames[_tempRecoId]; }
+    }
+    _tempRecoId = sid;
     GAMES.push({ ...g, status: null, score: 0, notes: '', hours: 0 });
     userGames[sid] = { status: null, score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null };
   }
   openDetail(sid);
 }
 
-// ✦ direct : ajoute une sortie attendue à la liste de souhaits
-function upcAddWish(i) {
+// ✦ direct : ajoute une sortie attendue à la liste de souhaits (avec pop 🎉)
+function upcAddWish(i, el) {
   const g = _upcAllGames[i];
   if (!g) return;
   const sid = String(g.id);
@@ -8061,8 +8068,17 @@ function upcAddWish(i) {
   }
   saveToStorage();
   localStorage.removeItem('gs_upcoming_cache'); // la wishlist a changé → re-calcul de l'onglet Souhaits
+  // Pop de célébration sur le bouton, puis re-rendu
+  if (el) {
+    el.style.transition = 'transform 0.35s cubic-bezier(0.34,1.56,0.64,1), background 0.25s';
+    el.textContent = '✓';
+    el.style.background = 'rgba(0,230,118,0.95)';
+    el.style.color = '#03130a';
+    el.style.transform = 'scale(1.55) rotate(18deg)';
+    setTimeout(() => { el.style.transform = 'scale(1)'; }, 220);
+  }
   showToast(`✦ ${g.title} → ${_lang === 'en' ? 'wishlist' : 'souhaits'}`);
-  renderUpcomingWishes('all');
+  setTimeout(() => renderUpcomingWishes('all'), 480);
 }
 
 function renderProfileTierLists() {
