@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.5 · build 05.07b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.6 · build 05.07c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2550,6 +2550,10 @@ html, body {
       <button onclick="triggerPwaInstall()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Installer</button>
       <button onclick="document.getElementById('tl-install-banner').style.display='none'" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;line-height:1;padding:4px;flex-shrink:0">×</button>
     </div>
+    <!-- Comparaison (vue d'une tier list d'ami) -->
+    <div id="tl-compare-bar" style="display:none;padding:10px 16px;border-bottom:0.5px solid var(--border)">
+      <button onclick="openTlCompare()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">⚔️ Comparer avec ma tier list</button>
+    </div>
     <!-- Tier rows -->
     <div id="tl-tiers" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none"></div>
     <!-- Barre d'actions : carte sélectionnée dans un tier (réordonner / déplacer / retirer) -->
@@ -2609,6 +2613,26 @@ html, body {
       <input id="tl-custom-title-input" type="text" placeholder="Ex : Mes jeux PS5, Meilleurs RPG…" maxlength="40" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px">
       <button onclick="startCustomTierList()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Créer →</button>
     </div>
+  </div>
+
+  <!-- TIER LIST COMPARE : choix de ma liste -->
+  <div id="tl-cmp-picker" style="display:none;position:fixed;inset:0;z-index:940;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">⚔️ Choisis ta tier list</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px">On compare les jeux présents dans les deux listes</div>
+      <div id="tl-cmp-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto"></div>
+    </div>
+  </div>
+
+  <!-- TIER LIST COMPARE : résultat -->
+  <div id="tl-compare-overlay" style="display:none;position:fixed;inset:0;z-index:850;background:var(--bg);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:10px;padding:calc(var(--safe-t)+10px) 16px 10px;border-bottom:0.5px solid var(--border);flex-shrink:0">
+      <button onclick="closeTlCompare()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">⚔️ Le match des tier lists</div>
+    </div>
+    <div id="tl-compare-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(24px + var(--safe-b))"></div>
   </div>
 
   <!-- TIER EDIT MODAL (renommer + couleur) -->
@@ -10869,7 +10893,19 @@ async function loadFriendActivity(friendIds) {
   const { data } = await _sb.from('user_games').select('user_id,title,status,score,image_id,updated_at')
     .in('user_id', friendIds).gte('updated_at', since)
     .order('updated_at', { ascending: false }).limit(30);
-  if (!data || !data.length) {
+  // Tier lists publiées / mises à jour par les amis → événements du fil
+  let tlEvents = [];
+  try {
+    const { data: tls } = await _sb.from('tier_lists').select('id,name,user_id,tiers,tier_defs,is_public,created_at,updated_at')
+      .in('user_id', friendIds).gte('updated_at', since)
+      .order('updated_at', { ascending: false }).limit(10);
+    tlEvents = (tls || []).filter(l => l.is_public !== false);
+  } catch (e) {}
+  const merged = [
+    ...(data || []).map((row, idx) => ({ kind: 'game', ts: row.updated_at, row, idx })),
+    ...tlEvents.map(row => ({ kind: 'tl', ts: row.updated_at || row.created_at, row })),
+  ].sort((a, b) => new Date(b.ts) - new Date(a.ts));
+  if (!merged.length) {
     const emptySection = document.getElementById('social-activity-section');
     const emptyList = document.getElementById('social-activity-list');
     if (emptySection && emptyList && !emptyList.innerHTML.trim()) {
@@ -10908,12 +10944,34 @@ async function loadFriendActivity(friendIds) {
     'paused':        ['⏸','var(--s2)','var(--muted2)'],
     'abandoned':     ['✕','var(--s2)','var(--muted2)']
   };
-  _actFeedRows = data;
+  _actFeedRows = data || [];
   const _coverHtml = (src, w, h, r) => `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;background:var(--s2);flex-shrink:0">${src
     ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*0.32)}px">🎮</div>`}</div>`;
   // Chaque entrée = { grp, html } pour pouvoir composer la version repliée ET complète
-  const actItems = data.map((item, i) => {
+  const _tlStrip = (l, w, h, r) => {
+    const defs = (Array.isArray(l.tier_defs) && l.tier_defs.length) ? l.tier_defs : TIER_CONFIG;
+    return `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0">${defs.slice(0, 6).map(d => `<div style="flex:1;background:${d.bg}"></div>`).join('')}</div>`;
+  };
+  const actItems = merged.map(entry => {
+    if (entry.kind === 'tl') {
+      const l = entry.row;
+      const tp = profileMap[l.user_id] || {};
+      const ranked = Object.values(l.tiers || {}).flat().length;
+      const html = `<div onclick="loadSharedTierList('${l.id}',{fromApp:true})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="position:relative;flex-shrink:0">
+          ${_tlStrip(l, 42, 56, 8)}
+          <div style="position:absolute;right:-7px;bottom:-5px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({...tp, avatar_url: tp.avatar_url||null}, 20)}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${tp.username||'Gamer'}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${l.name}</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${ranked} jeu${ranked > 1 ? 'x' : ''} classé${ranked > 1 ? 's' : ''} · ${timeAgo(entry.ts)}</div>
+        </div>
+        <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,202,40,0.16);color:#ffca28;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🏆</div>
+      </div>`;
+      return { grp: _actDayGroup(entry.ts), html };
+    }
+    const item = entry.row, i = entry.idx;
     const p = profileMap[item.user_id] || {};
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     const ago = timeAgo(item.updated_at);
@@ -10958,8 +11016,19 @@ async function loadFriendActivity(friendIds) {
       );
     }
   }
-  if (homeList) homeList.innerHTML = data.slice(0,3).map((item, i) => {
-    const p = profileMap[item.user_id] || {};
+  if (homeList) homeList.innerHTML = merged.slice(0,3).map(entry => {
+    const p = profileMap[entry.row.user_id] || {};
+    if (entry.kind === 'tl') {
+      const l = entry.row;
+      return `<div onclick="loadSharedTierList('${l.id}',{fromApp:true})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="position:relative;flex-shrink:0">
+          ${_tlStrip(l, 30, 40, 6)}
+          <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 16)}</div>
+        </div>
+        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${l.name}</span></div>
+      </div>`;
+    }
+    const item = entry.row, i = entry.idx;
     const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
     return `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
       <div style="position:relative;flex-shrink:0">
@@ -15409,6 +15478,8 @@ function openTierList(mode, opts = {}) {
 
   _tlUpdateVisBtn();
   _tlRenderCardActions();
+  const cmpBar = document.getElementById('tl-compare-bar');
+  if (cmpBar) cmpBar.style.display = 'none'; // ré-affiché par loadSharedTierList si pertinent
   document.getElementById('tierlist-overlay').classList.add('open');
   renderTierListTiers();
   renderTierListPool();
@@ -15578,6 +15649,13 @@ async function loadSharedTierList(id, o = {}) {
     const { data, error } = await _sb.from('tier_lists').select('*').eq('id', id).single();
     if (error || !data) { showToast('Tier list introuvable'); return; }
     openTierList('view', { name: data.name, items: data.items || [], tiers: data.tiers || {}, tierDefs: data.tier_defs, readOnly: true });
+    _tlViewData = data;
+    // Bouton "Comparer" : seulement sur la liste de quelqu'un d'autre, et si connecté
+    try {
+      const { data: { user } } = await _sb.auth.getUser();
+      const cbar = document.getElementById('tl-compare-bar');
+      if (cbar) cbar.style.display = (user && data.user_id && data.user_id !== user.id) ? 'block' : 'none';
+    } catch (e) {}
     _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
     if (!o.fromApp) {
       appGoTo('explore');
@@ -15608,6 +15686,122 @@ function forkTierList() {
   openTierList('custom', { title: '🔁 Ma version', tierDefs: defs });
   _tlPool = allItems.map(g => ({...g}));
   renderTierListPool();
+}
+
+// ══════════════════════════════════════
+// COMPARAISON DE TIER LISTS ENTRE AMIS
+// ══════════════════════════════════════
+let _tlViewData = null;  // ligne complète de la tier list actuellement vue (mode view)
+let _tlCmpCands = [];
+
+// Position de chaque jeu classé : rang du tier (0 = meilleur) + déf du tier
+function _tlPlacements(list) {
+  const defs = (Array.isArray(list.tier_defs) && list.tier_defs.length) ? list.tier_defs : TIER_CONFIG;
+  const byId = new Map(), byTitle = new Map();
+  defs.forEach((d, rank) => {
+    ((list.tiers || {})[d.id] || []).forEach(g => {
+      const e = { rank, def: d, g };
+      byId.set(String(g.id), e);
+      const tk = (g.title || '').toLowerCase().trim();
+      if (tk && !byTitle.has(tk)) byTitle.set(tk, e);
+    });
+  });
+  return { defs, byId, byTitle };
+}
+
+// Jeux classés dans les DEUX listes (match par id, sinon par titre)
+function _tlCommonPairs(mine, theirs) {
+  const A = _tlPlacements(mine), B = _tlPlacements(theirs);
+  const pairs = [];
+  B.byId.forEach((b, key) => {
+    const a = A.byId.get(key) || A.byTitle.get((b.g.title || '').toLowerCase().trim());
+    if (!a) return;
+    pairs.push({ g: b.g, a, b, diff: Math.abs(a.rank - b.rank) });
+  });
+  return { pairs, defsA: A.defs, defsB: B.defs };
+}
+
+async function openTlCompare() {
+  if (!_tlViewData) return;
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) { showToast('Connecte-toi pour comparer'); return; }
+    const { data: myLists, error } = await _sb.from('tier_lists').select('id,name,items,tiers,tier_defs').eq('user_id', user.id);
+    if (error || !myLists || !myLists.length) { showToast('Crée d\'abord ta propre tier list !'); return; }
+    const cands = myLists.map(l => ({ l, common: _tlCommonPairs(l, _tlViewData).pairs.length }))
+      .filter(x => x.common > 0).sort((x, y) => y.common - x.common);
+    if (!cands.length) { showToast('Aucun jeu en commun — classe les mêmes jeux pour comparer !'); return; }
+    if (cands.length === 1) { renderTlCompare(cands[0].l); return; }
+    _tlCmpCands = cands;
+    const listEl = document.getElementById('tl-cmp-picker-list');
+    if (listEl) listEl.innerHTML = cands.map(x => `
+      <button onclick="document.getElementById('tl-cmp-picker').style.display='none';_tlCompareById('${x.l.id}')" style="width:100%;text-align:left;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--text)">
+        <div style="font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:2px">${x.l.name}</div>
+        <div style="font-size:11px;color:var(--muted2)">${x.common} jeu${x.common > 1 ? 'x' : ''} en commun</div>
+      </button>`).join('');
+    document.getElementById('tl-cmp-picker').style.display = 'flex';
+  } catch (e) { showToast('Erreur — réessaie'); }
+}
+
+function _tlCompareById(id) {
+  const c = _tlCmpCands.find(x => x.l.id === id);
+  if (c) renderTlCompare(c.l);
+}
+
+function renderTlCompare(myList) {
+  const body = document.getElementById('tl-compare-body');
+  if (!body || !_tlViewData) return;
+  const { pairs, defsA, defsB } = _tlCommonPairs(myList, _tlViewData);
+  if (!pairs.length) { showToast('Aucun jeu en commun'); return; }
+  const friendName = _tlViewData.creator_name || 'Ton ami';
+  const profile = JSON.parse(localStorage.getItem('gs_profile') || '{}');
+  const myName = profile.username || 'Moi';
+  const span = Math.max(defsA.length, defsB.length) - 1 || 1;
+  const avg = pairs.reduce((s, p) => s + p.diff, 0) / pairs.length;
+  const score = Math.max(0, Math.round(100 - (avg / span) * 100));
+  const agree = pairs.filter(p => p.diff === 0);
+  const close = pairs.filter(p => p.diff === 1);
+  const clash = pairs.filter(p => p.diff >= 2).sort((a, b) => b.diff - a.diff);
+  const verdict = score >= 90 ? 'Jumeaux de goûts 👯' : score >= 75 ? 'Très compatibles 🤝' : score >= 55 ? 'Souvent d\'accord 👍' : score >= 35 ? 'Ça débat sec 🍿' : 'Ennemis jurés du classement ⚔️';
+  const chip = (e) => `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 6px;border-radius:7px;background:${e.def.bg};color:${e.def.color};font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:800">${(e.def.label || e.def.id).slice(0, 4)}</span>`;
+  const cov = (g) => { const src = _tlCoverSrc(g); return src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:34px;height:46px;border-radius:7px;object-fit:cover;flex-shrink:0" onerror="this.style.visibility='hidden'">` : `<div style="width:34px;height:46px;border-radius:7px;background:var(--s3);flex-shrink:0"></div>`; };
+  const row = (p) => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
+    ${cov(p.g)}
+    <div style="flex:1;min-width:0;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.g.title}</div>
+    <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">${chip(p.a)}<span style="font-size:10px;color:var(--muted2)">vs</span>${chip(p.b)}</div>
+  </div>`;
+  const section = (title, arr) => arr.length ? `
+    <div style="margin-top:18px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">${title}</div>
+      ${arr.map(row).join('')}
+    </div>` : '';
+  const C = 2 * Math.PI * 34;
+  const ringColor = score >= 75 ? 'var(--green)' : score >= 45 ? 'var(--amber)' : 'var(--red)';
+  body.innerHTML = `<div style="max-width:560px;margin:0 auto">
+    <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;text-align:center">
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:12px"><b style="color:var(--text)">${myName}</b> · ${myList.name}&nbsp;&nbsp;vs&nbsp;&nbsp;<b style="color:var(--text)">${friendName}</b> · ${_tlViewData.name}</div>
+      <div style="width:84px;height:84px;position:relative;margin:0 auto 10px">
+        <svg viewBox="0 0 84 84" style="transform:rotate(-90deg);width:84px;height:84px">
+          <circle cx="42" cy="42" r="34" fill="none" stroke="var(--border2)" stroke-width="8"/>
+          <circle cx="42" cy="42" r="34" fill="none" stroke="${ringColor}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${Math.round(C * score / 100)} ${Math.round(C)}"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:900">${score}%</div>
+      </div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;margin-bottom:6px">${verdict}</div>
+      <div style="font-size:11px;color:var(--muted2)">${pairs.length} jeu${pairs.length > 1 ? 'x' : ''} comparé${pairs.length > 1 ? 's' : ''} · ${agree.length} accord${agree.length > 1 ? 's' : ''} · ${clash.length} clash${clash.length > 1 ? 's' : ''}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">pastilles : toi à gauche · ${friendName} à droite</div>
+    </div>
+    ${section('🔥 Vos plus gros clashs', clash)}
+    ${section('🤝 Parfaitement d\'accord', agree)}
+    ${section('🤏 Presque d\'accord', close)}
+  </div>`;
+  const ov = document.getElementById('tl-compare-overlay');
+  if (ov) ov.style.display = 'flex';
+}
+
+function closeTlCompare() {
+  const ov = document.getElementById('tl-compare-overlay');
+  if (ov) ov.style.display = 'none';
 }
 
 function renderTierListHub() {
@@ -15736,8 +15930,9 @@ function _tlShareFromHub(id, name) {
 function closeTierList() {
   document.getElementById('tierlist-overlay').classList.remove('open');
   _tlMode = null; _tlSelected = null; _tlReadOnly = false; _tlCustomTitle = '';
-  _tlTierSel = null; _tlPopToken++;
+  _tlTierSel = null; _tlPopToken++; _tlViewData = null;
   const ca = document.getElementById('tl-card-actions'); if (ca) ca.style.display = 'none';
+  const cbar = document.getElementById('tl-compare-bar'); if (cbar) cbar.style.display = 'none';
   const sw = document.getElementById('tl-search-wrap'); if (sw) sw.style.display = 'none';
   const si = document.getElementById('tl-search-input'); if (si) si.value = '';
   const sr = document.getElementById('tl-search-results'); if (sr) sr.innerHTML = '';
