@@ -2015,7 +2015,10 @@ html, body {
       <div style="padding:20px 16px 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase" data-i18n="profile.screenshots">📷 Captures d'écran</div>
-          <button onclick="uploadProfileScreenshots()" style="background:var(--a);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer;font-weight:300">+</button>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button onclick="dedupShotsByContent(true)" title="Supprimer les photos en double" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer">🧹</button>
+            <button onclick="uploadProfileScreenshots()" style="background:var(--a);border:none;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;cursor:pointer;font-weight:300">+</button>
+          </div>
         </div>
         <div id="profile-media"></div>
       </div>
@@ -2221,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2307,16 +2310,7 @@ html, body {
           <div id="hours-ttb-hint" style="display:none;margin-top:8px;font-size:11px;color:var(--amber);opacity:0.8">⏱ <span data-i18n="detail.ttb_hint">Estimé d'après IGDB</span></div>
         </div>
 
-        <!-- MEDIA UPLOAD -->
-        <div style="margin-bottom:20px">
-          <div class="rating-label" style="margin-bottom:8px" data-i18n="detail.screenshots">Captures d'écran</div>
-          <div id="media-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px"></div>
-          <label id="media-upload-label" style="display:block;background:var(--s2);border:0.5px dashed var(--border2);border-radius:12px;padding:10px;text-align:center;cursor:pointer;font-size:12px;color:var(--muted2);transition:border-color 0.2s">
-            <input type="file" accept="image/*" multiple style="display:none" onchange="handleMedia(this)">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:block;margin:0 auto 4px"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            <span data-i18n="detail.screenshots_add">Ajouter des captures d'écran</span>
-          </label>
-        </div>
+        <!-- Captures d'écran : gérées uniquement depuis le profil (galerie + éditeur) -->
 
         <!-- TU AIMERAS AUSSI -->
         <div id="similar-section" style="margin-bottom:20px;display:none">
@@ -7859,6 +7853,70 @@ function _dedupUnassigned() {
 }
 // Purge au démarrage : nettoie les doublons déjà présents (local + cloud)
 setTimeout(() => { try { if (_dedupUnassigned()) _saveUnassigned(); } catch (e) {} }, 3000);
+
+// ── Dédoublonnage PAR CONTENU (hash SHA-1 des fichiers) ────────────────────
+// Les doublons historiques sont des fichiers distincts (uploads doublés par
+// l'ancienne course de synchro) → l'anti-doublon par URL ne les voit pas.
+// Ici on télécharge chaque photo une fois, on compare les empreintes, et on
+// supprime les copies (fichier storage + entrée locale/cloud). Si la même
+// image existe assignée ET non-assignée, on garde la version assignée.
+let _dedupHashRunning = false;
+async function dedupShotsByContent(manual) {
+  if (_dedupHashRunning) return 0;
+  _dedupHashRunning = true;
+  try {
+    const items = [];
+    Object.entries(gameMedia).forEach(([gid, arr]) => (arr || []).forEach(m => { if (m && m.url) items.push({ kind: 'game', gid, m }); }));
+    (_unassignedShots || []).forEach(m => { if (m && m.url) items.push({ kind: 'pool', m }); });
+    if (items.length < 2) { if (manual) showToast('✓ Aucun doublon'); return 0; }
+    if (manual) showToast('🧹 Analyse des photos…');
+    const byHash = new Map();
+    const dupes = [];
+    for (const it of items) {
+      try {
+        const res = await fetch(it.m.url, { cache: 'force-cache' });
+        if (!res.ok) continue;
+        const dig = await crypto.subtle.digest('SHA-1', await res.arrayBuffer());
+        const h = Array.from(new Uint8Array(dig)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const kept = byHash.get(h);
+        if (!kept) { byHash.set(h, it); continue; }
+        if (kept.kind === 'pool' && it.kind === 'game') { dupes.push(kept); byHash.set(h, it); }
+        else dupes.push(it);
+      } catch (e) { /* image injoignable → on n'y touche pas */ }
+    }
+    if (!dupes.length) { if (manual) showToast('✓ Aucun doublon trouvé'); return 0; }
+    const touched = new Set();
+    for (const d of dupes) {
+      if (d.kind === 'game') {
+        const arr = gameMedia[d.gid] || [];
+        const i = arr.indexOf(d.m);
+        if (i >= 0) arr.splice(i, 1);
+        touched.add(d.gid);
+      } else {
+        const i = _unassignedShots.indexOf(d.m);
+        if (i >= 0) _unassignedShots.splice(i, 1);
+      }
+      if (d.m.storagePath) { try { await _sb.storage.from('screenshots').remove([d.m.storagePath]); } catch (e) {} }
+    }
+    _saveUnassigned();
+    for (const gid of touched) { try { await persistScreenshots(gid); } catch (e) {} }
+    refreshViews();
+    showToast(`🧹 ${dupes.length} doublon${dupes.length > 1 ? 's' : ''} supprimé${dupes.length > 1 ? 's' : ''} !`);
+    return dupes.length;
+  } finally { _dedupHashRunning = false; }
+}
+
+// Auto-nettoyage une seule fois par appareil (après la synchro cloud du boot)
+setTimeout(async () => {
+  try {
+    if (localStorage.getItem('gs_shots_hash_dedup_done')) return;
+    if (navigator.onLine === false) return;
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    await dedupShotsByContent(false);
+    localStorage.setItem('gs_shots_hash_dedup_done', '1');
+  } catch (e) {}
+}, 8000);
 
 function _saveUnassigned() {
   _dedupUnassigned();
