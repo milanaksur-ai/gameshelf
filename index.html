@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07h</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07i</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2529,10 +2529,7 @@ html, body {
       <button id="tl-save-btn" onclick="saveTierList()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">
         💾 Sauvegarder
       </button>
-      <button onclick="exportTierList()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:6px;flex-shrink:0">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
-        PNG
-      </button>
+      <button id="tl-share-btn" onclick="tlShareCurrent()" title="Partager" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 12px;font-size:14px;cursor:pointer;flex-shrink:0">📤</button>
     </div>
     <!-- PWA install banner (shared view only) -->
     <div id="tl-install-banner" style="display:none;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(253,121,168,0.1));border-bottom:0.5px solid rgba(108,92,231,0.25)">
@@ -2687,7 +2684,7 @@ html, body {
   <!-- TIER LIST SHARE MODAL -->
   <div id="tl-share-modal" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlShareModal()">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">✅ Tier list sauvegardée !</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📤 Partager la tier list</div>
       <div id="tl-share-name" style="font-size:12px;color:var(--muted2);margin-bottom:16px"></div>
       <div style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
         <div id="tl-share-url" style="font-size:11px;color:var(--muted2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
@@ -12565,14 +12562,16 @@ async function renderPublicTierList(id) {
       </div>`;
 
     const defs = (Array.isArray(data.tier_defs) && data.tier_defs.length) ? data.tier_defs : TIER_CONFIG;
+    const _longest = Math.max(1, ...defs.map(d => (d.label || d.id).length));
+    const _labW = _longest <= 2 ? 44 : Math.min(96, 18 + _longest * 7);
     for (const d of defs) {
       const games = tiers[d.id] || [];
       if (!games.length) continue;
       const lbl = d.label || d.id;
       html += `
         <div style="display:flex;align-items:stretch;border-top:0.5px solid rgba(255,255,255,0.06);min-height:86px">
-          <div style="width:44px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${d.bg}22;border-right:2px solid ${d.bg}">
-            <span style="font-family:'Space Grotesk',sans-serif;font-size:${lbl.length <= 2 ? 20 : 11}px;font-weight:900;color:${d.color};text-align:center;word-break:break-word;padding:0 2px">${lbl}</span>
+          <div style="width:${_labW}px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:${d.bg}22;border-right:2px solid ${d.bg}">
+            <span style="font-family:'Space Grotesk',sans-serif;font-size:${lbl.length <= 2 ? 20 : 12}px;font-weight:900;color:${d.color};text-align:center;word-break:break-word;padding:0 3px">${lbl}</span>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;align-content:flex-start">
             ${games.map(g => `<div style="position:relative" title="${g.title}">${coverHtml(g)}</div>`).join('')}
@@ -15679,10 +15678,35 @@ function tlToggleVisibility() {
 
 function _tlUpdateVisBtn() {
   const b = document.getElementById('tl-vis-btn');
-  if (!b) return;
-  b.style.display = _tlReadOnly ? 'none' : 'block';
-  b.textContent = _tlIsPublic ? '🌍' : '🔒';
-  b.title = _tlIsPublic ? 'Visible par tes amis — taper pour rendre privée' : 'Privée — taper pour rendre visible';
+  if (b) {
+    b.style.display = _tlReadOnly ? 'none' : 'block';
+    b.textContent = _tlIsPublic ? '🌍' : '🔒';
+    b.title = _tlIsPublic ? 'Visible par tes amis — taper pour rendre privée' : 'Privée — taper pour rendre visible';
+  }
+  // Bouton Partager : grisé quand la liste est privée (le lien ne serait pas lisible)
+  const s = document.getElementById('tl-share-btn');
+  if (s) {
+    const grey = !_tlReadOnly && !_tlIsPublic;
+    s.style.opacity = grey ? '0.35' : '1';
+    s.title = grey ? 'Liste privée — passe-la en 🌍 pour partager' : 'Partager';
+  }
+}
+
+// 📤 : sauvegarde silencieuse si besoin (le lien a besoin d'un id), puis modal de partage
+async function tlShareCurrent() {
+  if (!_tlReadOnly && !_tlIsPublic) { showToast('🔒 Liste privée — passe-la en 🌍 pour pouvoir la partager'); return; }
+  if (!_tlReadOnly && !_tlSavedId) {
+    await saveTierList();
+    if (!_tlSavedId) return; // la sauvegarde a échoué → le toast d'erreur a déjà parlé
+  }
+  if (!_tlShareUrl && _tlSavedId) _tlShareUrl = `${location.origin}${location.pathname}?tl=${_tlSavedId}`;
+  if (!_tlShareUrl) { showToast('Sauvegarde d\'abord ta tier list'); return; }
+  const urlEl = document.getElementById('tl-share-url');
+  const nameEl = document.getElementById('tl-share-name');
+  if (urlEl) urlEl.textContent = _tlShareUrl;
+  if (nameEl) nameEl.textContent = (document.getElementById('tl-title')?.textContent || '').replace(/\s*✏️\s*$/, '').trim();
+  const m = document.getElementById('tl-share-modal');
+  if (m) m.style.display = 'flex';
 }
 
 function openNewTierListModal() {
@@ -15776,12 +15800,7 @@ async function saveTierList() {
       localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
     }
     _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
-    const urlEl = document.getElementById('tl-share-url');
-    const nameEl = document.getElementById('tl-share-name');
-    if (urlEl) urlEl.textContent = _tlShareUrl;
-    if (nameEl) nameEl.textContent = name;
-    const shareModal = document.getElementById('tl-share-modal');
-    if (shareModal) shareModal.style.display = 'flex';
+    showToast('✓ Tier list sauvegardée');
     renderTierListHub();
     renderProfileTierLists();
   } catch(e) {
@@ -16109,10 +16128,13 @@ function closeTierList() {
 function renderTierListTiers() {
   const el = document.getElementById('tl-tiers');
   if (!el) return;
+  // Largeur d'étiquette commune à toutes les lignes : s'élargit avec le texte le plus long (cap à 96px)
+  const longest = Math.max(1, ..._tlDefs.map(d => (d.label || d.id).length));
+  const labW = longest <= 2 ? 44 : Math.min(96, 18 + longest * 7);
   el.innerHTML = _tlDefs.map(d => `
     <div class="tier-row" id="tl-row-${d.id}" onclick="placeTierCard('${d.id}')">
-      <div class="tier-label" style="background:${d.bg};color:${d.color};position:relative" onclick="event.stopPropagation();_tlLabelTap('${d.id}')">
-        <span style="${(d.label || d.id).length > 2 ? 'font-size:10px;line-height:1.15;word-break:break-word;text-align:center;padding:0 2px' : ''}">${d.label || d.id}</span>
+      <div class="tier-label" style="background:${d.bg};color:${d.color};position:relative;width:${labW}px;flex-shrink:0" onclick="event.stopPropagation();_tlLabelTap('${d.id}')">
+        <span style="${(d.label || d.id).length > 2 ? 'font-size:12px;font-weight:800;line-height:1.2;word-break:break-word;text-align:center;padding:0 3px' : ''}">${d.label || d.id}</span>
         ${_tlReadOnly ? '' : '<span style="position:absolute;bottom:3px;right:4px;font-size:8px;opacity:0.75">✎</span>'}
       </div>
       <div class="tier-games" id="tl-games-${d.id}">
