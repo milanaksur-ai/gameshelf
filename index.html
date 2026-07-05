@@ -1521,6 +1521,14 @@ html, body {
         <div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>
       </div>
 
+      <!-- 🗓️ SORTIES À VENIR (souhaits uniquement) -->
+      <div id="upcoming-section" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
+          <div class="sec-label" style="padding:0" data-i18n="feed.upcoming">🗓️ Bientôt · tes souhaits</div>
+        </div>
+        <div id="upcoming-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+      </div>
+
       <!-- 🎮 GAME PASS -->
       <div id="gp-section" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 16px 10px">
@@ -2203,7 +2211,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07n</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07o</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2857,6 +2865,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_11">Accueil : section 🗓️ Bientôt — les sorties à venir de ta liste de souhaits</li>
                 </ul>
               </div>
 
@@ -3309,6 +3318,7 @@ const LANG = {
     },
     feed: {
       playing:'En cours', playing_multi:'👥 Multi en cours', friends:'Chez tes amis', trending:'Tendances du moment',
+      upcoming:'🗓️ Bientôt · tes souhaits',
       gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
     },
@@ -3380,6 +3390,7 @@ const LANG = {
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
       reviews_9:'5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX',
       reviews_10:'Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)',
+      reviews_11:'Accueil : section 🗓️ Bientôt — les sorties à venir de ta liste de souhaits',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3674,6 +3685,7 @@ const LANG = {
     },
     feed: {
       playing:'Playing', playing_multi:'👥 Multiplayer', friends:'Friends activity', trending:'Trending now',
+      upcoming:'🗓️ Coming soon · your wishlist',
       gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
     },
@@ -3879,6 +3891,7 @@ const LANG = {
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
       reviews_9:'5 exclusive level-4 ⭐ animated backgrounds (sakura, lava, cyber, storm, retro) + level-MAX Crystal 💎',
       reviews_10:'Extended progression: 10 ranks 🎯 · weekly streak 🔥 (all 5 quizzes daily, 7 days = +100 XP)',
+      reviews_11:'Home: 🗓️ Coming soon section — upcoming releases from your wishlist',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -5739,7 +5752,7 @@ async function onAuthSuccess(user) {
         });
         userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null, lastActivityAt: g.updated_at || null };
         if (g.screenshots?.length) {
-          gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
+          gameMedia[g.game_id] = [...new Set(g.screenshots)].map(url => ({ type: 'image', url, name: url.split('/').pop() }));
         }
       });
       const rawPlatforms = profile.platforms || [];
@@ -5766,7 +5779,10 @@ async function onAuthSuccess(user) {
       // Captures non assignées : fusion cloud → local (multi-appareils)
       if (Array.isArray(profile.unassigned_screenshots) && profile.unassigned_screenshots.length) {
         const _known = new Set(_unassignedShots.map(x => x.url));
-        profile.unassigned_screenshots.forEach(x => { if (x && x.url && !_known.has(x.url)) _unassignedShots.push(x); });
+        profile.unassigned_screenshots.forEach(x => {
+          if (x && x.url && !_known.has(x.url)) { _known.add(x.url); _unassignedShots.push(x); }
+        });
+        _dedupUnassigned();
         localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
       }
       // Cross-device backfill guard: if Supabase says already done, mark locally
@@ -6309,7 +6325,10 @@ async function syncFromSupabase(user) {
       // Captures non assignées : fusion cloud → local (multi-appareils)
       if (Array.isArray(profile.unassigned_screenshots) && profile.unassigned_screenshots.length) {
         const _known = new Set(_unassignedShots.map(x => x.url));
-        profile.unassigned_screenshots.forEach(x => { if (x && x.url && !_known.has(x.url)) _unassignedShots.push(x); });
+        profile.unassigned_screenshots.forEach(x => {
+          if (x && x.url && !_known.has(x.url)) { _known.add(x.url); _unassignedShots.push(x); }
+        });
+        _dedupUnassigned();
         localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
       }
       if (profile.xp_backfilled) {
@@ -6343,7 +6362,7 @@ async function syncFromSupabase(user) {
       });
       userGames[g.game_id] = { status: g.status, score: g.score || 0, notes: g.notes || '', hours: g.hours || 0, vibe: g.vibe || null, ratedAt: g.rated_at || null, platform: g.platform || null, lastActivityAt: g.updated_at || null };
       if (g.screenshots?.length) {
-        gameMedia[g.game_id] = g.screenshots.map(url => ({ type: 'image', url, name: url.split('/').pop() }));
+        gameMedia[g.game_id] = [...new Set(g.screenshots)].map(url => ({ type: 'image', url, name: url.split('/').pop() }));
       }
     });
     try {
@@ -7674,7 +7693,7 @@ async function handleMedia(input) {
 async function persistScreenshots(gameId) {
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) return;
-  const urls = (gameMedia[gameId] || []).map(m => m.url);
+  const urls = [...new Set((gameMedia[gameId] || []).map(m => m.url))];
   await _sb.from('user_games').update({ screenshots: urls }).eq('user_id', session.user.id).eq('game_id', String(gameId));
 }
 
@@ -7715,7 +7734,22 @@ async function removeMedia(gameId, idx) {
 // On uploade d'abord (sans jeu), on assigne plus tard depuis la galerie.
 let _unassignedShots = JSON.parse(localStorage.getItem('gs_unassigned_shots') || '[]'); // [{url, storagePath, ts}]
 
+// Déduplique le pool par URL (les courses de synchro pouvaient créer des doublons)
+function _dedupUnassigned() {
+  const seen = new Set();
+  const clean = _unassignedShots.filter(x => {
+    if (!x || !x.url || seen.has(x.url)) return false;
+    seen.add(x.url); return true;
+  });
+  const changed = clean.length !== _unassignedShots.length;
+  if (changed) { _unassignedShots.length = 0; _unassignedShots.push(...clean); }
+  return changed;
+}
+// Purge au démarrage : nettoie les doublons déjà présents (local + cloud)
+setTimeout(() => { try { if (_dedupUnassigned()) _saveUnassigned(); } catch (e) {} }, 3000);
+
 function _saveUnassigned() {
+  _dedupUnassigned();
   localStorage.setItem('gs_unassigned_shots', JSON.stringify(_unassignedShots));
   _sb.auth.getSession().then(({ data: { session } }) => {
     if (session) _sb.from('profiles').update({ unassigned_screenshots: _unassignedShots }).eq('id', session.user.id).then(() => {});
@@ -7890,6 +7924,51 @@ function selectPspGame(gameId) {
     renderProfileStats();
     showToast(`✓ ${fr ? 'Déplacée vers' : 'Moved to'} ${g ? g.title : ''}`);
   }
+}
+
+// ── SORTIES À VENIR : jeux en souhait avec date IGDB future ──
+async function renderUpcomingWishes() {
+  const section = document.getElementById('upcoming-section');
+  const row = document.getElementById('upcoming-row');
+  if (!section || !row) return;
+  const fr = _lang !== 'en';
+  // Souhaits avec un id IGDB numérique (requis pour récupérer la date exacte)
+  const wishIds = GAMES.filter(g => (userGames[g.id] || g).status === 'wish' && /^\d+$/.test(String(g.id)))
+    .map(g => Number(g.id)).slice(0, 40);
+  if (!wishIds.length) { section.style.display = 'none'; return; }
+  // Cache 24h — les dates de sortie ne bougent pas à la minute
+  let data = null;
+  try {
+    const cached = JSON.parse(localStorage.getItem('gs_upcoming_cache') || 'null');
+    if (cached && Date.now() - cached.ts < 24 * 3600000 && cached.key === wishIds.join(',')) data = cached.items;
+  } catch (e) {}
+  if (!data) {
+    const raw = await igdbFetch('game', { ids: wishIds, limit: wishIds.length });
+    if (!raw) { section.style.display = 'none'; return; }
+    const now = Math.floor(Date.now() / 1000);
+    data = raw.filter(g => g.first_release_date && g.first_release_date > now)
+      .sort((a, b) => a.first_release_date - b.first_release_date)
+      .map(g => ({ id: String(g.id), title: g.name, imageId: g.cover?.image_id || null, date: g.first_release_date }));
+    try { localStorage.setItem('gs_upcoming_cache', JSON.stringify({ ts: Date.now(), key: wishIds.join(','), items: data })); } catch (e) {}
+  }
+  if (!data.length) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+  row.innerHTML = data.map(g => {
+    const d = new Date(g.date * 1000);
+    const days = Math.ceil((d - Date.now()) / 86400000);
+    const dateStr = d.toLocaleDateString(fr ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' }) + (d.getFullYear() > new Date().getFullYear() ? ' ' + d.getFullYear() : '');
+    const chip = days <= 7 ? (fr ? `🔥 dans ${days}j` : `🔥 in ${days}d`) : (days <= 60 ? (fr ? `dans ${days}j` : `in ${days}d`) : dateStr);
+    const src = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg` : null;
+    return `<div onclick="openDetail('${g.id}')" style="flex-shrink:0;width:104px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);margin-bottom:5px">
+        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">🎮</div>`}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 45%)"></div>
+        <div style="position:absolute;bottom:5px;left:5px;right:5px;background:${days <= 7 ? 'rgba(255,159,67,0.95)' : 'rgba(108,92,231,0.92)'};border-radius:7px;padding:2px 6px;font-size:9px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${chip}</div>
+      </div>
+      <div style="font-size:10px;font-weight:600;line-height:1.25;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
+      <div style="font-size:9px;color:var(--muted2);margin-top:1px">${dateStr}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderProfileTierLists() {
@@ -9539,6 +9618,7 @@ function initApp(){
   setTimeout(() => {
     renderHomeTrending();
     renderHomeRecos();
+    renderUpcomingWishes();
     if (obProfile.gamepass) loadGamePass();
   }, 200);
   // Check for shared tier list URL param
@@ -12402,8 +12482,10 @@ function applyProfileToUI() {
       }
       // Pull from Supabase first — server is source of truth across devices.
       // Local cache shown immediately for speed, then updated when server responds.
-      window._bgSynced = true;
-      syncFromSupabase(session.user);
+      if (!window._bgSynced) {
+        window._bgSynced = true;
+        syncFromSupabase(session.user);
+      }
     } else {
       // No local data → new user or returning without cache → onAuthSuccess decides
       await onAuthSuccess(session.user);
