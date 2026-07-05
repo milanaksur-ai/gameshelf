@@ -2221,7 +2221,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.5 · build 05.07</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.5 · build 05.07b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -15633,10 +15633,10 @@ let _tlFetchedOnce = false;
 async function fetchMyTierLists() {
   if (_tlHubFetching) return;
   _tlHubFetching = true;
-  _tlFetchedOnce = true;
   try {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
+    _tlFetchedOnce = true;
     const r = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,items,tiers').eq('user_id', user.id).order('created_at', { ascending: false });
     if (r.error) return; // colonne user_id absente (migration pas encore lancée) → on garde le cache local
     const rows = r.data || [];
@@ -15646,7 +15646,11 @@ async function fetchMyTierLists() {
     for (const l of legacy) {
       try {
         const { data: claimed } = await _sb.from('tier_lists').update({ user_id: user.id }).eq('id', l.id).is('user_id', null).select('id,name,mode,created_at,is_public,items,tiers');
-        if (claimed && claimed.length) rows.push(claimed[0]);
+        if (claimed && claimed.length) { rows.push(claimed[0]); continue; }
+        // Revendication impossible (RLS, déjà revendiquée…) → on vérifie la ligne au lieu de la perdre
+        const { data: row } = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,items,tiers,user_id').eq('id', l.id).maybeSingle();
+        if (row && (!row.user_id || row.user_id === user.id)) rows.push(row);
+        // ligne vraiment supprimée ou appartenant à quelqu'un d'autre → on la laisse tomber
       } catch (e) {}
     }
     rows.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
