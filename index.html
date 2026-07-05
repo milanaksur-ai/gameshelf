@@ -1665,6 +1665,7 @@ html, body {
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">⚡ Choisir un quiz</div>
       <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" id="qpm-subtitle">Choisis un quiz pour défier ton ami</div>
       <div style="overflow-y:auto;flex:1">
+        <div id="quiz-streak-panel" style="margin-bottom:14px"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
           <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase" data-i18n="explore.daily_quizzes">⚡ Les 5 quiz du jour</div>
           <div id="quiz-rotation-timer" style="font-size:10px;font-weight:600;color:var(--a)"></div>
@@ -2202,7 +2203,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07m</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.4 · build 03.07n</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2855,7 +2856,7 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série de quiz hebdo 🔥 (7 jours = +100 XP)</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)</li>
                 </ul>
               </div>
 
@@ -3378,7 +3379,7 @@ const LANG = {
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
       reviews_9:'5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX',
-      reviews_10:'Progression étendue : 10 rangs 🎯 · série de quiz hebdo 🔥 (7 jours = +100 XP)',
+      reviews_10:'Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
       collections_2:'Collections visibles sur ton profil et ceux de tes amis',
@@ -3877,7 +3878,7 @@ const LANG = {
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
       reviews_9:'5 exclusive level-4 ⭐ animated backgrounds (sakura, lava, cyber, storm, retro) + level-MAX Crystal 💎',
-      reviews_10:'Extended progression: 10 ranks 🎯 · weekly quiz streak 🔥 (7 days = +100 XP)',
+      reviews_10:'Extended progression: 10 ranks 🎯 · weekly streak 🔥 (all 5 quizzes daily, 7 days = +100 XP)',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
       collections_2:'Collections visible on your profile and your friends\'',
@@ -6671,12 +6672,12 @@ function initPullToRefresh(scrollEl, onRefresh) {
 const TOUR_SLIDES = [
   {
     emoji:'🎮', title:'Ta bibliothèque',
-    desc:'Classe tes jeux par statut — en cours, terminé, backlog… Note-les sur 10 et retrouve-les en un coup d\'œil.',
+    desc:'Classe tes jeux par statut — en cours, multi 👥, terminé, backlog… Note-les sur 10 et retrouve-les en un coup d\'œil.',
     onEnter: () => appGoTo('library')
   },
   {
     emoji:'✨', title:'Les Vibes',
-    desc:'Tague l\'ambiance d\'un jeu : chill, intense, narratif, défouloir… Utile aussi pour filtrer le tirage.',
+    desc:'Tague l\'ambiance d\'un jeu : chill, intense, banger… Et crée des collections automatiques qui se remplissent toutes seules selon tes vibes.',
     onEnter: () => {
       appGoTo('library');
       const g = GAMES.find(g => userGames[g.id]?.status);
@@ -6684,9 +6685,19 @@ const TOUR_SLIDES = [
     }
   },
   {
-    emoji:'👥', title:'Social',
-    desc:'Cherche tes amis par pseudo, vois leur bibliothèque et découvre leurs coups de cœur.',
+    emoji:'🧠', title:'Les quiz du jour',
+    desc:'5 quiz par jour, les mêmes pour tout le monde. Classement entre amis, comparaison des réponses, et une série hebdo 🔥 : les 5 quiz chaque jour pendant 7 jours = +100 XP !',
     onEnter: () => { _tourClearSpot(); appGoTo('social'); }
+  },
+  {
+    emoji:'👥', title:'Tes amis',
+    desc:'Cherche tes amis par pseudo, explore leur bibliothèque, vois leurs avis sur les fiches de jeux et affronte-les au classement XP.',
+    onEnter: () => { _tourClearSpot(); appGoTo('social'); }
+  },
+  {
+    emoji:'🎯', title:'Ta progression',
+    desc:'10 rangs à gravir, du Joueur à la Légende 💎. Débloque des titres épinglés, des fonds de profil animés et plus de collections en gagnant de l\'XP.',
+    onEnter: () => { _tourClearSpot(); appGoTo('profile'); }
   },
   {
     emoji:'🎲', title:'Tire-moi un jeu !',
@@ -13793,6 +13804,7 @@ function renderQuizHub() {
   const daily = getDailyQuizzes();
   const timerEl = document.getElementById('quiz-rotation-timer');
   if (timerEl) timerEl.textContent = (_lang === 'en' ? '🔄 New quizzes in ' : '🔄 Nouveaux quiz dans ') + _hoursUntilNextRotation() + 'h';
+  _renderStreakPanel();
 
   genreGrid.innerHTML = daily.map(q => {
     const best = _quizLocalScores[q.id];
@@ -14057,10 +14069,28 @@ function _quizStreakCount() {
   const today = _quizDayIndex();
   return (st.last === today || st.last === today - 1) ? st.count : 0;
 }
+// Nombre de quiz du jour terminés aujourd'hui (localement)
+function _dailyDoneCount() {
+  const today = _quizDayIndex();
+  return getDailyQuizzes().filter(q => {
+    const b = _quizLocalScores[q.id];
+    return b && b.ts && Math.floor(b.ts / 86400000) === today;
+  }).length;
+}
+
 function _bumpQuizStreak() {
   const today = _quizDayIndex();
   const st = _quizStreak();
-  if (st.last === today) return; // déjà compté aujourd'hui
+  if (st.last === today) return; // déjà validé aujourd'hui
+  const fr = _lang !== 'en';
+  const done = _dailyDoneCount();
+  // La journée ne compte que si LES 5 quiz du jour sont terminés
+  if (done < QUIZ_PER_DAY) {
+    showToast(fr
+      ? `🧠 ${done}/${QUIZ_PER_DAY} quiz aujourd'hui — termine les ${QUIZ_PER_DAY} pour valider ta série 🔥`
+      : `🧠 ${done}/${QUIZ_PER_DAY} quizzes today — finish all ${QUIZ_PER_DAY} to validate your streak 🔥`);
+    return;
+  }
   st.count = (st.last === today - 1) ? st.count + 1 : 1;
   st.last = today;
   localStorage.setItem('gs_quiz_streak', JSON.stringify(st));
@@ -14077,8 +14107,11 @@ function _bumpQuizStreak() {
     }
   } else {
     const left = 7 - (st.count % 7);
-    showToast(_lang === 'en' ? `🔥 Streak: day ${st.count} — ${left} more for +100 XP` : `🔥 Série : jour ${st.count} — encore ${left} pour +100 XP`);
+    showToast(_lang === 'en'
+      ? `🔥 Day validated! Streak: ${st.count} — ${left} more day${left > 1 ? 's' : ''} for +100 XP`
+      : `🔥 Journée validée ! Série : jour ${st.count} — encore ${left} jour${left > 1 ? 's' : ''} pour +100 XP`);
   }
+  renderQuizHub();
 }
 
 // Synchronise MES scores de quiz depuis Supabase vers cet appareil.
@@ -14113,7 +14146,10 @@ async function _syncMyQuizScoresFromCloud() {
       renderQuizHub();
     }
     // Reconstruit la série hebdo depuis l'historique cloud (multi-appareils)
-    const days = new Set(data.map(r => r.day_index).filter(d => d != null));
+    // Un jour n'est validé que si LES 5 quiz de ce jour ont été faits
+    const _perDay = {};
+    data.forEach(r => { if (r.day_index != null) _perDay[r.day_index] = (_perDay[r.day_index] || 0) + 1; });
+    const days = new Set(Object.keys(_perDay).filter(d => _perDay[d] >= QUIZ_PER_DAY).map(Number));
     const anchor = days.has(today) ? today : (days.has(today - 1) ? today - 1 : 0);
     if (anchor) {
       let cnt = 0, d = anchor;
@@ -14245,6 +14281,40 @@ async function _awardYesterdayQuizXp() {
     const fr = _lang !== 'en';
     showToast(`${medal} ${fr ? `Classement quiz d'hier : ${myRank}${myRank === 1 ? 'er' : 'e'} · +${xp} XP` : `Yesterday's quiz ranking: #${myRank} · +${xp} XP`}`);
   } catch (e) {}
+}
+
+// ── Panneau visuel de la série hebdo : 7 cases, flammes, +100 XP ──
+function _renderStreakPanel() {
+  const el = document.getElementById('quiz-streak-panel');
+  if (!el) return;
+  const fr = _lang !== 'en';
+  const cnt = _quizStreakCount();
+  const todayValidated = _quizStreak().last === _quizDayIndex();
+  const doneToday = _dailyDoneCount();
+  let cycleDone = cnt % 7;
+  if (cnt > 0 && cycleDone === 0) cycleDone = 7;
+  const slots = [];
+  for (let i = 1; i <= 7; i++) {
+    if (i <= cycleDone) slots.push('done');
+    else if (i === cycleDone + 1 && !todayValidated) slots.push('today');
+    else slots.push('empty');
+  }
+  el.innerHTML = `<div style="background:linear-gradient(135deg,rgba(255,159,67,0.13),rgba(253,121,168,0.07));border:1px solid rgba(255,159,67,0.35);border-radius:16px;padding:14px 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:11px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800">🔥 ${fr ? 'Série hebdo' : 'Weekly streak'}</div>
+      <div style="font-size:12px;font-weight:800;color:#ff9f43;background:rgba(255,159,67,0.14);border:0.5px solid rgba(255,159,67,0.4);border-radius:50px;padding:3px 11px">🎁 +100 XP</div>
+    </div>
+    <div style="display:flex;gap:7px;justify-content:space-between;margin-bottom:11px">
+      ${slots.map((st, i) => {
+        if (st === 'done')  return `<div style="flex:1;max-width:46px;aspect-ratio:1;border-radius:12px;background:rgba(255,159,67,0.2);border:1.5px solid rgba(255,159,67,0.65);display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 8px rgba(255,159,67,0.25)">🔥</div>`;
+        if (st === 'today') return `<div style="flex:1;max-width:46px;aspect-ratio:1;border-radius:12px;background:rgba(108,92,231,0.14);border:1.5px solid var(--a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px"><div style="font-size:11px;font-weight:800;color:var(--a)">${doneToday}/${QUIZ_PER_DAY}</div><div style="font-size:7px;font-weight:700;color:var(--muted2);text-transform:uppercase">${fr ? 'auj.' : 'today'}</div></div>`;
+        return `<div style="flex:1;max-width:46px;aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,0.03);border:1.5px dashed rgba(255,255,255,0.14);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted)">J${i}</div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--muted2);line-height:1.5">${fr
+      ? `Termine <b style="color:var(--text)">les ${QUIZ_PER_DAY} quiz</b> chaque jour pour allumer une flamme. 7 flammes d'affilée = <b style="color:#ff9f43">+100 XP</b> !`
+      : `Finish <b style="color:var(--text)">all ${QUIZ_PER_DAY} quizzes</b> each day to light a flame. 7 flames in a row = <b style="color:#ff9f43">+100 XP</b>!`}</div>
+  </div>`;
 }
 
 function openQuiz(id) {
