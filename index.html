@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07k</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07l</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2408,7 +2408,7 @@ html, body {
       <!-- Screenshots de l'ami -->
       <div id="fp-screenshots-section" style="display:none;margin-bottom:16px">
         <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">📷 Captures d'écran</div>
-        <div id="fp-screenshots-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div>
+        <div id="fp-screenshots-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px"></div>
       </div>
       <!-- Collections de l'ami -->
       <div id="fp-collections-section" style="display:none;margin-bottom:16px">
@@ -8523,7 +8523,8 @@ function renderProfileStats() {
         ${t('profile.add_first_screenshot')}
       </div>`;
     } else {
-      profileMedia.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">` + unassignedHtml +
+      // minmax(0,1fr) : une photo large ne peut plus élargir sa colonne (grid blowout) — la grille reste dans l'écran
+      profileMedia.innerHTML = `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px">` + unassignedHtml +
         allMedia.map((m, idx) => `
           <div style="cursor:pointer" onclick="openProfileLightbox(${_unassignedShots.length} + ${idx})">
             <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px">
