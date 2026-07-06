@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07i</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07j</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4190,21 +4190,47 @@ function _xpFlags(key) { try { return new Set(JSON.parse(localStorage.getItem('g
 function _setXpFlag(key, val) { const s=_xpFlags(key); s.add(String(val)); localStorage.setItem('gs_xp_'+key, JSON.stringify([...s])); }
 async function gainXp(amount, reason, label) {
   const before = obProfile.xp || 0;
-  const after  = before + amount;
   const lvlBefore = getLevel(before).level;
-  obProfile.xp = after;
+  obProfile.xp = before + amount; // optimiste (hors ligne)
   localStorage.setItem('gs_profile', JSON.stringify(obProfile));
   _logXpEvent(amount, reason, label);
   renderXpBar();
   _showXpFloat(amount);
-  // Sync to Supabase fire-and-forget
+  // Incrément ATOMIQUE côté serveur : additif, donc deux appareils ne peuvent
+  // plus s'écraser le total. Le serveur renvoie le vrai total → convergence.
   try {
     const { data:{ user } } = await _sb.auth.getUser();
-    if (user) _sb.from('profiles').update({ xp: after }).eq('id', user.id).then(() => {});
+    if (user) {
+      const { data: serverXp, error } = await _sb.rpc('increment_xp', { delta: amount });
+      if (!error && typeof serverXp === 'number') {
+        obProfile.xp = serverXp;
+        localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+        renderXpBar();
+      } else if (error) {
+        // RPC pas encore migrée → ancien chemin (écriture absolue)
+        _sb.from('profiles').update({ xp: obProfile.xp }).eq('id', user.id).then(() => {});
+      }
+    }
   } catch(e) {}
   // Level-up celebration
-  if (getLevel(after).level > lvlBefore) _celebrateLevelUp(getLevel(after));
+  if (getLevel(obProfile.xp || 0).level > lvlBefore) _celebrateLevelUp(getLevel(obProfile.xp || 0));
   checkAchievements();
+}
+
+// Fusionne les succès local ↔ serveur (union, jamais d'écrasement) et renvoie le Set.
+// C'est la barrière anti double-gain multi-appareils pour tous les gros montants.
+async function _mergeAchievementsWithCloud() {
+  const local = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (!user) return local;
+    const { data } = await _sb.from('profiles').select('achievements').eq('id', user.id).single();
+    const server = Array.isArray(data?.achievements) ? data.achievements : [];
+    const merged = new Set([...local, ...server]);
+    localStorage.setItem('gs_achievements', JSON.stringify([...merged]));
+    if (merged.size > server.length) await _sb.from('profiles').update({ achievements: [...merged] }).eq('id', user.id);
+    return merged;
+  } catch (e) { return local; }
 }
 function _logXpEvent(amount, reason, label) {
   if (!reason) return;
@@ -4651,13 +4677,21 @@ async function checkAchievements() {
   if (_checkingAchievements) return;
   _checkingAchievements = true;
   try {
-    const unlocked = _getUnlockedAchievements();
+    let unlocked = _getUnlockedAchievements();
+    let mergedOnce = false;
     let idx = 0;
     for (const a of ACHIEVEMENTS) {
       if (unlocked.has(a.id)) continue;
       let met = false;
       try { met = a.check(); } catch(e) { continue; }
       if (!met) continue;
+      // Avant le premier déblocage de la fournée : fusion avec le serveur —
+      // un autre appareil l'a peut-être déjà débloqué (et payé).
+      if (!mergedOnce) {
+        mergedOnce = true;
+        try { unlocked = await _mergeAchievementsWithCloud(); } catch (e) {}
+        if (unlocked.has(a.id)) continue;
+      }
       unlocked.add(a.id);
       localStorage.setItem('gs_achievements', JSON.stringify([...unlocked]));
       _celebrateAchievement(a, idx++);
@@ -12823,8 +12857,34 @@ function applyProfileToUI() {
 
   // Retour au premier plan : force un getSession() → le JWT expiré se
   // rafraîchit tout de suite au lieu d'expirer au milieu d'une action.
+  // Et si la session est restée ouverte longtemps (desktop), on resynchronise
+  // les quiz/XP/succès depuis le serveur : un quiz fait sur le téléphone est
+  // aussitôt marqué ✓ ici, plus de rejeu ni de double-gain.
+  let _wakeSyncLast = Date.now();
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) { try { _sb.auth.getSession(); } catch (e) {} }
+    if (document.hidden) return;
+    try { _sb.auth.getSession(); } catch (e) {}
+    const now = Date.now();
+    if (now - _wakeSyncLast < 5 * 60 * 1000) return;
+    _wakeSyncLast = now;
+    (async () => {
+      try {
+        await _syncMyQuizScoresFromCloud();
+        await _mergeAchievementsWithCloud();
+        const { data: { user } } = await _sb.auth.getUser();
+        if (user) {
+          const { data } = await _sb.from('profiles').select('xp').eq('id', user.id).single();
+          // Le serveur (rendu additif par increment_xp) ne peut que dépasser le local
+          if (data && typeof data.xp === 'number' && data.xp > (obProfile.xp || 0)) {
+            obProfile.xp = data.xp;
+            localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+            renderXpBar();
+          }
+        }
+        renderDailyQuizCard();
+        renderQuizHub();
+      } catch (e) {}
+    })();
   });
 
   // Register BEFORE any await — Supabase fires SIGNED_IN from the OAuth hash
@@ -14593,15 +14653,22 @@ function _bumpQuizStreak() {
   st.last = today;
   localStorage.setItem('gs_quiz_streak', JSON.stringify(st));
   if (st.count > 0 && st.count % 7 === 0) {
-    // Semaine complète — +100 XP, gardé anti-double multi-appareils
+    // Semaine complète — +100 XP, gardé anti-double multi-appareils (vérité serveur)
     const key = 'xp_qstreak_' + today;
     const ach = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
     if (!ach.has(key)) {
-      ach.add(key);
-      localStorage.setItem('gs_achievements', JSON.stringify([...ach]));
-      try { _sb.auth.getUser().then(({ data: { user } }) => { if (user) _sb.from('profiles').update({ achievements: [...ach] }).eq('id', user.id).then(() => {}); }); } catch (e) {}
-      gainXp(100, 'quiz_streak', '');
-      showToast(_lang === 'en' ? '🔥 7-day quiz streak! +100 XP' : '🔥 7 jours de quiz d\'affilée ! +100 XP');
+      (async () => {
+        const merged = await _mergeAchievementsWithCloud();
+        if (merged.has(key)) return; // déjà payé par un autre appareil
+        merged.add(key);
+        localStorage.setItem('gs_achievements', JSON.stringify([...merged]));
+        try {
+          const { data: { user } } = await _sb.auth.getUser();
+          if (user) _sb.from('profiles').update({ achievements: [...merged] }).eq('id', user.id).then(() => {});
+        } catch (e) {}
+        gainXp(100, 'quiz_streak', '');
+        showToast(_lang === 'en' ? '🔥 7-day quiz streak! +100 XP' : '🔥 7 jours de quiz d\'affilée ! +100 XP');
+      })();
     }
   } else {
     const left = 7 - (st.count % 7);
@@ -14754,9 +14821,12 @@ async function _awardYesterdayQuizXp() {
     localStorage.setItem('gs_qrank_checked', String(yday));
     const key = 'xp_qrank_' + yday;
     const localAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
-    if (localAch.has(key)) return; // déjà récompensé (cross-device via profiles.achievements)
+    if (localAch.has(key)) return; // déjà récompensé sur cet appareil
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
+    // Vérité serveur : un autre appareil (téléphone) a peut-être déjà attribué le podium
+    const _srvAch = await _mergeAchievementsWithCloud();
+    if (_srvAch.has(key)) return;
     await _ensureFriendsLoaded();
     const friendIds = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
     const { data: rows } = await _sb.from('quiz_scores')
@@ -14770,10 +14840,10 @@ async function _awardYesterdayQuizXp() {
     // Podium seulement s'il y a au moins 2 participants (anti-farm en solo)
     let xp = 5;
     if (ranked.length >= 2 && myRank <= 3) xp = QUIZ_RANK_XP[myRank - 1];
-    // Marque AVANT d'attribuer pour bloquer tout double-gain
-    localAch.add(key);
-    localStorage.setItem('gs_achievements', JSON.stringify([...localAch]));
-    try { _sb.from('profiles').update({ achievements: [...localAch] }).eq('id', user.id).then(() => {}); } catch (e) {}
+    // Marque AVANT d'attribuer (set FUSIONNÉ — n'écrase jamais les succès des autres appareils)
+    _srvAch.add(key);
+    localStorage.setItem('gs_achievements', JSON.stringify([..._srvAch]));
+    try { _sb.from('profiles').update({ achievements: [..._srvAch] }).eq('id', user.id).then(() => {}); } catch (e) {}
     await gainXp(xp, 'quiz_rank', '');
     const medal = myRank === 1 ? '🥇' : myRank === 2 ? '🥈' : myRank === 3 ? '🥉' : '🎖️';
     const fr = _lang !== 'en';
