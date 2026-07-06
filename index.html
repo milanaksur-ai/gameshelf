@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07j</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07k</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7876,6 +7876,7 @@ function _dedupUnassigned() {
   const seen = new Set();
   const clean = _unassignedShots.filter(x => {
     if (!x || !x.url || seen.has(x.url)) return false;
+    if (String(x.url).startsWith('blob:')) return false; // photo fantôme (ne survit jamais à un rechargement)
     seen.add(x.url); return true;
   });
   const changed = clean.length !== _unassignedShots.length;
@@ -7904,16 +7905,24 @@ async function dedupShotsByContent(manual) {
     const byHash = new Map();
     const dupes = [];
     for (const it of items) {
+      // Référence blob: (upload fantôme d'un autre appareil, jamais monté au serveur) → morte
+      if (String(it.m.url).startsWith('blob:')) { dupes.push(it); continue; }
       try {
         const res = await fetch(it.m.url, { cache: 'force-cache' });
+        if (res.status === 400 || res.status === 404) { dupes.push(it); continue; } // fichier absent du storage → lien mort
         if (!res.ok) continue;
-        const dig = await crypto.subtle.digest('SHA-1', await res.arrayBuffer());
+        const ct = res.headers.get('content-type') || '';
+        const buf = await res.arrayBuffer();
+        // Garde-fou : on ne compare que de VRAIES images — jamais une page d'erreur
+        // qui rendrait toutes les photos "identiques" et déclencherait un massacre
+        if (!ct.startsWith('image/') || buf.byteLength < 512) continue;
+        const dig = await crypto.subtle.digest('SHA-1', buf);
         const h = Array.from(new Uint8Array(dig)).map(b => b.toString(16).padStart(2, '0')).join('');
         const kept = byHash.get(h);
         if (!kept) { byHash.set(h, it); continue; }
         if (kept.kind === 'pool' && it.kind === 'game') { dupes.push(kept); byHash.set(h, it); }
         else dupes.push(it);
-      } catch (e) { /* image injoignable → on n'y touche pas */ }
+      } catch (e) { /* image injoignable (hors ligne ?) → on n'y touche pas */ }
     }
     if (!dupes.length) { if (manual) showToast('✓ Aucun doublon trouvé'); return 0; }
     const touched = new Set();
@@ -7932,7 +7941,7 @@ async function dedupShotsByContent(manual) {
     _saveUnassigned();
     for (const gid of touched) { try { await persistScreenshots(gid); } catch (e) {} }
     refreshViews();
-    showToast(`🧹 ${dupes.length} doublon${dupes.length > 1 ? 's' : ''} supprimé${dupes.length > 1 ? 's' : ''} !`);
+    showToast(`🧹 ${dupes.length} photo${dupes.length > 1 ? 's' : ''} en double ou cassée${dupes.length > 1 ? 's' : ''} nettoyée${dupes.length > 1 ? 's' : ''}`);
     return dupes.length;
   } finally { _dedupHashRunning = false; }
 }
@@ -7940,12 +7949,12 @@ async function dedupShotsByContent(manual) {
 // Auto-nettoyage une seule fois par appareil (après la synchro cloud du boot)
 setTimeout(async () => {
   try {
-    if (localStorage.getItem('gs_shots_hash_dedup_done')) return;
+    if (localStorage.getItem('gs_shots_heal2_done')) return;
     if (navigator.onLine === false) return;
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return;
     await dedupShotsByContent(false);
-    localStorage.setItem('gs_shots_hash_dedup_done', '1');
+    localStorage.setItem('gs_shots_heal2_done', '1');
   } catch (e) {}
 }, 8000);
 
@@ -8070,26 +8079,30 @@ function deleteEditedShot() {
 
 async function handleProfileScreenshot(input) {
   if (!input.files?.length) return;
-  showToast(_lang === 'en' ? 'Uploading…' : 'Envoi en cours…');
   const { data: { session } } = await _sb.auth.getSession();
-  let added = 0;
+  // Session morte → on REFUSE d'uploader : l'ancien fallback blob: créait des
+  // photos fantômes (visibles uniquement sur l'appareil, cassées partout ailleurs)
+  if (!session) {
+    input.value = '';
+    showToast('🔌 Session expirée — onglet Amis → « Se reconnecter », puis réessaie');
+    return;
+  }
+  showToast(_lang === 'en' ? 'Uploading…' : 'Envoi en cours…');
+  let added = 0, failed = 0;
   for (const file of Array.from(input.files)) {
     if (_shotCount() >= _shotLimit()) { _shotLimitToast(); break; }
     const compressed = await compressImage(file);
-    let url = null, storagePath = null;
-    if (session) {
-      const path = `${session.user.id}/unassigned/${Date.now()}_${Math.floor(Math.random()*1e4)}.jpg`;
-      const { error } = await _sb.storage.from('screenshots').upload(path, compressed, { upsert: false, contentType: 'image/jpeg' });
-      if (!error) { url = _sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl; storagePath = path; }
-    }
-    if (!url) url = URL.createObjectURL(compressed);
-    _unassignedShots.unshift({ url, storagePath, ts: Date.now() });
+    const path = `${session.user.id}/unassigned/${Date.now()}_${Math.floor(Math.random()*1e4)}.jpg`;
+    const { error } = await _sb.storage.from('screenshots').upload(path, compressed, { upsert: false, contentType: 'image/jpeg' });
+    if (error) { failed++; continue; }
+    const url = _sb.storage.from('screenshots').getPublicUrl(path).data.publicUrl;
+    _unassignedShots.unshift({ url, storagePath: path, ts: Date.now() });
     added++;
   }
   input.value = '';
-  _saveUnassigned();
-  renderProfileStats();
-  showToast(`✓ ${added} capture${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''} — ${_lang === 'en' ? 'tap to assign a game' : 'touche-les pour assigner un jeu'}`);
+  if (added) { _saveUnassigned(); renderProfileStats(); }
+  if (failed) showToast(`⚠️ ${failed} envoi${failed > 1 ? 's' : ''} échoué${failed > 1 ? 's' : ''} — vérifie ta connexion et réessaie`);
+  else if (added) showToast(`✓ ${added} capture${added > 1 ? 's' : ''} ajoutée${added > 1 ? 's' : ''} — ${_lang === 'en' ? 'tap to assign a game' : 'touche-les pour assigner un jeu'}`);
 }
 
 function closeProfileScreenshotPicker() {
