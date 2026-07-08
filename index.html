@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07m</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07n</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4221,7 +4221,15 @@ async function gainXp(amount, reason, label) {
     }
   } catch(e) {}
   // Level-up celebration
-  if (getLevel(obProfile.xp || 0).level > lvlBefore) _celebrateLevelUp(getLevel(obProfile.xp || 0));
+  const lvlAfter = getLevel(obProfile.xp || 0).level;
+  if (lvlAfter > lvlBefore) {
+    _celebrateLevelUp(getLevel(obProfile.xp || 0));
+    // Publie le passage de niveau pour le fil d'actu des amis (colonnes optionnelles)
+    try {
+      const { data:{ user } } = await _sb.auth.getUser();
+      if (user) _sb.from('profiles').update({ level: lvlAfter, level_at: new Date().toISOString() }).eq('id', user.id).then(() => {}, () => {});
+    } catch(e) {}
+  }
   checkAchievements();
 }
 
@@ -11103,9 +11111,18 @@ async function loadFriendActivity(friendIds) {
       .order('updated_at', { ascending: false }).limit(10);
     tlEvents = (tls || []).filter(l => l.is_public !== false);
   } catch (e) {}
+  // Passages de niveau récents des amis (colonnes profiles.level / level_at)
+  let lvlEvents = [];
+  try {
+    const { data: lvls } = await _sb.from('profiles').select('id,level,level_at')
+      .in('id', friendIds).gte('level_at', since)
+      .order('level_at', { ascending: false }).limit(10);
+    lvlEvents = (lvls || []).filter(p => p.level && p.level_at);
+  } catch (e) {}
   const merged = [
     ...(data || []).map((row, idx) => ({ kind: 'game', ts: row.updated_at, row, idx })),
     ...tlEvents.map(row => ({ kind: 'tl', ts: row.updated_at || row.created_at, row })),
+    ...lvlEvents.map(row => ({ kind: 'lvl', ts: row.level_at, row })),
   ].sort((a, b) => new Date(b.ts) - new Date(a.ts));
   if (!merged.length) {
     const emptySection = document.getElementById('social-activity-section');
@@ -11156,6 +11173,27 @@ async function loadFriendActivity(friendIds) {
     return `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;display:flex;flex-direction:column;flex-shrink:0">${defs.slice(0, 6).map(d => `<div style="flex:1;background:${d.bg}"></div>`).join('')}</div>`;
   };
   const actItems = merged.map(entry => {
+    if (entry.kind === 'lvl') {
+      const row = entry.row;
+      const lp = profileMap[row.id] || {};
+      const def = XP_LEVELS.find(l => l.level === row.level) || {};
+      const title = (_lang === 'en' ? def.title_en : def.title_fr) || '';
+      const parts = title.split(' ');
+      const emoji = parts[0] || '🎉';
+      const name = parts.slice(1).join(' ') || ('Niveau ' + row.level);
+      const html = `<div onclick="openFriendProfile('${row.id}')" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="position:relative;flex-shrink:0">
+          <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,rgba(108,92,231,0.25),rgba(253,121,168,0.2));display:flex;align-items:center;justify-content:center;font-size:22px">${emoji}</div>
+          <div style="position:absolute;right:-6px;bottom:-4px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({ ...lp, avatar_url: lp.avatar_url || null }, 20)}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${lp.username || 'Gamer'}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached' : 'est passé'}</span> <span style="font-weight:600">${_lang === 'en' ? 'level' : 'niveau'} ${row.level} · ${emoji} ${name}</span></div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeAgo(entry.ts)}</div>
+        </div>
+        <div style="width:26px;height:26px;border-radius:50%;background:rgba(108,92,231,0.18);color:var(--a);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">⬆</div>
+      </div>`;
+      return { grp: _actDayGroup(entry.ts), html };
+    }
     if (entry.kind === 'tl') {
       const l = entry.row;
       const tp = profileMap[l.user_id] || {};
@@ -11219,6 +11257,22 @@ async function loadFriendActivity(friendIds) {
     }
   }
   if (homeList) homeList.innerHTML = merged.slice(0,3).map(entry => {
+    if (entry.kind === 'lvl') {
+      const row = entry.row;
+      const lp = profileMap[row.id] || {};
+      const def = XP_LEVELS.find(l => l.level === row.level) || {};
+      const title = (_lang === 'en' ? def.title_en : def.title_fr) || '';
+      const parts = title.split(' ');
+      const emoji = parts[0] || '🎉';
+      const name = parts.slice(1).join(' ') || ('Niveau ' + row.level);
+      return `<div onclick="openFriendProfile('${row.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="position:relative;flex-shrink:0">
+          <div style="width:30px;height:40px;border-radius:6px;background:linear-gradient(135deg,rgba(108,92,231,0.25),rgba(253,121,168,0.2));display:flex;align-items:center;justify-content:center;font-size:17px">${emoji}</div>
+          <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...lp, avatar_url: lp.avatar_url||null}, 16)}</div>
+        </div>
+        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${lp.username||'Gamer'}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached level' : 'est passé niveau'}</span> <span style="font-weight:600">${row.level} · ${emoji} ${name}</span></div>
+      </div>`;
+    }
     const p = profileMap[entry.row.user_id] || {};
     if (entry.kind === 'tl') {
       const l = entry.row;
