@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07l</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07m</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3685,6 +3685,7 @@ const LANG = {
       no_friends:'Cherche des amis par pseudo ci-dessus',
       request:'demande', requests:'demandes',
     },
+    levelup: { header:'✦ Niveau supérieur ✦', cta:'Continuer →' },
   },
   en: {
     status: {
@@ -3943,6 +3944,7 @@ const LANG = {
       no_friends:'Search for friends by username above',
       request:'request', requests:'requests',
     },
+    levelup: { header:'✦ Level up ✦', cta:'Continue →' },
     faq: {
       q1:'How do I add a game?',
       a1:'Tap the <strong>+</strong> button at the top of your library, search for a title and select the game.',
@@ -4086,14 +4088,20 @@ function setLang(l) {
 }
 
 function applyLangToDOM() {
+  // Filet de sécurité : si une clé manque du dictionnaire, t() renvoie la clé
+  // brute. On NE l'écrit JAMAIS dans le DOM — on garde le texte par défaut du
+  // HTML. Ça évite d'afficher des balises comme « levelup.cta » à l'écran.
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    el.textContent = t(el.dataset.i18n);
+    const v = t(el.dataset.i18n);
+    if (v !== el.dataset.i18n) el.textContent = v;
   });
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
-    el.innerHTML = t(el.dataset.i18nHtml);
+    const v = t(el.dataset.i18nHtml);
+    if (v !== el.dataset.i18nHtml) el.innerHTML = v;
   });
   document.querySelectorAll('[data-i18n-ph]').forEach(el => {
-    el.placeholder = t(el.dataset.i18nPh);
+    const v = t(el.dataset.i18nPh);
+    if (v !== el.dataset.i18nPh) el.placeholder = v;
   });
   document.querySelectorAll('[data-lang]').forEach(btn => {
     const active = btn.dataset.lang === _lang;
