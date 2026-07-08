@@ -2224,7 +2224,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07n</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07o</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10811,6 +10811,8 @@ function renderFriendProfile(friend) {
 
 async function openFriendGamePopup(idx) {
   const g = _fpAllGames[idx];
+  _fpNoteText = g.notes || '';   // texte original de la note, pour le bouton Traduire
+  _fpNoteShown = 'original';
   const gid = g.id || String(g.game_id || '');
   const mine = gid ? (_fpMyGames[gid] || null) : null;
   const profileName = _fpProfile?.username || 'Ami';
@@ -10837,7 +10839,10 @@ async function openFriendGamePopup(idx) {
     </div>
     ${(()=>{const vibeKeys=_vibeArr(g.vibe);const chips=vibeKeys.map(k=>VIBES.find(v=>v.key===k)).filter(Boolean).map(v=>`<span style="font-size:11px;padding:3px 9px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.'+v.key)}</span>`).join('');return chips?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${chips}</div>`:''})()}
     ${mine ? `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:13px"><span style="color:var(--muted2)">${t('friend.mine')} : </span><span style="font-weight:600">${FP_SL[mine.status]||mine.status}</span>${mine.score ? `<span style="color:var(--amber);font-weight:700"> · ★${mine.score}</span>` : ''}</div>` : `<div style="font-size:12px;color:var(--muted2);font-style:italic;margin-bottom:12px">${t('friend.not_in_lib')}</div>`}
-    ${g.notes ? `<div style="border-left:3px solid var(--a);border-radius:0 10px 10px 0;background:rgba(108,92,231,0.07);padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${g.notes}"</div>` : ''}
+    ${g.notes ? `<div style="border-left:3px solid var(--a);border-radius:0 10px 10px 0;background:rgba(108,92,231,0.07);padding:10px 14px;margin-bottom:12px">
+      <div id="fp-note-text" style="font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${_esc(g.notes)}"</div>
+      <button id="fp-note-tr-btn" onclick="_fpToggleTranslateNote()" style="margin-top:8px;background:none;border:none;padding:0;font-size:12px;font-weight:700;color:var(--a);cursor:pointer;font-style:normal">🌐 ${_lang === 'en' ? 'Translate' : 'Traduire'}</button>
+    </div>` : ''}
     ${screenshotHtml}
     ${mine
       ? `<button onclick="closeFriendGamePopup();openDetail('${gid}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
@@ -10870,6 +10875,53 @@ async function openFriendGamePopup(idx) {
   el.innerHTML = buildHtml(screenshotHtml);
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
+
+// ── Traduction des notes d'amis (Google gtx, gratuit) ─────────────────────
+let _fpNoteText = '';
+let _fpNoteShown = 'original';
+async function _translateText(text, target) {
+  try {
+    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
+      + encodeURIComponent(target) + '&dt=t&q=' + encodeURIComponent(text);
+    const r = await fetch(url);
+    if (!r.ok) return null;
+    const j = await r.json();
+    if (!Array.isArray(j) || !Array.isArray(j[0])) return null;
+    const translated = j[0].map(seg => (seg && seg[0]) || '').join('');
+    return { text: translated, detected: j[2] || null };
+  } catch (e) { return null; }
+}
+async function _fpToggleTranslateNote() {
+  const txtEl = document.getElementById('fp-note-text');
+  const btn = document.getElementById('fp-note-tr-btn');
+  if (!txtEl || !btn) return;
+  const fr = _lang !== 'en';
+  // Déjà traduit → on remet l'original
+  if (_fpNoteShown === 'translated') {
+    txtEl.textContent = '"' + _fpNoteText + '"';
+    btn.textContent = '🌐 ' + (fr ? 'Traduire' : 'Translate');
+    _fpNoteShown = 'original';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = fr ? 'Traduction…' : 'Translating…';
+  const res = await _translateText(_fpNoteText, _lang);
+  btn.disabled = false;
+  if (!res || !res.text) {
+    btn.textContent = fr ? '⚠️ Indisponible' : '⚠️ Unavailable';
+    setTimeout(() => { btn.textContent = '🌐 ' + (fr ? 'Traduire' : 'Translate'); }, 2200);
+    return;
+  }
+  // Déjà dans ma langue → on le signale plutôt que d'afficher un texte identique
+  if (res.detected && res.detected === _lang && res.text.trim() === _fpNoteText.trim()) {
+    btn.textContent = fr ? '✓ Déjà en français' : '✓ Already in English';
+    setTimeout(() => { btn.textContent = '🌐 ' + (fr ? 'Traduire' : 'Translate'); }, 2200);
+    return;
+  }
+  txtEl.textContent = '"' + res.text + '"';
+  btn.textContent = fr ? "Voir l'original" : 'See original';
+  _fpNoteShown = 'translated';
+}
 
 // Fiche jeu universelle : ouvre la vraie fiche (trailer, notation…) même si le jeu
 // n'est pas dans ma bibliothèque — réutilise le mécanisme temp de recoOpenDetail.
