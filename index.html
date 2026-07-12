@@ -2242,7 +2242,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07p</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07q</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -14584,17 +14584,29 @@ function _quizSeededRng(seed) {
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
+// Ordre maître STABLE de tout le pool (seed fixe) → identique pour tous les
+// joueurs et tous les appareils (indispensable pour les classements du jour).
+const _QUIZ_MASTER_SEED = 0x9E3779B1 | 0;
+function _quizMasterOrder() {
+  const rng = _quizSeededRng(_QUIZ_MASTER_SEED);
+  return QUIZ_DATA.map(q => ({ q, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.q);
+}
+// Fenêtre glissante continue sur l'ordre maître : chaque jour avance de
+// QUIZ_PER_DAY dans l'anneau, + une dérive d'un cran par cycle pour éviter un
+// planning identique tous les N jours. Garantit qu'un quiz ne revient jamais
+// avant que quasiment tout le pool soit passé (~11-12 jours pour 60 quiz),
+// au lieu de l'ancien re-mélange par cycle qui pouvait répéter à 1 jour d'écart.
 function getDailyQuizzes() {
+  const master = _quizMasterOrder();
+  const n = master.length;
+  if (!n) return [];
   const day = _quizDayIndex();
-  const slotsPerCycle = Math.max(1, Math.floor(QUIZ_DATA.length / QUIZ_PER_DAY));
+  const slotsPerCycle = Math.max(1, Math.floor(n / QUIZ_PER_DAY));
   const cycle = Math.floor(day / slotsPerCycle);
-  const slot  = day % slotsPerCycle;
-  const rng = _quizSeededRng(cycle + 1);
-  const order = QUIZ_DATA
-    .map(q => ({ q, r: rng() }))
-    .sort((a, b) => a.r - b.r)
-    .map(x => x.q);
-  return order.slice(slot * QUIZ_PER_DAY, slot * QUIZ_PER_DAY + QUIZ_PER_DAY);
+  const start = (((day + cycle) * QUIZ_PER_DAY) % n + n) % n;
+  const out = [];
+  for (let i = 0; i < QUIZ_PER_DAY; i++) out.push(master[(start + i) % n]);
+  return out;
 }
 function _hoursUntilNextRotation() {
   return Math.max(1, Math.ceil(((_quizDayIndex() + 1) * 86400000 - Date.now()) / 3600000));
