@@ -1562,6 +1562,9 @@ html, body {
         <div class="lib-title" id="lib-title" data-i18n="lib.title">Ma bibliothèque</div>
         <div style="display:flex;align-items:center;gap:10px">
           <div class="lib-count" id="lib-count"></div>
+          <button onclick="openLibShots()" style="width:32px;height:32px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Mes captures d'écran">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </button>
           <button onclick="openAddModal()" style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0" title="Ajouter un jeu">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </button>
@@ -1586,6 +1589,21 @@ html, body {
       </div>
     </div>
     <div class="scroll-area"><div class="game-grid" id="game-grid"></div></div>
+  </div>
+
+  <!-- LIBRARY SCREENSHOTS (accordéon par jeu) -->
+  <div id="lib-shots-modal" style="display:none;position:fixed;inset:0;z-index:640;background:var(--bg);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;border-bottom:0.5px solid var(--border);flex-shrink:0">
+      <button onclick="closeLibShots()" style="width:34px;height:34px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
+      </button>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">📷 Mes captures</div>
+        <div id="lib-shots-sub" style="font-size:11px;color:var(--muted2);margin-top:1px"></div>
+      </div>
+      <button onclick="uploadProfileScreenshots()" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff;cursor:pointer;flex-shrink:0;font-weight:300">+</button>
+    </div>
+    <div id="lib-shots-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 16px calc(24px + env(safe-area-inset-bottom))"></div>
   </div>
 
   <!-- QUIZ + TIER LIST HUB -->
@@ -2224,7 +2242,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07o</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07p</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7883,6 +7901,106 @@ async function removeMedia(gameId, idx) {
   renderFeed();
 }
 
+// ── CAPTURES DANS LA BIBLIOTHÈQUE : accordéon par jeu (style Apple) ─────────
+const _libShotsOpen = new Set(); // ids des sections dépliées (persistent tant que le modal vit)
+function openLibShots() {
+  const m = document.getElementById('lib-shots-modal');
+  if (!m) return;
+  renderLibShots();
+  m.style.display = 'flex';
+}
+function closeLibShots() {
+  const m = document.getElementById('lib-shots-modal');
+  if (m) m.style.display = 'none';
+}
+function _libShotsToggle(id) {
+  if (_libShotsOpen.has(id)) _libShotsOpen.delete(id); else _libShotsOpen.add(id);
+  const body = document.getElementById('lib-acc-body-' + id);
+  const chev = document.getElementById('lib-acc-chev-' + id);
+  if (!body) return;
+  const open = _libShotsOpen.has(id);
+  body.style.maxHeight = open ? body.scrollHeight + 'px' : '0px';
+  body.style.opacity = open ? '1' : '0';
+  if (chev) chev.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+// Réaffiche l'accordéon si le modal est ouvert (après un upload / une assignation)
+function _refreshLibShotsIfOpen() {
+  const m = document.getElementById('lib-shots-modal');
+  if (m && m.style.display === 'flex') renderLibShots();
+}
+function renderLibShots() {
+  const body = document.getElementById('lib-shots-body');
+  const sub = document.getElementById('lib-shots-sub');
+  if (!body) return;
+  // Groupes : « À trier » d'abord, puis un groupe par jeu ayant des captures
+  const groups = [];
+  if (_unassignedShots.length) {
+    groups.push({ id: '__uns__', kind: 'uns', title: _lang === 'en' ? 'To sort' : 'À trier',
+      emoji: '📌', count: _unassignedShots.length, cover: _unassignedShots[0]?.url || null });
+  }
+  Object.entries(gameMedia).forEach(([gid, items]) => {
+    if (!items || !items.length) return;
+    const g = GAMES.find(x => x.id === gid);
+    groups.push({ id: gid, kind: 'game', title: g?.title || (_lang === 'en' ? 'Game' : 'Jeu'),
+      count: items.length, cover: (g && coverUrl(g)) || items[0].url });
+  });
+  const total = groups.reduce((n, g) => n + g.count, 0);
+  const gameCount = groups.filter(g => g.kind === 'game').length;
+  if (sub) sub.textContent = total
+    ? `${total} ${total > 1 ? (_lang === 'en' ? 'screenshots' : 'captures') : (_lang === 'en' ? 'screenshot' : 'capture')}${gameCount ? ` · ${gameCount} ${gameCount > 1 ? (_lang === 'en' ? 'games' : 'jeux') : (_lang === 'en' ? 'game' : 'jeu')}` : ''}`
+    : '';
+  if (!groups.length) {
+    body.innerHTML = `<div onclick="uploadProfileScreenshots()" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:48px 24px;color:var(--muted2);text-align:center;cursor:pointer">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <div style="font-size:14px;font-weight:600">${_lang === 'en' ? 'No screenshots yet' : "Aucune capture pour l'instant"}</div>
+      <div style="font-size:12px">${_lang === 'en' ? 'Tap to add your first one' : 'Touche pour en ajouter une'}</div>
+    </div>`;
+    return;
+  }
+  // 1re section dépliée par défaut à la toute première ouverture
+  if (!_libShotsOpen.size && groups[0]) _libShotsOpen.add(groups[0].id);
+  body.innerHTML = groups.map(gr => {
+    const open = _libShotsOpen.has(gr.id);
+    const isUns = gr.kind === 'uns';
+    const cover = gr.cover
+      ? `<img src="${gr.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+      : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>`;
+    const shots = isUns
+      ? _unassignedShots.map((sh, i) => `
+        <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--s3);cursor:pointer;border:1.5px dashed rgba(108,92,231,0.5)" onclick="openProfileLightbox(${i})">
+          <img src="${sh.url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
+          <div onclick="event.stopPropagation();openAssignShotPicker(${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
+        </div>`).join('')
+      : (gameMedia[gr.id] || []).map((m, i) => `
+        <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--s3);cursor:pointer" onclick="openLightbox('${gr.id}',${i})">
+          <img src="${m.url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
+          <div onclick="event.stopPropagation();openManageShot('${gr.id}',${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
+        </div>`).join('');
+    return `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;margin-bottom:10px;overflow:hidden">
+      <div onclick="_libShotsToggle('${gr.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0;${isUns ? 'border:1.5px dashed rgba(108,92,231,0.5)' : ''}">${cover}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap${isUns ? ';color:var(--a)' : ''}">${isUns ? gr.emoji + ' ' : ''}${_esc(gr.title)}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:1px">${gr.count} ${gr.count > 1 ? (_lang === 'en' ? 'screenshots' : 'captures') : (_lang === 'en' ? 'screenshot' : 'capture')}</div>
+        </div>
+        <div id="lib-acc-chev-${gr.id}" style="color:var(--muted2);flex-shrink:0;transition:transform 0.25s ease;transform:rotate(${open ? 90 : 0}deg)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
+        </div>
+      </div>
+      <div id="lib-acc-body-${gr.id}" style="max-height:${open ? '2000px' : '0px'};opacity:${open ? 1 : 0};overflow:hidden;transition:max-height 0.32s ease,opacity 0.25s ease">
+        <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:4px 12px 14px">${shots}</div>
+      </div>
+    </div>`;
+  }).join('');
+  // Ajuste les hauteurs réelles après rendu (pour l'anim d'ouverture ultérieure)
+  requestAnimationFrame(() => {
+    groups.forEach(gr => {
+      const b = document.getElementById('lib-acc-body-' + gr.id);
+      if (b && _libShotsOpen.has(gr.id)) b.style.maxHeight = b.scrollHeight + 'px';
+    });
+  });
+}
+
 // ── SCREENSHOTS : galerie libre + assignation différée ─────────────────────
 // On uploade d'abord (sans jeu), on assigne plus tard depuis la galerie.
 let _unassignedShots = JSON.parse(localStorage.getItem('gs_unassigned_shots') || '[]'); // [{url, storagePath, ts}]
@@ -8345,6 +8463,7 @@ async function deleteSavedTierList(id) {
 }
 
 function renderProfileStats() {
+  _refreshLibShotsIfOpen(); // garde l'accordéon captures de la biblio à jour après upload/assignation
   const all      = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
   const playing  = all.filter(g => isPlaying(g.status)).length;
   const paused   = all.filter(g => g.status === 'paused').length;
