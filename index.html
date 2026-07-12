@@ -2242,7 +2242,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07q</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07r</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -14575,7 +14575,82 @@ function getQuizRank(score, total) {
 // jour (indispensable pour les défis entre amis). Chaque quiz apparaît une
 // fois par cycle (60 quiz / 5 = 12 jours), l'ordre est remélangé à chaque cycle.
 const QUIZ_PER_DAY = 5;
+// ── Classement quiz GLOBAL (tous les joueurs, pas seulement les amis) ──────
+// DORMANT tant que false. À activer quand la base d'utilisateurs sera assez
+// grande (un classement global à 9 joueurs n'a aucun intérêt). Prérequis avant
+// activation : la RLS de quiz_scores doit autoriser la lecture des scores des
+// autres joueurs (aujourd'hui probablement limitée à soi + amis).
+let QUIZ_GLOBAL_LB = false;
 function _quizDayIndex() { return Math.floor(Date.now() / 86400000); }
+
+// Récupère TOUS les scores du jour pour un quiz + les profils publics associés.
+async function _fetchGlobalQuizScores(quizId) {
+  const { data: { user } } = await _sb.auth.getUser();
+  if (!user) return null;
+  try {
+    const { data } = await _sb.from('quiz_scores')
+      .select('user_id,quiz_id,score,total,answers,created_at')
+      .eq('day_index', _quizDayIndex()).eq('quiz_id', quizId)
+      .order('score', { ascending: false }).order('created_at', { ascending: true })
+      .limit(100);
+    const rows = data || [];
+    const ids = [...new Set(rows.map(r => r.user_id))];
+    let profMap = {};
+    if (ids.length) {
+      const { data: profs } = await _sb.from('profiles')
+        .select('id,username,avatar,avatar_grad,avatar_url,is_public').in('id', ids);
+      (profs || []).forEach(p => { profMap[p.id] = p; });
+    }
+    return { rows, myId: user.id, profMap };
+  } catch (e) { return { rows: [], myId: user.id, profMap: {} }; }
+}
+// Nom / avatar pour un classement global (résolus depuis les profils chargés)
+function _gqName(uid, myId, profMap) {
+  if (uid === myId) return _lang === 'en' ? 'You' : 'Toi';
+  const p = profMap[uid];
+  if (p && p.is_public !== false && p.username) return p.username;
+  return _lang === 'en' ? 'Player' : 'Joueur';
+}
+function _gqAv(uid, myId, profMap) {
+  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl }, 30);
+  const p = profMap[uid] || {};
+  return _friendAvHtml(p.is_public !== false ? p : {}, 30);
+}
+// Rendu du classement GLOBAL d'un quiz (utilisé quand QUIZ_GLOBAL_LB est actif)
+async function _renderGlobalQuizLb(quizId) {
+  const fr = _lang !== 'en';
+  const list = document.getElementById('qlb-list');
+  const data = await _fetchGlobalQuizScores(quizId);
+  if (!data) { list.innerHTML = ''; return; }
+  // Tri défensif (score décroissant, puis plus rapide) — n'assume pas l'ordre serveur
+  const rows = (data.rows || []).slice().sort((a, b) =>
+    (b.score - a.score) || (new Date(a.created_at) - new Date(b.created_at)));
+  document.getElementById('qlb-sub').textContent = fr
+    ? `🌍 Classement mondial du jour · ${rows.length} joueur${rows.length > 1 ? 's' : ''}`
+    : `🌍 Global ranking today · ${rows.length} player${rows.length > 1 ? 's' : ''}`;
+  if (!rows.length) {
+    list.innerHTML = `<div style="text-align:center;padding:24px 0;color:var(--muted2);font-size:13px">${fr ? "Personne n'a encore joué ce quiz aujourd'hui" : 'No one played this quiz today yet'}</div>`;
+    return;
+  }
+  const myRow = rows.find(r => r.user_id === data.myId);
+  const myRank = myRow ? rows.indexOf(myRow) + 1 : null;
+  const medals = ['🥇', '🥈', '🥉'];
+  // Top 20 + ma ligne si hors du top
+  const shown = rows.slice(0, 20);
+  if (myRow && myRank > 20) shown.push(myRow);
+  list.innerHTML = shown.map((r) => {
+    const rank = rows.indexOf(r) + 1;
+    const isMe = r.user_id === data.myId;
+    const pub = (data.profMap[r.user_id] || {}).is_public !== false;
+    const clickable = !isMe && pub;
+    return `<div ${clickable ? `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${r.user_id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"` : ''} style="display:flex;align-items:center;gap:10px;background:${isMe ? 'rgba(108,92,231,0.1)' : 'var(--s2)'};border:0.5px solid ${isMe ? 'rgba(108,92,231,0.35)' : 'var(--border2)'};border-radius:12px;padding:10px 12px${clickable ? ';cursor:pointer' : ''}">
+      <div style="width:26px;text-align:center;font-size:${rank <= 3 ? '16px' : '12px'};font-weight:800;color:var(--muted2)">${medals[rank - 1] || rank}</div>
+      ${_gqAv(r.user_id, data.myId, data.profMap)}
+      <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_gqName(r.user_id, data.myId, data.profMap))}${isMe && myRank ? ` <span style="color:var(--muted2);font-weight:600">· #${myRank}</span>` : ''}</div>
+      <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${r.score}/${r.total}</div>
+    </div>`;
+  }).join('');
+}
 function _quizSeededRng(seed) {
   return function() {
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -14714,6 +14789,8 @@ async function openQuizLb(quizId) {
   const list = document.getElementById('qlb-list');
   list.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted2);font-size:13px">${t('toast.loading')}</div>`;
   document.getElementById('quiz-lb-modal').style.display = 'flex';
+  // Classement global (dormant tant que QUIZ_GLOBAL_LB === false)
+  if (QUIZ_GLOBAL_LB) { _qlbData = { quizId, global: true }; return _renderGlobalQuizLb(quizId); }
   const data = await _fetchTodayQuizScores();
   if (!data) { list.innerHTML = ''; return; }
   const rows = data.rows.filter(r => r.quiz_id === quizId).sort((a, b) => b.score - a.score);
