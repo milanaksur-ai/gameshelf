@@ -2117,6 +2117,17 @@ html, body {
                 </div>
               </button>
               <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <button id="private-toggle" data-on="0" onclick="togglePrivateAccount(this)" style="width:100%;background:none;border:none;padding:13px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;text-align:left">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🔒</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.private">Compte privé</div>
+                  <div style="font-size:11px;color:var(--muted2);margin-top:1px" data-i18n="settings.private_sub">N'apparais dans aucun classement public ni suggestion</div>
+                </div>
+                <div class="pn-track" style="width:40px;height:24px;border-radius:12px;background:var(--s3);position:relative;transition:background 0.2s;flex-shrink:0">
+                  <div class="pn-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s"></div>
+                </div>
+              </button>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
               <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
                 <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🌐</div>
                 <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)" data-i18n="lang_name">Langue</div>
@@ -2242,7 +2253,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07r</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.7 · build 05.07s</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3442,6 +3453,7 @@ const LANG = {
       title:'Paramètres', feedback:'Envoyer un feedback',
       feedback_sub:'Bug, suggestion, idée — tout est bienvenu',
       notifs:'Notifications', notifs_sub:'Demandes d\'amis et récap hebdo',
+      private:'Compte privé', private_sub:'N\'apparais dans aucun classement public ni suggestion',
       cache:'Vider le cache et recharger', cache_sub:'Force le rechargement de la dernière version',
       share:'Partager GameShelf', share_sub:'Inviter un ami à rejoindre',
       export:'Exporter ma bibliothèque', export_sub:'Télécharger en CSV',
@@ -3810,6 +3822,7 @@ const LANG = {
       title:'Settings', feedback:'Send feedback',
       feedback_sub:'Bug, suggestion, idea — all welcome',
       notifs:'Notifications', notifs_sub:'Friend requests & weekly recap',
+      private:'Private account', private_sub:'Hidden from all public rankings & suggestions',
       cache:'Clear cache & reload', cache_sub:'Force reload to the latest version',
       share:'Share GameShelf', share_sub:'Invite a friend to join',
       export:'Export my library', export_sub:'Download as CSV',
@@ -4823,6 +4836,38 @@ function _setPushToggleUI(el, on) {
   const knob  = el.querySelector('.pn-knob');
   if (track) track.style.background = on ? 'var(--a)' : 'var(--s3)';
   if (knob)  knob.style.transform = on ? 'translateX(16px)' : '';
+}
+
+// ── Compte privé : n'apparaît dans aucun classement/suggestion publics ──────
+function _setPrivateToggleUI(el, isPrivate) {
+  if (!el) return;
+  el.dataset.on = isPrivate ? '1' : '0';
+  const track = el.querySelector('.pn-track');
+  const knob  = el.querySelector('.pn-knob');
+  if (track) track.style.background = isPrivate ? 'var(--a)' : 'var(--s3)';
+  if (knob)  knob.style.transform = isPrivate ? 'translateX(16px)' : '';
+}
+async function togglePrivateAccount(el) {
+  const nowPublic = obProfile.isPublic !== false;
+  const makePrivate = nowPublic; // on inverse
+  obProfile.isPublic = !makePrivate;
+  _setPrivateToggleUI(el, makePrivate);
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  showToast(makePrivate
+    ? (_lang === 'en' ? '🔒 Private account — hidden from public rankings' : '🔒 Compte privé — masqué des classements publics')
+    : (_lang === 'en' ? '🌍 Public account' : '🌍 Compte public'));
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    if (user) {
+      const { error } = await _sb.from('profiles').update({ is_public: obProfile.isPublic }).eq('id', user.id);
+      if (error) { // colonne absente ? on revient en arrière proprement
+        obProfile.isPublic = nowPublic;
+        _setPrivateToggleUI(el, !nowPublic);
+        localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+        showToast(_lang === 'en' ? '⚠️ Could not save — try again' : '⚠️ Enregistrement impossible — réessaie');
+      }
+    }
+  } catch (e) {}
 }
 
 async function togglePushNotifs(el) {
@@ -5938,6 +5983,7 @@ async function onAuthSuccess(user) {
         xp: profile.xp || 0,
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
         profileBg: profile.profile_bg || null,
+        isPublic: profile.is_public !== false,
       };
       // Sync Supabase achievements → localStorage so they don't re-fire on a new device
       if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
@@ -6484,6 +6530,7 @@ async function syncFromSupabase(user) {
         xp: profile.xp || obProfile.xp || 0,
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : (obProfile.pinnedAchievements || []),
         profileBg: profile.profile_bg !== undefined ? profile.profile_bg : (obProfile.profileBg || null),
+        isPublic: profile.is_public !== undefined ? (profile.is_public !== false) : (obProfile.isPublic !== false),
       };
       // Merge Supabase achievements into localStorage (cross-device sync)
       if (Array.isArray(profile.achievements) && profile.achievements.length > 0) {
@@ -13051,6 +13098,7 @@ function applyProfileToUI() {
   renderPinnedAchievements();
   renderProfileBgPicker();
   applyProfileBg();
+  _setPrivateToggleUI(document.getElementById('private-toggle'), obProfile.isPublic === false);
   // Show active account email
   _sb.auth.getSession().then(({ data: { session } }) => {
     const email = session?.user?.email;
