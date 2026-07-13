@@ -2285,7 +2285,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07h</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07i</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4296,12 +4296,14 @@ function _avFrame(level) {
 
 // ── Thèmes d'accent de l'app, débloqués par palier ──
 const APP_THEMES = [
-  { key: 'violet',   name_fr: 'Violet',   name_en: 'Violet',  a: '#6c5ce7', a2: '#fd79a8', min: 0 },
-  { key: 'emeraude', name_fr: 'Émeraude', name_en: 'Emerald', a: '#00b894', a2: '#55efc4', min: 5 },
-  { key: 'crimson',  name_fr: 'Crimson',  name_en: 'Crimson', a: '#d63031', a2: '#ff7675', min: 6 },
-  { key: 'ambre',    name_fr: 'Ambre',    name_en: 'Amber',   a: '#e17055', a2: '#fdcb6e', min: 7 },
-  { key: 'cyan',     name_fr: 'Cyan',     name_en: 'Cyan',    a: '#00cec9', a2: '#81ecec', min: 8 },
-  { key: 'or',       name_fr: 'Or',       name_en: 'Gold',    a: '#d4af37', a2: '#ffeaa7', min: 9 },
+  // Tons bijou adoucis, calibrés sur le duo d'origine (principal mi-vif + pastel) :
+  // aucune couleur « primaire » qui tache sur le fond violet profond.
+  { key: 'violet',   name_fr: 'Violet',   name_en: 'Violet',   a: '#6c5ce7', a2: '#fd79a8', min: 0 },
+  { key: 'emeraude', name_fr: 'Émeraude', name_en: 'Emerald',  a: '#34d399', a2: '#a7f3d0', min: 5 },
+  { key: 'crimson',  name_fr: 'Rosewood', name_en: 'Rosewood', a: '#fb7185', a2: '#fecdd3', min: 6 },
+  { key: 'ambre',    name_fr: 'Pêche',    name_en: 'Peach',    a: '#fb923c', a2: '#fed7aa', min: 7 },
+  { key: 'cyan',     name_fr: 'Glacier',  name_en: 'Glacier',  a: '#38bdf8', a2: '#bae6fd', min: 8 },
+  { key: 'or',       name_fr: 'Champagne', name_en: 'Champagne', a: '#e3b341', a2: '#f5dea0', min: 9 },
 ];
 function applyAccentTheme() {
   const key = localStorage.getItem('gs_accent') || 'violet';
@@ -10748,9 +10750,8 @@ function renderSocialLeaderboard() {
     const border = e.isMe ? 'border:1.5px solid var(--a)' : _gold ? 'border:1px solid rgba(255,202,40,0.55)' : 'border:0.5px solid var(--border2)';
     const bg = e.isMe ? 'background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(162,155,254,0.08))' : 'background:var(--s1)';
     const grad = e.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-    const av = e.avatar_url
-      ? `<div style="width:36px;height:36px;border-radius:50%;overflow:hidden;flex-shrink:0"><img src="${e.avatar_url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${e.avatar||'🎮'}';this.parentElement.style='width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px'"></div>`
-      : `<div style="width:36px;height:36px;border-radius:50%;background:${grad};display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${e.avatar||'🎮'}</div>`;
+    // _friendAvHtml → cadres de palier et aura Légende visibles dans le classement
+    const av = _friendAvHtml(e, 36);
     return `<div ${e.isMe ? '' : `onclick="openFriendProfile('${e.id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px${e.isMe ? '' : ';cursor:pointer;transition:opacity 0.15s'}">
       <div style="width:24px;text-align:center;font-size:${i<3?18:13}px;font-weight:700;flex-shrink:0${i>=3?';color:var(--muted2)':''}">${medal}</div>
       ${av}
