@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -15405,37 +15405,50 @@ function openDailyQuizzes() {
 // le monde), vote en 1 tap, résultats en % façon Twitter. Les votes s'accumulent
 // 7 jours : les pourcentages restent vivants même avec peu de joueurs.
 const WEEKLY_POLLS = [
-  { q: 'Manette ou clavier-souris ?', opts: ['🎮 Manette', '⌨️ Clavier-souris', '🤷 Ça dépend du jeu'] },
-  { q: 'Le boss le plus mythique ?', opts: ['🌸 Malenia', '🐷 Ganon', '🪽 Sephiroth', '⚔️ Ornstein & Smough'] },
-  { q: 'Open-world : trop, c\'est trop ?', opts: ['🗺️ Toujours plus grand', '😮‍💨 Overdose totale', '✨ Seulement les excellents'] },
-  { q: 'Un jeu est « terminé » quand…', opts: ['🎬 Crédits vus', '💯 100% / platine', '😴 Quand je m\'ennuie'] },
-  { q: 'Les DLC à 40 € :', opts: ['🤬 Scandale', '🤔 OK si gros contenu', '💳 J\'achète direct'] },
-  { q: 'Ton format préféré ?', opts: ['🎯 Solo 15-20h dense', '🗺️ 100h open-world', '👥 Multi entre potes', '🔁 Roguelike infini'] },
-  { q: 'Le meilleur studio du moment ?', opts: ['🔥 FromSoftware', '🍄 Nintendo', '🎲 Larian', '💎 Rockstar'] },
-  { q: 'Tu peux n\'en garder qu\'une à vie :', opts: ['🗡️ Zelda', '🚗 GTA', '⛏️ Minecraft', '⚽ EA FC'] },
-  { q: 'Le pire crime de gamer ?', opts: ['⏭️ Skip les cinématiques', '😤 Rage quit en ranked', '🛒 Acheter sans jamais lancer', '🗣️ Spoiler sans prévenir'] },
-  { q: 'La difficulté idéale ?', opts: ['🌶️ Souls-like ou rien', '⚖️ Normal bien réglé', '📖 Facile, je suis là pour l\'histoire'] },
-  { q: 'Remaster, remake ou du neuf ?', opts: ['🆕 Du neuf, toujours', '🔨 Remake total', '✨ Remaster si le prix suit'] },
-  { q: 'Le jeu le plus surcoté de tous les temps ?', opts: ['🤠 RDR2', '🧝 Skyrim', '⚔️ Elden Ring', '🚴 GTA V'] },
-  { q: 'Ta position sur le New Game+ ?', opts: ['🔁 Obligatoire, je relance direct', '😅 Jamais touché', '🤷 Selon le jeu'] },
-  { q: 'Jouer en mobile, ça compte ?', opts: ['✅ Un jeu est un jeu', '❌ Pas du vrai gaming', '🃏 Seulement les bons portages'] },
-  { q: 'Le meilleur écran de gaming ?', opts: ['📺 TV du salon', '🖥️ Moniteur 144Hz+', '🛋️ Portable au lit'] },
-  { q: 'Les microtransactions cosmétiques :', opts: ['💅 Aucun souci si cosmétique', '🚫 Jamais un centime', '😳 J\'ai déjà craqué…'] },
-  { q: 'Ton rapport au backlog ?', opts: ['📚 Il grandit plus vite que je joue', '✅ Maîtrisé, je finis avant d\'acheter', '🫣 On n\'en parle pas'] },
-  { q: 'Le meilleur perso de tous les temps ?', opts: ['🐺 Geralt', '🔧 Arthur Morgan', '🧝 Link', '👩 Aloy'] },
-  { q: 'Cracker un vieux jeu abandonné :', opts: ['🏴‍☠️ Préservation légitime', '⚖️ Zone grise', '🚫 Ça reste du vol'] },
-  { q: 'Le jeu qui t\'a fait pleurer ?', opts: ['🚂 The Last of Us', '🎗️ RDR2', '🌸 Nier Automata', '💧 Aucun, cœur de pierre'] },
-  { q: 'Une seule console pour toujours :', opts: ['🎮 PlayStation', '🟩 Xbox', '🍄 Switch', '🖥️ Le PC et rien d\'autre'] },
-  { q: 'Les jeux en accès anticipé :', opts: ['🌱 J\'adore voir grandir', '⏳ J\'attends la 1.0', '💸 Piège à fric'] },
-  { q: 'Ton moment gaming préféré ?', opts: ['🌙 Session nocturne solo', '🍕 Soirée multi entre potes', '☕ Petite session matinale', '🚽 Les 5 min volées'] },
-  { q: 'La musique de jeu la plus iconique ?', opts: ['🍄 Mario', '🗡️ Zelda', '⚔️ Halo', '🌌 Skyrim'] },
-  { q: 'Le genre qui mérite plus d\'amour ?', opts: ['👻 Horreur', '🧩 Puzzle', '🏗️ City-builder', '🕹️ Plateforme 2D'] },
-  { q: 'Précommander en 2026 :', opts: ['🙅 Plus jamais', '🤞 Seulement les studios de confiance', '🫡 Toujours, j\'assume'] },
-  { q: 'Le pire ennemi du gamer ?', opts: ['😴 Le sommeil', '💼 Le travail', '📶 La connexion', '💰 Le portefeuille'] },
-  { q: 'Ta durée idéale pour un jeu solo ?', opts: ['⏱️ 10-15h bien rythmées', '📖 30-40h', '🗓️ 80h+, je veux tout'] },
-  { q: 'Les soulslike :', opts: ['🙏 Le sommet du game design', '😮‍💨 Trop punitifs', '🚪 Jamais entré dedans'] },
-  { q: 'Le futur du gaming, c\'est :', opts: ['☁️ Le cloud', '🥽 La VR', '🎮 Les consoles classiques', '📱 Le mobile'] },
+  // Mix 50/50 : débats d'industrie sérieux ↔ questions de joueur, ton homogène.
+  // Emojis autorisés dans la QUESTION, jamais dans les options.
+  { q: 'Les jeux à 90 € : tu suis ou tu décroches ?', opts: ['Je paie pour les grosses sorties', 'J\'attends les soldes, toujours', 'Je suis passé à l\'abonnement', 'J\'achète moins, mais mieux'] },
+  { q: 'Quel boss est le plus mythique ? 🐉', opts: ['Malenia', 'Ganondorf', 'Sephiroth', 'Ornstein & Smough'] },
+  { q: 'L\'IA générative dans le développement des jeux :', opts: ['Inévitable, autant la maîtriser', 'OK pour les outils, pas pour la création', 'Ligne rouge absolue', 'Peu importe, si le jeu est bon'] },
+  { q: 'Manette ou clavier-souris ?', opts: ['Manette', 'Clavier-souris', 'Ça dépend du jeu'] },
+  { q: 'Le modèle abonnement (Game Pass & co) :', opts: ['L\'avenir du jeu vidéo', 'Bien pour découvrir, risqué pour l\'industrie', 'Je préfère posséder mes jeux'] },
+  { q: 'Un jeu est « terminé » quand :', opts: ['Les crédits défilent', '100 % ou platine, sinon rien', 'Quand je n\'y reviens plus'] },
+  { q: 'Les exclusivités console ont-elles encore un sens ?', opts: ['Oui, elles font l\'identité des machines', 'Non, tout devrait sortir partout', 'Uniquement les licences maison'] },
+  { q: 'Ton format idéal :', opts: ['Solo dense de 15-20 h', 'Open-world de 100 h', 'Multi entre amis', 'Roguelike sans fin'] },
+  { q: 'Fermetures de studios en série : la faute à qui ?', opts: ['La course au AAA démesuré', 'Les rachats des géants', 'Le marché saturé', 'Personne, c\'est cyclique'] },
+  { q: 'Le studio le plus en forme actuellement :', opts: ['FromSoftware', 'Nintendo', 'Larian', 'Rockstar'] },
+  { q: 'Encore un remake annoncé. Réaction ?', opts: ['Le patrimoine mérite ça', 'L\'industrie tourne en rond', 'Tout dépend du prix'] },
+  { q: 'Une seule licence pour le reste de ta vie :', opts: ['Zelda', 'GTA', 'Final Fantasy', 'Minecraft'] },
+  { q: 'Le crunch dans les studios influence-t-il tes achats ?', opts: ['Oui, je boycotte', 'Ça me dérange, mais j\'achète', 'Ce n\'est pas au joueur de trancher'] },
+  { q: 'Le pire crime de gamer : 👮', opts: ['Skipper les cinématiques', 'Rage quit en classé', 'Acheter sans jamais lancer', 'Spoiler sans prévenir'] },
+  { q: 'La durée de vie annoncée, argument d\'achat ?', opts: ['100 h+, c\'est vendeur', 'Trop long = red flag', 'Ça ne veut rien dire'] },
+  { q: 'Ta difficulté par défaut :', opts: ['Difficile d\'entrée', 'Normal bien réglé', 'Facile, je suis là pour l\'histoire'] },
+  { q: 'Les early access :', opts: ['J\'aime voir les jeux grandir', 'J\'attends toujours la 1.0', 'Trop d\'abus, je fuis'] },
+  { q: 'Le perso le plus marquant de ces 15 dernières années :', opts: ['Geralt', 'Arthur Morgan', 'Kratos', 'Aloy'] },
+  { q: 'Le jeu vidéo est-il trop cher aujourd\'hui ? 💸', opts: ['Oui, clairement', 'Non, rapporté aux heures c\'est imbattable', 'Le vrai problème, c\'est le contenu additionnel'] },
+  { q: 'Le jeu qui t\'a le plus marqué émotionnellement :', opts: ['The Last of Us', 'Red Dead Redemption 2', 'NieR: Automata', 'Aucun, cœur de pierre'] },
+  { q: 'Les notes de la presse spécialisée :', opts: ['Je les consulte avant d\'acheter', 'Je préfère les avis de joueurs', 'Je n\'y prête plus attention'] },
+  { q: 'Ta config dominante :', opts: ['TV du salon', 'PC de bureau', 'Console portable', 'Mobile'] },
+  { q: 'Les season pass annoncés avant la sortie du jeu :', opts: ['Red flag absolu', 'Normal en 2026', 'Ça dépend du studio'] },
+  { q: 'Ton créneau de jeu préféré : 🌙', opts: ['Session nocturne', 'Soirée entre amis', 'Marathon du week-end', 'Sessions courtes volées'] },
+  { q: 'La préservation des vieux jeux :', opts: ['Une urgence culturelle', 'Le marché s\'en occupe déjà', 'Un sujet de niche'] },
+  { q: 'La bande-son la plus iconique : 🎻', opts: ['Zelda', 'Halo', 'NieR', 'Skyrim'] },
+  { q: 'Les portages PC des exclus consoles :', opts: ['Gagnant-gagnant', 'Ça tue l\'intérêt des consoles', 'Trop tardifs pour compter'] },
+  { q: 'Le genre le plus sous-coté :', opts: ['Horreur', 'Puzzle', 'City-builder', 'Plateforme 2D'] },
+  { q: 'Ton rapport aux DLC :', opts: ['J\'attends l\'édition complète', 'J\'achète au fil de l\'eau', 'Le jeu de base, et c\'est tout'] },
+  { q: 'Ton pire ennemi de gamer :', opts: ['Le sommeil', 'Le travail', 'Le backlog', 'Le portefeuille'] },
 ];
+let _activePollPid = null;
+// Question d'actu : si une ligne existe dans weekly_poll_override pour la
+// semaine courante, elle remplace la question de la banque (table gérée à la
+// main dans Supabase — absente ou vide, la banque tourne toute seule).
+async function _fetchPollOverride(week) {
+  try {
+    const { data } = await _sb.from('weekly_poll_override').select('q,opts').eq('week_index', week).maybeSingle();
+    if (data && data.q && Array.isArray(data.opts) && data.opts.length >= 2) return { q: data.q, opts: data.opts.map(String) };
+  } catch (e) {}
+  return null;
+}
 function _pollWeekIndex() { return Math.floor(_quizDayIndex() / 7); }
 function _currentPoll() { const w = _pollWeekIndex(); return { week: w, poll: WEEKLY_POLLS[w % WEEKLY_POLLS.length] }; }
 function _pollDaysLeft() { return 7 - (_quizDayIndex() % 7); }
@@ -15445,12 +15458,18 @@ async function renderWeeklyPoll() {
   if (!el) return;
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) { el.style.display = 'none'; return; }
-  const { week, poll } = _currentPoll();
+  const { week, poll: bankPoll } = _currentPoll();
   const myLocal = localStorage.getItem('gs_poll_vote_' + week);
+  const myChoiceLocal = myLocal !== null ? Number(myLocal) : null;
   el.style.display = 'block';
 
-  // Rendu instantané (état local), puis raffiné avec les votes serveur
-  _paintPoll(el, poll, week, myLocal !== null ? Number(myLocal) : null, null);
+  // Rendu instantané (banque + état local), puis raffiné : question d'actu
+  // éventuelle (override), puis votes serveur
+  let poll = bankPoll;
+  _activePollPid = 'w' + (week % WEEKLY_POLLS.length);
+  _paintPoll(el, poll, week, myChoiceLocal, null);
+  const ov = await _fetchPollOverride(week);
+  if (ov) { poll = ov; _activePollPid = 'ov' + week; _paintPoll(el, poll, week, myChoiceLocal, null); }
   try {
     const { data: votes } = await _sb.from('poll_votes')
       .select('user_id,choice').eq('week_index', week).limit(500);
@@ -15525,7 +15544,7 @@ async function votePoll(choice) {
     // Doublon (23505) = déjà voté ailleurs → renderWeeklyPoll récupérera le vrai vote ;
     // table absente / autre erreur → on reste sur l'affichage optimiste local
     await _sb.from('poll_votes').insert({
-      week_index: week, poll_id: 'w' + (week % WEEKLY_POLLS.length), user_id: session.user.id, choice,
+      week_index: week, poll_id: _activePollPid || ('w' + (week % WEEKLY_POLLS.length)), user_id: session.user.id, choice,
     });
     renderWeeklyPoll();
   } catch (e) {}
