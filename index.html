@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2396,6 +2396,7 @@ html, body {
       <div class="scroll-area" style="padding:0 16px calc(84px + var(--safe-b-min))">
         <!-- QUIZ DU JOUR (hero card) -->
         <div id="daily-quiz-card" style="display:none;margin-bottom:20px"></div>
+        <div id="weekly-poll-card" style="display:none;margin-bottom:20px"></div>
         <!-- Pending requests -->
         <div id="social-pending" style="display:none;margin-bottom:20px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.pending">Demandes reçues</div>
@@ -10562,6 +10563,7 @@ async function loadSocialScreen() {
   try { renderSocialScreen(uid); } catch (e) { console.error('renderSocialScreen', e); _gsShowErrBanner('Amis : ' + e.message); }
   try { checkAchievements(); } catch (e) { console.warn('checkAchievements', e); }
   try { renderDailyQuizCard(); } catch (e) { console.warn('renderDailyQuizCard', e); _gsShowErrBanner('Quiz : ' + e.message); }
+  try { renderWeeklyPoll(); } catch (e) { console.warn('renderWeeklyPoll', e); }
   try { renderSocialLeaderboard(); } catch (e) { console.warn('renderSocialLeaderboard', e); _gsShowErrBanner('Podium : ' + e.message); }
   if (friends.length) {
     loadFriendActivity(acceptedIds);
@@ -15396,6 +15398,137 @@ function openDailyQuizzes() {
     : 'Les mêmes quiz pour tout le monde · classement quotidien entre amis';
   _syncMyQuizScoresFromCloud(); // re-render automatique si un autre appareil a joué entre-temps
   openQuizPicker();
+}
+
+// ══ SONDAGE DE LA SEMAINE ═══════════════════════════════════════════════════
+// Une question d'opinion par semaine (rotation déterministe → la même pour tout
+// le monde), vote en 1 tap, résultats en % façon Twitter. Les votes s'accumulent
+// 7 jours : les pourcentages restent vivants même avec peu de joueurs.
+const WEEKLY_POLLS = [
+  { q: 'Manette ou clavier-souris ?', opts: ['🎮 Manette', '⌨️ Clavier-souris', '🤷 Ça dépend du jeu'] },
+  { q: 'Le boss le plus mythique ?', opts: ['🌸 Malenia', '🐷 Ganon', '🪽 Sephiroth', '⚔️ Ornstein & Smough'] },
+  { q: 'Open-world : trop, c\'est trop ?', opts: ['🗺️ Toujours plus grand', '😮‍💨 Overdose totale', '✨ Seulement les excellents'] },
+  { q: 'Un jeu est « terminé » quand…', opts: ['🎬 Crédits vus', '💯 100% / platine', '😴 Quand je m\'ennuie'] },
+  { q: 'Les DLC à 40 € :', opts: ['🤬 Scandale', '🤔 OK si gros contenu', '💳 J\'achète direct'] },
+  { q: 'Ton format préféré ?', opts: ['🎯 Solo 15-20h dense', '🗺️ 100h open-world', '👥 Multi entre potes', '🔁 Roguelike infini'] },
+  { q: 'Le meilleur studio du moment ?', opts: ['🔥 FromSoftware', '🍄 Nintendo', '🎲 Larian', '💎 Rockstar'] },
+  { q: 'Tu peux n\'en garder qu\'une à vie :', opts: ['🗡️ Zelda', '🚗 GTA', '⛏️ Minecraft', '⚽ EA FC'] },
+  { q: 'Le pire crime de gamer ?', opts: ['⏭️ Skip les cinématiques', '😤 Rage quit en ranked', '🛒 Acheter sans jamais lancer', '🗣️ Spoiler sans prévenir'] },
+  { q: 'La difficulté idéale ?', opts: ['🌶️ Souls-like ou rien', '⚖️ Normal bien réglé', '📖 Facile, je suis là pour l\'histoire'] },
+  { q: 'Remaster, remake ou du neuf ?', opts: ['🆕 Du neuf, toujours', '🔨 Remake total', '✨ Remaster si le prix suit'] },
+  { q: 'Le jeu le plus surcoté de tous les temps ?', opts: ['🤠 RDR2', '🧝 Skyrim', '⚔️ Elden Ring', '🚴 GTA V'] },
+  { q: 'Ta position sur le New Game+ ?', opts: ['🔁 Obligatoire, je relance direct', '😅 Jamais touché', '🤷 Selon le jeu'] },
+  { q: 'Jouer en mobile, ça compte ?', opts: ['✅ Un jeu est un jeu', '❌ Pas du vrai gaming', '🃏 Seulement les bons portages'] },
+  { q: 'Le meilleur écran de gaming ?', opts: ['📺 TV du salon', '🖥️ Moniteur 144Hz+', '🛋️ Portable au lit'] },
+  { q: 'Les microtransactions cosmétiques :', opts: ['💅 Aucun souci si cosmétique', '🚫 Jamais un centime', '😳 J\'ai déjà craqué…'] },
+  { q: 'Ton rapport au backlog ?', opts: ['📚 Il grandit plus vite que je joue', '✅ Maîtrisé, je finis avant d\'acheter', '🫣 On n\'en parle pas'] },
+  { q: 'Le meilleur perso de tous les temps ?', opts: ['🐺 Geralt', '🔧 Arthur Morgan', '🧝 Link', '👩 Aloy'] },
+  { q: 'Cracker un vieux jeu abandonné :', opts: ['🏴‍☠️ Préservation légitime', '⚖️ Zone grise', '🚫 Ça reste du vol'] },
+  { q: 'Le jeu qui t\'a fait pleurer ?', opts: ['🚂 The Last of Us', '🎗️ RDR2', '🌸 Nier Automata', '💧 Aucun, cœur de pierre'] },
+  { q: 'Une seule console pour toujours :', opts: ['🎮 PlayStation', '🟩 Xbox', '🍄 Switch', '🖥️ Le PC et rien d\'autre'] },
+  { q: 'Les jeux en accès anticipé :', opts: ['🌱 J\'adore voir grandir', '⏳ J\'attends la 1.0', '💸 Piège à fric'] },
+  { q: 'Ton moment gaming préféré ?', opts: ['🌙 Session nocturne solo', '🍕 Soirée multi entre potes', '☕ Petite session matinale', '🚽 Les 5 min volées'] },
+  { q: 'La musique de jeu la plus iconique ?', opts: ['🍄 Mario', '🗡️ Zelda', '⚔️ Halo', '🌌 Skyrim'] },
+  { q: 'Le genre qui mérite plus d\'amour ?', opts: ['👻 Horreur', '🧩 Puzzle', '🏗️ City-builder', '🕹️ Plateforme 2D'] },
+  { q: 'Précommander en 2026 :', opts: ['🙅 Plus jamais', '🤞 Seulement les studios de confiance', '🫡 Toujours, j\'assume'] },
+  { q: 'Le pire ennemi du gamer ?', opts: ['😴 Le sommeil', '💼 Le travail', '📶 La connexion', '💰 Le portefeuille'] },
+  { q: 'Ta durée idéale pour un jeu solo ?', opts: ['⏱️ 10-15h bien rythmées', '📖 30-40h', '🗓️ 80h+, je veux tout'] },
+  { q: 'Les soulslike :', opts: ['🙏 Le sommet du game design', '😮‍💨 Trop punitifs', '🚪 Jamais entré dedans'] },
+  { q: 'Le futur du gaming, c\'est :', opts: ['☁️ Le cloud', '🥽 La VR', '🎮 Les consoles classiques', '📱 Le mobile'] },
+];
+function _pollWeekIndex() { return Math.floor(_quizDayIndex() / 7); }
+function _currentPoll() { const w = _pollWeekIndex(); return { week: w, poll: WEEKLY_POLLS[w % WEEKLY_POLLS.length] }; }
+function _pollDaysLeft() { return 7 - (_quizDayIndex() % 7); }
+
+async function renderWeeklyPoll() {
+  const el = document.getElementById('weekly-poll-card');
+  if (!el) return;
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) { el.style.display = 'none'; return; }
+  const { week, poll } = _currentPoll();
+  const myLocal = localStorage.getItem('gs_poll_vote_' + week);
+  el.style.display = 'block';
+
+  // Rendu instantané (état local), puis raffiné avec les votes serveur
+  _paintPoll(el, poll, week, myLocal !== null ? Number(myLocal) : null, null);
+  try {
+    const { data: votes } = await _sb.from('poll_votes')
+      .select('user_id,choice').eq('week_index', week).limit(500);
+    if (!votes) return;
+    const mine = votes.find(v => v.user_id === session.user.id);
+    const myChoice = mine ? mine.choice : (myLocal !== null ? Number(myLocal) : null);
+    if (mine) localStorage.setItem('gs_poll_vote_' + week, String(mine.choice));
+    _paintPoll(el, poll, week, myChoice, votes);
+  } catch (e) { /* table pas encore migrée → on reste sur l'état local */ }
+}
+
+function _paintPoll(el, poll, week, myChoice, votes) {
+  const fr = _lang !== 'en';
+  const voted = myChoice !== null && myChoice !== undefined;
+  const counts = poll.opts.map(() => 0);
+  (votes || []).forEach(v => { if (counts[v.choice] !== undefined) counts[v.choice]++; });
+  // Si pas encore de données serveur mais vote local → au moins mon vote
+  if (!votes && voted) counts[myChoice] = 1;
+  const total = counts.reduce((a, b) => a + b, 0);
+  const daysLeft = _pollDaysLeft();
+  // Avatars des amis par option (petit bonus social)
+  const friendByChoice = {};
+  if (votes && Array.isArray(_socialFriends)) {
+    votes.forEach(v => {
+      const f = _socialFriends.find(x => x.id === v.user_id);
+      if (f) { (friendByChoice[v.choice] = friendByChoice[v.choice] || []).push(f); }
+    });
+  }
+  const rows = poll.opts.map((opt, i) => {
+    if (!voted) {
+      return `<button onclick="votePoll(${i})" style="width:100%;text-align:left;background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:border-color 0.15s" ontouchstart="this.style.borderColor='var(--a)'" ontouchend="this.style.borderColor='var(--border2)'">${opt}</button>`;
+    }
+    const pct = total ? Math.round(counts[i] * 100 / total) : 0;
+    const isMine = i === myChoice;
+    const friends = (friendByChoice[i] || []).slice(0, 3).map(f => _friendAvHtml(f, 16)).join('');
+    return `<div style="position:relative;border-radius:12px;overflow:hidden;background:var(--s2);border:${isMine ? '1px solid rgba(108,92,231,0.55)' : '0.5px solid var(--border2)'};margin-bottom:8px">
+      <div class="poll-bar" data-w="${pct}" style="position:absolute;inset:0 auto 0 0;width:0%;background:${isMine ? 'linear-gradient(90deg,rgba(108,92,231,0.4),rgba(162,155,254,0.25))' : 'rgba(255,255,255,0.06)'};transition:width 0.7s cubic-bezier(0.22,1,0.36,1)"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:8px;padding:11px 14px">
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:${isMine ? 700 : 600};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${opt}${isMine ? ' <span style="color:var(--a)">✓</span>' : ''}</div>
+        ${friends ? `<div style="display:flex;margin-right:2px">${friends}</div>` : ''}
+        <div style="font-size:13px;font-weight:800;font-family:'Space Grotesk',sans-serif;flex-shrink:0;${isMine ? 'color:var(--a)' : 'color:var(--muted2)'}">${pct}%</div>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML = `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800">🗳️ ${fr ? 'Sondage de la semaine' : 'Poll of the week'}</div>
+      <div style="font-size:10px;font-weight:700;color:var(--muted2);background:var(--s2);border-radius:50px;padding:3px 9px;flex-shrink:0">⏳ ${daysLeft}${fr ? 'j' : 'd'}</div>
+    </div>
+    <div style="font-size:14px;font-weight:600;line-height:1.4;margin-bottom:12px">${poll.q}</div>
+    ${rows}
+    <div style="font-size:11px;color:var(--muted2);margin-top:2px">${voted
+      ? `${total} ${fr ? 'vote' + (total > 1 ? 's' : '') : 'vote' + (total > 1 ? 's' : '')}`
+      : (fr ? 'Vote pour voir les résultats 👀' : 'Vote to see the results 👀')}</div>
+  </div>`;
+  // Anime les barres après insertion (transition width 0 → pct)
+  if (voted) requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.querySelectorAll('.poll-bar').forEach(b => { b.style.width = b.dataset.w + '%'; });
+  }));
+}
+
+async function votePoll(choice) {
+  const { week } = _currentPoll();
+  if (localStorage.getItem('gs_poll_vote_' + week) !== null) return; // déjà voté
+  localStorage.setItem('gs_poll_vote_' + week, String(choice)); // optimiste (un seul vote possible)
+  try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
+  renderWeeklyPoll(); // repeint tout de suite (résultats), puis raffine avec le serveur
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    const { poll } = _currentPoll();
+    // Doublon (23505) = déjà voté ailleurs → renderWeeklyPoll récupérera le vrai vote ;
+    // table absente / autre erreur → on reste sur l'affichage optimiste local
+    await _sb.from('poll_votes').insert({
+      week_index: week, poll_id: 'w' + (week % WEEKLY_POLLS.length), user_id: session.user.id, choice,
+    });
+    renderWeeklyPoll();
+  } catch (e) {}
 }
 
 // ── Carte "Quiz du jour" sur la page Amis ──
