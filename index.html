@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -9468,18 +9468,20 @@ function quickActionBtn(id, status) {
   const _qchip = (target, label, color, bg, border, grow, tip) =>
     `<button onclick="event.stopPropagation();quickStatusChange('${id}','${target}')" title="${tip || ''}"
       style="${grow ? 'flex:1;min-width:0' : 'flex:0 0 auto;width:30px'};background:${bg};border:0.5px ${border};border-radius:8px;padding:5px 4px;font-size:10px;font-weight:600;color:${color};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</button>`;
+  // Libellés à la première personne : on déclare une action (« J'ai fini ! »),
+  // jamais un état (« Fini » se lirait comme un tag déjà posé sur le jeu).
   if (status === 'playing-solo' || status === 'playing-multi')
     return `<div style="display:flex;gap:4px;margin-top:6px">${
-      _qchip('finished', _lang === 'en' ? '✓ Done' : '✓ Fini', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', true)
-      + _qchip('platine', '💯', 'var(--amber)', 'rgba(255,202,40,0.08)', 'solid rgba(255,202,40,0.3)', false, '100%')
-      + _qchip('paused', '⏸', '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', false, 'Pause')
-      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'Abandon' : 'Abandonner')
+      _qchip('finished', _lang === 'en' ? 'I finished it!' : 'Je l\'ai fini !', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', true, _lang === 'en' ? 'Mark as finished' : 'Marquer comme fini')
+      + _qchip('platine', '💯', 'var(--amber)', 'rgba(255,202,40,0.08)', 'solid rgba(255,202,40,0.3)', false, _lang === 'en' ? 'I 100%ed it' : 'Je l\'ai 100%')
+      + _qchip('paused', '⏸', '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', false, _lang === 'en' ? 'Put on hold' : 'Mettre en pause')
+      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'I give up' : 'J\'abandonne')
     }</div>`;
   if (status === 'paused')
     return `<div style="display:flex;gap:4px;margin-top:6px">${
-      _qchip('playing-solo', t('profile.quick_resume'), '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', true)
-      + _qchip('finished', '✓', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', false, _lang === 'en' ? 'Finished' : 'Fini')
-      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'Abandon' : 'Abandonner')
+      _qchip('playing-solo', _lang === 'en' ? '▶ Back on it!' : '▶ Je reprends !', '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', true, _lang === 'en' ? 'Resume playing' : 'Reprendre la partie')
+      + _qchip('finished', '✓', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', false, _lang === 'en' ? 'I finished it' : 'Je l\'ai fini')
+      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'I give up' : 'J\'abandonne')
     }</div>`;
   if (status === 'abandoned')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
