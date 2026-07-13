@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -9462,12 +9462,25 @@ function quickActionBtn(id, status) {
   if (status === 'backlog')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_play')}</button>`;
+  // Jeu en cours / en pause : rangée d'actions rapides au lieu d'un bouton unique
+  // (fini · 100% · pause · abandon) — l'action principale garde le texte, les
+  // secondaires sont des icônes compactes pour tenir sur une carte étroite.
+  const _qchip = (target, label, color, bg, border, grow, tip) =>
+    `<button onclick="event.stopPropagation();quickStatusChange('${id}','${target}')" title="${tip || ''}"
+      style="${grow ? 'flex:1;min-width:0' : 'flex:0 0 auto;width:30px'};background:${bg};border:0.5px ${border};border-radius:8px;padding:5px 4px;font-size:10px;font-weight:600;color:${color};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</button>`;
   if (status === 'playing-solo' || status === 'playing-multi')
-    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','finished')"
-      style="margin-top:6px;width:100%;background:rgba(0,230,118,0.08);border:0.5px dashed rgba(0,230,118,0.35);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--green);cursor:pointer;">${t('profile.quick_done')}</button>`;
+    return `<div style="display:flex;gap:4px;margin-top:6px">${
+      _qchip('finished', _lang === 'en' ? '✓ Done' : '✓ Fini', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', true)
+      + _qchip('platine', '💯', 'var(--amber)', 'rgba(255,202,40,0.08)', 'solid rgba(255,202,40,0.3)', false, '100%')
+      + _qchip('paused', '⏸', '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', false, 'Pause')
+      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'Abandon' : 'Abandonner')
+    }</div>`;
   if (status === 'paused')
-    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
-      style="margin-top:6px;width:100%;background:rgba(240,165,0,0.08);border:0.5px solid rgba(240,165,0,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:#f0a500;cursor:pointer;">${t('profile.quick_resume')}</button>`;
+    return `<div style="display:flex;gap:4px;margin-top:6px">${
+      _qchip('playing-solo', t('profile.quick_resume'), '#f0a500', 'rgba(240,165,0,0.08)', 'solid rgba(240,165,0,0.3)', true)
+      + _qchip('finished', '✓', 'var(--green)', 'rgba(0,230,118,0.08)', 'dashed rgba(0,230,118,0.35)', false, _lang === 'en' ? 'Finished' : 'Fini')
+      + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', false, _lang === 'en' ? 'Abandon' : 'Abandonner')
+    }</div>`;
   if (status === 'abandoned')
     return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_retry')}</button>`;
