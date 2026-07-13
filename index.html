@@ -256,6 +256,10 @@ html, body {
   #saga-collections-row > div { width: 86px !important; }
 }
 
+/* Cadres d'avatar : auras animées des hauts paliers */
+@keyframes avAuraGold { 0%,100%{box-shadow:0 0 5px 1px rgba(255,205,60,0.45)} 50%{box-shadow:0 0 14px 4px rgba(255,215,80,0.85)} }
+@keyframes avAuraNeon { 0%,100%{box-shadow:0 0 5px 1px rgba(108,92,231,0.45)} 50%{box-shadow:0 0 13px 4px rgba(0,206,201,0.75)} }
+
 /* Récap mensuel : animations "juice" */
 @keyframes recapPop  { 0%{opacity:0;transform:scale(0.55) translateY(24px)} 65%{opacity:1;transform:scale(1.05) translateY(-3px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
 @keyframes recapChip { 0%{opacity:0;transform:translateY(14px) rotate(-5deg) scale(0.7)} 70%{opacity:1;transform:translateY(-2px) rotate(2deg) scale(1.08)} 100%{opacity:1;transform:none} }
@@ -2149,6 +2153,14 @@ html, body {
               </button>
               <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
               <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
+                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🎨</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.accent">Thème de l'app</div>
+                  <div id="accent-picker-row" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"></div>
+                </div>
+              </div>
+              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
+              <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
                 <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🌐</div>
                 <div style="flex:1;font-size:13px;font-weight:600;color:var(--text)" data-i18n="lang_name">Langue</div>
                 <div style="display:flex;gap:6px">
@@ -2273,7 +2285,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.8 · build 12.07g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3485,6 +3497,7 @@ const LANG = {
       feedback_sub:'Bug, suggestion, idée — tout est bienvenu',
       notifs:'Notifications', notifs_sub:'Demandes d\'amis et récap hebdo',
       private:'Compte privé', private_sub:'N\'apparais dans aucun classement public ni suggestion',
+      accent:'Thème de l\'app',
       cache:'Vider le cache et recharger', cache_sub:'Force le rechargement de la dernière version',
       share:'Partager GameShelf', share_sub:'Inviter un ami à rejoindre',
       export:'Exporter ma bibliothèque', export_sub:'Télécharger en CSV',
@@ -3854,6 +3867,7 @@ const LANG = {
       feedback_sub:'Bug, suggestion, idea — all welcome',
       notifs:'Notifications', notifs_sub:'Friend requests & weekly recap',
       private:'Private account', private_sub:'Hidden from all public rankings & suggestions',
+      accent:'App theme',
       cache:'Clear cache & reload', cache_sub:'Force reload to the latest version',
       share:'Share GameShelf', share_sub:'Invite a friend to join',
       export:'Export my library', export_sub:'Download as CSV',
@@ -4242,10 +4256,83 @@ function getLevelPerks(level, fr) {
   if (level === 3) {
     perks.push(fr ? '🎨 Fond de profil personnalisable (6 thèmes)' : '🎨 Custom profile background (6 themes)');
     perks.push(fr ? '📷 50 captures d\'écran (au lieu de 25)' : '📷 50 screenshots (up from 25)');
+    perks.push(fr ? '🥉 Cadre d\'avatar bronze' : '🥉 Bronze avatar frame');
   }
   if (level === 4) perks.push(fr ? '🌸 5 fonds animés exclusifs (sakura, lave, cyber, orage, rétro)' : '🌸 5 exclusive animated backgrounds');
-  if (level === 10) perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
+  if (level === 5) {
+    perks.push(fr ? '🥈 Cadre d\'avatar argent' : '🥈 Silver avatar frame');
+    perks.push(fr ? '🎨 Thème d\'app Émeraude' : '🎨 Emerald app theme');
+  }
+  if (level === 6) perks.push(fr ? '🎨 Thème d\'app Crimson' : '🎨 Crimson app theme');
+  if (level === 7) {
+    perks.push(fr ? '🥇 Cadre d\'avatar or' : '🥇 Gold avatar frame');
+    perks.push(fr ? '📷 100 captures d\'écran' : '📷 100 screenshots');
+    perks.push(fr ? '🎨 Thème d\'app Ambre' : '🎨 Amber app theme');
+  }
+  if (level === 8) {
+    perks.push(fr ? '🎨 Thème d\'app Cyan' : '🎨 Cyan app theme');
+    perks.push(fr ? '🌟 Ligne dorée dans les classements' : '🌟 Golden row in leaderboards');
+  }
+  if (level === 9) {
+    perks.push(fr ? '💠 Cadre d\'avatar néon' : '💠 Neon avatar frame');
+    perks.push(fr ? '🎨 Thème d\'app Or' : '🎨 Gold app theme');
+  }
+  if (level === 10) {
+    perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
+    perks.push(fr ? '👑 Aura Légende autour de ton avatar, visible partout' : '👑 Legend aura on your avatar, visible everywhere');
+  }
   return perks;
+}
+
+// ── Cadres d'avatar par palier (bronze 3 · argent 5 · or 7 · néon 9 · Légende 10) ──
+function _avFrame(level) {
+  if (level >= 10) return { bg: 'conic-gradient(from 20deg,#ffd700,#fff3b0,#f5c518,#ffd700)', aura: 'animation:avAuraGold 2.2s ease-in-out infinite' };
+  if (level >= 9)  return { bg: 'conic-gradient(from 20deg,#6c5ce7,#00cec9,#fd79a8,#6c5ce7)', aura: 'animation:avAuraNeon 2.4s ease-in-out infinite' };
+  if (level >= 7)  return { bg: 'linear-gradient(135deg,#f5d76e,#d4af37,#f9e79f)' };
+  if (level >= 5)  return { bg: 'linear-gradient(135deg,#eef0f6,#9ea7b8,#f7f9fd)' };
+  if (level >= 3)  return { bg: 'linear-gradient(135deg,#e2a76f,#a05a2c,#d99058)' };
+  return null;
+}
+
+// ── Thèmes d'accent de l'app, débloqués par palier ──
+const APP_THEMES = [
+  { key: 'violet',   name_fr: 'Violet',   name_en: 'Violet',  a: '#6c5ce7', a2: '#fd79a8', min: 0 },
+  { key: 'emeraude', name_fr: 'Émeraude', name_en: 'Emerald', a: '#00b894', a2: '#55efc4', min: 5 },
+  { key: 'crimson',  name_fr: 'Crimson',  name_en: 'Crimson', a: '#d63031', a2: '#ff7675', min: 6 },
+  { key: 'ambre',    name_fr: 'Ambre',    name_en: 'Amber',   a: '#e17055', a2: '#fdcb6e', min: 7 },
+  { key: 'cyan',     name_fr: 'Cyan',     name_en: 'Cyan',    a: '#00cec9', a2: '#81ecec', min: 8 },
+  { key: 'or',       name_fr: 'Or',       name_en: 'Gold',    a: '#d4af37', a2: '#ffeaa7', min: 9 },
+];
+function applyAccentTheme() {
+  const key = localStorage.getItem('gs_accent') || 'violet';
+  const t = APP_THEMES.find(x => x.key === key) || APP_THEMES[0];
+  const lvl = getLevel(obProfile.xp || 0).level;
+  const th = lvl >= t.min ? t : APP_THEMES[0]; // thème verrouillé (XP resync) → violet
+  document.documentElement.style.setProperty('--a', th.a);
+  document.documentElement.style.setProperty('--a2', th.a2);
+}
+function setAccentTheme(key) {
+  const t = APP_THEMES.find(x => x.key === key);
+  if (!t) return;
+  const lvl = getLevel(obProfile.xp || 0).level;
+  if (lvl < t.min) {
+    showToast('🔒 ' + (_lang === 'en' ? 'Unlocks at level ' : 'Se débloque au niveau ') + t.min);
+    return;
+  }
+  localStorage.setItem('gs_accent', key);
+  applyAccentTheme();
+  renderAccentPicker();
+  showToast('🎨 ' + (_lang === 'en' ? t.name_en : t.name_fr) + ' !');
+}
+function renderAccentPicker() {
+  const el = document.getElementById('accent-picker-row');
+  if (!el) return;
+  const cur = localStorage.getItem('gs_accent') || 'violet';
+  const lvl = getLevel(obProfile.xp || 0).level;
+  el.innerHTML = APP_THEMES.map(t => {
+    const locked = lvl < t.min;
+    return `<div onclick="setAccentTheme('${t.key}')" title="${_lang === 'en' ? t.name_en : t.name_fr}${locked ? ' · ' + (_lang === 'en' ? 'level ' : 'niveau ') + t.min : ''}" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,${t.a},${t.a2});cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid ${cur === t.key && !locked ? '#fff' : 'transparent'};opacity:${locked ? 0.45 : 1}">${locked ? '🔒' : (cur === t.key ? '✓' : '')}</div>`;
+  }).join('');
 }
 function getLevel(xp) {
   let lvl = XP_LEVELS[0];
@@ -8420,7 +8507,7 @@ function toggleShotsGallery() {
 }
 
 // ── Limite de captures : 25 de base, 50 au palier Vétéran (niveau 3) ──
-function _shotLimit() { return getLevel(obProfile.xp || 0).level >= 3 ? 50 : 25; }
+function _shotLimit() { const l = getLevel(obProfile.xp || 0).level; return l >= 7 ? 100 : l >= 3 ? 50 : 25; }
 function _shotCount() { return Object.values(gameMedia).reduce((n, a) => n + (a || []).length, 0) + _unassignedShots.length; }
 function _shotLimitToast() {
   const fr = _lang !== 'en';
@@ -10628,8 +10715,15 @@ function _friendAvHtml(p, size) {
   const av   = p.avatar || '🎮';
   const url  = p.avatar_url || null;
   const base = `width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;overflow:hidden;`;
-  if (url) return `<div style="${base}background:${grad}"><img src="${url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${av}';this.parentElement.style.background='${grad}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='${Math.round(s*0.45)}px'"></div>`;
-  return `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px">${av}</div>`;
+  const inner = url
+    ? `<div style="${base}background:${grad}"><img src="${url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${av}';this.parentElement.style.background='${grad}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='${Math.round(s*0.45)}px'"></div>`
+    : `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px">${av}</div>`;
+  // Cadre de palier : uniquement si l'XP du joueur est connue et l'avatar assez grand
+  const lvl = (p && p.xp !== undefined && p.xp !== null) ? getLevel(p.xp || 0).level : 0;
+  const f = s >= 26 ? _avFrame(lvl) : null;
+  if (!f) return inner;
+  const pad = Math.max(2, Math.round(s * 0.055));
+  return `<div style="padding:${pad}px;border-radius:50%;background:${f.bg};flex-shrink:0;display:flex;${f.aura || ''}">${inner}</div>`;
 }
 
 function renderSocialLeaderboard() {
@@ -10650,7 +10744,8 @@ function renderSocialLeaderboard() {
     const lvl = getLevel(e.xp || 0) || {};
     const lvlTitle = (_lang === 'en' ? lvl.title_en : lvl.title_fr) || '';
     const medal = i < 3 ? medals[i] : String(i + 1);
-    const border = e.isMe ? 'border:1.5px solid var(--a)' : 'border:0.5px solid var(--border2)';
+    const _gold = getLevel(e.xp || 0).level >= 8;
+    const border = e.isMe ? 'border:1.5px solid var(--a)' : _gold ? 'border:1px solid rgba(255,202,40,0.55)' : 'border:0.5px solid var(--border2)';
     const bg = e.isMe ? 'background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(162,155,254,0.08))' : 'background:var(--s1)';
     const grad = e.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
     const av = e.avatar_url
@@ -11654,7 +11749,7 @@ async function loadFriendActivity(friendIds) {
   }
 
   // Get profiles for these users
-  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,avatar_url').in('id', friendIds);
+  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad,avatar_url,xp').in('id', friendIds);
   const profileMap = {};
   (profiles||[]).forEach(p => profileMap[p.id] = p);
 
@@ -13400,6 +13495,8 @@ function applyProfileToUI() {
   renderProfileBgPicker();
   applyProfileBg();
   _setPrivateToggleUI(document.getElementById('private-toggle'), obProfile.isPublic === false);
+  applyAccentTheme();
+  renderAccentPicker();
   // Show active account email
   _sb.auth.getSession().then(({ data: { session } }) => {
     const email = session?.user?.email;
@@ -14961,7 +15058,7 @@ function _gqName(uid, myId, profMap) {
   return _lang === 'en' ? 'Player' : 'Joueur';
 }
 function _gqAv(uid, myId, profMap) {
-  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl }, 30);
+  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl, xp: obProfile.xp }, 30);
   const p = profMap[uid] || {};
   return _friendAvHtml(p.is_public !== false ? p : {}, 30);
 }
@@ -15953,7 +16050,7 @@ function _quizUserName(uid, myId) {
   return f ? (f.username || 'Ami') : 'Ami';
 }
 function _quizUserAv(uid, myId) {
-  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl }, 30);
+  if (uid === myId) return _friendAvHtml({ avatar: obProfile.avatar, avatar_grad: obProfile.avatarGrad, avatar_url: obProfile.avatarUrl, xp: obProfile.xp }, 30);
   const f = (_socialFriends || []).find(x => x.id === uid) || {};
   return _friendAvHtml(f, 30);
 }
