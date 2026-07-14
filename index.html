@@ -1788,6 +1788,7 @@ html, body {
         <span id="ucd-emoji" style="font-size:22px">📚</span>
         <span id="ucd-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
       </div>
+      <button id="ucd-share-btn" onclick="shareUserCollection()" title="Partager" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:15px">📤</button>
       <button id="ucd-menu-btn" onclick="openUserCollectionMenu()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:18px;color:var(--muted2)">⋯</button>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 16px 0">
@@ -2285,7 +2286,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07i</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07j</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -13227,6 +13228,95 @@ function closeWrapped() {
 // ══════════════════════════════════════
 // PUBLIC TIER LIST PAGE (shared link)
 // ══════════════════════════════════════
+// ── PARTAGE DE COLLECTION : lien public ?col=<id> ───────────────────────────
+function shareUserCollection() {
+  const c = _ucdCollection;
+  if (!c || !c.id) return;
+  const isPub = c.isPublic !== undefined ? c.isPublic !== false : c.is_public !== false;
+  if (_ucdIsOwner && !isPub) {
+    showToast(_lang === 'en' ? '🔒 Private collection — make it public (⋯) to share it' : '🔒 Collection privée — rends-la publique (⋯) pour la partager');
+    return;
+  }
+  const url = location.origin + location.pathname + '?col=' + encodeURIComponent(c.id);
+  const text = (c.emoji || '📚') + ' ' + c.name + ' — GameShelf';
+  if (navigator.share) { navigator.share({ title: 'GameShelf', text, url }).catch(() => {}); }
+  else { navigator.clipboard.writeText(url).then(() => showToast(t('toast.copied'))).catch(() => showToast(url)); }
+}
+
+// Page publique d'une collection (aucune connexion requise) — même gabarit que ?tl=
+async function renderPublicCollectionShare(id) {
+  document.getElementById('view-onboarding').style.display = 'none';
+  const page = document.createElement('div');
+  page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
+  page.innerHTML = `
+    <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">GameShelf</div>
+      <div style="flex:1"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.35)">Collection</div>
+    </div>
+    <div id="col-pub-body" style="flex:1;padding:0 0 180px">
+      <div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35);font-size:14px">Chargement…</div>
+    </div>
+    <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),16px);background:linear-gradient(to top,#080810 70%,transparent)">
+      <div onclick="tlPubInstall()" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">
+        <div style="font-size:30px;line-height:1">📲</div>
+        <div style="flex:1">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Télécharge GameShelf</div>
+          <div style="font-size:11px;opacity:0.85;margin-top:2px">Bibliothèque · Quiz · Tier Lists · Collections</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Installer →</div>
+      </div>
+    </div>`;
+  document.body.appendChild(page);
+
+  const _cvr = g => {
+    if (g.cover)   return g.cover;
+    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+    if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
+    return null;
+  };
+
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/collections?id=eq.${encodeURIComponent(id)}&select=*`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const [data] = await res.json();
+    const body = document.getElementById('col-pub-body');
+    if (!data || data.is_public === false) {
+      body.innerHTML = '<div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35)">Collection introuvable ou privée</div>';
+      return;
+    }
+    let owner = 'Anonyme';
+    try {
+      const pr = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${encodeURIComponent(data.user_id)}&select=username`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const [p] = await pr.json();
+      if (p && p.username) owner = p.username;
+    } catch (e) {}
+    const games = Array.isArray(data.games) ? data.games : [];
+    body.innerHTML = `
+      <div style="padding:20px 20px 14px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${data.emoji || '📚'} ${_esc(data.name)}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${_esc(owner).toLowerCase().replace(/\s+/g,'')}</span> · ${games.length} jeu${games.length > 1 ? 'x' : ''}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 20px">
+        ${games.map(g => {
+          const src = _cvr(g);
+          return `<div>
+            <div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#1a1a2e;display:flex;align-items:center;justify-content:center">
+              ${src ? `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<span style="font-size:20px">🎮</span>`}
+            </div>
+            <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title || '')}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+  } catch (e) {
+    document.getElementById('col-pub-body').innerHTML = '<div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35)">Erreur de chargement</div>';
+  }
+}
+
 async function renderPublicTierList(id) {
   document.getElementById('view-onboarding').style.display = 'none';
 
@@ -13514,6 +13604,8 @@ function applyProfileToUI() {
   // ── Public tier list viewer (no auth needed) ──────────────────────
   const _tlPublicId = new URLSearchParams(location.search).get('tl');
   if (_tlPublicId) { renderPublicTierList(_tlPublicId); return; }
+  const _colPublicId = new URLSearchParams(location.search).get('col');
+  if (_colPublicId) { renderPublicCollectionShare(_colPublicId); return; }
   const _gpGameId = new URLSearchParams(location.search).get('game');
   const _gpUserId = new URLSearchParams(location.search).get('u');
   if (_gpGameId && _gpUserId) { renderPublicGameShare(_gpGameId, _gpUserId); return; }
