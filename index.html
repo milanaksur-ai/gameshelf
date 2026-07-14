@@ -2291,7 +2291,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07l</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07m</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -13399,10 +13399,10 @@ async function renderPublicCollectionShare(id) {
       <div onclick="tlPubInstall()" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;-webkit-tap-highlight-color:transparent">
         <div style="font-size:30px;line-height:1">📲</div>
         <div style="flex:1">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Télécharge GameShelf</div>
-          <div style="font-size:11px;opacity:0.85;margin-top:2px">Bibliothèque · Quiz · Tier Lists · Collections</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Rejoins GameShelf</div>
+          <div style="font-size:11px;opacity:0.85;margin-top:2px">Gratuit · direct dans ton navigateur</div>
         </div>
-        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Installer →</div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Ouvrir →</div>
       </div>
     </div>`;
   document.body.appendChild(page);
@@ -13473,10 +13473,10 @@ async function renderPublicTierList(id) {
       <div onclick="tlPubInstall()" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;margin-bottom:10px;-webkit-tap-highlight-color:transparent">
         <div style="font-size:30px;line-height:1">📲</div>
         <div style="flex:1">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Télécharge GameShelf</div>
-          <div style="font-size:11px;opacity:0.85;margin-top:2px">Bibliothèque · Quiz · Tier Lists</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Rejoins GameShelf</div>
+          <div style="font-size:11px;opacity:0.85;margin-top:2px">Gratuit · direct dans ton navigateur</div>
         </div>
-        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Installer →</div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Ouvrir →</div>
       </div>
       <button onclick="tlPubFork()" style="width:100%;padding:13px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.12);border-radius:14px;color:rgba(255,255,255,0.8);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;cursor:pointer">🔁 Créer ma propre version</button>
     </div>`;
@@ -13538,12 +13538,10 @@ async function renderPublicTierList(id) {
 }
 
 function tlPubInstall() {
-  if (_pwaPrompt) {
-    _pwaPrompt.prompt();
-    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
-  } else {
-    alert('Sur iOS : ouvre dans Safari → appuie sur Partager → "Sur l\'écran d\'accueil"\nSur Android : menu Chrome → "Ajouter à l\'écran d\'accueil"');
-  }
+  // Tant que l'app n'est pas publique sur le Play Store, le CTA ouvre la web
+  // app (création de compte en 1 min). On remettra le prompt d'installation
+  // quand les accès Android seront ouverts.
+  window.location.href = window.location.origin + window.location.pathname;
 }
 
 function tlPubFork() {
@@ -13592,7 +13590,7 @@ async function renderPublicGameShare(gameId, userId) {
           <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">Rejoindre GameShelf</div>
           <div style="font-size:11px;opacity:0.85;margin-top:2px">Ta bibliothèque de jeux vidéo</div>
         </div>
-        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Installer →</div>
+        <div style="background:rgba(255,255,255,0.2);border-radius:10px;padding:8px 14px;font-size:13px;font-weight:700;flex-shrink:0">Ouvrir →</div>
       </div>
     </div>`;
   document.body.appendChild(page);
