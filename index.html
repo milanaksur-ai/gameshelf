@@ -278,6 +278,9 @@ html, body {
   #app-nav { max-width: 720px !important; }
   /* Bibliothèque : la grille passe de 2 colonnes fixes à des colonnes auto */
   .game-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+  /* Collections : mêmes colonnes auto — sinon 3 colonnes fixes = jaquettes géantes « zoomées » */
+  #ucd-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)) !important; }
+  #col-modal-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important; }
   /* Pages plein écran (hors shell) : contenu centré et cappé à la largeur du shell */
   #user-collection-detail > *, #col-search-overlay > *, #ldisc-modal > *, #fp-lib-modal > *,
   #gp-all-overlay > *, #quiz-overlay > *, #quiz-confrontation > * {
@@ -2288,7 +2291,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07k</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07l</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -13389,7 +13392,7 @@ async function renderPublicCollectionShare(id) {
       <div style="flex:1"></div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35)">Collection</div>
     </div>
-    <div id="col-pub-body" style="flex:1;padding:0 0 180px">
+    <div id="col-pub-body" style="flex:1;padding:0 0 180px;width:100%;max-width:860px;margin:0 auto">
       <div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.35);font-size:14px">Chargement…</div>
     </div>
     <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),16px);background:linear-gradient(to top,#080810 70%,transparent)">
@@ -13435,7 +13438,7 @@ async function renderPublicCollectionShare(id) {
         <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${data.emoji || '📚'} ${_esc(data.name)}</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${_esc(owner).toLowerCase().replace(/\s+/g,'')}</span> · ${games.length} jeu${games.length > 1 ? 'x' : ''}</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:0 20px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;padding:0 20px">
         ${games.map(g => {
           const src = _cvr(g);
           return `<div>
