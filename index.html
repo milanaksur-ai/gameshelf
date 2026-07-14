@@ -2037,6 +2037,8 @@ html, body {
         <div style="display:flex;gap:6px;margin-bottom:12px">
           <button id="tab-top-btn" onclick="switchProfileTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s" data-i18n="profile.tab_top">★ Top</button>
           <button id="tab-activity-btn" onclick="switchProfileTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s" data-i18n="profile.tab_activity">Activité</button>
+          <div style="flex:1"></div>
+          <button onclick="openTop20()" style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,202,40,0.1);color:var(--amber);border:0.5px solid rgba(255,202,40,0.3);cursor:pointer">🏆 Top 20</button>
         </div>
         <div id="tab-top" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="tab-activity" style="display:none;flex-direction:column;gap:0"></div>
@@ -2286,7 +2288,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07j</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07k</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2503,6 +2505,8 @@ html, body {
         <div style="display:flex;gap:6px;margin-bottom:12px">
           <button id="fp-tab-top-btn" onclick="switchFriendTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
           <button id="fp-tab-act-btn" onclick="switchFriendTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
+          <div style="flex:1"></div>
+          <button onclick="openFriendTop20()" style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,202,40,0.1);color:var(--amber);border:0.5px solid rgba(255,202,40,0.3);cursor:pointer">🏆 Top 20</button>
         </div>
         <div id="fp-top-grid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"></div>
         <div id="fp-activity-list" style="display:none;flex-direction:column;gap:10px"></div>
@@ -2520,6 +2524,19 @@ html, body {
       </div>
     </div>
   </div>
+  <!-- TOP 20 OVERLAY -->
+  <div id="top20-overlay" style="display:none;position:fixed;inset:0;z-index:988;background:var(--bg);flex-direction:column">
+    <div style="display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;flex-shrink:0">
+      <button onclick="closeTop20()" style="width:34px;height:34px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--text)">✕</button>
+      <div style="flex:1;min-width:0">
+        <div id="top20-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🏆 Top 20</div>
+        <div id="top20-sub" style="font-size:11px;color:var(--muted2);margin-top:1px"></div>
+      </div>
+      <button onclick="shareTop20()" style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;font-size:15px">📤</button>
+    </div>
+    <div id="top20-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + env(safe-area-inset-bottom))"></div>
+  </div>
+
   <!-- RÉCAP MENSUEL OVERLAY -->
   <div id="recap-overlay" style="display:none;position:fixed;inset:0;z-index:990;background:var(--bg);flex-direction:column">
     <canvas id="recap-canvas" style="position:absolute;inset:0;pointer-events:none;z-index:3"></canvas>
@@ -4539,6 +4556,123 @@ let _luAnimFrame = null;
 // Tout est calculé en local (aucun backend) : jeux finis/notés du mois via les
 // timestamps lastActivityAt / ratedAt, XP via le journal local, quiz via les
 // scores locaux. Image de partage 100% texte (pas de covers → pas de taint CORS).
+// ══ TOP 20 — mes meilleures notes, celles d'un ami, partage en image ═════════
+let _top20Data = null; // { games, owner, mine }
+
+function openTop20() {
+  const games = GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }))
+    .filter(g => (g.score || 0) > 0)
+    .sort((a, b) => (b.score - a.score) || ((b.meta || 0) - (a.meta || 0)) || String(a.title).localeCompare(String(b.title)))
+    .slice(0, 20);
+  _showTop20(games, obProfile.username || 'Moi', true);
+}
+
+function openFriendTop20() {
+  const name = (_fpProfile && _fpProfile.username) || 'Ami';
+  const games = (_fpAllGames || [])
+    .filter(g => (g.score || 0) > 0)
+    .map(g => ({ title: g.title, score: g.score, imageId: g.image_id || g.imageId || null, cover: g.cover || null, steamId: g.steam_id || g.steamId || 0, status: g.status }))
+    .sort((a, b) => (b.score - a.score) || String(a.title).localeCompare(String(b.title)))
+    .slice(0, 20);
+  _showTop20(games, name, false);
+}
+
+function _showTop20(games, owner, mine) {
+  _top20Data = { games, owner, mine };
+  const fr = _lang !== 'en';
+  const title = document.getElementById('top20-title');
+  const sub = document.getElementById('top20-sub');
+  const body = document.getElementById('top20-body');
+  if (!body) return;
+  if (title) title.textContent = '🏆 ' + (mine ? (fr ? 'Mon Top 20' : 'My Top 20') : 'Top 20 · ' + owner);
+  if (sub) sub.textContent = games.length
+    ? `${games.length} ${fr ? 'jeux notés' : 'rated games'}`
+    : '';
+  if (!games.length) {
+    body.innerHTML = `<div style="text-align:center;padding:60px 24px;color:var(--muted2)">
+      <div style="font-size:40px;margin-bottom:12px">⭐</div>
+      <div style="font-size:14px;line-height:1.5">${fr ? 'Aucun jeu noté pour l\'instant — note tes jeux pour construire ton Top 20 !' : 'No rated games yet — rate your games to build your Top 20!'}</div>
+    </div>`;
+  } else {
+    const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    body.innerHTML = games.map((g, i) => {
+      const src = coverUrl(g);
+      return `<div class="recap-pop" style="animation-delay:${Math.min(i * 0.045, 0.9).toFixed(2)}s;display:flex;align-items:center;gap:12px;background:${i < 3 ? 'linear-gradient(135deg,rgba(255,202,40,0.08),rgba(108,92,231,0.05))' : 'var(--s1)'};border:${i < 3 ? '1px solid rgba(255,202,40,0.25)' : '0.5px solid var(--border2)'};border-radius:14px;padding:9px 12px;margin-bottom:8px">
+        <div style="width:30px;text-align:center;font-size:${i < 3 ? '20px' : '13px'};font-weight:800;color:var(--muted2);flex-shrink:0">${medal(i)}</div>
+        <div style="width:38px;height:52px;border-radius:8px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px">🎮</div>`}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
+          ${g.status === 'platine' ? `<div style="font-size:10px;color:var(--amber);font-weight:700;margin-top:2px">🏆 100%</div>` : ''}
+        </div>
+        <div style="font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber);flex-shrink:0">★ ${g.score}</div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('top20-overlay').style.display = 'flex';
+}
+
+function closeTop20() {
+  const el = document.getElementById('top20-overlay');
+  if (el) el.style.display = 'none';
+}
+
+// Image de partage 1080×1350, texte uniquement (jamais taintée)
+async function shareTop20() {
+  const d = _top20Data;
+  if (!d || !d.games.length) return;
+  const fr = _lang !== 'en';
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+  const x = c.getContext('2d');
+  const grad = x.createLinearGradient(0, 0, 1080, 1350);
+  grad.addColorStop(0, '#1a1040'); grad.addColorStop(0.55, '#0d0d1f'); grad.addColorStop(1, '#080810');
+  x.fillStyle = grad; x.fillRect(0, 0, 1080, 1350);
+  x.textAlign = 'center';
+  x.fillStyle = '#a29bfe';
+  x.font = '700 36px "Space Grotesk", sans-serif';
+  x.fillText('🎮 GameShelf', 540, 100);
+  x.fillStyle = '#ffffff';
+  x.font = '900 58px "Space Grotesk", sans-serif';
+  x.fillText('🏆 ' + (d.mine ? (fr ? 'Mon Top 20' : 'My Top 20') : 'Top 20 · ' + d.owner), 540, 185);
+  const rows = d.games.slice(0, 20);
+  const y0 = 260, rowH = rows.length > 15 ? 48 : 60;
+  x.textAlign = 'left';
+  rows.forEach((g, i) => {
+    const y = y0 + i * rowH;
+    x.fillStyle = i < 3 ? '#ffca28' : 'rgba(255,255,255,0.45)';
+    x.font = '800 30px "Space Grotesk", sans-serif';
+    x.fillText(String(i + 1) + '.', 90, y);
+    x.fillStyle = i < 3 ? '#ffffff' : 'rgba(255,255,255,0.85)';
+    x.font = (i < 3 ? '700 ' : '600 ') + '30px "DM Sans", sans-serif';
+    let ttl = String(g.title);
+    if (ttl.length > 34) ttl = ttl.slice(0, 33) + '…';
+    x.fillText(ttl, 160, y);
+    x.fillStyle = '#ffca28';
+    x.font = '800 30px "Space Grotesk", sans-serif';
+    x.textAlign = 'right';
+    x.fillText('★ ' + g.score, 990, y);
+    x.textAlign = 'left';
+  });
+  x.textAlign = 'center';
+  x.fillStyle = '#6c5ce7';
+  x.font = '700 30px "DM Sans", sans-serif';
+  x.fillText('gameshelf-seven.vercel.app', 540, 1300);
+  c.toBlob(async blob => {
+    if (!blob) return;
+    const file = new File([blob], 'gameshelf-top20.png', { type: 'image/png' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'GameShelf' });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'gameshelf-top20.png';
+    a.click();
+    showToast(_lang === 'en' ? '✓ Image downloaded' : '✓ Image téléchargée');
+  }, 'image/png');
+}
+
 const _MONTHS_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 const _MONTHS_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 let _recapData = null;
