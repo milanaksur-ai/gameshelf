@@ -2291,7 +2291,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 12.07m</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v1.9 · build 15.07a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -6393,9 +6393,19 @@ async function authSubmit() {
   const cta = document.getElementById('auth-cta');
   if (cta) { cta.disabled = true; cta.textContent = '…'; }
   if (_authMode === 'signup') {
-    const { data, error } = await _sb.auth.signUp({ email, password: pwd });
+    let data, error;
+    try {
+      ({ data, error } = await _sb.auth.signUp({ email, password: pwd }));
+    } catch (e) {
+      showToast(t('onboarding.connection_error'));
+      if (cta) { cta.disabled = false; cta.textContent = t('onboarding.signup_cta'); }
+      return;
+    }
     if (error) {
-      showToast(error.message);
+      // Supabase peut renvoyer une erreur au corps vide ("{}") → message lisible
+      const msg = (error.message && error.message.length > 2) ? error.message
+        : (_lang === 'en' ? 'Sign-up failed on the server — try again or contact us' : 'Création impossible côté serveur — réessaie ou contacte-nous');
+      showToast(msg);
       if (cta) { cta.disabled = false; cta.textContent = t('onboarding.signup_cta'); }
       return;
     }
