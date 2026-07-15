@@ -2296,10 +2296,22 @@ html, body {
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.0 · build 15.07b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
+            <button id="admin-quiz-review-btn" onclick="openQuizReview()" style="display:none;margin-top:14px;background:none;border:0.5px solid var(--border2);border-radius:10px;padding:8px 14px;font-size:11px;font-weight:600;color:var(--muted2);cursor:pointer">🛠️ Review quiz Actu</button>
           </div>
 
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ADMIN : review des questions de quiz "Actu Gaming" générées automatiquement -->
+  <div id="quiz-review-overlay" class="quiz-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:900;padding:20px;overflow-y:auto">
+    <div style="max-width:480px;margin:0 auto;background:var(--s1);border-radius:20px;padding:18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">🛠️ Review quiz Actu</div>
+        <button onclick="closeQuizReview()" style="background:none;border:none;font-size:20px;color:var(--muted2);cursor:pointer">✕</button>
+      </div>
+      <div id="quiz-review-list"></div>
     </div>
   </div>
 
@@ -2417,6 +2429,7 @@ html, body {
       <div class="scroll-area" style="padding:0 16px calc(84px + var(--safe-b-min))">
         <!-- QUIZ DU JOUR (hero card) -->
         <div id="daily-quiz-card" style="display:none;margin-bottom:20px"></div>
+        <div id="actu-quiz-card" style="display:none;margin-bottom:20px"></div>
         <div id="weekly-poll-card" style="display:none;margin-bottom:20px"></div>
         <!-- Pending requests -->
         <div id="social-pending" style="display:none;margin-bottom:20px">
@@ -10928,6 +10941,7 @@ async function loadSocialScreen() {
   try { renderSocialScreen(uid); } catch (e) { console.error('renderSocialScreen', e); _gsShowErrBanner('Amis : ' + e.message); }
   try { checkAchievements(); } catch (e) { console.warn('checkAchievements', e); }
   try { renderDailyQuizCard(); } catch (e) { console.warn('renderDailyQuizCard', e); _gsShowErrBanner('Quiz : ' + e.message); }
+  try { renderActuQuizCard(); } catch (e) { console.warn('renderActuQuizCard', e); }
   try { renderWeeklyPoll(); } catch (e) { console.warn('renderWeeklyPoll', e); }
   try { renderSocialLeaderboard(); } catch (e) { console.warn('renderSocialLeaderboard', e); _gsShowErrBanner('Podium : ' + e.message); }
   if (friends.length) {
@@ -13920,6 +13934,7 @@ function applyProfileToUI() {
           }
         }
         renderDailyQuizCard();
+        renderActuQuizCard();
         renderQuizHub();
       } catch (e) {}
     })();
@@ -15479,7 +15494,10 @@ function _quizSeededRng(seed) {
 const _QUIZ_MASTER_SEED = 0x9E3779B1 | 0;
 function _quizMasterOrder() {
   const rng = _quizSeededRng(_QUIZ_MASTER_SEED);
-  return QUIZ_DATA.map(q => ({ q, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.q);
+  // Le contenu généré (quiz "Actu Gaming") est exclu du pool déterministe :
+  // il varie dans le temps et casserait la cohérence inter-appareils des
+  // classements du jour. Il vit dans sa propre carte, hors rotation.
+  return QUIZ_DATA.filter(q => !q.generated).map(q => ({ q, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.q);
 }
 // Fenêtre glissante continue sur l'ordre maître : chaque jour avance de
 // QUIZ_PER_DAY dans l'anneau, + une dérive d'un cran par cycle pour éviter un
@@ -15859,6 +15877,7 @@ async function _syncMyQuizScoresFromCloud() {
     if (changed) {
       localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
       renderDailyQuizCard();
+      renderActuQuizCard();
       renderQuizHub();
     }
     // Reconstruit la série hebdo depuis l'historique cloud (multi-appareils)
@@ -15962,14 +15981,22 @@ let _activePollPid = null;
 // main dans Supabase — absente ou vide, la banque tourne toute seule).
 async function _fetchPollOverride(week) {
   try {
-    const { data } = await _sb.from('weekly_poll_override').select('q,opts').eq('week_index', week).maybeSingle();
-    if (data && data.q && Array.isArray(data.opts) && data.opts.length >= 2) return { q: data.q, opts: data.opts.map(String) };
+    const { data } = await _sb.from('weekly_poll_override').select('q,opts,q_en,opts_en').eq('week_index', week).maybeSingle();
+    if (data && data.q && Array.isArray(data.opts) && data.opts.length >= 2) {
+      const poll = { q: data.q, opts: data.opts.map(String) };
+      if (data.q_en && Array.isArray(data.opts_en) && data.opts_en.length === data.opts.length) {
+        poll.q_en = data.q_en; poll.opts_en = data.opts_en.map(String);
+      }
+      return poll;
+    }
   } catch (e) {}
   return null;
 }
 function _pollWeekIndex() { return Math.floor(_quizDayIndex() / 7); }
 function _currentPoll() { const w = _pollWeekIndex(); return { week: w, poll: WEEKLY_POLLS[w % WEEKLY_POLLS.length] }; }
 function _pollDaysLeft() { return 7 - (_quizDayIndex() % 7); }
+function _pollQ(p) { return (_lang === 'en' && p.q_en) ? p.q_en : p.q; }
+function _pollOpts(p) { return (_lang === 'en' && Array.isArray(p.opts_en) && p.opts_en.length === p.opts.length) ? p.opts_en : p.opts; }
 
 async function renderWeeklyPoll() {
   const el = document.getElementById('weekly-poll-card');
@@ -16006,7 +16033,8 @@ async function renderWeeklyPoll() {
 function _paintPoll(el, poll, week, myChoice, votes) {
   const fr = _lang !== 'en';
   const voted = myChoice !== null && myChoice !== undefined;
-  const counts = poll.opts.map(() => 0);
+  const opts = _pollOpts(poll);
+  const counts = opts.map(() => 0);
   (votes || []).forEach(v => { if (counts[v.choice] !== undefined) counts[v.choice]++; });
   // Si pas encore de données serveur mais vote local → au moins mon vote
   if (!votes && voted) counts[myChoice] = 1;
@@ -16020,7 +16048,7 @@ function _paintPoll(el, poll, week, myChoice, votes) {
       if (f) { (friendByChoice[v.choice] = friendByChoice[v.choice] || []).push(f); }
     });
   }
-  const rows = poll.opts.map((opt, i) => {
+  const rows = opts.map((opt, i) => {
     if (!voted) {
       return `<button onclick="votePoll(${i})" style="width:100%;text-align:left;background:var(--s2);border:1px solid var(--border2);border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:border-color 0.15s" ontouchstart="this.style.borderColor='var(--a)'" ontouchend="this.style.borderColor='var(--border2)'">${opt}</button>`;
     }
@@ -16041,7 +16069,7 @@ function _paintPoll(el, poll, week, myChoice, votes) {
       <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800">🗳️ ${fr ? 'Sondage de la semaine' : 'Poll of the week'}</div>
       <div style="font-size:10px;font-weight:700;color:var(--muted2);background:var(--s2);border-radius:50px;padding:3px 9px;flex-shrink:0">⏳ ${daysLeft}${fr ? 'j' : 'd'}</div>
     </div>
-    <div style="font-size:14px;font-weight:600;line-height:1.4;margin-bottom:12px">${poll.q}</div>
+    <div style="font-size:14px;font-weight:600;line-height:1.4;margin-bottom:12px">${_pollQ(poll)}</div>
     ${rows}
     <div style="font-size:11px;color:var(--muted2);margin-top:2px">${voted
       ? `${total} ${fr ? 'vote' + (total > 1 ? 's' : '') : 'vote' + (total > 1 ? 's' : '')}`
@@ -16146,6 +16174,107 @@ async function renderDailyQuizCard() {
       </div>
     </div>`).join('')}
   </div>`;
+}
+
+// ── Carte "Actu Gaming" : quiz hebdo généré + vérifié auto, hors rotation ──
+async function _fetchActuQuiz() {
+  try {
+    const { data } = await _sb.from('generated_quiz_pool')
+      .select('week_index,q,a,c,q_en,a_en').eq('status', 'published')
+      .order('week_index', { ascending: false }).limit(20);
+    if (!data || !data.length) return null;
+    const week = data[0].week_index;
+    const questions = data.filter(r => r.week_index === week)
+      .map(r => ({ q: r.q, a: r.a, c: r.c, q_en: r.q_en, a_en: r.a_en }));
+    if (!questions.length) return null;
+    const category = {
+      id: 'actu-' + week, cat: 'actu', generated: true,
+      title: 'Actualité Gaming', title_en: 'Gaming News', emoji: '📰',
+      color: '#00cec9', gradient: 'linear-gradient(135deg,#00cec9,#0984e3)',
+      questions,
+    };
+    const existingIdx = QUIZ_DATA.findIndex(q => q.generated);
+    if (existingIdx >= 0) QUIZ_DATA[existingIdx] = category; else QUIZ_DATA.push(category);
+    return category;
+  } catch (e) { return null; }
+}
+
+async function renderActuQuizCard() {
+  _maybeShowAdminQuizReview();
+  const el = document.getElementById('actu-quiz-card');
+  if (!el) return;
+  const category = await _fetchActuQuiz();
+  if (!category) { el.style.display = 'none'; return; }
+  const fr = _lang !== 'en';
+  const done = !!_quizLocalScores[category.id];
+  el.style.display = 'block';
+  el.innerHTML = `<div class="anim" onclick="openQuiz('${category.id}')" style="position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(0,206,201,0.18) 0%,rgba(9,132,227,0.1) 100%);border:1px solid rgba(0,206,201,0.35);border-radius:20px;padding:16px" >
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;background:${done ? 'rgba(0,230,118,0.12)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+        ${category.emoji}
+        ${done ? '<div style="position:absolute;margin-left:26px;margin-top:-26px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : ''}
+      </div>
+      <div style="min-width:0;flex:1">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800">📰 ${fr ? 'Quiz Actu Gaming' : 'Gaming News Quiz'}</div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:1px">${fr ? 'Généré cette semaine, vérifié par IA' : 'Generated this week, AI fact-checked'}</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:${done ? 'var(--green)' : 'var(--a)'};flex-shrink:0">${done ? (fr ? 'Fait ✓' : 'Done ✓') : (fr ? 'Jouer →' : 'Play →')}</div>
+    </div>
+  </div>`;
+}
+
+// ── Admin (Milan) : review des questions de quiz Actu générées auto ──
+const QUIZ_REVIEW_API = 'https://gameshelf-back-end.vercel.app/api/quiz-review';
+async function _maybeShowAdminQuizReview() {
+  const btn = document.getElementById('admin-quiz-review-btn');
+  if (!btn) return;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    btn.style.display = (session && session.user.email === 'milanaksur@gmail.com') ? 'block' : 'none';
+  } catch (e) {}
+}
+
+async function openQuizReview() {
+  const overlay = document.getElementById('quiz-review-overlay');
+  const list = document.getElementById('quiz-review-list');
+  overlay.style.display = 'block';
+  list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted2)">…</div>';
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    const res = await fetch(QUIZ_REVIEW_API, { headers: { Authorization: `Bearer ${session.access_token}` } });
+    const { items } = await res.json();
+    if (!items || !items.length) {
+      list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted2);font-size:13px">Rien en attente 🎉</div>';
+      return;
+    }
+    list.innerHTML = items.map(it => `
+      <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;margin-bottom:10px">
+        <div style="font-size:10px;color:var(--muted2);margin-bottom:4px">📰 ${_esc(it.topic || '')}</div>
+        <div style="font-size:13px;font-weight:700;margin-bottom:8px">${_esc(it.q)}</div>
+        ${it.a.map((a, i) => `<div style="font-size:12px;padding:4px 0;color:${i === it.c ? 'var(--green)' : 'var(--muted2)'}">${i === it.c ? '✓ ' : '· '}${_esc(a)}</div>`).join('')}
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button onclick="_qrDecide('${it.id}','approve')" style="flex:1;padding:9px;background:var(--green);border:none;border-radius:10px;font-size:12px;font-weight:700;color:#03130a;cursor:pointer">✅ Approuver</button>
+          <button onclick="_qrDecide('${it.id}','reject')" style="flex:1;padding:9px;background:none;border:0.5px solid var(--red);border-radius:10px;font-size:12px;font-weight:700;color:var(--red);cursor:pointer">❌ Rejeter</button>
+        </div>
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--red);font-size:13px">Erreur de chargement</div>';
+  }
+}
+
+function closeQuizReview() { document.getElementById('quiz-review-overlay').style.display = 'none'; }
+
+async function _qrDecide(id, action) {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    await fetch(QUIZ_REVIEW_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ id, action }),
+    });
+    showToast(action === 'approve' ? '✅ Publié' : '❌ Rejeté');
+    openQuizReview();
+  } catch (e) { showToast('Erreur'); }
 }
 
 // ── Attribution des XP du classement quiz d'hier (au lancement de l'app) ──
@@ -16420,6 +16549,7 @@ function showQuizResults() {
   try { _bumpQuizStreak(); } catch (e) {}
   _maybeSendDailyQuizPush();
   renderDailyQuizCard(); // met à jour la carte de la page Amis (pastilles ✓, podium)
+  renderActuQuizCard();
   setTimeout(() => { if (typeof checkPendingRequests === 'function') checkPendingRequests(); }, 800);
 }
 
