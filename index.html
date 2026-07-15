@@ -1493,7 +1493,7 @@ html, body {
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           <span data-i18n="profile.add_game">Ajouter un jeu</span>
         </button>
-        <button class="bracket-launch-btn" onclick="showTirageIntroIfNeeded()" data-i18n="profile.lucky_dip">
+        <button id="lucky-dip-header-btn" class="bracket-launch-btn" onclick="showTirageIntroIfNeeded()" data-i18n="profile.lucky_dip">
           🎲 Tire-moi un jeu !
         </button>
       </div>
@@ -7008,6 +7008,7 @@ function refreshViews() {
   _rvTimer = requestAnimationFrame(() => {
     if (appCurrentScreen === 'library') filterGames(); else renderGameGrid();
     renderFeed(); renderProfileStats(); renderProfileCollections();
+    _updateLuckyDipLock();
   });
 }
 
@@ -8395,7 +8396,7 @@ function filterGames(){
       <div style="font-size:13px;color:var(--muted2);margin-bottom:20px">${t('profile.playing_empty_sub')}</div>
       <div style="display:flex;gap:10px;justify-content:center">
         <button onclick="openAddModal()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 20px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--text);cursor:pointer">${t('profile.add_game')}</button>
-        <button onclick="showTirageIntroIfNeeded()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px 20px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">${t('profile.lucky_dip')}</button>
+        <button onclick="showTirageIntroIfNeeded()" ${_bracketPoolCount() < 2 ? 'disabled title="' + (_lang === 'en' ? 'Add at least 2 games to your backlog to unlock' : 'Ajoute au moins 2 jeux au backlog pour débloquer') + '"' : ''} style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:13px 20px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:${_bracketPoolCount() < 2 ? 'not-allowed' : 'pointer'};opacity:${_bracketPoolCount() < 2 ? '0.45' : '1'}">${t('profile.lucky_dip')}</button>
       </div>
     </div>`;
   }
@@ -9882,7 +9883,7 @@ function renderFeed(){
       <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px">${t('profile.playing_empty')}</div>
       <div style="font-size:11px;color:var(--muted2)">${t('profile.playing_empty_sub')}</div>
     </div>
-    <button onclick="showTirageIntroIfNeeded()" style="flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:9px 14px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:pointer;white-space:nowrap">${t('profile.lucky_dip')}</button>
+    <button onclick="showTirageIntroIfNeeded()" ${_bracketPoolCount() < 2 ? 'disabled title="' + (_lang === 'en' ? 'Add at least 2 games to your backlog to unlock' : 'Ajoute au moins 2 jeux au backlog pour débloquer') + '"' : ''} style="flex-shrink:0;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:9px 14px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;color:#fff;cursor:${_bracketPoolCount() < 2 ? 'not-allowed' : 'pointer'};white-space:nowrap;opacity:${_bracketPoolCount() < 2 ? '0.45' : '1'}">${t('profile.lucky_dip')}</button>
   </div>`;
   const playingEl = document.getElementById('playing-slots');
   if (playingEl) playingEl.innerHTML = playingSolo.map((g,i) => slotCard(g,i)).join('') || (playingAll.length ? '' : emptyStateHtml);
@@ -14644,9 +14645,27 @@ async function resetProgress() {
 // ══════════════════════════════════════
 // LE TIRAGE — intro popup (one-time)
 // ══════════════════════════════════════
+// Nombre de jeux éligibles au tirage (backlog + en pause), comme initBracket()
+function _bracketPoolCount() {
+  return GAMES.filter(g => ['backlog','paused'].includes((userGames[g.id]||g).status)).length;
+}
 function showTirageIntroIfNeeded() {
+  if (_bracketPoolCount() < 2) { showToast(t('toast.bracket_min')); return; }
   const el = document.getElementById('tirage-intro');
   if (el) { el.style.display = 'flex'; }
+}
+// Verrouille visuellement le(s) bouton(s) « Pick a game for me » tant qu'il n'y a
+// pas assez de jeux en backlog/pause (2 minimum, comme initBracket()) — appelé
+// depuis refreshViews() pour rester synchronisé avec la bibliothèque.
+function _updateLuckyDipLock() {
+  const ready = _bracketPoolCount() >= 2;
+  const btn = document.getElementById('lucky-dip-header-btn');
+  if (btn) {
+    btn.disabled = !ready;
+    btn.style.opacity = ready ? '1' : '0.45';
+    btn.style.cursor = ready ? 'pointer' : 'not-allowed';
+    btn.title = ready ? '' : (_lang === 'en' ? 'Add at least 2 games to your backlog to unlock' : 'Ajoute au moins 2 jeux au backlog pour débloquer');
+  }
 }
 function closeTirageIntro() {
   localStorage.setItem('gs_tirage_seen', '1');
@@ -15912,8 +15931,9 @@ async function renderWeeklyPoll() {
   if (!el) return;
   const { data: { session } } = await _sb.auth.getSession();
   if (!session) { el.style.display = 'none'; return; }
+  const pollKey = 'gs_poll_vote_' + session.user.id + '_' + _currentPoll().week; // scopé par compte : pas de fuite sur appareil partagé
   const { week, poll: bankPoll } = _currentPoll();
-  const myLocal = localStorage.getItem('gs_poll_vote_' + week);
+  const myLocal = localStorage.getItem(pollKey);
   const myChoiceLocal = myLocal !== null ? Number(myLocal) : null;
   el.style.display = 'block';
 
@@ -15929,8 +15949,11 @@ async function renderWeeklyPoll() {
       .select('user_id,choice').eq('week_index', week).limit(500);
     if (!votes) return;
     const mine = votes.find(v => v.user_id === session.user.id);
-    const myChoice = mine ? mine.choice : (myLocal !== null ? Number(myLocal) : null);
-    if (mine) localStorage.setItem('gs_poll_vote_' + week, String(mine.choice));
+    // Le serveur fait foi : si je n'ai pas voté (mine=undefined), on efface tout
+    // reliquat local erroné plutôt que de lui faire encore confiance.
+    const myChoice = mine ? mine.choice : null;
+    if (mine) localStorage.setItem(pollKey, String(mine.choice));
+    else localStorage.removeItem(pollKey);
     _paintPoll(el, poll, week, myChoice, votes);
   } catch (e) { /* table pas encore migrée → on reste sur l'état local */ }
 }
@@ -15986,15 +16009,15 @@ function _paintPoll(el, poll, week, myChoice, votes) {
 }
 
 async function votePoll(choice) {
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) return;
   const { week } = _currentPoll();
-  if (localStorage.getItem('gs_poll_vote_' + week) !== null) return; // déjà voté
-  localStorage.setItem('gs_poll_vote_' + week, String(choice)); // optimiste (un seul vote possible)
+  const pollKey = 'gs_poll_vote_' + session.user.id + '_' + week; // scopé par compte
+  if (localStorage.getItem(pollKey) !== null) return; // déjà voté (ce compte-ci)
+  localStorage.setItem(pollKey, String(choice)); // optimiste (un seul vote possible)
   try { navigator.vibrate && navigator.vibrate(12); } catch (e) {}
   renderWeeklyPoll(); // repeint tout de suite (résultats), puis raffine avec le serveur
   try {
-    const { data: { session } } = await _sb.auth.getSession();
-    if (!session) return;
-    const { poll } = _currentPoll();
     // Doublon (23505) = déjà voté ailleurs → renderWeeklyPoll récupérera le vrai vote ;
     // table absente / autre erreur → on reste sur l'affichage optimiste local
     await _sb.from('poll_votes').insert({
