@@ -1190,7 +1190,7 @@ html, body {
 
 <!-- OFFLINE BANNER -->
 <div id="offline-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#1a1a2e;border-bottom:1px solid rgba(255,82,82,0.4);padding:10px 16px;text-align:center;font-size:12px;font-weight:700;color:rgba(255,82,82,0.9);letter-spacing:0.04em">
-  📡 Pas de connexion — tes modifications seront synchronisées dès le retour
+  <span data-i18n="onboarding.offline_banner">📡 Pas de connexion — tes modifications seront synchronisées dès le retour</span>
 </div>
 
 <!-- ████████████████ ONBOARDING ████████████████ -->
@@ -1224,18 +1224,18 @@ html, body {
   <div class="step" id="step-1">
     <div class="step-scroll"><div class="step-pad">
       <div style="margin-bottom:28px">
-        <div id="auth-mode-label" class="step-title" style="margin-bottom:6px">Crée ton <span>compte</span></div>
-        <p class="step-sub" id="auth-mode-sub">Gratuit. Pas de spam. Juste tes jeux.</p>
+        <div id="auth-mode-label" class="step-title" style="margin-bottom:6px" data-i18n-html="onboarding.create_account_title">Crée ton <span>compte</span></div>
+        <p class="step-sub" id="auth-mode-sub" data-i18n="onboarding.create_account_sub">Gratuit. Pas de spam. Juste tes jeux.</p>
       </div>
       <div class="field">
-        <div class="field-label">Email</div>
+        <div class="field-label" data-i18n="onboarding.email_label">Email</div>
         <input class="field-input" type="email" id="auth-email" placeholder="toi@exemple.com" autocomplete="email"
                onkeydown="if(event.key==='Enter')document.getElementById('auth-pwd').focus()">
       </div>
       <div class="field">
-        <div class="field-label">Mot de passe</div>
+        <div class="field-label" data-i18n="onboarding.pwd_label">Mot de passe</div>
         <div class="pwd-wrap">
-          <input class="field-input" type="password" id="auth-pwd" placeholder="8 caractères minimum" autocomplete="current-password"
+          <input class="field-input" type="password" id="auth-pwd" data-i18n-ph="onboarding.pwd_placeholder" placeholder="8 caractères minimum" autocomplete="current-password"
                  onkeydown="if(event.key==='Enter')authSubmit()">
           <button class="pwd-toggle" type="button" onclick="togglePwd('auth-pwd',this)" aria-label="Afficher">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -1243,17 +1243,17 @@ html, body {
         </div>
       </div>
       <div style="margin-top:24px">
-        <button id="auth-cta" class="btn-primary" onclick="authSubmit()">Créer mon compte →</button>
+        <button id="auth-cta" class="btn-primary" onclick="authSubmit()" data-i18n="onboarding.create_account_cta">Créer mon compte →</button>
       </div>
       <div id="auth-switch" style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted2)">
-        Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode('login')">Se connecter</span>
+        <span data-i18n="onboarding.already_account">Déjà un compte ?</span> <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode('login')" data-i18n="onboarding.sign_in_link">Se connecter</span>
       </div>
       <div class="divider" style="margin:22px 0">ou</div>
       <button class="btn-secondary" onclick="authWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px">
         <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
         <span data-i18n="onboarding.google">Continuer avec Google</span>
       </button>
-      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.5">En continuant, tu acceptes les <span style="color:var(--muted2)">CGU</span> et la <span style="color:var(--muted2)">Politique de confidentialité</span>.</p>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.5"><span data-i18n="onboarding.terms_prefix">En continuant, tu acceptes les</span> <span style="color:var(--muted2)" data-i18n="onboarding.terms_cgu">CGU</span> <span data-i18n="onboarding.terms_and">et la</span> <span style="color:var(--muted2)" data-i18n="onboarding.terms_privacy">Politique de confidentialité</span>.</p>
     </div></div>
   </div>
 
@@ -1261,9 +1261,9 @@ html, body {
   <div class="step" id="step-2">
     <button class="back-btn" onclick="obStep(1)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 2 sur 5</div>
+      <div class="step-tag" data-i18n="onboarding.step2_tag">Étape 2 sur 5</div>
       <div class="step-title" data-i18n-html="onboarding.profile_title">Ton <span>profil</span></div>
-      <p class="step-sub">Choisis comment tes amis te verront.</p>
+      <p class="step-sub" data-i18n="onboarding.step2_sub">Choisis comment tes amis te verront.</p>
       <div style="margin-bottom:20px">
         <div class="field-label" style="margin-bottom:10px" data-i18n="onboarding.choose_avatar">Choisis ton avatar</div>
         <div style="display:flex;justify-content:center;margin-bottom:16px">
@@ -1280,7 +1280,7 @@ html, body {
             <span style="font-size:13px;font-weight:700;color:var(--text)">URL</span>
           </button>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:center">— ou choisir un emoji —</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-align:center" data-i18n="profile.or_emoji">— ou choisir un emoji —</div>
         <div class="avatar-grid" id="ob-avatar-grid">
           <div class="av-opt sel" style="background:linear-gradient(135deg,#6c5ce7,#fd79a8)" onclick="selectAv(this)">🎮</div>
           <div class="av-opt" style="background:linear-gradient(135deg,#00b894,#00cec9)" onclick="selectAv(this)">🕹️</div>
@@ -1326,12 +1326,12 @@ html, body {
           <div style="width:36px;height:36px;border-radius:10px;background:rgba(16,124,16,0.12);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🟩</div>
           <div>
             <div style="font-size:13px;font-weight:600;color:var(--text)">Xbox Game Pass</div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:2px">Afficher les jeux inclus dans l'abonnement</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:2px" data-i18n="misc.gamepass_toggle_sub">Afficher les jeux inclus dans l'abonnement</div>
           </div>
           <div id="gp-ob-check" style="margin-left:auto;width:22px;height:22px;border-radius:50%;background:var(--s1);border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;transition:all 0.2s"></div>
         </div>
       </div>
-      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep2()">Continuer →</button></div>
+      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep2()" data-i18n="onboarding.continue">Continuer →</button></div>
     </div></div>
   </div>
 
@@ -1339,24 +1339,24 @@ html, body {
   <div class="step" id="step-3">
     <button class="back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 3 sur 5</div>
+      <div class="step-tag" data-i18n="onboarding.step3_tag">Étape 3 sur 5</div>
       <div class="step-title" data-i18n-html="onboarding.import_title">Importe tes <span>jeux</span></div>
-      <p class="step-sub">Comment veux-tu remplir ta bibliothèque ?</p>
+      <p class="step-sub" data-i18n="onboarding.step3_sub">Comment veux-tu remplir ta bibliothèque ?</p>
       <div class="import-opt" id="opt-steam" style="opacity:0.42;pointer-events:none">
         <div class="import-icon" style="background:rgba(108,92,231,0.12)">🖥️</div>
-        <div class="import-info"><div class="import-title">Importer depuis Steam</div><div class="import-sub">Synchronise ta bibliothèque avec ton Steam ID</div></div>
-        <span class="import-badge badge-soon">Bientôt</span>
+        <div class="import-info"><div class="import-title" data-i18n="onboarding.steam_import_title">Importer depuis Steam</div><div class="import-sub" data-i18n="onboarding.steam_import_sub">Synchronise ta bibliothèque avec ton Steam ID</div></div>
+        <span class="import-badge badge-soon" data-i18n="onboarding.steam_soon">Bientôt</span>
       </div>
       <div class="import-opt sel" id="opt-manual" onclick="selectImport('manual')">
         <div class="import-icon" style="background:rgba(0,206,201,0.10)">🎮</div>
-        <div class="import-info"><div class="import-title">Construis ton profil</div><div class="import-sub">Parcours les genres, découvre et ajoute tes jeux</div></div>
-        <span class="import-badge badge-now">Disponible</span>
+        <div class="import-info"><div class="import-title" data-i18n="onboarding.manual_title">Construis ton profil</div><div class="import-sub" data-i18n="onboarding.manual_sub">Parcours les genres, découvre et ajoute tes jeux</div></div>
+        <span class="import-badge badge-now" data-i18n="onboarding.available_badge">Disponible</span>
       </div>
       <div class="import-opt" id="opt-skip" onclick="selectImport('skip')">
         <div class="import-icon" style="background:rgba(255,255,255,0.04)">⏭️</div>
         <div class="import-info"><div class="import-title" data-i18n="onboarding.skip">Passer cette étape</div><div class="import-sub" data-i18n="onboarding.skip_sub">Tu pourras ajouter des jeux plus tard</div></div>
       </div>
-      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep3()" id="import-cta">Construis ton profil →</button></div>
+      <div style="margin-top:24px"><button class="btn-primary" onclick="validateStep3()" id="import-cta" data-i18n="onboarding.manual_cta">Construis ton profil →</button></div>
     </div></div>
   </div>
 
@@ -1364,25 +1364,25 @@ html, body {
   <div class="step" id="step-3b">
     <button class="back-btn" onclick="obStep(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Import Steam</div>
-      <div class="step-title">Ton <span>Steam ID</span></div>
-      <p class="step-sub">Trouve ton ID dans l'URL de ton profil Steam.</p>
+      <div class="step-tag" data-i18n="onboarding.step3b_tag">Import Steam</div>
+      <div class="step-title" data-i18n-html="onboarding.steam_id_title">Ton <span>Steam ID</span></div>
+      <p class="step-sub" data-i18n="onboarding.steam_id_sub">Trouve ton ID dans l'URL de ton profil Steam.</p>
       <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:12px;color:var(--muted2);line-height:1.7">
-        <div style="font-weight:500;color:var(--text);margin-bottom:4px">📍 Où trouver mon Steam ID ?</div>
-        1. Ouvre <strong style="color:var(--text)">Steam</strong> sur ton ordi<br>
-        2. Clique sur ton <strong style="color:var(--text)">Profil</strong><br>
-        3. Copie le numéro à la fin de l'URL<br>
+        <div style="font-weight:500;color:var(--text);margin-bottom:4px" data-i18n="onboarding.steam_id_help_title">📍 Où trouver mon Steam ID ?</div>
+        <span data-i18n-html="onboarding.steam_id_step1">1. Ouvre <strong style="color:var(--text)">Steam</strong> sur ton ordi</span><br>
+        <span data-i18n-html="onboarding.steam_id_step2">2. Clique sur ton <strong style="color:var(--text)">Profil</strong></span><br>
+        <span data-i18n="onboarding.steam_id_step3">3. Copie le numéro à la fin de l'URL</span><br>
         <span style="color:var(--a);font-family:monospace;font-size:11px">steamcommunity.com/profiles/<strong>76561198XXXXXXX</strong></span>
       </div>
       <div class="field">
-        <div class="field-label">Steam ID (17 chiffres)</div>
+        <div class="field-label" data-i18n="onboarding.steam_id_label">Steam ID (17 chiffres)</div>
         <input class="field-input" type="text" id="steamid-input" placeholder="76561198XXXXXXXXX" maxlength="17" inputmode="numeric">
       </div>
-      <div style="background:rgba(255,202,40,0.07);border:0.5px solid rgba(255,202,40,0.2);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:rgba(255,202,40,0.9);line-height:1.5">
+      <div style="background:rgba(255,202,40,0.07);border:0.5px solid rgba(255,202,40,0.2);border-radius:12px;padding:12px 14px;margin-bottom:20px;font-size:12px;color:rgba(255,202,40,0.9);line-height:1.5" data-i18n-html="onboarding.steam_guard_notice">
         ⏳ <strong>Steam Guard requis.</strong> Active l'authentificateur Steam mobile, puis reviens dans 7 jours.
       </div>
-      <button class="btn-primary" onclick="validateSteam()">Tester la connexion →</button>
-      <button class="btn-secondary" onclick="obStep('3d')">Passer — je reviens plus tard</button>
+      <button class="btn-primary" onclick="validateSteam()" data-i18n="onboarding.steam_test_cta">Tester la connexion →</button>
+      <button class="btn-secondary" onclick="obStep('3d')" data-i18n="onboarding.steam_skip_later">Passer — je reviens plus tard</button>
     </div></div>
   </div>
 
@@ -1394,8 +1394,8 @@ html, body {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
         </button>
         <div>
-          <div class="step-tag" style="margin-bottom:1px">Étape 3 sur 5</div>
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;line-height:1.15">Construis ton <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">profil</span></div>
+          <div class="step-tag" style="margin-bottom:1px" data-i18n="onboarding.step3_tag">Étape 3 sur 5</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;line-height:1.15" data-i18n-html="onboarding.step3c_title">Construis ton <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">profil</span></div>
         </div>
       </div>
       <div style="padding:0 16px;margin-bottom:8px">
@@ -1406,16 +1406,16 @@ html, body {
         </div>
       </div>
       <div class="genre-chips-row" id="disc-genre-row" style="padding:0 16px 8px">
-        <div class="g-chip active" onclick="discByGenre(null,this)">Tous</div>
+        <div class="g-chip active" onclick="discByGenre(null,this)" data-i18n="discover.genre_all">Tous</div>
         <div class="g-chip" onclick="discByGenre(12,this)">RPG</div>
-        <div class="g-chip" onclick="discByGenre(5,this)">Shooter</div>
-        <div class="g-chip" onclick="discByGenre(14,this)">Sport</div>
-        <div class="g-chip" onclick="discByGenre(15,this)">Stratégie</div>
-        <div class="g-chip" onclick="discByGenre(31,this)">Aventure</div>
-        <div class="g-chip" onclick="discByGenre(8,this)">Plateforme</div>
+        <div class="g-chip" onclick="discByGenre(5,this)" data-i18n="discover.genre_shooter">Shooter</div>
+        <div class="g-chip" onclick="discByGenre(14,this)" data-i18n="discover.genre_sport">Sport</div>
+        <div class="g-chip" onclick="discByGenre(15,this)" data-i18n="discover.genre_strategy">Stratégie</div>
+        <div class="g-chip" onclick="discByGenre(31,this)" data-i18n="discover.genre_adventure">Aventure</div>
+        <div class="g-chip" onclick="discByGenre(8,this)" data-i18n="discover.genre_platform">Plateforme</div>
         <div class="g-chip" onclick="discByGenre(32,this)">Indie</div>
-        <div class="g-chip" onclick="discByGenre(25,this)">Action</div>
-        <div class="g-chip" onclick="discByGenre(13,this)">Simulation</div>
+        <div class="g-chip" onclick="discByGenre(25,this)" data-i18n="discover.genre_action">Action</div>
+        <div class="g-chip" onclick="discByGenre(13,this)" data-i18n="discover.genre_simulation">Simulation</div>
         <button onclick="discRefresh()" style="flex-shrink:0;background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px">↻</button>
       </div>
       <div style="height:0.5px;background:var(--border)"></div>
@@ -1428,10 +1428,10 @@ html, body {
     </div>
     <div style="flex-shrink:0;padding:10px 16px calc(var(--safe-b) + 10px);border-top:0.5px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg)">
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:700;color:var(--text)"><span id="discover-count">0</span> jeux</div>
-        <div style="font-size:11px;color:var(--muted2)">ajoutés à ton profil</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)"><span id="discover-count">0</span> <span data-i18n="onboarding.discover_count_games">jeux</span></div>
+        <div style="font-size:11px;color:var(--muted2)" data-i18n="onboarding.discover_count_added">ajoutés à ton profil</div>
       </div>
-      <button onclick="obStep(4)" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif">Continuer →</button>
+      <button onclick="obStep(4)" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:12px 24px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;font-family:'Space Grotesk',sans-serif" data-i18n="onboarding.continue">Continuer →</button>
     </div>
 
   </div>
@@ -1440,12 +1440,12 @@ html, body {
   <div class="step" id="step-3d">
     <button class="back-btn" onclick="obStep(3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
-      <div class="step-tag">Étape 4 sur 5</div>
+      <div class="step-tag" data-i18n="onboarding.step4_tag">Étape 4 sur 5</div>
       <div class="step-title" data-i18n-html="onboarding.playing_title">Jeux <span>en ce moment</span></div>
-      <p class="step-sub">Ajoute ceux qui t'intéressent à ta liste.</p>
+      <p class="step-sub" data-i18n="onboarding.playing_sub">Ajoute ceux qui t'intéressent à ta liste.</p>
       <div id="trending-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
       <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:8px">
-        <button class="btn-primary" onclick="obStep(4)">Continuer →</button>
+        <button class="btn-primary" onclick="obStep(4)" data-i18n="onboarding.continue">Continuer →</button>
         <button class="btn-ghost" style="text-align:center;width:100%;color:var(--muted2)" onclick="obStep(4)" data-i18n="onboarding.skip">Passer cette étape</button>
       </div>
     </div></div>
@@ -1456,9 +1456,9 @@ html, body {
     <div class="step-scroll"><div style="padding:calc(var(--safe-t) + 40px) 20px calc(var(--safe-b) + 24px);display:flex;flex-direction:column;align-items:center;min-height:100%">
       <div class="success-ring">🎮</div>
       <div class="success-title" style="text-align:center" data-i18n="onboarding.ready">Tu es prêt !</div>
-      <p class="success-sub" style="text-align:center">Ta bibliothèque est créée.<br>Note tes jeux et retrouve-les ici.</p>
+      <p class="success-sub" style="text-align:center" data-i18n-html="onboarding.ready_sub">Ta bibliothèque est créée.<br>Note tes jeux et retrouve-les ici.</p>
       <div class="games-preview" id="success-preview"></div>
-      <button class="btn-primary" style="max-width:320px;width:100%" onclick="launchApp()">Entrer dans GameShelf →</button>
+      <button class="btn-primary" style="max-width:320px;width:100%" onclick="launchApp()" data-i18n="misc.launch_app_cta">Entrer dans GameShelf →</button>
     </div></div>
   </div>
 
@@ -1709,7 +1709,7 @@ html, body {
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+24px);max-height:82vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px"></div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;margin-bottom:4px">⚡ Choisir un quiz</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" id="qpm-subtitle">Choisis un quiz pour défier ton ami</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" id="qpm-subtitle" data-i18n="misc.quiz_pick_title">Choisis un quiz pour défier ton ami</div>
       <div style="overflow-y:auto;flex:1">
         <div id="quiz-streak-panel" style="margin-bottom:14px"></div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1737,7 +1737,7 @@ html, body {
   <div id="quiz-compare-modal" onclick="closeQuizCompare()" style="display:none;position:fixed;inset:0;z-index:885;background:rgba(0,0,0,0.78);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom)+20px);max-height:90vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
-      <div id="qcmp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px">↔ Comparaison du jour</div>
+      <div id="qcmp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:3px" data-i18n="misc.quiz_compare_title">↔ Comparaison du jour</div>
       <div id="qcmp-sub" style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.4"></div>
       <div id="qcmp-chips" style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 14px;flex-shrink:0"></div>
       <div id="qcmp-body" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:14px;padding-bottom:6px"></div>
@@ -1845,8 +1845,8 @@ html, body {
         </button>
         <button onclick="toggleCollectionVisibility()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <span id="cas-vis-icon" style="font-size:16px">🌍</span>
-          <span id="cas-vis-label" style="flex:1">Visible par mes amis</span>
-          <span style="font-size:11px;font-weight:700;color:var(--a)">Changer</span>
+          <span id="cas-vis-label" style="flex:1" data-i18n="misc.collection_visible">Visible par mes amis</span>
+          <span style="font-size:11px;font-weight:700;color:var(--a)" data-i18n="misc.collection_change">Changer</span>
         </button>
         <button onclick="confirmDeleteCollection()" style="width:100%;padding:14px 16px;background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:14px;font-size:14px;font-weight:600;color:var(--red);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/><path d="M10,11v6M14,11v6"/></svg>
@@ -1882,7 +1882,7 @@ html, body {
   <div id="profile-screenshot-picker" onclick="closeProfileScreenshotPicker()" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.7);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom)+20px);max-height:75vh;display:flex;flex-direction:column">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
-      <div id="psp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px">✏️ Éditer la capture</div>
+      <div id="psp-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;margin-bottom:4px" data-i18n="misc.shot_edit_title">✏️ Éditer la capture</div>
       <div id="psp-sub" style="font-size:12px;color:var(--muted2);margin-bottom:16px;line-height:1.4"></div>
       <div id="psp-game-list" style="overflow-y:auto;flex:1"></div>
     </div>
@@ -1986,7 +1986,7 @@ html, body {
           <div class="comp-total" id="stat-total">0</div>
           <div class="comp-total-label" data-i18n="profile.total">jeux au total</div>
 
-          <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em">✦ Mon récap</button>
+          <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em" data-i18n="misc.recap_btn">✦ Mon récap</button>
         </div>
       </div>
 
@@ -2052,8 +2052,8 @@ html, body {
         <div onclick="openMonthlyRecap()" style="display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(108,92,231,0.16),rgba(253,121,168,0.08));border:1px solid rgba(108,92,231,0.35);border-radius:16px;padding:14px 16px;cursor:pointer" ontouchstart="this.style.opacity=.8" ontouchend="this.style.opacity=1">
           <div style="font-size:24px">📊</div>
           <div style="flex:1;min-width:0">
-            <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800" id="recap-entry-title">Ton récap du mois</div>
-            <div style="font-size:11px;color:var(--muted2);margin-top:1px" id="recap-entry-sub">Jeux finis, XP, quiz — et une image à partager</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800" id="recap-entry-title" data-i18n="misc.recap_entry_title">Ton récap du mois</div>
+            <div style="font-size:11px;color:var(--muted2);margin-top:1px" id="recap-entry-sub" data-i18n="misc.recap_entry_sub">Jeux finis, XP, quiz — et une image à partager</div>
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted2)" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
         </div>
@@ -2087,10 +2087,10 @@ html, body {
           <div class="connect-title" style="display:flex;align-items:center;gap:8px">
             <span style="color:#107c10">🟩</span> Connecter Xbox
           </div>
-          <div class="connect-sub" id="xbox-connect-sub">Importe ta bibliothèque Xbox automatiquement via OpenXBL.</div>
+          <div class="connect-sub" id="xbox-connect-sub" data-i18n="misc.xbox_connect_sub">Importe ta bibliothèque Xbox automatiquement via OpenXBL.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-            <button class="connect-btn" style="background:#107c10" onclick="connectXbox()">Se connecter →</button>
-            <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer">Clé OpenXBL</button>
+            <button class="connect-btn" style="background:#107c10" onclick="connectXbox()" data-i18n="misc.xbox_connect_cta">Se connecter →</button>
+            <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer" data-i18n="misc.openxbl_key_btn">Clé OpenXBL</button>
           </div>
         </div>
       </div>
@@ -2450,7 +2450,7 @@ html, body {
       <button onclick="closeFriendProfile()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text)">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" id="fp-title">Profil</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" id="fp-title" data-i18n="misc.friend_profile_title">Profil</div>
       <button id="fp-remove-btn" style="display:none;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer" onclick="removeFriend()" data-i18n="friend.remove_btn">Retirer</button>
     </div>
     <div class="scroll-area" style="position:relative;z-index:1;padding:0 16px calc(80px + env(safe-area-inset-bottom))">
@@ -2507,7 +2507,7 @@ html, body {
       <div id="fp-topact-section" style="display:none;margin-bottom:16px">
         <div style="display:flex;gap:6px;margin-bottom:12px">
           <button id="fp-tab-top-btn" onclick="switchFriendTab('top')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--a);color:#fff;border:none;cursor:pointer;transition:all 0.2s">★ Top</button>
-          <button id="fp-tab-act-btn" onclick="switchFriendTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s">Activité</button>
+          <button id="fp-tab-act-btn" onclick="switchFriendTab('activity')" style="padding:6px 14px;border-radius:20px;font-size:12px;font-weight:700;background:var(--s2);color:var(--muted2);border:0.5px solid var(--border2);cursor:pointer;transition:all 0.2s" data-i18n="misc.friend_activity_tab">Activité</button>
           <div style="flex:1"></div>
           <button onclick="openFriendTop20()" style="padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,202,40,0.1);color:var(--amber);border:0.5px solid rgba(255,202,40,0.3);cursor:pointer">🏆 Top 20</button>
         </div>
@@ -2545,7 +2545,7 @@ html, body {
     <canvas id="recap-canvas" style="position:absolute;inset:0;pointer-events:none;z-index:3"></canvas>
     <div style="display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;flex-shrink:0">
       <button onclick="closeMonthlyRecap()" style="width:34px;height:34px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--text)">✕</button>
-      <div style="flex:1;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800" id="recap-title">📊 Récap</div>
+      <div style="flex:1;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800" id="recap-title" data-i18n="misc.recap_modal_title">📊 Récap</div>
     </div>
     <div id="recap-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + env(safe-area-inset-bottom))"></div>
   </div>
@@ -2616,7 +2616,7 @@ html, body {
       </button>
       <div style="flex:1;min-width:0">
         <div id="tl-title" style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700"></div>
-        <div id="tl-hint" style="font-size:11px;color:var(--muted2)">Sélectionne un jeu puis choisis son tier</div>
+        <div id="tl-hint" style="font-size:11px;color:var(--muted2)" data-i18n="misc.tl_hint_default">Sélectionne un jeu puis choisis son tier</div>
       </div>
       <button id="tl-vis-btn" onclick="tlToggleVisibility()" title="Visibilité" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:8px 10px;font-size:14px;cursor:pointer;flex-shrink:0">🌍</button>
       <button id="tl-save-btn" onclick="saveTierList()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:12px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">
@@ -2628,10 +2628,10 @@ html, body {
     <div id="tl-install-banner" style="display:none;align-items:center;gap:10px;padding:10px 16px;background:linear-gradient(135deg,rgba(108,92,231,0.15),rgba(253,121,168,0.1));border-bottom:0.5px solid rgba(108,92,231,0.25)">
       <div style="font-size:22px;flex-shrink:0">📲</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:700;color:var(--text)">Installe GameShelf</div>
-        <div style="font-size:11px;color:var(--muted2)">Bibliothèque · Quiz · Tier Lists</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text)" data-i18n="misc.pwa_install_title">Installe GameShelf</div>
+        <div style="font-size:11px;color:var(--muted2)" data-i18n="misc.pwa_install_sub">Bibliothèque · Quiz · Tier Lists</div>
       </div>
-      <button onclick="triggerPwaInstall()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Installer</button>
+      <button onclick="triggerPwaInstall()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0" data-i18n="misc.pwa_install_btn">Installer</button>
       <button onclick="document.getElementById('tl-install-banner').style.display='none'" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:18px;line-height:1;padding:4px;flex-shrink:0">×</button>
     </div>
     <!-- Comparaison (vue d'une tier list d'ami) -->
@@ -2654,7 +2654,7 @@ html, body {
     <!-- Pool -->
     <div style="flex-shrink:0;border-top:0.5px solid var(--border);background:var(--s1)">
       <div id="tl-search-wrap" style="display:none;padding:8px 16px 4px">
-        <button onclick="openTlAdd()" style="width:100%;padding:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">➕ Ajouter des jeux</button>
+        <button onclick="openTlAdd()" style="width:100%;padding:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:12px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" data-i18n="misc.tl_add_games_btn">➕ Ajouter des jeux</button>
       </div>
       <div style="padding:8px 16px 4px;display:flex;align-items:center;justify-content:space-between">
         <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em">À classer</div>
@@ -2691,8 +2691,8 @@ html, body {
   <!-- CUSTOM TIER LIST TITLE PROMPT -->
   <div id="tl-custom-prompt" style="display:none;position:fixed;inset:0;z-index:910;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">Thème libre</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Donne un titre à ta tier list</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="misc.tl_custom_title">Thème libre</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="misc.tl_custom_sub">Donne un titre à ta tier list</div>
       <input id="tl-custom-title-input" type="text" placeholder="Ex : Mes jeux PS5, Meilleurs RPG…" maxlength="40" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:12px">
       <button onclick="startCustomTierList()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">Créer →</button>
     </div>
@@ -2704,10 +2704,10 @@ html, body {
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 0;flex-shrink:0"></div>
       <div style="display:flex;align-items:center;gap:10px;padding:12px 16px 10px;flex-shrink:0">
         <div style="flex:1;min-width:0">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">➕ Ajouter des jeux</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="misc.tl_add_title">➕ Ajouter des jeux</div>
           <div id="tl-add-count" style="font-size:11px;color:var(--muted2);margin-top:1px"></div>
         </div>
-        <button onclick="closeTlAdd()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0">Terminé</button>
+        <button onclick="closeTlAdd()" style="background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:10px;padding:9px 16px;font-size:12px;font-weight:700;color:#fff;cursor:pointer;flex-shrink:0" data-i18n="misc.tl_add_done">Terminé</button>
       </div>
       <div style="padding:0 16px 10px;flex-shrink:0">
         <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:10px 12px">
@@ -2722,8 +2722,8 @@ html, body {
   <!-- TIER LIST COMPARE : choix de ma liste -->
   <div id="tl-cmp-picker" style="display:none;position:fixed;inset:0;z-index:940;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">⚔️ Choisis ta tier list</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px">On compare les jeux présents dans les deux listes</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="misc.tl_cmp_pick_title">⚔️ Choisis ta tier list</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px" data-i18n="misc.tl_cmp_pick_sub">On compare les jeux présents dans les deux listes</div>
       <div id="tl-cmp-picker-list" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto"></div>
     </div>
   </div>
@@ -2734,7 +2734,7 @@ html, body {
       <button onclick="closeTlCompare()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text);flex-shrink:0">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">⚔️ Le match des tier lists</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800" data-i18n="misc.tl_cmp_match_title">⚔️ Le match des tier lists</div>
     </div>
     <div id="tl-compare-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(24px + var(--safe-b))"></div>
   </div>
@@ -2742,8 +2742,8 @@ html, body {
   <!-- TIER LIST RENAME MODAL -->
   <div id="tl-rename-modal" style="display:none;position:fixed;inset:0;z-index:930;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">✏️ Renommer la tier list</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Le nouveau nom sera gardé à la sauvegarde</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="misc.tl_rename_title">✏️ Renommer la tier list</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="misc.tl_rename_sub">Le nouveau nom sera gardé à la sauvegarde</div>
       <input id="tl-rn-input" type="text" maxlength="40" placeholder="Nom de la tier list…" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:14px" onkeydown="if(event.key==='Enter')confirmTlRename()">
       <button onclick="confirmTlRename()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">OK</button>
     </div>
@@ -2752,12 +2752,12 @@ html, body {
   <!-- TIER EDIT MODAL (renommer + couleur) -->
   <div id="tl-tier-edit-modal" style="display:none;position:fixed;inset:0;z-index:930;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTierEdit()">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">🎨 Personnaliser le tier</div>
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Renomme-le et choisis sa couleur</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="misc.tl_tier_edit_title">🎨 Personnaliser le tier</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="misc.tl_tier_edit_sub">Renomme-le et choisis sa couleur</div>
       <input id="tl-te-input" type="text" maxlength="14" placeholder="Nom du tier…" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;color:var(--text);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;box-sizing:border-box;margin-bottom:14px">
       <div id="tl-te-colors" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px"></div>
       <button onclick="applyTierEdit()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer">OK</button>
-      <button onclick="deleteTierRow()" style="width:100%;margin-top:10px;padding:12px;background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:14px;font-size:13px;font-weight:600;color:var(--red);cursor:pointer">🗑 Supprimer cette ligne — ses jeux repartent à classer</button>
+      <button onclick="deleteTierRow()" style="width:100%;margin-top:10px;padding:12px;background:rgba(255,82,82,0.1);border:0.5px solid rgba(255,82,82,0.3);border-radius:14px;font-size:13px;font-weight:600;color:var(--red);cursor:pointer" data-i18n="misc.tl_tier_delete">🗑 Supprimer cette ligne — ses jeux repartent à classer</button>
     </div>
   </div>
 
@@ -2777,7 +2777,7 @@ html, body {
   <!-- TIER LIST SHARE MODAL -->
   <div id="tl-share-modal" style="display:none;position:fixed;inset:0;z-index:920;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeTlShareModal()">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.3s cubic-bezier(0.22,1,0.36,1)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px">📤 Partager la tier list</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:4px" data-i18n="misc.tl_share_title">📤 Partager la tier list</div>
       <div id="tl-share-name" style="font-size:12px;color:var(--muted2);margin-bottom:16px"></div>
       <div style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
         <div id="tl-share-url" style="font-size:11px;color:var(--muted2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
@@ -2895,14 +2895,14 @@ html, body {
     <div class="b-progress-track">
       <div class="b-progress-fill" id="b-progress-fill" style="width:0%"></div>
     </div>
-    <div class="b-hint">Tape le jeu que tu veux jouer</div>
+    <div class="b-hint" data-i18n="misc.wish_next_hint">Tape le jeu que tu veux jouer</div>
   </div>
 
   <!-- Champion screen -->
   <div id="bracket-champ">
     <div class="champ-rays"></div>
     <div class="champ-trophy">🏆</div>
-    <div class="champ-eyebrow">Ton prochain jeu</div>
+    <div class="champ-eyebrow" data-i18n="misc.wish_next_title">Ton prochain jeu</div>
     <div class="champ-cover-wrap" id="champ-cover-wrap">
       <img id="champ-cover-img" src="" referrerpolicy="no-referrer" style="display:none;width:100%;height:100%;object-fit:cover">
       <div id="champ-cover-fallback" class="champ-cover-fallback"></div>
@@ -3344,7 +3344,7 @@ html, body {
       </button>
       <button onclick="shareNativeOrCopy()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:14px 6px 12px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:border-color 0.2s" onmouseover="this.style.borderColor='var(--a)'" onmouseout="this.style.borderColor='var(--border2)'">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--muted2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-        <span style="font-size:10px;color:var(--muted2);font-weight:600">Plus</span>
+        <span style="font-size:10px;color:var(--muted2);font-weight:600" data-i18n="misc.share_more">Plus</span>
       </button>
     </div>
     <button onclick="closeShareModal()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px;color:var(--muted2);font-size:14px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Annuler</button>
@@ -3354,8 +3354,8 @@ html, body {
 <!-- AVATAR URL POPUP -->
 <div id="avatar-url-popup" onclick="if(event.target===this)closeAvatarUrlPopup()" style="display:none;position:fixed;inset:0;z-index:970;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center">
   <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px 20px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));max-width:430px;width:100%;animation:slideUp 0.25s cubic-bezier(0.22,1,0.36,1)">
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px">URL d'image</div>
-    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px">Colle le lien direct vers une image (https://…)</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px" data-i18n="misc.avatar_url_title">URL d'image</div>
+    <div style="font-size:12px;color:var(--muted2);margin-bottom:16px" data-i18n="misc.avatar_url_sub">Colle le lien direct vers une image (https://…)</div>
     <input id="avatar-url-input" type="url" placeholder="https://example.com/photo.jpg" autocomplete="off"
       style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:13px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box;margin-bottom:12px;transition:border-color 0.2s"
       onfocus="this.style.borderColor='var(--a)'" onblur="this.style.borderColor='var(--border2)'"
@@ -3384,16 +3384,16 @@ html, body {
       </div>
     </div>
     <div class="genre-chips-row" id="ldisc-genre-row" style="padding:0 16px 8px">
-      <div class="g-chip active" onclick="ldiscByGenre(null,this)">Tous</div>
+      <div class="g-chip active" onclick="ldiscByGenre(null,this)" data-i18n="discover.genre_all">Tous</div>
       <div class="g-chip" onclick="ldiscByGenre(12,this)">RPG</div>
-      <div class="g-chip" onclick="ldiscByGenre(5,this)">Shooter</div>
-      <div class="g-chip" onclick="ldiscByGenre(14,this)">Sport</div>
-      <div class="g-chip" onclick="ldiscByGenre(15,this)">Stratégie</div>
-      <div class="g-chip" onclick="ldiscByGenre(31,this)">Aventure</div>
-      <div class="g-chip" onclick="ldiscByGenre(8,this)">Plateforme</div>
+      <div class="g-chip" onclick="ldiscByGenre(5,this)" data-i18n="discover.genre_shooter">Shooter</div>
+      <div class="g-chip" onclick="ldiscByGenre(14,this)" data-i18n="discover.genre_sport">Sport</div>
+      <div class="g-chip" onclick="ldiscByGenre(15,this)" data-i18n="discover.genre_strategy">Stratégie</div>
+      <div class="g-chip" onclick="ldiscByGenre(31,this)" data-i18n="discover.genre_adventure">Aventure</div>
+      <div class="g-chip" onclick="ldiscByGenre(8,this)" data-i18n="discover.genre_platform">Plateforme</div>
       <div class="g-chip" onclick="ldiscByGenre(32,this)">Indie</div>
-      <div class="g-chip" onclick="ldiscByGenre(25,this)">Action</div>
-      <div class="g-chip" onclick="ldiscByGenre(13,this)">Simulation</div>
+      <div class="g-chip" onclick="ldiscByGenre(25,this)" data-i18n="discover.genre_action">Action</div>
+      <div class="g-chip" onclick="ldiscByGenre(13,this)" data-i18n="discover.genre_simulation">Simulation</div>
     </div>
     <div style="height:0.5px;background:var(--border)"></div>
   </div>
@@ -3648,6 +3648,27 @@ const LANG = {
     },
     onboarding: {
       tagline:'Ta bibliothèque gaming.<br>Tes amis. Tes avis.',
+      step2_tag:'Étape 2 sur 5', step3_tag:'Étape 3 sur 5', step3b_tag:'Import Steam', step4_tag:'Étape 4 sur 5',
+      step2_sub:'Choisis comment tes amis te verront.', step3_sub:'Comment veux-tu remplir ta bibliothèque ?',
+      steam_id_title:'Ton <span>Steam ID</span>', steam_id_sub:'Trouve ton ID dans l\'URL de ton profil Steam.',
+      steam_id_help_title:'📍 Où trouver mon Steam ID ?',
+      steam_id_step1:'1. Ouvre <strong style="color:var(--text)">Steam</strong> sur ton ordi',
+      steam_id_step2:'2. Clique sur ton <strong style="color:var(--text)">Profil</strong>',
+      steam_id_step3:'3. Copie le numéro à la fin de l\'URL',
+      steam_id_label:'Steam ID (17 chiffres)',
+      steam_guard_notice:'⏳ <strong>Steam Guard requis.</strong> Active l\'authentificateur Steam mobile, puis reviens dans 7 jours.',
+      steam_test_cta:'Tester la connexion →', steam_skip_later:'Passer — je reviens plus tard',
+      steam_import_title:'Importer depuis Steam', steam_import_sub:'Synchronise ta bibliothèque avec ton Steam ID', steam_soon:'Bientôt',
+      manual_title:'Construis ton profil', manual_cta:'Construis ton profil →', manual_sub:'Parcours les genres, découvre et ajoute tes jeux', available_badge:'Disponible',
+      continue:'Continuer →', connect_steam_cta:'Connecter Steam →', skip_cta:'Passer →',
+      discover_count_games:'jeux', discover_count_added:'ajoutés à ton profil',
+      ready_sub:'Ta bibliothèque est créée.<br>Note tes jeux et retrouve-les ici.',
+      create_account_title:'Crée ton <span>compte</span>', create_account_sub:'Gratuit. Pas de spam. Juste tes jeux.',
+      create_account_cta:'Créer mon compte →', already_account:'Déjà un compte ?', sign_in_link:'Se connecter',
+      terms_prefix:'En continuant, tu acceptes les', terms_cgu:'CGU', terms_and:'et la', terms_privacy:'Politique de confidentialité',
+      offline_banner:'📡 Pas de connexion — tes modifications seront synchronisées dès le retour',
+      step3c_title:'Construis ton <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">profil</span>',
+      email_label:'Email', pwd_label:'Mot de passe', pwd_placeholder:'8 caractères minimum', pwd_show:'Afficher',
       start:'Commencer', already:'J\'ai déjà un compte',
       login_title:'Bon retour <span>!</span>',
       login_sub:'Connecte-toi à ton compte GameShelf.',
@@ -3665,7 +3686,7 @@ const LANG = {
       platforms:'Plateformes', platforms_hint:'(plusieurs choix possibles)',
       skip:'Passer cette étape', skip_sub:'Tu pourras ajouter des jeux plus tard',
       import_title:'Importe tes <span>jeux</span>',
-      playing_title:'Jeux <span>en ce moment</span>',
+      playing_title:'Jeux <span>en ce moment</span>', playing_sub:'Ajoute ceux qui t\'intéressent à ta liste.',
       ready:'Tu es prêt !',
       email_invalid:'Entre une adresse email valide',
       pwd_short:'Mot de passe trop court (6 min)',
@@ -3768,6 +3789,7 @@ const LANG = {
     },
     discover: {
       search_ph:'Chercher un jeu', empty:'Aucun résultat',
+      genre_all:'Tous', genre_shooter:'Shooter', genre_sport:'Sport', genre_strategy:'Stratégie', genre_adventure:'Aventure', genre_platform:'Plateforme', genre_action:'Action', genre_simulation:'Simulation',
       no_results:'Aucun résultat pour',
       no_results_hint:'Essaie un autre titre ou vérifie l\'orthographe',
       no_genre_match:'Aucun résultat dans ce genre — touche « Tous »',
@@ -3781,6 +3803,33 @@ const LANG = {
       request:'demande', requests:'demandes',
     },
     levelup: { header:'✦ Niveau supérieur ✦', cta:'Continuer →' },
+    misc: {
+      quiz_pick_title:'Choisis un quiz pour défier ton ami',
+      quiz_compare_title:'↔ Comparaison du jour',
+      collection_visible:'Visible par mes amis', collection_change:'Changer',
+      shot_edit_title:'✏️ Éditer la capture',
+      recap_btn:'✦ Mon récap', recap_modal_title:'📊 Récap',
+      xbox_connect_sub:'Importe ta bibliothèque Xbox automatiquement via OpenXBL.', xbox_connect_cta:'Se connecter →',
+      friend_profile_title:'Profil', friend_activity_tab:'Activité',
+      tl_hint_default:'Sélectionne un jeu puis choisis son tier',
+      pwa_install_title:'Installe GameShelf', pwa_install_sub:'Bibliothèque · Quiz · Tier Lists', pwa_install_btn:'Installer',
+      tl_add_games_btn:'➕ Ajouter des jeux', tl_add_done:'Terminé',
+      tl_custom_title:'Thème libre', tl_custom_sub:'Donne un titre à ta tier list',
+      tl_cmp_pick_title:'⚔️ Choisis ta tier list', tl_cmp_pick_sub:'On compare les jeux présents dans les deux listes',
+      tl_cmp_match_title:'⚔️ Le match des tier lists',
+      tl_rename_title:'✏️ Renommer la tier list', tl_rename_sub:'Le nouveau nom sera gardé à la sauvegarde',
+      tl_tier_edit_title:'🎨 Personnaliser le tier', tl_tier_edit_sub:'Renomme-le et choisis sa couleur',
+      tl_tier_delete:'🗑 Supprimer cette ligne — ses jeux repartent à classer',
+      tl_share_title:'📤 Partager la tier list',
+      share_more:'Plus',
+      avatar_url_title:'URL d\'image', avatar_url_sub:'Colle le lien direct vers une image (https://…)',
+      wish_next_hint:'Tape le jeu que tu veux jouer', wish_next_title:'Ton prochain jeu',
+      gamepass_toggle_sub:'Afficher les jeux inclus dans l\'abonnement',
+      launch_app_cta:'Entrer dans GameShelf →',
+      recap_entry_title:'Ton récap du mois', recap_entry_sub:'Jeux finis, XP, quiz — et une image à partager',
+      openxbl_key_btn:'Clé OpenXBL',
+      tl_add_title:'➕ Ajouter des jeux',
+    },
   },
   en: {
     status: {
@@ -3909,6 +3958,27 @@ const LANG = {
     },
     onboarding: {
       tagline:'Your gaming library.<br>Friends. Reviews.',
+      step2_tag:'Step 2 of 5', step3_tag:'Step 3 of 5', step3b_tag:'Steam Import', step4_tag:'Step 4 of 5',
+      step2_sub:'Choose how your friends will see you.', step3_sub:'How do you want to fill your library?',
+      steam_id_title:'Your <span>Steam ID</span>', steam_id_sub:'Find your ID in your Steam profile URL.',
+      steam_id_help_title:'📍 Where do I find my Steam ID?',
+      steam_id_step1:'1. Open <strong style="color:var(--text)">Steam</strong> on your computer',
+      steam_id_step2:'2. Click on your <strong style="color:var(--text)">Profile</strong>',
+      steam_id_step3:'3. Copy the number at the end of the URL',
+      steam_id_label:'Steam ID (17 digits)',
+      steam_guard_notice:'⏳ <strong>Steam Guard required.</strong> Enable the Steam mobile authenticator, then come back in 7 days.',
+      steam_test_cta:'Test connection →', steam_skip_later:'Skip — I\'ll come back later',
+      steam_import_title:'Import from Steam', steam_import_sub:'Sync your library with your Steam ID', steam_soon:'Soon',
+      manual_title:'Build your profile', manual_cta:'Build your profile →', manual_sub:'Browse genres, discover and add your games', available_badge:'Available',
+      continue:'Continue →', connect_steam_cta:'Connect Steam →', skip_cta:'Skip →',
+      discover_count_games:'games', discover_count_added:'added to your profile',
+      ready_sub:'Your library is set up.<br>Rate your games and find them here.',
+      create_account_title:'Create your <span>account</span>', create_account_sub:'Free. No spam. Just your games.',
+      create_account_cta:'Create my account →', already_account:'Already have an account?', sign_in_link:'Sign in',
+      terms_prefix:'By continuing, you agree to the', terms_cgu:'Terms', terms_and:'and the', terms_privacy:'Privacy Policy',
+      offline_banner:'📡 No connection — your changes will sync once you\'re back online',
+      step3c_title:'Build your <span style="background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">profile</span>',
+      email_label:'Email', pwd_label:'Password', pwd_placeholder:'8 characters minimum', pwd_show:'Show',
       start:'Get started', already:'I already have an account',
       login_title:'Welcome back <span>!</span>',
       login_sub:'Sign in to your GameShelf account.',
@@ -3926,7 +3996,7 @@ const LANG = {
       platforms:'Platforms', platforms_hint:'(multiple choices)',
       skip:'Skip this step', skip_sub:'You can add games later',
       import_title:'Import your <span>games</span>',
-      playing_title:'Games <span>right now</span>',
+      playing_title:'Games <span>right now</span>', playing_sub:'Add the ones you\'re into to your list.',
       ready:'You\'re all set!',
       email_invalid:'Enter a valid email address',
       pwd_short:'Password too short (6 min)',
@@ -4029,6 +4099,7 @@ const LANG = {
     },
     discover: {
       search_ph:'Search a game', empty:'No results',
+      genre_all:'All', genre_shooter:'Shooter', genre_sport:'Sports', genre_strategy:'Strategy', genre_adventure:'Adventure', genre_platform:'Platformer', genre_action:'Action', genre_simulation:'Simulation',
       no_results:'No results for',
       no_results_hint:'Try another title or check the spelling',
       no_genre_match:'No results in this genre — tap "All"',
@@ -4150,6 +4221,33 @@ const LANG = {
       quiz:'Know when your friend replies to your challenge',
       cta:'Enable',
       later:'Later',
+    },
+    misc: {
+      quiz_pick_title:'Pick a quiz to challenge your friend',
+      quiz_compare_title:'↔ Today\'s comparison',
+      collection_visible:'Visible to my friends', collection_change:'Change',
+      shot_edit_title:'✏️ Edit screenshot',
+      recap_btn:'✦ My recap', recap_modal_title:'📊 Recap',
+      xbox_connect_sub:'Automatically import your Xbox library via OpenXBL.', xbox_connect_cta:'Connect →',
+      friend_profile_title:'Profile', friend_activity_tab:'Activity',
+      tl_hint_default:'Select a game then pick its tier',
+      pwa_install_title:'Install GameShelf', pwa_install_sub:'Library · Quiz · Tier Lists', pwa_install_btn:'Install',
+      tl_add_games_btn:'➕ Add games', tl_add_done:'Done',
+      tl_custom_title:'Custom theme', tl_custom_sub:'Give your tier list a title',
+      tl_cmp_pick_title:'⚔️ Choose your tier list', tl_cmp_pick_sub:'We compare the games present in both lists',
+      tl_cmp_match_title:'⚔️ Tier list showdown',
+      tl_rename_title:'✏️ Rename tier list', tl_rename_sub:'The new name will be kept on save',
+      tl_tier_edit_title:'🎨 Customize the tier', tl_tier_edit_sub:'Rename it and pick its color',
+      tl_tier_delete:'🗑 Delete this row — its games go back to unsorted',
+      tl_share_title:'📤 Share tier list',
+      share_more:'More',
+      avatar_url_title:'Image URL', avatar_url_sub:'Paste the direct link to an image (https://…)',
+      wish_next_hint:'Type the game you want to play', wish_next_title:'Your next game',
+      gamepass_toggle_sub:'Show games included in the subscription',
+      launch_app_cta:'Enter GameShelf →',
+      recap_entry_title:'Your monthly recap', recap_entry_sub:'Finished games, XP, quizzes — and a shareable image',
+      openxbl_key_btn:'OpenXBL key',
+      tl_add_title:'➕ Add games',
     },
   },
 };
@@ -6534,13 +6632,13 @@ async function validateStep2() {
   const { data: existing } = await _sb.from('profiles').select('id').ilike('username', u).limit(1).maybeSingle();
   if (existing) {
     showToast(t('onboarding.pseudo_taken'));
-    if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
+    if (btn) { btn.disabled = false; btn.textContent = t('onboarding.continue'); }
     return;
   }
   obProfile.username = u;
   obProfile.gamepass = document.getElementById('gp-ob-opt')?.classList.contains('sel') || false;
   await syncProfileToSupabase(); // create profile early so mid-onboarding reload doesn't sign out
-  if (btn) { btn.disabled = false; btn.textContent = 'Continuer →'; }
+  if (btn) { btn.disabled = false; btn.textContent = t('onboarding.continue'); }
   obStep(3);
 }
 function validateStep3() {
@@ -6611,7 +6709,7 @@ function selectImport(type) {
   selectedImport = type;
   document.querySelectorAll('#step-3 .import-opt').forEach(o=>o.classList.remove('sel'));
   document.getElementById('opt-'+type).classList.add('sel');
-  const labels = { steam:'Connecter Steam →', manual:'Construis ton profil →', skip:'Passer →' };
+  const labels = { steam: t('onboarding.connect_steam_cta'), manual: t('onboarding.manual_cta'), skip: t('onboarding.skip_cta') };
   document.getElementById('import-cta').textContent = labels[type];
 }
 
