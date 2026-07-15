@@ -1249,10 +1249,13 @@ html, body {
         <span data-i18n="onboarding.already_account">Déjà un compte ?</span> <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode('login')" data-i18n="onboarding.sign_in_link">Se connecter</span>
       </div>
       <div class="divider" style="margin:22px 0">ou</div>
-      <button class="btn-secondary" onclick="authWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
-        <span data-i18n="onboarding.google">Continuer avec Google</span>
-      </button>
+      <div style="position:relative">
+        <span id="auth-google-badge" style="position:absolute;top:-9px;right:10px;background:linear-gradient(135deg,#34A853,#4285F4);color:#fff;font-size:9.5px;font-weight:700;letter-spacing:.3px;padding:2.5px 8px;border-radius:20px;text-transform:uppercase;z-index:1" data-i18n="onboarding.google_recommended">Recommandé</span>
+        <button class="btn-secondary" onclick="authWithGoogle()" style="display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+          <span data-i18n="onboarding.google">Continuer avec Google</span>
+        </button>
+      </div>
       <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;line-height:1.5"><span data-i18n="onboarding.terms_prefix">En continuant, tu acceptes les</span> <span style="color:var(--muted2)" data-i18n="onboarding.terms_cgu">CGU</span> <span data-i18n="onboarding.terms_and">et la</span> <span style="color:var(--muted2)" data-i18n="onboarding.terms_privacy">Politique de confidentialité</span>.</p>
     </div></div>
   </div>
@@ -3679,6 +3682,7 @@ const LANG = {
       signup_cta:'Créer mon compte →',
       signup_switch:'Déjà un compte ? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Se connecter</span>',
       google:'Continuer avec Google',
+      google_recommended:'Recommandé',
       profile_title:'Ton <span>profil</span>',
       choose_avatar:'Choisis ton avatar',
       import_photo:'Importer une photo',
@@ -3989,6 +3993,7 @@ const LANG = {
       signup_cta:'Create my account →',
       signup_switch:'Already have an account? <span style="color:var(--a);cursor:pointer;font-weight:600" onclick="setAuthMode(\'login\')">Sign in</span>',
       google:'Continue with Google',
+      google_recommended:'Recommended',
       profile_title:'Your <span>profile</span>',
       choose_avatar:'Choose your avatar',
       import_photo:'Import a photo',
@@ -6468,18 +6473,21 @@ function setAuthMode(mode) {
   const cta   = document.getElementById('auth-cta');
   const sw    = document.getElementById('auth-switch');
   const pwdIn = document.getElementById('auth-pwd');
+  const gBadge = document.getElementById('auth-google-badge');
   if (mode === 'login') {
     if (label) label.innerHTML = t('onboarding.login_title');
     if (sub)   sub.textContent = t('onboarding.login_sub');
     if (cta)   cta.textContent = t('onboarding.login_cta');
     if (sw)    sw.innerHTML = t('onboarding.login_switch');
     if (pwdIn) pwdIn.autocomplete = 'current-password';
+    if (gBadge) gBadge.style.display = 'none';
   } else {
     if (label) label.innerHTML = t('onboarding.signup_title');
     if (sub)   sub.textContent = t('onboarding.signup_sub');
     if (cta)   cta.textContent = t('onboarding.signup_cta');
     if (sw)    sw.innerHTML = t('onboarding.signup_switch');
     if (pwdIn) pwdIn.autocomplete = 'new-password';
+    if (gBadge) gBadge.style.display = '';
   }
 }
 
