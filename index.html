@@ -10769,6 +10769,7 @@ function initApp(){
   applyLangToDOM();
   refreshViews();
   checkPendingRequests();
+  try { _maybeShowAdminQuizReview(); } catch (e) {}
   // Récap mensuel auto : les 10 premiers jours du mois, une seule fois, si le mois précédent a du contenu
   setTimeout(() => {
     try {
