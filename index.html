@@ -4298,6 +4298,13 @@ function setLang(l) {
   _lang = l;
   localStorage.setItem('gs_lang', l);
   applyLangToDOM();
+  // Cartes construites en innerHTML (pas via data-i18n) : il faut les
+  // repeindre explicitement, sinon elles restent dans l'ancienne langue
+  // jusqu'au prochain rafraîchissement naturel de l'écran.
+  try { renderWeeklyPoll(); } catch (e) {}
+  try { renderDailyQuizCard(); } catch (e) {}
+  try { renderActuQuizCard(); } catch (e) {}
+  try { if (typeof renderQuizHub === 'function') renderQuizHub(); } catch (e) {}
 }
 
 function applyLangToDOM() {
@@ -15934,8 +15941,8 @@ const WEEKLY_POLLS = [
     q_en: 'Wave of studio closures — whose fault is it?', opts_en: ['The race for bloated AAA budgets', 'Corporate buyouts', 'A saturated market', 'No one\'s, it\'s cyclical'] },
   { q: 'Le studio le plus en forme actuellement :', opts: ['FromSoftware', 'Nintendo', 'Larian', 'Rockstar'],
     q_en: 'The studio on top of its game right now:', opts_en: ['FromSoftware', 'Nintendo', 'Larian', 'Rockstar'] },
-  { q: 'Encore un remake annoncé. Réaction ?', opts: ['Le patrimoine mérite ça', 'L\'industrie tourne en rond', 'Tout dépend du prix'],
-    q_en: 'Another remake announced. Reaction?', opts_en: ['These classics deserve it', 'The industry is out of ideas', 'Depends entirely on the price'] },
+  { q: 'Un remake de plus vient d\'être annoncé : ta réaction ?', opts: ['Le patrimoine mérite ça', 'L\'industrie tourne en rond', 'Tout dépend du prix'],
+    q_en: 'Yet another remake just got announced — your take?', opts_en: ['These classics deserve it', 'The industry is out of ideas', 'Depends entirely on the price'] },
   { q: 'Une seule licence pour le reste de ta vie :', opts: ['Zelda', 'GTA', 'Final Fantasy', 'Minecraft'],
     q_en: 'One franchise for the rest of your life:', opts_en: ['Zelda', 'GTA', 'Final Fantasy', 'Minecraft'] },
   { q: 'Le crunch dans les studios influence-t-il tes achats ?', opts: ['Oui, je boycotte', 'Ça me dérange, mais j\'achète', 'Ce n\'est pas au joueur de trancher'],
