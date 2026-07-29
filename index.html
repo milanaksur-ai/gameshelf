@@ -1807,8 +1807,9 @@ html, body {
       <div style="font-size:12px;color:var(--muted2)" data-i18n="collections.no_game_sub">Ajoute des jeux depuis leurs fiches</div>
     </div>
     <div id="ucd-grid" style="flex:1;overflow-y:auto;padding:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px"></div>
-    <div style="padding:12px 16px calc(env(safe-area-inset-bottom)+12px);flex-shrink:0;background:var(--bg);border-top:0.5px solid var(--border)">
-      <button id="ucd-add-btn" onclick="openColSearch()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.add_game_btn">+ Ajouter des jeux</button>
+    <div id="ucd-bottom-bar" style="padding:12px 16px calc(env(safe-area-inset-bottom)+12px);flex-shrink:0;background:var(--bg);border-top:0.5px solid var(--border);display:flex;gap:8px">
+      <button id="ucd-add-btn" onclick="openColSearch()" style="flex:2;padding:14px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer" data-i18n="collections.add_game_btn">+ Ajouter des jeux</button>
+      <button id="ucd-tl-btn" onclick="collectionToTierList()" style="flex:1;padding:14px 10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;white-space:nowrap" data-i18n="collections.to_tierlist_btn">🏆 Classer</button>
     </div>
   </div>
 
@@ -1841,10 +1842,6 @@ html, body {
         <button onclick="openCollectionBadges()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <span style="font-size:16px">🏷️</span>
           <span data-i18n="collections.badges_menu">Infos affichées sur les jeux</span>
-        </button>
-        <button onclick="collectionToTierList()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
-          <span style="font-size:16px">🏆</span>
-          <span data-i18n="collections.to_tierlist">Classer en tier list</span>
         </button>
         <button onclick="openRenameCollection()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -2298,7 +2295,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.2 · build 16.07c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.2 · build 16.07d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3734,7 +3731,7 @@ const LANG = {
       delete_confirm:'Supprimer cette collection ?',
       saga_sub:'La saga complète',
       quiz_challenge:'⚡ Défier',
-      rename:'Renommer', to_tierlist:'Classer en tier list',
+      rename:'Renommer', to_tierlist:'Classer en tier list', to_tierlist_btn:'🏆 Classer',
       badges_menu:'Infos affichées sur les jeux',
       badges_title:'Infos affichées sur les jeux',
       badges_sub:'Ces pastilles sont visibles par tout le monde sur cette collection.',
@@ -4042,7 +4039,7 @@ const LANG = {
       new_mini:'+ New collection',
       no_game:'No games here',
       no_game_sub:'Add games from their detail pages',
-      rename:'Rename', to_tierlist:'Rank as tier list',
+      rename:'Rename', to_tierlist:'Rank as tier list', to_tierlist_btn:'🏆 Rank',
       badges_menu:'Info shown on games',
       badges_title:'Info shown on games',
       badges_sub:'These badges are visible to everyone on this collection.',
@@ -12940,6 +12937,7 @@ async function openFriendCollection(colId, userId) {
     document.getElementById('ucd-title').textContent = data.name;
     document.getElementById('ucd-menu-btn').style.display = 'none';
     document.getElementById('ucd-add-btn').style.display = 'none';
+    document.getElementById('ucd-tl-btn').style.display = 'none';
     _renderUCDGames({ games: data.games || [], gameBadges: _fbadges });
     document.getElementById('user-collection-detail').style.display = 'flex';
   } catch(e) { showToast('Erreur lors du chargement'); }
@@ -12958,6 +12956,7 @@ function openUserCollection(id) {
   document.getElementById('ucd-menu-btn').style.display = 'flex';
   // Collection auto (par vibe) : pas d'ajout manuel, elle se gère toute seule
   document.getElementById('ucd-add-btn').style.display = (Array.isArray(c.vibes) && c.vibes.length) ? 'none' : 'block';
+  document.getElementById('ucd-tl-btn').style.display = (c.games || []).length ? 'block' : 'none';
   _renderUCDGames(c);
   document.getElementById('user-collection-detail').style.display = 'flex';
 }
