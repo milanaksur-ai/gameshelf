@@ -8498,6 +8498,7 @@ async function handleMedia(input) {
   const files = Array.from(input.files);
   input.value = '';
   const label = document.getElementById('media-upload-label');
+  _shotPushRecent(currentGame.id); // ajout depuis la fiche : compte aussi comme "récent"
 
   const { data: { session } } = await _sb.auth.getSession();
 
@@ -8831,6 +8832,30 @@ function openShotEditor(ref) {
   document.getElementById('profile-screenshot-picker').style.display = 'flex';
 }
 
+// Historique des jeux auxquels on vient d'assigner une capture : quand on
+// importe 25 captures du même jeu, on ne veut pas retaper son nom 25 fois.
+// Fallback sans historique : les jeux qui ONT déjà des captures remontent
+// aussi (gameMedia fait foi) — utile dès la première utilisation.
+const SHOT_RECENT_KEY = 'gs_shot_recent';
+const SHOT_RECENT_MAX = 6;
+function _shotRecentIds() {
+  try { const v = JSON.parse(localStorage.getItem(SHOT_RECENT_KEY) || '[]'); return Array.isArray(v) ? v : []; }
+  catch (e) { return []; }
+}
+function _shotPushRecent(gameId) {
+  if (!gameId) return;
+  const list = _shotRecentIds().filter(id => String(id) !== String(gameId));
+  list.unshift(gameId);
+  try { localStorage.setItem(SHOT_RECENT_KEY, JSON.stringify(list.slice(0, SHOT_RECENT_MAX))); } catch (e) {}
+}
+// Rang de suggestion : 0 = utilisé récemment (ordre de l'historique),
+// puis les jeux ayant déjà des captures, puis le reste.
+function _shotSuggestRank(gameId) {
+  const idx = _shotRecentIds().findIndex(id => String(id) === String(gameId));
+  if (idx >= 0) return idx;
+  return (gameMedia[gameId] || []).length ? SHOT_RECENT_MAX : SHOT_RECENT_MAX + 1;
+}
+
 function _renderShotEdList() {
   const el = document.getElementById('psp-games-scroll');
   if (!el || !_shotEd) return;
@@ -8840,19 +8865,36 @@ function _renderShotEdList() {
   let games = GAMES.slice().sort((a, b) => (a.title||'').localeCompare(b.title||''));
   if (q) games = games.filter(g => (g.title||'').toLowerCase().includes(q));
   if (!games.length) { el.innerHTML = `<div style="text-align:center;padding:20px 0;color:var(--muted2);font-size:13px">${fr ? 'Aucun jeu trouvé' : 'No game found'}</div>`; return; }
+  // Suggestions d'abord (même en cours de recherche), alphabétique ensuite
+  games = games.map((g, i) => ({ g, r: _shotSuggestRank(g.id), i }))
+    .sort((a, b) => a.r - b.r || a.i - b.i).map(x => x.g);
   const MAXL = 30;
   const shown = games.slice(0, MAXL);
-  el.innerHTML = shown.map(g => {
+  const row = g => {
     const src = coverUrl(g);
     const isCur = g.id === curId;
+    const shots = (gameMedia[g.id] || []).length;
     return `<div onclick="selectPspGame('${g.id}')" style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:0.5px solid var(--border);cursor:pointer${isCur ? ';opacity:0.4;pointer-events:none' : ''}" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
       <div style="width:34px;height:46px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
         ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>'}
       </div>
-      <div style="flex:1;min-width:0;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
+        ${shots ? `<div style="font-size:10px;color:var(--muted2);margin-top:2px">${shots} ${fr ? 'capture' + (shots > 1 ? 's' : '') : 'shot' + (shots > 1 ? 's' : '')}</div>` : ''}
+      </div>
       ${isCur ? `<div style="font-size:10px;font-weight:700;color:var(--muted2);flex-shrink:0">${fr ? 'actuel' : 'current'}</div>` : '<div style="font-size:14px;color:var(--muted2);flex-shrink:0">›</div>'}
     </div>`;
-  }).join('') + (games.length > MAXL ? `<div style="text-align:center;font-size:11px;color:var(--muted2);padding:12px 0">+ ${games.length - MAXL} ${fr ? 'autres — affine ta recherche' : 'more — refine your search'}</div>` : '');
+  };
+  const label = txt => `<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding:10px 4px 5px">${txt}</div>`;
+  const nSug = shown.filter(g => _shotSuggestRank(g.id) <= SHOT_RECENT_MAX).length;
+  let html = '';
+  if (nSug) {
+    html += label(fr ? '🕒 Suggestions' : '🕒 Suggested') + shown.slice(0, nSug).map(row).join('');
+    if (shown.length > nSug) html += label(fr ? 'Tous les jeux' : 'All games') + shown.slice(nSug).map(row).join('');
+  } else {
+    html += shown.map(row).join('');
+  }
+  el.innerHTML = html + (games.length > MAXL ? `<div style="text-align:center;font-size:11px;color:var(--muted2);padding:12px 0">+ ${games.length - MAXL} ${fr ? 'autres — affine ta recherche' : 'more — refine your search'}</div>` : '');
 }
 
 // Points d'entrée (vignettes + visionneuse)
@@ -8911,6 +8953,7 @@ function selectPspGame(gameId) {
   if (!_shotEd) return;
   const fr = _lang !== 'en';
   const g = GAMES.find(x => x.id === gameId);
+  _shotPushRecent(gameId); // remonte ce jeu en tête des suggestions au prochain tri
   if (_shotEd.kind === 'unassigned') {
     const shot = _unassignedShots[_shotEd.idx];
     if (!shot) { closeProfileScreenshotPicker(); return; }
