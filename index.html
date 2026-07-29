@@ -6597,6 +6597,8 @@ async function onAuthSuccess(user) {
         gamepass: rawPlatforms.includes('__gp__'),
         xp: profile.xp || 0,
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
+        pinnedCollections: Array.isArray(profile.pinned_collections) ? profile.pinned_collections : [],
+        pinnedTierlists: Array.isArray(profile.pinned_tierlists) ? profile.pinned_tierlists : [],
         profileBg: profile.profile_bg || null,
         isPublic: profile.is_public !== false,
       };
@@ -7035,21 +7037,30 @@ function renderProfileCollections() {
     </div>`;
     return;
   }
-  el.innerHTML = userCollections.slice(0, 5).map(c => {
+  const fr = _lang !== 'en';
+  const ordered = _sortPinned(userCollections, 'col', c => c.id);
+  const hidden  = Math.max(0, ordered.length - PROFILE_COL_MAX);
+  el.innerHTML = ordered.slice(0, PROFILE_COL_MAX).map(c => {
     const src = coverUrl((c.games||[])[0]);
+    const pinned = _isPinned('col', c.id);
     return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="height:65px;background:var(--s3);position:relative;display:flex;align-items:center;justify-content:center">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:22px">${c.emoji||'📚'}</span>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)"></div>
         <div style="position:absolute;bottom:4px;left:6px;font-size:14px">${c.emoji||'📚'}</div>
-        ${(c.vibes||[]).length ? '<div style="position:absolute;top:4px;right:4px;background:rgba(108,92,231,0.85);border-radius:6px;padding:1px 5px;font-size:9px;font-weight:800;color:#fff">✨</div>' : ''}
+        ${pinned ? '<div style="position:absolute;top:4px;right:4px;font-size:11px">📌</div>' : ((c.vibes||[]).length ? '<div style="position:absolute;top:4px;right:4px;background:rgba(108,92,231,0.85);border-radius:6px;padding:1px 5px;font-size:9px;font-weight:800;color:#fff">✨</div>' : '')}
       </div>
       <div style="padding:6px 8px 8px">
         <div style="font-size:11px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
         <div style="font-size:9px;color:var(--muted2);margin-top:2px">${(c.games||[]).length} jeu${(c.games||[]).length!==1?'x':''}</div>
       </div>
     </div>`;
-  }).join('');
+  }).join('')
+  // Sans cette carte, les collections au-delà de la 5e étaient inaccessibles depuis le profil
+  + (hidden ? `<div onclick="appGoTo('explore')" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:1px dashed var(--border2);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <div style="font-size:17px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--a)">+${hidden}</div>
+      <div style="font-size:10px;font-weight:600;color:var(--muted2);text-align:center;padding:0 6px">${fr ? 'Voir tout' : 'See all'}</div>
+    </div>` : '');
 }
 
 // ── localStorage persistence + immediate Supabase sync ───
@@ -7145,6 +7156,8 @@ async function syncFromSupabase(user) {
         gamepass,
         xp: profile.xp || obProfile.xp || 0,
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : (obProfile.pinnedAchievements || []),
+        pinnedCollections: Array.isArray(profile.pinned_collections) ? profile.pinned_collections : (obProfile.pinnedCollections || []),
+        pinnedTierlists: Array.isArray(profile.pinned_tierlists) ? profile.pinned_tierlists : (obProfile.pinnedTierlists || []),
         profileBg: profile.profile_bg !== undefined ? profile.profile_bg : (obProfile.profileBg || null),
         isPublic: profile.is_public !== undefined ? (profile.is_public !== false) : (obProfile.isPublic !== false),
       };
@@ -9131,6 +9144,7 @@ function upcAddWish(i, el) {
   setTimeout(() => renderUpcomingWishes('all'), 480);
 }
 
+let _tlProfileExpanded = false; // "Voir tout" déplié sur le profil (non persisté)
 function renderProfileTierLists() {
   const section = document.getElementById('profile-tierlists-section');
   const listEl = document.getElementById('profile-tierlists-list');
@@ -9142,19 +9156,29 @@ function renderProfileTierLists() {
     return;
   }
   section.style.display = 'block';
-  listEl.innerHTML = lists.map(tl => {
+  const fr = _lang !== 'en';
+  // Sans plafond, 12 tier lists = 12 cartes pleine largeur empilées sur le profil
+  const ordered = _sortPinned(lists, 'tl', l => l.id);
+  const shown   = _tlProfileExpanded ? ordered : ordered.slice(0, PROFILE_TL_MAX);
+  const hidden  = ordered.length - shown.length;
+  listEl.innerHTML = shown.map(tl => {
     const date = new Date(tl.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
     const count = (tl.rankedCount != null) ? `${tl.rankedCount} classés` : `${tl.itemCount || 0} jeux`;
     const pub = tl.isPublic !== false;
-    return `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
+    const pinned = _isPinned('tl', tl.id);
+    return `<div style="background:var(--s1);border:0.5px solid ${pinned ? 'rgba(108,92,231,0.45)' : 'var(--border2)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pub ? '' : '🔒 '}${tl.name||'Tier List'}</div>
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pinned ? '📌 ' : ''}${pub ? '' : '🔒 '}${tl.name||'Tier List'}</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:2px">${count} · ${date}</div>
       </div>
-      <button onclick="editTierList('${tl.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer">✏️ Modifier</button>
-      <button onclick="deleteSavedTierList('${tl.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px">🗑️</button>
+      <button onclick="togglePinTierlist(event,'${tl.id}')" title="${pinned ? (fr ? 'Désépingler' : 'Unpin') : (fr ? 'Épingler' : 'Pin')}" style="background:${pinned ? 'var(--a)' : 'var(--s2)'};border:0.5px solid ${pinned ? 'var(--a)' : 'var(--border2)'};border-radius:10px;padding:7px 9px;font-size:13px;cursor:pointer;flex-shrink:0">📌</button>
+      <button onclick="editTierList('${tl.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;flex-shrink:0">✏️</button>
+      <button onclick="deleteSavedTierList('${tl.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px;flex-shrink:0">🗑️</button>
     </div>`;
-  }).join('');
+  }).join('')
+  + ((hidden > 0 || _tlProfileExpanded) ? `<div onclick="_tlProfileExpanded=!_tlProfileExpanded;renderProfileTierLists()" style="text-align:center;padding:9px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;font-size:12px;font-weight:600;color:var(--a);cursor:pointer">${
+      _tlProfileExpanded ? (fr ? 'Réduire ↑' : 'Collapse ↑') : (fr ? `Voir tout (${hidden} de plus) ↓` : `See all (${hidden} more) ↓`)
+    }</div>` : '');
 }
 
 // Suppression réelle : serveur + cache local (avec confirmation)
@@ -9162,6 +9186,7 @@ async function deleteSavedTierList(id) {
   if (!confirm('Supprimer cette tier list ? Elle disparaîtra aussi pour tes amis — définitif.')) return;
   try { await _sb.from('tier_lists').delete().eq('id', id); } catch(e) {}
   _tlMyLists = _tlMyLists.filter(tl => tl.id !== id);
+  _unpinDeleted('tl', id);
   localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
   showToast('Tier list supprimée');
   renderProfileTierLists();
@@ -12652,6 +12677,86 @@ async function fetchOwnCollectionsFromSupabase() {
   } catch(e) {}
 }
 
+// ── ÉPINGLAGE (collections + tier lists) ───────────────────────────────
+// Le profil n'affiche qu'un nombre limité de collections / tier lists.
+// L'épinglage donne à l'utilisateur le contrôle de ce qui occupe ces places.
+// Volontairement PAS gaté par le niveau : les slots de création le sont déjà
+// (XP_LEVELS.slots), gater en plus le rangement de ce qu'on possède déjà
+// reviendrait à punir deux fois. Stocké comme pinned_achievements : dans
+// profiles (JSONB) → synchro multi-appareils gratuite.
+const PROFILE_COL_MAX = 5;   // collections visibles sur le profil
+const PROFILE_TL_MAX  = 3;   // tier lists visibles sur le profil
+
+function _pins(kind) {
+  const v = kind === 'col' ? obProfile.pinnedCollections : obProfile.pinnedTierlists;
+  return Array.isArray(v) ? v.map(String) : [];
+}
+function _isPinned(kind, id) { return _pins(kind).includes(String(id)); }
+
+// Épinglés d'abord (dans l'ordre d'épinglage), le reste garde son ordre d'origine
+function _sortPinned(list, kind, getId) {
+  const p = _pins(kind);
+  return list.map((x, i) => {
+    const idx = p.indexOf(String(getId(x)));
+    return { x, r: idx >= 0 ? idx : p.length + 1 + i };
+  }).sort((a, b) => a.r - b.r).map(o => o.x);
+}
+
+async function _savePins() {
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    // Colonnes peut-être absentes (migration non lancée) → échec silencieux,
+    // le local continue de fonctionner. Même approche que les collections.
+    _sb.from('profiles').update({
+      pinned_collections: obProfile.pinnedCollections || [],
+      pinned_tierlists:   obProfile.pinnedTierlists   || [],
+    }).eq('id', session.user.id).then(() => {}, () => {});
+  } catch (e) {}
+}
+
+function _togglePin(kind, id, max) {
+  const fr = _lang !== 'en';
+  const key = kind === 'col' ? 'pinnedCollections' : 'pinnedTierlists';
+  let list = _pins(kind);
+  const sid = String(id);
+  if (list.includes(sid)) {
+    list = list.filter(x => x !== sid);
+    showToast(fr ? '📌 Désépinglé' : '📌 Unpinned');
+  } else {
+    if (list.length >= max) {
+      showToast(fr ? `Max ${max} épinglés — désépingle-en un d'abord` : `Max ${max} pinned — unpin one first`);
+      return;
+    }
+    list.push(sid);
+    showToast(fr ? '📌 Épinglé sur ton profil' : '📌 Pinned to your profile');
+  }
+  obProfile[key] = list;
+  _savePins();
+}
+
+// Une collection / tier list supprimée ne doit pas laisser un id fantôme dans les pins
+function _unpinDeleted(kind, id) {
+  const key = kind === 'col' ? 'pinnedCollections' : 'pinnedTierlists';
+  if (!_isPinned(kind, id)) return;
+  obProfile[key] = _pins(kind).filter(x => x !== String(id));
+  _savePins();
+}
+
+function togglePinCollection(event, id) {
+  if (event) event.stopPropagation();
+  _togglePin('col', id, PROFILE_COL_MAX);
+  renderMyCollections();
+  renderProfileCollections();
+}
+
+function togglePinTierlist(event, id) {
+  if (event) event.stopPropagation();
+  _togglePin('tl', id, PROFILE_TL_MAX);
+  renderProfileTierLists();
+}
+
 function renderMyCollections() {
   const el        = document.getElementById('my-collections-row');
   const infoEl    = document.getElementById('my-collections-info');
@@ -12707,7 +12812,7 @@ function renderMyCollections() {
   }
 
   const emptyCards = Array(emptySlotsCount).fill(emptySlotCard).join('');
-  el.innerHTML = userCollections.map(_userCollectionCard).join('') + emptyCards;
+  el.innerHTML = _sortPinned(userCollections, 'col', c => c.id).map(_userCollectionCard).join('') + emptyCards;
 }
 
 function _userCollectionCard(c) {
@@ -12719,12 +12824,14 @@ function _userCollectionCard(c) {
       : `<div style="flex:1;background:var(--s3)"></div>`;
   });
   while (covers.length < 3) covers.push(`<div style="flex:1;background:var(--s${Math.min(covers.length+2,4)})"></div>`);
+  const pinned = _isPinned('col', c.id);
   return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
     <div style="height:85px;display:flex;position:relative">
       ${covers.join('')}
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 50%)"></div>
       <div style="position:absolute;bottom:6px;left:8px;font-size:20px">${c.emoji||'📚'}</div>
-      ${(c.vibes||[]).length ? '<div style="position:absolute;top:6px;right:6px;background:rgba(108,92,231,0.85);border-radius:8px;padding:2px 6px;font-size:10px;font-weight:800;color:#fff">✨ auto</div>' : ''}
+      <div onclick="togglePinCollection(event,'${c.id}')" title="${pinned ? 'Désépingler' : 'Épingler sur le profil'}" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:${pinned ? 'var(--a)' : 'rgba(0,0,0,0.55)'};${pinned ? '' : 'opacity:0.85;'}cursor:pointer">📌</div>
+      ${(c.vibes||[]).length ? '<div style="position:absolute;bottom:6px;right:6px;background:rgba(108,92,231,0.85);border-radius:8px;padding:2px 6px;font-size:10px;font-weight:800;color:#fff">✨ auto</div>' : ''}
       ${c.isPublic === false ? '<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);border-radius:8px;padding:2px 6px;font-size:10px">🔒</div>' : ''}
     </div>
     <div style="padding:8px 10px 10px">
@@ -13063,6 +13170,7 @@ function confirmDeleteCollection() {
   if (!confirm(t('collections.delete_confirm'))) return;
   const colId = _currentCollectionId;
   userCollections = userCollections.filter(c => c.id !== _currentCollectionId);
+  _unpinDeleted('col', colId);
   saveUserCollections();
   deleteCollectionFromSupabase(colId);
   closeUserCollection();
