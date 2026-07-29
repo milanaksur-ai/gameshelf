@@ -1842,6 +1842,10 @@ html, body {
           <span style="font-size:16px">🏷️</span>
           <span data-i18n="collections.badges_menu">Infos affichées sur les jeux</span>
         </button>
+        <button onclick="collectionToTierList()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
+          <span style="font-size:16px">🏆</span>
+          <span data-i18n="collections.to_tierlist">Classer en tier list</span>
+        </button>
         <button onclick="openRenameCollection()" style="width:100%;padding:14px 16px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span data-i18n="collections.rename">Renommer</span>
@@ -3730,7 +3734,7 @@ const LANG = {
       delete_confirm:'Supprimer cette collection ?',
       saga_sub:'La saga complète',
       quiz_challenge:'⚡ Défier',
-      rename:'Renommer',
+      rename:'Renommer', to_tierlist:'Classer en tier list',
       badges_menu:'Infos affichées sur les jeux',
       badges_title:'Infos affichées sur les jeux',
       badges_sub:'Ces pastilles sont visibles par tout le monde sur cette collection.',
@@ -4038,7 +4042,7 @@ const LANG = {
       new_mini:'+ New collection',
       no_game:'No games here',
       no_game_sub:'Add games from their detail pages',
-      rename:'Rename',
+      rename:'Rename', to_tierlist:'Rank as tier list',
       badges_menu:'Info shown on games',
       badges_title:'Info shown on games',
       badges_sub:'These badges are visible to everyone on this collection.',
@@ -12744,6 +12748,30 @@ function _unpinDeleted(kind, id) {
   _savePins();
 }
 
+// Collection → tier list : la collection sert de pool de départ à classer.
+// Sens unique assumé : l'inverse (tier list → collection) jetterait le
+// classement, qui est justement l'information que porte une tier list.
+function collectionToTierList(colId) {
+  const fr = _lang !== 'en';
+  const c = userCollections.find(x => x.id === (colId || _currentCollectionId));
+  if (!c) return;
+  const games = c.games || [];
+  if (!games.length) {
+    showToast(fr ? 'Ajoute des jeux à la collection d\'abord' : 'Add games to the collection first');
+    return;
+  }
+  const items = games.map(g => ({
+    id: g.id, title: g.title,
+    steamId: g.steamId || 0,
+    imageId: g.imageId || null,
+    cover: g.cover || null,
+  }));
+  closeCollectionActionSheet();
+  if (typeof closeUserCollection === 'function') { try { closeUserCollection(); } catch (e) {} }
+  openTierList('custom', { title: `${c.emoji || '📚'} ${c.name}`, items });
+  showToast(fr ? `🏆 ${items.length} jeux à classer` : `🏆 ${items.length} games to rank`);
+}
+
 function togglePinCollection(event, id) {
   if (event) event.stopPropagation();
   _togglePin('col', id, PROFILE_COL_MAX);
@@ -18176,7 +18204,8 @@ function openTierList(mode, opts = {}) {
     _tlPool = lic ? lic.games.map(g => ({...g})) : [];
     _tlCustomTitle = lic ? lic.title : '';
   } else if (mode === 'custom') {
-    _tlPool = [];
+    // opts.items : pool pré-rempli (ex. conversion depuis une collection)
+    _tlPool = Array.isArray(opts.items) ? opts.items.map(g => ({ ...g })) : [];
   } else if (mode === 'view') {
     _tlPool = [];
     if (opts.items) _tlPool = opts.items.map(g => ({...g}));
