@@ -9992,7 +9992,9 @@ function renderFeed(){
 // ══════════════════════════════════════
 // XBOX — OpenXBL Integration
 // ══════════════════════════════════════
-const XBL_KEY   = localStorage.getItem('xbl_key') || 'b15268e0-da41-4fad-ac2c-baee2f4d46a0';
+// La clé n'a jamais transité par ici : xblFetch() passe par le proxy, qui
+// l'injecte côté serveur. La const était morte, et publiait la clé en clair
+// dans un repo public.
 const XBL_PROXY = 'https://gameshelf-back-end.vercel.app/api/xbl';
 
 async function xblFetch(endpoint) {
