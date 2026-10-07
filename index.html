@@ -2307,7 +2307,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10h</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10i</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4689,26 +4689,86 @@ let _luAnimFrame = null;
 // ══ TOP 20 — mes meilleures notes, celles d'un ami, partage en image ═════════
 let _top20Data = null; // { games, owner, mine }
 
+// ── Classement par note, égalités départagées par l'ordre choisi par le joueur ──
+// Une seule fonction pour le Top 6 du profil, le Top 20 et leurs versions vues par
+// un ami (avant : 3 départages différents, donc 3 ordres possibles pour une égalité).
+// order = ids de jeux dans l'ordre voulu ; on ne réordonne jamais deux notes
+// différentes : un 9 ne passe jamais devant un 9,5.
+function _rankByScore(games, order, idOf = g => g.id) {
+  const pos = new Map((Array.isArray(order) ? order : []).map((id, i) => [String(id), i]));
+  const p = g => { const v = pos.get(String(idOf(g))); return v === undefined ? Infinity : v; };
+  return (games || []).filter(g => (g.score || 0) > 0).sort((a, b) =>
+    ((b.score || 0) - (a.score || 0)) || (p(a) - p(b)) || ((b.meta || 0) - (a.meta || 0)) ||
+    String(a.title || '').localeCompare(String(b.title || '')));
+}
+
+let _top20Reorder = false;
+
 function openTop20() {
-  const games = GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }))
-    .filter(g => (g.score || 0) > 0)
-    .sort((a, b) => (b.score - a.score) || ((b.meta || 0) - (a.meta || 0)) || String(a.title).localeCompare(String(b.title)))
-    .slice(0, 20);
-  _showTop20(games, obProfile.username || 'Moi', true);
+  _top20Reorder = false;
+  const ranked = _rankByScore(GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) })), obProfile.topOrder);
+  _showTop20(ranked.slice(0, 20), obProfile.username || 'Moi', true, ranked);
+}
+
+// Jeux concernés par le réordonnancement : le Top 20, prolongé jusqu'au bout du
+// groupe d'égalité de la 20e place (on choisit qui entre dans le Top).
+function _top20ReorderList(ranked) {
+  const n = Math.min(20, ranked.length);
+  if (!n) return [];
+  const lastScore = ranked[n - 1].score;
+  let end = n;
+  while (end < ranked.length && ranked[end].score === lastScore) end++;
+  return ranked.slice(0, end);
+}
+
+function toggleTop20Reorder() {
+  _top20Reorder = !_top20Reorder;
+  const d = _top20Data;
+  if (d) _showTop20(d.games, d.owner, d.mine, d.ranked);
+}
+
+// Échange un jeu avec son voisin de même note (dir = -1 monte, +1 descend)
+function moveTop20(gameId, dir) {
+  const d = _top20Data;
+  if (!d || !d.mine) return;
+  const ranked = [...d.ranked];
+  const i = ranked.findIndex(g => String(g.id) === String(gameId));
+  const j = i + dir;
+  if (i < 0 || j < 0 || j >= ranked.length || ranked[i].score !== ranked[j].score) return;
+  [ranked[i], ranked[j]] = [ranked[j], ranked[i]];
+  obProfile.topOrder = ranked.map(g => String(g.id));
+  _showTop20(ranked.slice(0, 20), d.owner, true, ranked);
+  try { renderProfileStats(); } catch (e) {} // Top 6 du profil
+  _saveTopOrder();
+}
+
+let _topOrderTimer = null, _topOrderWarned = false;
+function _saveTopOrder() {
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  clearTimeout(_topOrderTimer);
+  _topOrderTimer = setTimeout(async () => {
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) return;
+      const { error } = await _sb.from('profiles').update({ top_order: obProfile.topOrder || [] }).eq('id', session.user.id);
+      if (error && !_topOrderWarned) {
+        _topOrderWarned = true;
+        showToast(_lang === 'en' ? '⚠️ Order saved on this device only (database update pending)' : '⚠️ Ordre enregistré sur cet appareil seulement (mise à jour de la base à faire)');
+      }
+    } catch (e) {}
+  }, 600);
 }
 
 function openFriendTop20() {
   const name = (_fpProfile && _fpProfile.username) || 'Ami';
   const games = (_fpAllGames || [])
     .filter(g => (g.score || 0) > 0)
-    .map(g => ({ title: g.title, score: g.score, imageId: g.image_id || g.imageId || null, cover: g.cover || null, steamId: g.steam_id || g.steamId || 0, status: g.status }))
-    .sort((a, b) => (b.score - a.score) || String(a.title).localeCompare(String(b.title)))
-    .slice(0, 20);
-  _showTop20(games, name, false);
+    .map(g => ({ id: String(g.game_id || g.id || ''), title: g.title, score: g.score, imageId: g.image_id || g.imageId || null, cover: g.cover || null, steamId: g.steam_id || g.steamId || 0, status: g.status }));
+  _showTop20(_rankByScore(games, _fpProfile && _fpProfile.top_order).slice(0, 20), name, false);
 }
 
-function _showTop20(games, owner, mine) {
-  _top20Data = { games, owner, mine };
+function _showTop20(games, owner, mine, ranked) {
+  _top20Data = { games, owner, mine, ranked: ranked || games };
   const fr = _lang !== 'en';
   const title = document.getElementById('top20-title');
   const sub = document.getElementById('top20-sub');
@@ -4723,9 +4783,35 @@ function _showTop20(games, owner, mine) {
       <div style="font-size:40px;margin-bottom:12px">⭐</div>
       <div style="font-size:14px;line-height:1.5">${fr ? 'Aucun jeu noté pour l\'instant — note tes jeux pour construire ton Top 20 !' : 'No rated games yet — rate your games to build your Top 20!'}</div>
     </div>`;
+  } else if (mine && _top20Reorder) {
+    // Mode réordonner : ▲▼ seulement entre jeux de même note, groupes séparés
+    const list = _top20ReorderList(_top20Data.ranked);
+    const same = (a, b) => a && b && a.score === b.score;
+    const hasTies = list.some((g, i) => same(g, list[i + 1]));
+    const arrow = (g, dir, on) => `<button onclick="moveTop20('${String(g.id).replace(/'/g, "\\'")}',${dir})" ${on ? '' : 'disabled'} style="width:34px;height:34px;border-radius:10px;border:0.5px solid ${on ? 'rgba(255,255,255,0.3)' : 'transparent'};background:${on ? 'rgba(255,255,255,0.09)' : 'transparent'};color:${on ? 'var(--text)' : 'rgba(255,255,255,0.15)'};font-size:13px;cursor:${on ? 'pointer' : 'default'};flex-shrink:0">${dir < 0 ? '▲' : '▼'}</button>`;
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:10px;margin:4px 0 12px;padding:10px 12px;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.35);border-radius:12px">
+        <div style="flex:1;font-size:12px;color:var(--muted2);line-height:1.4">${hasTies
+          ? (fr ? 'Départage les jeux de même note. Une note plus haute reste toujours devant.' : 'Order games that share a score. A higher score always stays ahead.')
+          : (fr ? 'Aucune égalité de note dans ton Top 20 — rien à départager.' : 'No tied scores in your Top 20 — nothing to order.')}</div>
+        <button onclick="toggleTop20Reorder()" style="padding:8px 14px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">${fr ? 'Terminé' : 'Done'}</button>
+      </div>` + list.map((g, i) => {
+      const src = coverUrl(g);
+      const first = !same(g, list[i - 1]), tied = same(g, list[i - 1]) || same(g, list[i + 1]);
+      const out = i >= 20;
+      return `${first && i ? '<div style="height:10px"></div>' : ''}${i === 20 ? `<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin:6px 2px 6px">${fr ? 'Hors Top 20 — même note' : 'Outside Top 20 — same score'}</div>` : ''}
+      <div style="display:flex;align-items:center;gap:10px;background:var(--s1);border:0.5px solid ${tied ? 'rgba(255,202,40,0.35)' : 'var(--border2)'};border-radius:12px;padding:8px 10px;margin-bottom:6px;${out ? 'opacity:0.6' : ''}">
+        <div style="width:24px;text-align:center;font-size:12px;font-weight:800;color:var(--muted2);flex-shrink:0">${i + 1}</div>
+        <div style="width:30px;height:40px;border-radius:6px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}</div>
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
+        <div style="font-size:13px;font-weight:800;color:var(--amber);flex-shrink:0;margin-right:2px">★ ${g.score}</div>
+        ${tied ? arrow(g, -1, same(g, list[i - 1])) + arrow(g, 1, same(g, list[i + 1])) : '<div style="width:74px;flex-shrink:0"></div>'}
+      </div>`;
+    }).join('');
   } else {
     const medal = i => i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
-    body.innerHTML = games.map((g, i) => {
+    const reorderBtn = mine && games.length > 1 ? `<button onclick="toggleTop20Reorder()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:4px 0 12px;padding:10px;border-radius:12px;background:var(--s2);border:0.5px dashed var(--border2);color:var(--muted2);font-size:12px;font-weight:700;cursor:pointer">↕ ${fr ? 'Départager les égalités' : 'Order tied games'}</button>` : '';
+    body.innerHTML = reorderBtn + games.map((g, i) => {
       const src = coverUrl(g);
       return `<div class="recap-pop" style="animation-delay:${Math.min(i * 0.045, 0.9).toFixed(2)}s;display:flex;align-items:center;gap:12px;background:${i < 3 ? 'linear-gradient(135deg,rgba(255,202,40,0.08),rgba(108,92,231,0.05))' : 'var(--s1)'};border:${i < 3 ? '1px solid rgba(255,202,40,0.25)' : '0.5px solid var(--border2)'};border-radius:14px;padding:9px 12px;margin-bottom:8px">
         <div style="width:30px;text-align:center;font-size:${i < 3 ? '20px' : '13px'};font-weight:800;color:var(--muted2);flex-shrink:0">${medal(i)}</div>
@@ -6617,6 +6703,7 @@ async function onAuthSuccess(user) {
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
         pinnedCollections: Array.isArray(profile.pinned_collections) ? profile.pinned_collections : [],
         pinnedTierlists: Array.isArray(profile.pinned_tierlists) ? profile.pinned_tierlists : [],
+        topOrder: Array.isArray(profile.top_order) ? profile.top_order : [],
         profileBg: profile.profile_bg || null,
         isPublic: profile.is_public !== false,
       };
@@ -7176,6 +7263,7 @@ async function syncFromSupabase(user) {
         pinnedAchievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : (obProfile.pinnedAchievements || []),
         pinnedCollections: Array.isArray(profile.pinned_collections) ? profile.pinned_collections : (obProfile.pinnedCollections || []),
         pinnedTierlists: Array.isArray(profile.pinned_tierlists) ? profile.pinned_tierlists : (obProfile.pinnedTierlists || []),
+        topOrder: Array.isArray(profile.top_order) ? profile.top_order : (obProfile.topOrder || []),
         profileBg: profile.profile_bg !== undefined ? profile.profile_bg : (obProfile.profileBg || null),
         isPublic: profile.is_public !== undefined ? (profile.is_public !== false) : (obProfile.isPublic !== false),
       };
@@ -9335,10 +9423,7 @@ function renderProfileStats() {
   }
 
   // Top 6 best-rated games
-  const topGames = all
-    .filter(g => (g.score||0) > 0)
-    .sort((a,b) => (b.score||0) - (a.score||0))
-    .slice(0, 6);
+  const topGames = _rankByScore(all, obProfile.topOrder).slice(0, 6);
   const slots = [...topGames, ...Array(Math.max(0, 6 - topGames.length)).fill(null)];
   const topGamesEl = document.getElementById('tab-top');
   if (topGamesEl) {
@@ -11771,7 +11856,7 @@ function renderFriendProfile(friend) {
   // Son top — top 6 scored games
   const topSec = document.getElementById('fp-topact-section');
   const topGrid = document.getElementById('fp-top-grid');
-  const topGames = [...games].filter(g=>(g.score||0)>0).sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,6);
+  const topGames = _rankByScore(games, friend.top_order).slice(0, 6);
   if (topGames.length && topGrid) {
     topSec.style.display = 'block';
     const topSlots = [...topGames, ...Array(Math.max(0,6-topGames.length)).fill(null)];
@@ -12039,6 +12124,7 @@ async function openFriendProfile(userId) {
     xp: profile.xp || 0,
     achievements: profile.achievements || [],
     pinned_achievements: Array.isArray(profile.pinned_achievements) ? profile.pinned_achievements : [],
+    top_order: Array.isArray(profile.top_order) ? profile.top_order : [],
     profile_bg: profile.profile_bg || null,
     games: (games||[]).map(g => ({ ...g, id: String(g.game_id||'') })),
     activity: recentActivity || []
