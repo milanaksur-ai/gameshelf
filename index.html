@@ -2299,7 +2299,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -12354,8 +12354,11 @@ function isOnGamePass(title) {
 }
 
 async function loadGamePass() {
-  const CACHE_KEY = 'gs_gp6';
-  const TTL = 12 * 3600 * 1000;
+  // gs_gp7 : invalide les caches gs_gp6 restés sur l'ancien catalogue de juillet.
+  // TTL court : le fichier ne pèse rien et le workflow le met à jour chaque nuit.
+  const CACHE_KEY = 'gs_gp7';
+  const TTL = 3 * 3600 * 1000;
+  try { localStorage.removeItem('gs_gp6'); } catch (e) {}
 
   // Show section immediately with loading state
   const sec = document.getElementById('gp-section');
@@ -12378,8 +12381,10 @@ async function loadGamePass() {
     if (!games.length) throw new Error('Catalogue vide');
     const newGames = data.newGames || [];
     const titlesArr = games.map(g => _normGP(g.title));
-    _gpData = { games, newGames, titlesArr, titles: new Set(titlesArr), ts: Date.now() };
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, newGames, titlesArr, ts: _gpData.ts }));
+    // updatedAt = date réelle du catalogue (écrite par le workflow), ts = date du téléchargement
+    const updatedAt = data.updatedAt || null;
+    _gpData = { games, newGames, titlesArr, titles: new Set(titlesArr), ts: Date.now(), updatedAt };
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, newGames, titlesArr, ts: _gpData.ts, updatedAt }));
     renderGPSection();
     renderGameGrid();
   } catch(e) {
@@ -12394,7 +12399,8 @@ function renderGPSection() {
   const row = document.getElementById('gp-row');
   if (!sec || !row || !_gpData?.games?.length) return;
   const label = document.getElementById('gp-update-label');
-  if (label) label.textContent = 'Màj ' + new Date(_gpData.ts).toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+  // Date du catalogue, pas du téléchargement : sinon un catalogue figé affiche quand même « aujourd'hui »
+  if (label) label.textContent = (_lang === 'en' ? 'Updated ' : 'Màj ') + new Date(_gpData.updatedAt || _gpData.ts).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' });
   // Show newGames (diff-based recently added) if available, else first 20 from catalog
   const displayGames = (_gpData.newGames?.length >= 5 ? _gpData.newGames : _gpData.games).slice(0, 20);
   row.innerHTML = displayGames.map(g => {
