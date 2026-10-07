@@ -2299,7 +2299,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -9171,11 +9171,11 @@ function renderProfileTierLists() {
   listEl.innerHTML = shown.map(tl => {
     const date = new Date(tl.createdAt).toLocaleDateString('fr-FR', { day:'numeric', month:'short' });
     const count = (tl.rankedCount != null) ? `${tl.rankedCount} classés` : `${tl.itemCount || 0} jeux`;
-    const pub = tl.isPublic !== false;
+    const vis = _colVis(tl);
     const pinned = _isPinned('tl', tl.id);
     return `<div style="background:var(--s1);border:0.5px solid ${pinned ? 'rgba(108,92,231,0.45)' : 'var(--border2)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pinned ? '📌 ' : ''}${pub ? '' : '🔒 '}${tl.name||'Tier List'}</div>
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pinned ? '📌 ' : ''}${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${tl.name||'Tier List'}</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:2px">${count} · ${date}</div>
       </div>
       <button onclick="togglePinTierlist(event,'${tl.id}')" title="${pinned ? (fr ? 'Désépingler' : 'Unpin') : (fr ? 'Épingler' : 'Pin')}" style="background:${pinned ? 'var(--a)' : 'var(--s2)'};border:0.5px solid ${pinned ? 'var(--a)' : 'var(--border2)'};border-radius:10px;padding:7px 9px;font-size:13px;cursor:pointer;flex-shrink:0">📌</button>
@@ -11230,7 +11230,7 @@ async function renderSocialDiscover() {
     const { data: { user } } = await _sb.auth.getUser();
     const { data } = await _sb.from('tier_lists')
       .select('id,name,items,tiers,creator_name,user_id,updated_at,created_at')
-      .eq('is_public', true)
+      .eq('visibility', 'public')
       .order('updated_at', { ascending: false })
       .limit(12);
     rows = (data || []).filter(t => (!user || t.user_id !== user.id) && !friendIds.has(t.user_id));
@@ -18275,7 +18275,7 @@ let _tlPool     = [];     // [{id,title,steamId,imageId,cover}] unplaced
 let _tlTiers    = {};     // { S:[], A:[], B:[], C:[], D:[], F:[] }
 let _tlSelected = null;   // id currently selected in pool
 let _tlDefs     = TIER_CONFIG.map(t => ({ ...t })); // défs des tiers de la liste courante (renommables / recolorables)
-let _tlIsPublic = true;   // interrupteur privé/public de la liste courante
+let _tlVis = 'public';   // visibilité de la liste courante : 'public' | 'friends' | 'private' (cf. COL_VIS)
 let _tlTierSel  = null;   // { id, tier } — carte sélectionnée DANS un tier (réordonner / déplacer)
 let _tlPopToken = 0;      // invalide un fetch "populaire" devenu obsolète
 
@@ -18354,7 +18354,7 @@ function openTierList(mode, opts = {}) {
   _tlSavedId   = null;
   _tlReadOnly  = opts.readOnly || false;
   _tlCustomTitle = opts.title || '';
-  _tlIsPublic  = opts.isPublic !== false;
+  _tlVis       = _colVis(opts);
   _tlDefs      = (Array.isArray(opts.tierDefs) && opts.tierDefs.length)
     ? opts.tierDefs.map(d => ({ ...d }))
     : TIER_CONFIG.map(t => ({ ...t }));
@@ -18423,15 +18423,19 @@ async function _tlLoadPopular(token) {
   } catch (e) { /* hors ligne → sélection intégrée */ }
 }
 
+// Ordre du cycle au tap sur l'icône de visibilité d'une tier list
+const _TL_VIS_NEXT = { public: 'friends', friends: 'private', private: 'public' };
+function _visToast(v) { const m = COL_VIS[v]; showToast(`${m.icon} ${_lang === 'en' ? m.en : m.fr}`); }
+
 function tlToggleVisibility() {
-  _tlIsPublic = !_tlIsPublic;
+  _tlVis = _TL_VIS_NEXT[_tlVis] || 'public';
   _tlUpdateVisBtn();
-  showToast(_tlIsPublic ? '🌍 Visible par tes amis' : '🔒 Privée — visible par toi seulement');
+  _visToast(_tlVis);
   if (_tlSavedId) {
     const id = _tlSavedId;
-    _sb.from('tier_lists').update({ is_public: _tlIsPublic }).eq('id', id).then(() => {}, () => {});
+    _sb.from('tier_lists').update({ visibility: _tlVis, is_public: _tlVis !== 'private' }).eq('id', id).then(() => {}, () => {});
     const meta = _tlMyLists.find(l => l.id === id);
-    if (meta) { meta.isPublic = _tlIsPublic; localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists)); }
+    if (meta) { meta.visibility = _tlVis; meta.isPublic = _tlVis !== 'private'; localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists)); }
   }
 }
 
@@ -18439,21 +18443,21 @@ function _tlUpdateVisBtn() {
   const b = document.getElementById('tl-vis-btn');
   if (b) {
     b.style.display = _tlReadOnly ? 'none' : 'block';
-    b.textContent = _tlIsPublic ? '🌍' : '🔒';
-    b.title = _tlIsPublic ? 'Visible par tes amis — taper pour rendre privée' : 'Privée — taper pour rendre visible';
+    b.textContent = COL_VIS[_tlVis].icon;
+    b.title = `${_lang === 'en' ? COL_VIS[_tlVis].en : COL_VIS[_tlVis].fr} — ${_lang === 'en' ? 'tap to change' : 'taper pour changer'}`;
   }
-  // Bouton Partager : grisé quand la liste est privée (le lien ne serait pas lisible)
+  // Bouton Partager : grisé si la liste n'est pas publique (le lien ne serait pas lisible par tous)
   const s = document.getElementById('tl-share-btn');
   if (s) {
-    const grey = !_tlReadOnly && !_tlIsPublic;
+    const grey = !_tlReadOnly && _tlVis !== 'public';
     s.style.opacity = grey ? '0.35' : '1';
-    s.title = grey ? 'Liste privée — passe-la en 🌍 pour partager' : 'Partager';
+    s.title = grey ? 'Seules les listes 🌍 publiques se partagent par lien' : 'Partager';
   }
 }
 
 // 📤 : sauvegarde silencieuse si besoin (le lien a besoin d'un id), puis modal de partage
 async function tlShareCurrent() {
-  if (!_tlReadOnly && !_tlIsPublic) { showToast('🔒 Liste privée — passe-la en 🌍 pour pouvoir la partager'); return; }
+  if (!_tlReadOnly && _tlVis !== 'public') { showToast(`${COL_VIS[_tlVis].icon} Seules les listes publiques se partagent par lien — passe-la en 🌍`); return; }
   if (!_tlReadOnly && !_tlSavedId) {
     await saveTierList();
     if (!_tlSavedId) return; // la sauvegarde a échoué → le toast d'erreur a déjà parlé
@@ -18537,25 +18541,29 @@ async function saveTierList() {
   let uid = null;
   try { uid = (await _sb.auth.getUser()).data?.user?.id || null; } catch (e) {}
   const payload = { name, mode: _tlMode, items: allItems, tiers: _tlTiers, creator_name: profile.username || 'Anonyme' };
-  // Colonnes de la migration (user_id / is_public / tier_defs) — retry sans elles si pas encore migré
-  const extras = { user_id: uid, is_public: _tlIsPublic, tier_defs: _tlDefs, updated_at: new Date().toISOString() };
+  // Colonnes de la migration (user_id / is_public / visibility / tier_defs) — retry sans elles si pas encore migré
+  const extras = { user_id: uid, is_public: _tlVis !== 'private', visibility: _tlVis, tier_defs: _tlDefs, updated_at: new Date().toISOString() };
+  const { visibility: _v, ...extrasNoVis } = extras;
   try {
     let id = _tlSavedId;
     if (!id) {
       let ins = await _sb.from('tier_lists').insert({ ...payload, ...extras }).select('id').single();
+      if (ins.error) ins = await _sb.from('tier_lists').insert({ ...payload, ...extrasNoVis }).select('id').single();
       if (ins.error) ins = await _sb.from('tier_lists').insert(payload).select('id').single();
       if (ins.error) throw ins.error;
       id = ins.data.id;
       _tlSavedId = id;
-      _tlMyLists.unshift({ id, name, mode: _tlMode, createdAt: new Date().toISOString(), itemCount: allItems.length, rankedCount, isPublic: _tlIsPublic });
+      _tlMyLists.unshift({ id, name, mode: _tlMode, createdAt: new Date().toISOString(), itemCount: allItems.length, rankedCount, isPublic: _tlVis !== 'private', visibility: _tlVis });
       localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
     } else {
       const upd = { name, items: allItems, tiers: _tlTiers };
-      let r = await _sb.from('tier_lists').update({ ...upd, is_public: _tlIsPublic, tier_defs: _tlDefs, updated_at: new Date().toISOString() }).eq('id', id);
+      const upExtras = { is_public: _tlVis !== 'private', tier_defs: _tlDefs, updated_at: new Date().toISOString() };
+      let r = await _sb.from('tier_lists').update({ ...upd, ...upExtras, visibility: _tlVis }).eq('id', id);
+      if (r.error) r = await _sb.from('tier_lists').update({ ...upd, ...upExtras }).eq('id', id);
       if (r.error) r = await _sb.from('tier_lists').update(upd).eq('id', id);
       if (r.error) throw r.error;
       const meta = _tlMyLists.find(l => l.id === id);
-      if (meta) { meta.name = name; meta.itemCount = allItems.length; meta.rankedCount = rankedCount; meta.isPublic = _tlIsPublic; }
+      if (meta) { meta.name = name; meta.itemCount = allItems.length; meta.rankedCount = rankedCount; meta.isPublic = _tlVis !== 'private'; meta.visibility = _tlVis; }
       localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
     }
     _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
@@ -18774,7 +18782,7 @@ async function fetchMyTierLists() {
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
     _tlFetchedOnce = true;
-    const r = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,items,tiers').eq('user_id', user.id).order('created_at', { ascending: false });
+    const r = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,visibility,items,tiers').eq('user_id', user.id).order('created_at', { ascending: false });
     if (r.error) return; // colonne user_id absente (migration pas encore lancée) → on garde le cache local
     const rows = r.data || [];
     // Rattrapage : anciennes listes créées sans user_id, connues via le cache local → on les revendique
@@ -18782,10 +18790,10 @@ async function fetchMyTierLists() {
     const legacy = (JSON.parse(localStorage.getItem('gs_my_tierlists') || '[]')).filter(l => l.id && !known.has(l.id));
     for (const l of legacy) {
       try {
-        const { data: claimed } = await _sb.from('tier_lists').update({ user_id: user.id }).eq('id', l.id).is('user_id', null).select('id,name,mode,created_at,is_public,items,tiers');
+        const { data: claimed } = await _sb.from('tier_lists').update({ user_id: user.id }).eq('id', l.id).is('user_id', null).select('id,name,mode,created_at,is_public,visibility,items,tiers');
         if (claimed && claimed.length) { rows.push(claimed[0]); continue; }
         // Revendication impossible (RLS, déjà revendiquée…) → on vérifie la ligne au lieu de la perdre
-        const { data: row } = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,items,tiers,user_id').eq('id', l.id).maybeSingle();
+        const { data: row } = await _sb.from('tier_lists').select('id,name,mode,created_at,is_public,visibility,items,tiers,user_id').eq('id', l.id).maybeSingle();
         if (row && (!row.user_id || row.user_id === user.id)) rows.push(row);
         // ligne vraiment supprimée ou appartenant à quelqu'un d'autre → on la laisse tomber
       } catch (e) {}
@@ -18795,7 +18803,8 @@ async function fetchMyTierLists() {
       id: x.id, name: x.name, mode: x.mode, createdAt: x.created_at,
       itemCount: (x.items || []).length,
       rankedCount: Object.values(x.tiers || {}).flat().length,
-      isPublic: x.is_public !== false,
+      isPublic: _colVis(x) !== 'private',
+      visibility: _colVis(x),
     }));
     localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
     _renderTlMyListRows();
@@ -18810,15 +18819,15 @@ function _renderTlMyListRows() {
   el.innerHTML = `
     <div style="font-size:10px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">Mes créations</div>
     ${_tlMyLists.map(l => {
-      const pub = l.isPublic !== false;
+      const vis = _colVis(l);
       const count = (l.rankedCount != null) ? `${l.rankedCount} classés` : `${l.itemCount} jeux`;
       return `
       <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px 12px 12px 14px;margin-bottom:8px">
         <div onclick="editTierList('${l.id}')" style="flex:1;min-width:0;cursor:pointer">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pub ? '' : '🔒 '}${l.name}</div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${l.name}</div>
           <div style="font-size:11px;color:var(--muted2)">${count} · ${new Date(l.createdAt).toLocaleDateString('fr')}</div>
         </div>
-        <button onclick="tlToggleListPublic('${l.id}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">${pub ? '🌍' : '🔒'}</button>
+        <button onclick="tlToggleListPublic('${l.id}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">${COL_VIS[vis].icon}</button>
         <button onclick="_tlShareFromHub('${l.id}','${(l.name || '').replace(/'/g,"\\'")}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;color:var(--a);cursor:pointer">🔗</button>
         <button onclick="deleteSavedTierList('${l.id}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">🗑️</button>
       </div>`;
@@ -18829,14 +18838,14 @@ function _renderTlMyListRows() {
 async function tlToggleListPublic(id) {
   const l = _tlMyLists.find(x => x.id === id);
   if (!l) return;
-  const nowPublic = l.isPublic !== false;
-  l.isPublic = !nowPublic;
+  l.visibility = _TL_VIS_NEXT[_colVis(l)] || 'public';
+  l.isPublic   = l.visibility !== 'private';
   localStorage.setItem('gs_my_tierlists', JSON.stringify(_tlMyLists));
   _renderTlMyListRows();
   renderProfileTierLists();
-  showToast(l.isPublic ? '🌍 Visible par tes amis' : '🔒 Privée — visible par toi seulement');
+  _visToast(l.visibility);
   try {
-    const { error } = await _sb.from('tier_lists').update({ is_public: l.isPublic }).eq('id', id);
+    const { error } = await _sb.from('tier_lists').update({ visibility: l.visibility, is_public: l.isPublic }).eq('id', id);
     if (error) showToast('⚠️ Non synchronisé — lance la migration SQL');
   } catch (e) {}
 }
@@ -18846,7 +18855,7 @@ async function editTierList(id) {
     const { data, error } = await _sb.from('tier_lists').select('*').eq('id', id).single();
     if (error || !data) { showToast('Impossible de charger la tier list'); return; }
     // On ouvre en "custom" (titre + recherche) puis on restaure le vrai mode : le nom sauvegardé est préservé
-    openTierList('custom', { title: data.name, tierDefs: data.tier_defs, isPublic: data.is_public !== false });
+    openTierList('custom', { title: data.name, tierDefs: data.tier_defs, visibility: _colVis(data) });
     _tlPopToken++; // aucun fetch "populaire" ne doit écraser le contenu sauvegardé
     _tlMode  = data.mode || 'custom';
     _tlPool  = (data.items || []).filter(g => !Object.values(data.tiers || {}).flat().find(x => x.id === g.id));
@@ -18861,6 +18870,10 @@ async function editTierList(id) {
 }
 
 function _tlShareFromHub(id, name) {
+  // Le lien est lisible sans être ami : réservé aux listes publiques (avant, le partage d'une liste 🔒 passait)
+  const meta = _tlMyLists.find(l => l.id === id);
+  const vis = meta ? _colVis(meta) : 'public';
+  if (vis !== 'public') { showToast(`${COL_VIS[vis].icon} Seules les listes publiques se partagent par lien — passe-la en 🌍`); return; }
   _tlShareUrl = `${location.origin}${location.pathname}?tl=${id}`;
   const urlEl = document.getElementById('tl-share-url');
   const nameEl = document.getElementById('tl-share-name');
