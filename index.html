@@ -2299,7 +2299,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2316,6 +2316,7 @@ html, body {
     <div class="scroll-area">
       <div class="detail-hero" id="detail-hero">
         <div class="detail-hero-overlay"></div>
+        <div id="detail-shots-badge" style="position:absolute;top:calc(var(--safe-t, 0px) + 14px);right:14px;z-index:3;display:none"></div>
         <div class="detail-hero-info">
           <div class="detail-title" id="detail-title"></div>
           <div class="detail-meta"  id="detail-meta"></div>
@@ -8559,7 +8560,39 @@ function addMedia(gameId, item) {
   renderFeed();
 }
 
+// ── Icône 📷 « ce jeu a des captures » : même pastille sur la carte d'accueil et
+// sur la fiche du jeu ; un tap ouvre « Mes captures » directement sur ce jeu.
+function _shotBadgeHtml(gameId, count, where) {
+  const big = where === 'detail';
+  const label = big ? ` ${count} ${count > 1 ? (_lang === 'en' ? 'screenshots' : 'captures') : (_lang === 'en' ? 'screenshot' : 'capture')}` : (count > 1 ? ` ${count}` : '');
+  return `<div onclick="event.stopPropagation();openLibShotsFor('${gameId}')" title="${_lang === 'en' ? 'See screenshots' : 'Voir les captures'}"
+    style="${big ? '' : 'position:absolute;bottom:3px;right:3px;'}display:flex;align-items:center;gap:${big ? 6 : 2}px;cursor:pointer;
+    background:rgba(8,8,16,0.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:0.5px solid rgba(255,255,255,0.28);
+    border-radius:${big ? 20 : 8}px;padding:${big ? '7px 12px' : '2px 5px'};font-size:${big ? 13 : 10}px;font-weight:700;color:#fff;line-height:1;white-space:nowrap">
+    <span style="font-size:${big ? 15 : 11}px">📷</span>${label}</div>`;
+}
+
+function _updateDetailShotsBadge(gameId) {
+  const el = document.getElementById('detail-shots-badge');
+  if (!el) return;
+  const n = (gameMedia[gameId] || []).filter(m => m.type === 'image').length;
+  el.style.display = n ? 'block' : 'none';
+  el.innerHTML = n ? _shotBadgeHtml(gameId, n, 'detail') : '';
+}
+
+// Ouvre « Mes captures » avec la section du jeu dépliée et amenée à l'écran
+function openLibShotsFor(gameId) {
+  _libShotsOpen.clear();
+  _libShotsOpen.add(gameId);
+  openLibShots();
+  requestAnimationFrame(() => {
+    const sec = document.getElementById('lib-acc-' + gameId);
+    if (sec) sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
+}
+
 function renderMediaGrid(gameId) {
+  _updateDetailShotsBadge(gameId);
   const grid = document.getElementById('media-grid');
   if (!grid) return;
   const items = gameMedia[gameId] || [];
@@ -8660,7 +8693,7 @@ function renderLibShots() {
           <img src="${m.url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
           <div onclick="event.stopPropagation();openManageShot('${gr.id}',${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
         </div>`).join('');
-    return `<div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;margin-bottom:10px;overflow:hidden">
+    return `<div id="lib-acc-${gr.id}" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;margin-bottom:10px;overflow:hidden;scroll-margin-top:8px">
       <div onclick="_libShotsToggle('${gr.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer">
         <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0;${isUns ? 'border:1.5px dashed rgba(108,92,231,0.5)' : ''}">${cover}</div>
         <div style="flex:1;min-width:0">
@@ -9957,7 +9990,7 @@ function renderFeed(){
     return `<div class="now-card anim" onclick="openDetail('${g.id}')">
       <div class="now-cover" style="background:var(--s3);position:relative">
         ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
-        ${hasMedia ? `<div style="position:absolute;bottom:3px;right:3px;width:16px;height:16px;border-radius:4px;background:var(--a);display:flex;align-items:center;justify-content:center"><svg width="9" height="9" viewBox="0 0 24 24" fill="white"><rect x="3" y="3" width="18" height="18" rx="2"/><polyline points="21 15 16 10 5 21" stroke="white" stroke-width="2" fill="none"/></svg></div>` : ''}
+        ${hasMedia ? _shotBadgeHtml(g.id, media.length, 'card') : ''}
       </div>
       <div class="now-info">
         <div class="now-title">${g.title}</div>
@@ -14545,6 +14578,9 @@ function updateLightbox() {
 function _lbShow() {
   const _el = document.getElementById('lightbox');
   _el.style.display = 'flex';
+  // Image déjà chargée (même URL qu'à l'ouverture précédente) : pas d'événement load → on décide ici
+  const _img = document.getElementById('lb-img');
+  if (_img && _img.complete && _img.naturalWidth && window._lbAutoRotate) window._lbAutoRotate();
   try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('any').catch(() => {}); } catch (e) {}
 }
 function closeLightbox() {
@@ -14580,8 +14616,11 @@ function lbEditCurrent() {
   else openManageShot(ref.gameId, ref.gameIdx);
 }
 
-// ── Gestes de la visionneuse : pinch-zoom, double-tap, pan, swipe ──
-(function initLightboxGestures() {
+// ── Gestes de la visionneuse : pinch-zoom, double-tap, pan, swipe, rotation ──
+// Le HTML de #lightbox est APRÈS ce <script> : lancé immédiatement, ce code ne
+// trouvait pas l'élément et s'arrêtait — zoom et bouton 🔄 n'ont jamais marché.
+// On attend donc que le document soit analysé.
+function initLightboxGestures() {
   const lb = document.getElementById('lightbox');
   const img = document.getElementById('lb-img');
   if (!lb || !img) return;
@@ -14593,12 +14632,41 @@ function lbEditCurrent() {
   const apply = () => { img.style.transform = `translate(${tx}px,${ty}px) rotate(${rot}deg) scale(${scale})`; };
   // Mode paysage manuel : la TWA est verrouillée portrait au niveau natif,
   // donc on pivote l'image elle-même et on l'ajuste aux dimensions inversées.
-  const _applyRotSizing = () => {
-    if (rot) { img.style.maxWidth = 'calc(100dvh - 32px)'; img.style.maxHeight = 'calc(100dvw - 16px)'; }
-    else { img.style.maxWidth = 'calc(100% - 40px)'; img.style.maxHeight = '85dvh'; }
+  // En mode pivoté, les flèches suivent l'image : « précédent » en haut, « suivant » en bas.
+  const prevBtn = document.getElementById('lb-prev'), nextBtn = document.getElementById('lb-next');
+  const _placeArrows = () => {
+    // z-index : l'image transformée crée son propre plan et passerait sinon devant la flèche du haut
+    const set = (b, css) => { if (b) Object.assign(b.style, { zIndex: '2' }, css); };
+    if (rot) {
+      set(prevBtn, { left: '50%', right: '', top: '76px', bottom: '', transform: 'translateX(-50%) rotate(90deg)' });
+      set(nextBtn, { left: '50%', right: '', top: '', bottom: '76px', transform: 'translateX(-50%) rotate(90deg)' });
+    } else {
+      set(prevBtn, { left: '12px', right: '', top: '', bottom: '', transform: '' });
+      set(nextBtn, { left: '', right: '12px', top: '', bottom: '', transform: '' });
+    }
   };
-  window._lbToggleRotate = () => { rot = rot ? 0 : 90; scale = 1; tx = 0; ty = 0; _applyRotSizing(); apply(); };
-  window._lbResetRot = () => { if (rot) { rot = 0; _applyRotSizing(); } };
+  const _applyRotSizing = () => {
+    if (rot) { img.style.maxWidth = 'calc(100dvh - 24px)'; img.style.maxHeight = '100dvw'; }
+    else { img.style.maxWidth = 'calc(100% - 16px)'; img.style.maxHeight = '85dvh'; }
+    _placeArrows();
+  };
+  const _setRot = r => { rot = r; scale = 1; tx = 0; ty = 0; _applyRotSizing(); apply(); };
+  // Bouton 🔄 : bascule manuelle, mémorisée (si on la désactive, plus d'auto-rotation)
+  window._lbToggleRotate = () => {
+    _setRot(rot ? 0 : 90);
+    try { localStorage.setItem('gs_lb_autorot', rot ? '1' : '0'); } catch (e) {}
+  };
+  window._lbResetRot = () => { if (rot) { rot = 0; _applyRotSizing(); apply(); } };
+  // Auto-rotation : une capture horizontale sur un écran vertical est pivotée pour
+  // occuper toute la hauteur (l'app est verrouillée en portrait côté Android).
+  window._lbAutoRotate = () => {
+    let pref = '1';
+    try { pref = localStorage.getItem('gs_lb_autorot') || '1'; } catch (e) {}
+    const portrait = window.innerHeight > window.innerWidth;
+    const landscapeImg = img.naturalWidth > img.naturalHeight * 1.15;
+    _setRot(pref === '1' && portrait && landscapeImg ? 90 : 0);
+  };
+  img.addEventListener('load', () => { if (document.getElementById('lightbox').style.display !== 'none') window._lbAutoRotate(); });
   window._lbResetZoom = () => { scale = 1; tx = 0; ty = 0; apply(); };
   const dist = t => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
 
@@ -14643,11 +14711,17 @@ function lbEditCurrent() {
     if (swipeX !== null && scale === 1 && e.changedTouches.length === 1) {
       const dx = e.changedTouches[0].clientX - swipeX;
       const dy = e.changedTouches[0].clientY - swipeY;
-      if (Math.abs(dx) > 55 && Math.abs(dy) < 90 && _lbMedia.length > 1) lightboxNav(dx < 0 ? 1 : -1);
+      if (_lbMedia.length > 1) {
+        if (!rot && Math.abs(dx) > 55 && Math.abs(dy) < 90) lightboxNav(dx < 0 ? 1 : -1);
+        // pivoté de 90° : l'axe horizontal de l'image pointe vers le bas de l'écran
+        else if (rot && Math.abs(dy) > 55 && Math.abs(dx) < 90) lightboxNav(dy < 0 ? 1 : -1);
+      }
       swipeX = null;
     }
   }, { passive: true });
-})();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initLightboxGestures);
+else initLightboxGestures();
 
 // ══════════════════════════════════════
 // EDIT PROFILE
@@ -19404,7 +19478,7 @@ async function exportTierList() {
   <button onclick="closeLightbox()" style="position:absolute;top:20px;right:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:24px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">✕</button>
   <button id="lb-edit" onclick="lbEditCurrent()" style="position:absolute;top:20px;left:20px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;height:44px;padding:0 16px;border-radius:22px;display:none;align-items:center;gap:6px">✏️ Éditer</button>
   <button id="lb-prev" onclick="lightboxNav(-1)" style="position:absolute;left:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">‹</button>
-  <img id="lb-img" src="" style="max-width:calc(100% - 40px);max-height:85dvh;object-fit:contain;border-radius:8px">
+  <img id="lb-img" src="" style="max-width:calc(100% - 16px);max-height:85dvh;object-fit:contain;border-radius:8px">
   <button id="lb-next" onclick="lightboxNav(1)" style="position:absolute;right:12px;background:rgba(255,255,255,0.1);border:none;color:#fff;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer;display:none;align-items:center;justify-content:center">›</button>
   <div id="lb-counter" style="position:absolute;bottom:20px;color:rgba(255,255,255,0.45);font-size:12px"></div>
   <button id="lb-rotate" onclick="if(window._lbToggleRotate)window._lbToggleRotate()" style="position:absolute;bottom:14px;right:14px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:18px;cursor:pointer;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center">🔄</button>
