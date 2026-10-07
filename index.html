@@ -2299,7 +2299,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -11209,14 +11209,20 @@ function renderSocialScreen(uid) {
   try { renderSocialDiscover(); } catch (e) {}
 }
 
-// ── Découverte communauté : page Amis vide = cul-de-sac. Tant qu'on n'a aucun ami
-// réel, on montre les tier lists publiques des autres joueurs plutôt qu'un écran
-// vide. Disparaît dès le premier vrai ami (les profils de démo __dummy_ ne comptent pas).
+// ── Découverte communauté : tier lists publiques des autres joueurs, visibles
+// par tout le monde sur la page Amis.
+// - Sans ami réel (les profils de démo __dummy_ ne comptent pas) : juste sous la
+//   liste d'amis, avec un appel à chercher quelqu'un — évite une page vide.
+// - Avec des amis : sous l'activité des amis, et sans leurs listes (déjà visibles
+//   dans l'activité) pour ne montrer que de la vraie découverte.
 async function renderSocialDiscover() {
   const el = document.getElementById('social-discover');
   if (!el) return;
   const realFriends = (_socialFriends || []).filter(f => !String(f.id).startsWith('__dummy_'));
-  if (realFriends.length) { el.style.display = 'none'; return; }
+  const solo = !realFriends.length;
+  const friendIds = new Set(realFriends.map(f => f.id));
+  const anchor = document.getElementById(solo ? 'social-friends-section' : 'social-activity-section');
+  if (anchor && anchor.nextElementSibling !== el) anchor.after(el);
   const fr = _lang !== 'en';
 
   let rows = [];
@@ -11227,7 +11233,7 @@ async function renderSocialDiscover() {
       .eq('is_public', true)
       .order('updated_at', { ascending: false })
       .limit(12);
-    rows = (data || []).filter(t => !user || t.user_id !== user.id);
+    rows = (data || []).filter(t => (!user || t.user_id !== user.id) && !friendIds.has(t.user_id));
   } catch (e) { rows = []; }
 
   // Rien à montrer → on ne laisse pas un titre de section orphelin.
@@ -11256,11 +11262,13 @@ async function renderSocialDiscover() {
 
   el.innerHTML = `
     <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">🔍 ${fr ? 'Découvre la communauté' : 'Discover the community'}</div>
-    <div style="font-size:12px;color:var(--muted2);line-height:1.45;margin-bottom:12px">${fr ? 'Les classements publics des autres joueurs — en attendant que tu ajoutes des amis.' : 'Public rankings from other players — while you add your first friends.'}</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.45;margin-bottom:12px">${solo
+      ? (fr ? 'Les classements publics des autres joueurs — en attendant que tu ajoutes des amis.' : 'Public rankings from other players — while you add your first friends.')
+      : (fr ? 'Les classements publics d\'autres joueurs que tes amis.' : 'Public rankings from players beyond your friends.')}</div>
     <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px 8px">${rows.map(card).join('')}</div>
-    <div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted2)" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    ${solo ? `<div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted2)" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       🔎 ${fr ? 'Chercher quelqu\'un par pseudo' : 'Search someone by username'}
-    </div>`;
+    </div>` : ''}`;
 }
 
 async function searchUsers(q) {
