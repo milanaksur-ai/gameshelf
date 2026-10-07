@@ -1504,6 +1504,9 @@ html, body {
       <!-- SÉPARATEUR -->
       <div style="height:0.5px;background:var(--border);margin:14px 16px 0"></div>
 
+      <!-- 🧠 QUIZ DU JOUR (bandeau compact) -->
+      <div id="home-quiz-strip" style="display:none;padding:14px 16px 0"></div>
+
       <!-- EN COURS -->
       <div style="display:flex;align-items:center;gap:6px;padding:14px 20px 8px 20px">
         <div class="sec-label" style="padding:0;margin:0" data-i18n="feed.playing">En cours</div>
@@ -2295,7 +2298,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.2 · build 16.07d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2435,6 +2438,8 @@ html, body {
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.my_friends">Mes amis</div>
           <div id="social-friends-list" style="display:flex;gap:14px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px 2px 6px"></div>
         </div>
+        <!-- Découverte communauté (utilisateurs sans amis) -->
+        <div id="social-discover" style="display:none;margin-top:18px"></div>
         <!-- Activity feed -->
         <div id="social-activity-section" style="margin-top:18px;display:none">
           <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px" data-i18n="social.activity">Activité récente</div>
@@ -9981,6 +9986,7 @@ function renderFeed(){
 
   // Smart recommendations
   renderHomeRecos();
+  try { renderHomeQuizStrip(); } catch (e) {}
 }
 
 // ══════════════════════════════════════
@@ -11197,6 +11203,61 @@ function renderSocialScreen(uid) {
   } else {
     friendsList.innerHTML = `<div style="text-align:center;padding:24px 16px 16px;color:var(--muted2);font-size:14px;width:100%">${t('social.no_friends')}</div>`;
   }
+  try { renderSocialDiscover(); } catch (e) {}
+}
+
+// ── Découverte communauté : page Amis vide = cul-de-sac. Tant qu'on n'a aucun ami
+// réel, on montre les tier lists publiques des autres joueurs plutôt qu'un écran
+// vide. Disparaît dès le premier vrai ami (les profils de démo __dummy_ ne comptent pas).
+async function renderSocialDiscover() {
+  const el = document.getElementById('social-discover');
+  if (!el) return;
+  const realFriends = (_socialFriends || []).filter(f => !String(f.id).startsWith('__dummy_'));
+  if (realFriends.length) { el.style.display = 'none'; return; }
+  const fr = _lang !== 'en';
+
+  let rows = [];
+  try {
+    const { data: { user } } = await _sb.auth.getUser();
+    const { data } = await _sb.from('tier_lists')
+      .select('id,name,items,tiers,creator_name,user_id,updated_at,created_at')
+      .eq('is_public', true)
+      .order('updated_at', { ascending: false })
+      .limit(12);
+    rows = (data || []).filter(t => !user || t.user_id !== user.id);
+  } catch (e) { rows = []; }
+
+  // Rien à montrer → on ne laisse pas un titre de section orphelin.
+  if (!rows.length) { el.style.display = 'none'; return; }
+  el.style.display = 'block';
+
+  const card = tl => {
+    const ranked  = Object.values(tl.tiers || {}).flat();
+    const pool    = ranked.length ? ranked : (tl.items || []);
+    const covers  = pool.map(coverUrl).filter(Boolean).slice(0, 3);
+    const mosaic  = covers.length
+      ? covers.map((src, i) => `<img src="${_esc(src)}" referrerpolicy="no-referrer" style="position:absolute;top:0;left:${i * 33}%;width:34%;height:100%;object-fit:cover" onerror="this.style.display='none'">`).join('')
+      : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px">🏆</div>`;
+    return `<div onclick="loadSharedTierList('${tl.id}', { fromApp: true })" style="flex-shrink:0;width:150px;border-radius:14px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="position:relative;height:72px;background:var(--s3)">
+        ${mosaic}
+        <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 65%)"></div>
+      </div>
+      <div style="padding:8px 10px 10px">
+        <div style="font-size:12px;font-weight:700;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(tl.name || '🏆 Tier List')}</div>
+        <div style="font-size:10px;color:var(--muted2);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(tl.creator_name || (fr ? 'Anonyme' : 'Anonymous'))}</div>
+        <div style="font-size:10px;color:var(--a);font-weight:700;margin-top:3px">${ranked.length} ${fr ? 'jeu' + (ranked.length !== 1 ? 'x' : '') + ' classé' + (ranked.length !== 1 ? 's' : '') : 'ranked'}</div>
+      </div>
+    </div>`;
+  };
+
+  el.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px">🔍 ${fr ? 'Découvre la communauté' : 'Discover the community'}</div>
+    <div style="font-size:12px;color:var(--muted2);line-height:1.45;margin-bottom:12px">${fr ? 'Les classements publics des autres joueurs — en attendant que tu ajoutes des amis.' : 'Public rankings from other players — while you add your first friends.'}</div>
+    <div style="display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:0 2px 8px">${rows.map(card).join('')}</div>
+    <div onclick="document.getElementById('friend-search-input').focus()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--s2);border:0.5px dashed var(--border2);border-radius:14px;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted2)" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      🔎 ${fr ? 'Chercher quelqu\'un par pseudo' : 'Search someone by username'}
+    </div>`;
 }
 
 async function searchUsers(q) {
@@ -17253,6 +17314,66 @@ async function votePoll(choice) {
     });
     renderWeeklyPoll();
   } catch (e) {}
+}
+
+// ── Bandeau compact "Quiz du jour" sur l'accueil ──
+// Le hub quiz était uniquement accessible depuis la page Amis : trop profond pour
+// une feature quotidienne. Ce bandeau l'expose dès l'écran d'accueil, avec trois
+// états (pas commencé / en cours / terminé) pour ne jamais occuper plus de place
+// que l'information qu'il porte.
+function renderHomeQuizStrip() {
+  const el = document.getElementById('home-quiz-strip');
+  if (!el) return;
+  const daily = getDailyQuizzes();
+  if (!daily.length) { el.style.display = 'none'; return; }
+  const fr    = _lang !== 'en';
+  const today = _quizDayIndex();
+
+  const isDone = q => { const b = _quizLocalScores[q.id]; return !!(b && b.ts && Math.floor(b.ts / 86400000) === today); };
+  const doneCount = daily.filter(isDone).length;
+  const streak = _quizStreakCount();
+
+  el.style.display = 'block';
+
+  // État 3 — tout fait : une seule ligne de 54px, on ne réclame plus l'attention.
+  if (doneCount >= QUIZ_PER_DAY) {
+    el.innerHTML = `<div onclick="openDailyQuizzes()" style="height:54px;display:flex;align-items:center;gap:10px;padding:0 14px;background:rgba(0,230,118,0.07);border:0.5px solid rgba(0,230,118,0.3);border-radius:14px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      <div style="font-size:18px;flex-shrink:0">✅</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${fr ? `Quiz du jour terminés` : `Daily quizzes done`}${streak > 0 ? ` · 🔥 ${streak % 7 === 0 ? 7 : streak % 7}/7` : ''}</div>
+        <div style="font-size:11px;color:var(--muted2)">${fr ? `Nouveaux quiz dans ${_hoursUntilNextRotation()}h` : `New quizzes in ${_hoursUntilNextRotation()}h`}</div>
+      </div>
+      <div style="font-size:11px;font-weight:700;color:var(--a);flex-shrink:0;white-space:nowrap">${fr ? 'Classement →' : 'Leaderboard →'}</div>
+    </div>`;
+    return;
+  }
+
+  // États 1 et 2 — pastilles cliquables + CTA adapté à la progression.
+  const chip = q => {
+    const done   = isDone(q);
+    const st     = _qipGet(q.id);
+    const paused = !done && st && st.day === today && st.log.length > 0;
+    const onTap  = done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`;
+    return `<div onclick="event.stopPropagation();${onTap}" style="position:relative;width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : paused ? 'rgba(253,203,110,0.1)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : paused ? '1.5px solid rgba(253,203,110,0.55)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+      ${q.emoji}
+      ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:15px;height:15px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;color:#03130a;font-weight:800">✓</div>' : paused ? '<div style="position:absolute;bottom:-3px;right:-3px;width:15px;height:15px;border-radius:50%;background:#fdcb6e;display:flex;align-items:center;justify-content:center;font-size:8px;color:#3a2b00;font-weight:800">⏸</div>' : ''}
+    </div>`;
+  };
+  const cta = doneCount > 0
+    ? `${doneCount}/${QUIZ_PER_DAY} · ${fr ? 'Continuer' : 'Continue'} →`
+    : `${fr ? 'Jouer' : 'Play'} →`;
+
+  el.innerHTML = `<div onclick="openDailyQuizzes()" style="background:linear-gradient(135deg,rgba(108,92,231,0.16) 0%,rgba(253,121,168,0.08) 100%);border:0.5px solid rgba(108,92,231,0.32);border-radius:14px;padding:12px 14px;cursor:pointer" ontouchstart="this.style.opacity=.8" ontouchend="this.style.opacity=1">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🧠 ${fr ? 'Quiz du jour' : 'Daily quizzes'}</div>
+      ${streak > 0 ? `<div style="font-size:10px;font-weight:700;color:#ff9f43;background:rgba(255,159,67,0.12);border:0.5px solid rgba(255,159,67,0.4);border-radius:50px;padding:3px 9px;flex-shrink:0">🔥 ${streak % 7 === 0 ? 7 : streak % 7}/7</div>` : ''}
+      <div style="font-size:10px;font-weight:700;color:var(--a);background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.35);border-radius:50px;padding:3px 9px;flex-shrink:0">🔄 ${_hoursUntilNextRotation()}h</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div style="display:flex;gap:7px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">${daily.map(chip).join('')}</div>
+      <div style="font-size:12px;font-weight:700;color:var(--a);flex-shrink:0;white-space:nowrap">${cta}</div>
+    </div>
+  </div>`;
 }
 
 // ── Carte "Quiz du jour" sur la page Amis ──
