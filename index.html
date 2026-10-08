@@ -2259,7 +2259,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2571,7 +2571,7 @@ html, body {
     </div>
   </div>
   <!-- Friend game popup overlay -->
-  <div id="fp-game-overlay" onclick="closeFriendGamePopup()" style="display:none;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
+  <div id="fp-game-overlay" onclick="closeFriendGamePopup()" style="display:none;position:fixed;inset:0;z-index:990;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;max-height:88vh;overflow-y:auto;padding-bottom:max(env(safe-area-inset-bottom),20px)">
       <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:12px auto 0;position:sticky;top:12px"></div>
       <div id="fp-game-card-content" style="padding:20px 20px 4px"></div>
@@ -4748,7 +4748,7 @@ function _showTop20(games, owner, mine, ranked) {
     const reorderBtn = mine && games.length > 1 ? `<button onclick="toggleTop20Reorder()" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:4px 0 12px;padding:10px;border-radius:12px;background:var(--s2);border:0.5px dashed var(--border2);color:var(--muted2);font-size:12px;font-weight:700;cursor:pointer">↕ ${fr ? 'Départager les égalités' : 'Order tied games'}</button>` : '';
     body.innerHTML = reorderBtn + games.map((g, i) => {
       const src = coverUrl(g);
-      return `<div class="recap-pop" style="animation-delay:${Math.min(i * 0.045, 0.9).toFixed(2)}s;display:flex;align-items:center;gap:12px;background:${i < 3 ? 'linear-gradient(135deg,rgba(255,202,40,0.08),rgba(108,92,231,0.05))' : 'var(--s1)'};border:${i < 3 ? '1px solid rgba(255,202,40,0.25)' : '0.5px solid var(--border2)'};border-radius:14px;padding:9px 12px;margin-bottom:8px">
+      return `<div class="recap-pop" onclick="openTop20Game(${i})" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1" style="cursor:pointer;animation-delay:${Math.min(i * 0.045, 0.9).toFixed(2)}s;display:flex;align-items:center;gap:12px;background:${i < 3 ? 'linear-gradient(135deg,rgba(255,202,40,0.08),rgba(108,92,231,0.05))' : 'var(--s1)'};border:${i < 3 ? '1px solid rgba(255,202,40,0.25)' : '0.5px solid var(--border2)'};border-radius:14px;padding:9px 12px;margin-bottom:8px">
         <div style="width:30px;text-align:center;font-size:${i < 3 ? '20px' : '13px'};font-weight:800;color:var(--muted2);flex-shrink:0">${medal(i)}</div>
         <div style="width:38px;height:52px;border-radius:8px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px">🎮</div>`}</div>
         <div style="flex:1;min-width:0">
@@ -4760,6 +4760,17 @@ function _showTop20(games, owner, mine, ranked) {
     }).join('');
   }
   document.getElementById('top20-overlay').style.display = 'flex';
+}
+
+// Mon Top : fiche du jeu. Top d'un ami : sa fiche (note, avis, réactions), comme depuis son profil.
+function openTop20Game(i) {
+  const d = _top20Data;
+  const g = d && d.games[i];
+  if (!g) return;
+  if (d.mine) { closeTop20(); openDetail(g.id); return; }
+  const idx = (_fpAllGames || []).findIndex(x => String(x.game_id || x.id || '') === String(g.id));
+  if (idx < 0) return;
+  openFriendGamePopup(idx); // s'ouvre par-dessus le Top 20 : « Fermer » y ramène
 }
 
 function closeTop20() {
@@ -11888,8 +11899,8 @@ async function openFriendGamePopup(idx) {
     ${(!isDummy && _fpProfile?.id && gid) ? `<div style="margin:-4px 0 12px">${_rxBar({ user_id: _fpProfile.id, game_id: gid, title: g.title, image_id: g.image_id || null })}</div>` : ''}
     ${screenshotHtml}
     ${mine
-      ? `<button onclick="closeFriendGamePopup();openDetail('${_jsId(gid)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
-      : `<button onclick="openFriendGameDetail(${idx})" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir la fiche du jeu →</button>`
+      ? `<button onclick="closeFriendGamePopup();closeTop20();openDetail('${_jsId(gid)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
+      : `<button onclick="closeTop20();openFriendGameDetail(${idx})" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir la fiche du jeu →</button>`
     }
     <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);margin-top:8px">Fermer</button>`;
   }
@@ -12466,6 +12477,7 @@ async function _wishFromActivity(i) {
   if (!row) return;
   const ov = document.getElementById('fp-game-overlay');
   if (ov && ov.style.display !== 'none' && typeof closeFriendGamePopup === 'function') closeFriendGamePopup();
+  closeTop20();
   if (!currentGame || String(currentGame.id) !== String(row.game_id)) await openExternalGameDetail(row);
   if (currentGame) { setStatus('wish'); showToast(_lang === 'en' ? '✦ Added to your wishlist' : '✦ Ajouté à tes souhaits'); }
 }
