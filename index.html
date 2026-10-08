@@ -1346,18 +1346,13 @@ html, body {
     </div></div>
   </div>
 
-  <!-- STEP 3 : IMPORT -->
+  <!-- STEP 3 : AJOUT DES JEUX (plus d'import de bibliothèque) -->
   <div class="step" id="step-3">
     <button class="nav-back on-media back-btn" onclick="obStep(2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg></button>
     <div class="step-scroll"><div class="step-pad">
       <div class="step-tag" data-i18n="onboarding.step3_tag">Étape 3 sur 5</div>
-      <div class="step-title" data-i18n-html="onboarding.import_title">Importe tes <span>jeux</span></div>
+      <div class="step-title" data-i18n-html="onboarding.import_title">Ajoute tes <span>jeux</span></div>
       <p class="step-sub" data-i18n="onboarding.step3_sub">Comment veux-tu remplir ta bibliothèque ?</p>
-      <div class="import-opt" id="opt-steam" style="opacity:0.42;pointer-events:none">
-        <div class="import-icon" style="background:rgba(108,92,231,0.12)">🖥️</div>
-        <div class="import-info"><div class="import-title" data-i18n="onboarding.steam_import_title">Importer depuis Steam</div><div class="import-sub" data-i18n="onboarding.steam_import_sub">Synchronise ta bibliothèque avec ton Steam ID</div></div>
-        <span class="import-badge badge-soon" data-i18n="onboarding.steam_soon">Bientôt</span>
-      </div>
       <div class="import-opt sel" id="opt-manual" onclick="selectImport('manual')">
         <div class="import-icon" style="background:rgba(0,206,201,0.10)">🎮</div>
         <div class="import-info"><div class="import-title" data-i18n="onboarding.manual_title">Construis ton profil</div><div class="import-sub" data-i18n="onboarding.manual_sub">Parcours les genres, découvre et ajoute tes jeux</div></div>
@@ -1707,17 +1702,6 @@ html, body {
     </div>
   </div>
 
-  <!-- QUIZ CONFRONTATION OVERLAY -->
-  <div id="quiz-confrontation" style="display:none;position:fixed;inset:0;z-index:1100;background:var(--bg);flex-direction:column;overflow-y:auto">
-    <div style="padding:calc(var(--safe-t) + 14px) 20px 12px;display:flex;align-items:center;gap:12px;flex-shrink:0">
-      <button class="nav-back" onclick="closeQuizConfrontation()" style="width:36px;height:36px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-      </button>
-      <div id="qconf-title" style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1"></div>
-    </div>
-    <div id="qconf-body" style="padding:0 16px calc(40px + env(safe-area-inset-bottom));flex:1"></div>
-  </div>
-
   <!-- QUIZ PICKER MODAL (opened from friend challenge) -->
   <div id="quiz-picker-modal" onclick="closeQuizPicker()" style="display:none;position:fixed;inset:0;z-index:870;background:rgba(0,0,0,0.7);align-items:flex-end">
     <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 20px calc(env(safe-area-inset-bottom) + 24px);max-height:82vh;display:flex;flex-direction:column">
@@ -1959,8 +1943,6 @@ html, body {
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span data-i18n="profile.edit">Modifier le profil</span>
         </button>
-        <!-- Steam/Xbox badges hidden for now -->
-        <span id="xbox-badge" style="display:none"><span id="xbox-dot"></span><span id="xbox-badge-text"></span></span>
       </div>
 
       <!-- PINNED ACHIEVEMENTS (level 2+) -->
@@ -2001,8 +1983,6 @@ html, body {
         <div class="comp-stats">
           <div class="comp-total" id="stat-total">0</div>
           <div class="comp-total-label" data-i18n="profile.total">jeux au total</div>
-
-          <button onclick="openWrapped()" style="margin-top:10px;background:linear-gradient(135deg,rgba(108,92,231,0.2),rgba(253,121,168,0.2));border:0.5px solid rgba(108,92,231,0.4);border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;color:var(--a);cursor:pointer;letter-spacing:0.03em" data-i18n="misc.recap_btn">✦ Mon récap</button>
         </div>
       </div>
 
@@ -2088,29 +2068,6 @@ html, body {
       </div>
       <input type="file" id="profile-screenshot-input" accept="image/*" multiple style="display:none" onchange="handleProfileScreenshot(this)">
 
-      <!-- CONNECTER STEAM (hidden) -->
-      <div class="connect-section anim" style="animation-delay:0.2s;display:none">
-        <div class="connect-card">
-          <div class="connect-title">Connecter Steam</div>
-          <div class="connect-sub">Active Steam Guard sur l'app mobile Steam, puis reviens dans 7 jours pour importer ta vraie bibliothèque automatiquement.</div>
-          <button class="connect-btn" onclick="showToast('Active Steam Guard dans l\'app Steam mobile')">Comment faire →</button>
-        </div>
-      </div>
-
-      <!-- CONNECTER XBOX (hidden) -->
-      <div class="connect-section" id="xbox-connect-section" style="display:none">
-        <div class="connect-card" style="background:linear-gradient(135deg,rgba(16,124,16,0.12),rgba(0,0,0,0));border-color:rgba(16,124,16,0.25)">
-          <div class="connect-title" style="display:flex;align-items:center;gap:8px">
-            <span style="color:#107c10">🟩</span> Connecter Xbox
-          </div>
-          <div class="connect-sub" id="xbox-connect-sub" data-i18n="misc.xbox_connect_sub">Importe ta bibliothèque Xbox automatiquement via OpenXBL.</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
-            <button class="connect-btn" style="background:#107c10" onclick="connectXbox()" data-i18n="misc.xbox_connect_cta">Se connecter →</button>
-            <button onclick="promptXblKey()" style="background:none;border:0.5px solid rgba(16,124,16,0.4);border-radius:10px;padding:9px 14px;font-size:12px;font-weight:500;color:#4caf50;cursor:pointer" data-i18n="misc.openxbl_key_btn">Clé OpenXBL</button>
-          </div>
-        </div>
-      </div>
-
       <!-- MES COLLECTIONS (profil) -->
       <div id="profile-collections-section" style="padding:20px 16px 0">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -2173,14 +2130,6 @@ html, body {
                   <div class="pn-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s"></div>
                 </div>
               </button>
-              <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
-              <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
-                <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🎨</div>
-                <div style="flex:1;min-width:0">
-                  <div style="font-size:13px;font-weight:600;color:var(--text)" data-i18n="settings.accent">Thème de l'app</div>
-                  <div id="accent-picker-row" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"></div>
-                </div>
-              </div>
               <div style="height:0.5px;background:var(--border);margin-left:50px"></div>
               <div style="padding:13px 16px;display:flex;align-items:center;gap:12px">
                 <div style="font-size:18px;width:22px;text-align:center;flex-shrink:0">🌐</div>
@@ -2307,7 +2256,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10a</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2487,7 +2436,7 @@ html, body {
           <div id="fp-platforms" style="display:none;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px"></div>
           <div id="fp-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px"></div>
           <!-- Bouton "Défier" retiré : les quiz du jour (page Amis) remplacent le duel 1v1.
-               Les défis en cours restent répondables via la cloche (openQuizForChallenge). -->
+               Les défis 1v1 ont été entièrement retirés. -->
         </div>
       </div>
       <!-- Comparaison 1v1 -->
@@ -3053,13 +3002,13 @@ html, body {
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_1">Sur la fiche d'un jeu : note, vibes, heures jouées et avis de tes amis qui l'ont testé</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_2">Temps de jeu affiché aussi sur les avis des profils</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_3">Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_4">60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_4">60 quiz au total (35 nouveaux !) avec rotation : 4 quiz différents chaque jour 🧠🔄</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_5">Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_6">Partage ton score en grille emoji 🟩🟥 façon Wordle</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_7">Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_8">Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_9">5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX</li>
-                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)</li>
+                  <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_10">Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 4 quiz chaque jour, 7 jours = +100 XP)</li>
                   <li style="font-size:12px;color:var(--muted2);line-height:1.5" data-i18n="updates.reviews_11">Accueil : section 🗓️ Bientôt — les sorties à venir de ta liste de souhaits</li>
                 </ul>
               </div>
@@ -3580,13 +3529,13 @@ const LANG = {
       reviews_1:'Sur la fiche d\'un jeu : note, vibes, heures jouées et avis de tes amis qui l\'ont testé',
       reviews_2:'Temps de jeu affiché aussi sur les avis des profils',
       reviews_3:'Collections : pastilles configurables sur chaque jeu (Metacritic, ta note, statut, temps) 🏷️',
-      reviews_4:'60 quiz au total (35 nouveaux !) avec rotation : 5 quiz différents chaque jour 🧠🔄',
+      reviews_4:'60 quiz au total (35 nouveaux !) avec rotation : 4 quiz différents chaque jour 🧠🔄',
       reviews_5:'Classement du jour entre amis 🏆 — fais un quiz pour voir leurs scores, notif quand un ami joue 🔔',
       reviews_6:'Partage ton score en grille emoji 🟩🟥 façon Wordle',
       reviews_7:'Quiz du jour sur la page Amis + XP quotidiens : 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Collections automatiques par vibe ✨ (niveau 2 📖) — choisis des vibes, la collection se remplit toute seule',
       reviews_9:'5 fonds animés exclusifs niveau 4 ⭐ (sakura, lave, cyber, orage, rétro) + fond Cristal 💎 niveau MAX',
-      reviews_10:'Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 5 quiz chaque jour, 7 jours = +100 XP)',
+      reviews_10:'Progression étendue : 10 rangs 🎯 · série hebdo 🔥 (les 4 quiz chaque jour, 7 jours = +100 XP)',
       reviews_11:'Accueil : section 🗓️ Bientôt — les sorties à venir de ta liste de souhaits',
       collections:'📚 Collections & ⚡ Défis Quiz',
       collections_1:'Crée des playlists de jeux et partage-les avec tes amis',
@@ -3707,7 +3656,7 @@ const LANG = {
       pseudo_label:'Pseudo', pseudo_ph:'Ton pseudo gamer', bio_ph:'Quelques mots sur toi',
       platforms:'Plateformes', platforms_hint:'(plusieurs choix possibles)',
       skip:'Passer cette étape', skip_sub:'Tu pourras ajouter des jeux plus tard',
-      import_title:'Importe tes <span>jeux</span>',
+      import_title:'Ajoute tes <span>jeux</span>',
       playing_title:'Jeux <span>en ce moment</span>', playing_sub:'Ajoute ceux qui t\'intéressent à ta liste.',
       ready:'Tu es prêt !',
       email_invalid:'Entre une adresse email valide',
@@ -4018,7 +3967,7 @@ const LANG = {
       pseudo_label:'Username', pseudo_ph:'Your gamer tag', bio_ph:'A few words about you',
       platforms:'Platforms', platforms_hint:'(multiple choices)',
       skip:'Skip this step', skip_sub:'You can add games later',
-      import_title:'Import your <span>games</span>',
+      import_title:'Add your <span>games</span>',
       playing_title:'Games <span>right now</span>', playing_sub:'Add the ones you\'re into to your list.',
       ready:'You\'re all set!',
       email_invalid:'Enter a valid email address',
@@ -4158,13 +4107,13 @@ const LANG = {
       reviews_1:'On a game page: your friends\' score, vibes, playtime and review if they\'ve played it',
       reviews_2:'Playtime now also shown on profile reviews',
       reviews_3:'Collections: configurable badges on each game (Metacritic, your rating, status, playtime) 🏷️',
-      reviews_4:'60 quizzes total (35 new!) with daily rotation: 5 different quizzes every day 🧠🔄',
+      reviews_4:'60 quizzes total (35 new!) with daily rotation: 4 different quizzes every day 🧠🔄',
       reviews_5:'Daily leaderboard with friends 🏆 — play a quiz to unlock their scores, notified when a friend plays 🔔',
       reviews_6:'Share your score as a Wordle-style emoji grid 🟩🟥',
       reviews_7:'Daily quizzes on the Friends page + daily XP: 🥇+150 🥈+50 🥉+25 ⚡',
       reviews_8:'Auto collections by vibe ✨ (level 2 📖) — pick vibes, the collection fills itself',
       reviews_9:'5 exclusive level-4 ⭐ animated backgrounds (sakura, lava, cyber, storm, retro) + level-MAX Crystal 💎',
-      reviews_10:'Extended progression: 10 ranks 🎯 · weekly streak 🔥 (all 5 quizzes daily, 7 days = +100 XP)',
+      reviews_10:'Extended progression: 10 ranks 🎯 · weekly streak 🔥 (all 4 quizzes daily, 7 days = +100 XP)',
       reviews_11:'Home: 🗓️ Coming soon section — upcoming releases from your wishlist',
       collections:'📚 Collections & ⚡ Quiz Challenges',
       collections_1:'Create game playlists and share them with your friends',
@@ -4383,15 +4332,15 @@ const PUSH_API = 'https://gameshelf-back-end.vercel.app/api/push';
 
 // ── XP & LEVELS ──────────────────────────────────────────────────────────
 const XP_LEVELS = [
-  { level:1,  xp:0,    title_fr:'🎮 Joueur',       title_en:'🎮 Player',    slots:3  },
-  { level:2,  xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer',  slots:5  },
-  { level:3,  xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',   slots:8  },
-  { level:4,  xp:750,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',    slots:10 },
-  { level:5,  xp:1200, title_fr:'🎯 Maître',       title_en:'🎯 Master',    slots:12 },
-  { level:6,  xp:1800, title_fr:'🏆 Champion',     title_en:'🏆 Champion',  slots:15 },
-  { level:7,  xp:2600, title_fr:'💠 Élite',        title_en:'💠 Elite',     slots:18 },
-  { level:8,  xp:3600, title_fr:'🌟 Icône',        title_en:'🌟 Icon',      slots:22 },
-  { level:9,  xp:4800, title_fr:'👑 Mythique',     title_en:'👑 Mythic',    slots:26 },
+  { level:1,  xp:0,    title_fr:'🎮 Joueur',       title_en:'🎮 Player',    slots:5  },
+  { level:2,  xp:150,  title_fr:'📖 Chroniqueur',  title_en:'📖 Reviewer',  slots:7  },
+  { level:3,  xp:400,  title_fr:'🔥 Vétéran',      title_en:'🔥 Veteran',   slots:10  },
+  { level:4,  xp:750,  title_fr:'⭐ Expert',        title_en:'⭐ Expert',    slots:12 },
+  { level:5,  xp:1200, title_fr:'🎯 Maître',       title_en:'🎯 Master',    slots:15 },
+  { level:6,  xp:1800, title_fr:'🏆 Champion',     title_en:'🏆 Champion',  slots:18 },
+  { level:7,  xp:2600, title_fr:'💠 Élite',        title_en:'💠 Elite',     slots:22 },
+  { level:8,  xp:3600, title_fr:'🌟 Icône',        title_en:'🌟 Icon',      slots:26 },
+  { level:9,  xp:4800, title_fr:'👑 Mythique',     title_en:'👑 Mythic',    slots:30 },
   { level:10, xp:6200, title_fr:'💎 Légende',      title_en:'💎 Legend',    slots:Infinity },
 ];
 // Tous les avantages débloqués à chaque palier (hors collections, géré à part)
@@ -4409,21 +4358,14 @@ function getLevelPerks(level, fr) {
   if (level === 4) perks.push(fr ? '🌸 5 fonds animés exclusifs (sakura, lave, cyber, orage, rétro)' : '🌸 5 exclusive animated backgrounds');
   if (level === 5) {
     perks.push(fr ? '🥈 Cadre d\'avatar argent' : '🥈 Silver avatar frame');
-    perks.push(fr ? '🎨 Thème d\'app Émeraude' : '🎨 Emerald app theme');
   }
-  if (level === 6) perks.push(fr ? '🎨 Thème d\'app Crimson' : '🎨 Crimson app theme');
   if (level === 7) {
     perks.push(fr ? '🥇 Cadre d\'avatar or' : '🥇 Gold avatar frame');
-    perks.push(fr ? '📷 100 captures d\'écran' : '📷 100 screenshots');
-    perks.push(fr ? '🎨 Thème d\'app Ambre' : '🎨 Amber app theme');
+    perks.push(fr ? '📷 150 captures d\'écran' : '📷 150 screenshots');
   }
-  if (level === 8) {
-    perks.push(fr ? '🎨 Thème d\'app Cyan' : '🎨 Cyan app theme');
-    perks.push(fr ? '🌟 Ligne dorée dans les classements' : '🌟 Golden row in leaderboards');
-  }
+  if (level === 8) perks.push(fr ? '🌟 Ligne dorée dans les classements' : '🌟 Golden row in leaderboards');
   if (level === 9) {
     perks.push(fr ? '💠 Cadre d\'avatar néon' : '💠 Neon avatar frame');
-    perks.push(fr ? '🎨 Thème d\'app Or' : '🎨 Gold app theme');
   }
   if (level === 10) {
     perks.push(fr ? '💎 Fond Cristal exclusif' : '💎 Exclusive Crystal background');
@@ -4442,48 +4384,6 @@ function _avFrame(level) {
   return null;
 }
 
-// ── Thèmes d'accent de l'app, débloqués par palier ──
-const APP_THEMES = [
-  // Tons bijou adoucis, calibrés sur le duo d'origine (principal mi-vif + pastel) :
-  // aucune couleur « primaire » qui tache sur le fond violet profond.
-  { key: 'violet',   name_fr: 'Violet',   name_en: 'Violet',   a: '#6c5ce7', a2: '#fd79a8', min: 0 },
-  { key: 'emeraude', name_fr: 'Émeraude', name_en: 'Emerald',  a: '#34d399', a2: '#a7f3d0', min: 5 },
-  { key: 'crimson',  name_fr: 'Rosewood', name_en: 'Rosewood', a: '#fb7185', a2: '#fecdd3', min: 6 },
-  { key: 'ambre',    name_fr: 'Pêche',    name_en: 'Peach',    a: '#fb923c', a2: '#fed7aa', min: 7 },
-  { key: 'cyan',     name_fr: 'Glacier',  name_en: 'Glacier',  a: '#38bdf8', a2: '#bae6fd', min: 8 },
-  { key: 'or',       name_fr: 'Champagne', name_en: 'Champagne', a: '#e3b341', a2: '#f5dea0', min: 9 },
-];
-function applyAccentTheme() {
-  const key = localStorage.getItem('gs_accent') || 'violet';
-  const t = APP_THEMES.find(x => x.key === key) || APP_THEMES[0];
-  const lvl = getLevel(obProfile.xp || 0).level;
-  const th = lvl >= t.min ? t : APP_THEMES[0]; // thème verrouillé (XP resync) → violet
-  document.documentElement.style.setProperty('--a', th.a);
-  document.documentElement.style.setProperty('--a2', th.a2);
-}
-function setAccentTheme(key) {
-  const t = APP_THEMES.find(x => x.key === key);
-  if (!t) return;
-  const lvl = getLevel(obProfile.xp || 0).level;
-  if (lvl < t.min) {
-    showToast('🔒 ' + (_lang === 'en' ? 'Unlocks at level ' : 'Se débloque au niveau ') + t.min);
-    return;
-  }
-  localStorage.setItem('gs_accent', key);
-  applyAccentTheme();
-  renderAccentPicker();
-  showToast('🎨 ' + (_lang === 'en' ? t.name_en : t.name_fr) + ' !');
-}
-function renderAccentPicker() {
-  const el = document.getElementById('accent-picker-row');
-  if (!el) return;
-  const cur = localStorage.getItem('gs_accent') || 'violet';
-  const lvl = getLevel(obProfile.xp || 0).level;
-  el.innerHTML = APP_THEMES.map(t => {
-    const locked = lvl < t.min;
-    return `<div onclick="setAccentTheme('${t.key}')" title="${_lang === 'en' ? t.name_en : t.name_fr}${locked ? ' · ' + (_lang === 'en' ? 'level ' : 'niveau ') + t.min : ''}" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,${t.a},${t.a2});cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;border:2px solid ${cur === t.key && !locked ? '#fff' : 'transparent'};opacity:${locked ? 0.45 : 1}">${locked ? '🔒' : (cur === t.key ? '✓' : '')}</div>`;
-  }).join('');
-}
 function getLevel(xp) {
   let lvl = XP_LEVELS[0];
   for (const l of XP_LEVELS) { if ((xp||0) >= l.xp) lvl = l; }
@@ -5400,8 +5300,6 @@ const ACHIEVEMENTS = [
   { id:'quiz_3',    emoji:'🧠', title_fr:'Quiz Master',         title_en:'Quiz Master',       desc_fr:'3 quiz complétés',  desc_en:'3 quizzes done',    xp:35,  check:()=>_xpFlags('quizzed').size>=3 },
   { id:'quiz_10',   emoji:'🎓', title_fr:'Érudit',              title_en:'Scholar',           desc_fr:'10 quiz complétés', desc_en:'10 quizzes done',   xp:90,  check:()=>_xpFlags('quizzed').size>=10 },
   // ── Défis ──
-  { id:'chall_1',   emoji:'⚡', title_fr:'Challenger',          title_en:'Challenger',        desc_fr:'Gagner un défi quiz', desc_en:'Win a quiz challenge',  xp:40,  check:()=>_xpFlags('chall_won').size>=1 },
-  { id:'chall_5',   emoji:'🔥', title_fr:'Duelliste',           title_en:'Duelist',           desc_fr:'Gagner 5 défis quiz', desc_en:'Win 5 quiz challenges', xp:110, check:()=>_xpFlags('chall_won').size>=5 },
   // ── Amis ──
   { id:'friend_1',  emoji:'👥', title_fr:'Connecté',            title_en:'Connected',         desc_fr:'1 ami sur GameShelf',   desc_en:'1 friend on GameShelf',  xp:20,  check:()=>(_socialFriends||[]).length>=1 },
   { id:'friend_5',  emoji:'🌟', title_fr:'Sociable',            title_en:'Social',            desc_fr:'5 amis sur GameShelf',  desc_en:'5 friends on GameShelf', xp:50,  check:()=>(_socialFriends||[]).length>=5 },
@@ -7688,7 +7586,7 @@ const TOUR_SLIDES = [
   },
   {
     emoji:'🧠', title:'Les quiz du jour',
-    desc:'5 quiz par jour, les mêmes pour tout le monde. Classement entre amis, comparaison des réponses, et une série hebdo 🔥 : les 5 quiz chaque jour pendant 7 jours = +100 XP !',
+    desc:'4 quiz par jour, les mêmes pour tout le monde. Classement entre amis, comparaison des réponses, et une série hebdo 🔥 : les 4 quiz chaque jour pendant 7 jours = +100 XP !',
     onEnter: () => { _tourClearSpot(); appGoTo('social'); }
   },
   {
@@ -8951,14 +8849,16 @@ function toggleShotsGallery() {
   renderProfileStats();
 }
 
-// ── Limite de captures : 25 de base, 50 au palier Vétéran (niveau 3) ──
-function _shotLimit() { const l = getLevel(obProfile.xp || 0).level; return l >= 7 ? 100 : l >= 3 ? 50 : 25; }
+// ── Limite de captures : 25 de base, 50 au palier Vétéran (niveau 3), 150 au niveau 7 ──
+function _shotLimit() { const l = getLevel(obProfile.xp || 0).level; return l >= 7 ? 150 : l >= 3 ? 50 : 25; }
 function _shotCount() { return Object.values(gameMedia).reduce((n, a) => n + (a || []).length, 0) + _unassignedShots.length; }
 function _shotLimitToast() {
   const fr = _lang !== 'en';
   const lim = _shotLimit();
   showToast(lim < 50
-    ? (fr ? `📷 Limite de ${lim} captures atteinte · 🔥 Vétéran → 50 🔓` : `📷 ${lim}-screenshot limit reached · 🔥 Veteran → 50 🔓`)
+    ? (fr ? `📷 Limite de ${lim} captures atteinte · 🔥 Vétéran (niv. 3) → 50 🔓` : `📷 ${lim}-screenshot limit reached · 🔥 Veteran (lvl 3) → 50 🔓`)
+    : lim < 150
+    ? (fr ? `📷 Limite de ${lim} captures atteinte · 💠 Élite (niv. 7) → 150 🔓` : `📷 ${lim}-screenshot limit reached · 💠 Elite (lvl 7) → 150 🔓`)
     : (fr ? `📷 Limite de ${lim} captures atteinte — supprime-en pour continuer` : `📷 ${lim}-screenshot limit reached — delete some to continue`));
 }
 
@@ -10149,119 +10049,6 @@ function renderFeed(){
 }
 
 // ══════════════════════════════════════
-// XBOX — OpenXBL Integration
-// ══════════════════════════════════════
-// La clé n'a jamais transité par ici : xblFetch() passe par le proxy, qui
-// l'injecte côté serveur. La const était morte, et publiait la clé en clair
-// dans un repo public.
-const XBL_PROXY = 'https://gameshelf-back-end.vercel.app/api/xbl';
-
-async function xblFetch(endpoint) {
-  const res = await fetch(`${XBL_PROXY}?endpoint=${encodeURIComponent(endpoint)}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-function promptXblKey() {
-  const k = prompt('Entre ta clé API OpenXBL (xbl.io) :');
-  if (k && k.length > 8) {
-    localStorage.setItem('xbl_key', k);
-    showToast('Clé Xbox sauvegardée ✓ — synchronisation en cours…');
-    setTimeout(() => importXboxLibrary(k), 500);
-  }
-}
-
-function connectXbox() {
-  const key = localStorage.getItem('xbl_key');
-  if (key) {
-    importXboxLibrary(key);
-  } else {
-    promptXblKey();
-  }
-}
-
-async function importXboxLibrary(key) {
-  const badge = document.getElementById('xbox-badge-text');
-  const dot   = document.getElementById('xbox-dot');
-  const sub   = document.getElementById('xbox-connect-sub');
-
-  if (badge) badge.textContent = 'Synchronisation…';
-  showToast('Connexion Xbox en cours…');
-
-  try {
-    // 1. Get profile via proxy
-    const profileData = await xblFetch('account');
-    const user = profileData.profileUsers?.[0];
-    const gamertag = user?.settings?.find(s => s.id === 'Gamertag')?.value || 'Xbox Player';
-
-    // 2. Get titles via proxy
-    const titlesData = await xblFetch('achievements/titles');
-    const titles = titlesData.titles || [];
-
-    let added = 0;
-    titles.forEach(t => {
-      const id = `xbox_${t.titleId}`;
-      if (GAMES.find(g => g.id === id)) return; // already imported
-
-      const earned  = t.achievement?.currentAchievements || 0;
-      const total   = t.achievement?.totalAchievements   || 0;
-      const pct     = total > 0 ? Math.round((earned / total) * 100) : 0;
-      const isDone  = pct === 100;
-
-      GAMES.push({
-        id,
-        title:    t.name,
-        steamId:  0,
-        cover:    t.displayImage || null,
-        genre:    t.category || 'Xbox',
-        year:     t.titleHistory?.lastTimePlayed ? new Date(t.titleHistory.lastTimePlayed).getFullYear() : 0,
-        meta:     0,
-        platform: 'Xbox',
-        achievements: { earned, total, pct },
-      });
-      userGames[id] = {
-        status: isDone ? 'finished' : earned > 0 ? 'playing-solo' : 'backlog',
-        score: 0, notes: '', hours: 0,
-      };
-      added++;
-    });
-
-    renderGameGrid();
-    renderFeed();
-    renderProfileStats();
-
-    // Update UI
-    const gtSafe = gamertag.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    if (dot)   { dot.style.background = '#4caf50'; }
-    if (badge) { badge.textContent = `Xbox · ${gamertag}`; }
-    if (sub)   { sub.innerHTML = `<strong style="color:#4caf50">${gtSafe}</strong> connecté — ${added} jeux importés.`; }
-    localStorage.setItem('xbl_gamertag', gamertag);
-    showToast(`✓ ${added} jeux Xbox importés !`);
-
-  } catch(e) {
-    console.error('Xbox import error:', e);
-    if (badge) badge.textContent = 'Connecter Xbox';
-    let msg = 'Erreur Xbox — vérifie ta clé OpenXBL.';
-    if (e.message.includes('401')) msg = 'Clé OpenXBL invalide. Vérifie sur xbl.io.';
-    else if (e.message.includes('403')) msg = 'Accès refusé. La clé est peut-être expirée.';
-    else if (e.message.includes('fetch')) msg = 'Connexion impossible à OpenXBL. Vérifie ta connexion.';
-    showToast(msg);
-    if (sub) sub.textContent = msg;
-  }
-}
-
-// Init Xbox status on load
-(function initXboxStatus() {
-  const key = localStorage.getItem('xbl_key');
-  const gt  = localStorage.getItem('xbl_gamertag');
-  if (key && gt) {
-    const badge = document.getElementById('xbox-badge-text');
-    const dot   = document.getElementById('xbox-dot');
-    if (badge) badge.textContent = `Xbox · ${gt}`;
-    if (dot)   dot.style.background = '#4caf50';
-  }
-})();
-// ══════════════════════════════════════
 let GEMINI_KEY = localStorage.getItem('gemini_key') || null;
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
@@ -10813,21 +10600,6 @@ function _updateFriendBadges(count, quizCount = 0) {
   }
 }
 
-// Défis quiz reçus et pas encore répondus (= "on t'a envoyé un quiz")
-async function _countIncomingQuizChallenges() {
-  try {
-    const { data: { user } } = await _sb.auth.getUser();
-    if (!user) return 0;
-    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
-    const { data } = await _sb.from('quiz_challenges')
-      .select('id')
-      .eq('challenged_id', user.id)
-      .neq('status', 'completed')
-      .is('challenged_score', null)
-      .gte('created_at', since);
-    return (data || []).length;
-  } catch (e) { return 0; }
-}
 
 // Quiz du jour joués par des amis depuis ma dernière visite de la cloche
 async function _countFreshQuizActivity() {
@@ -13370,7 +13142,10 @@ function openUserCollectionMenu() {
       <span style="font-size:16px">${m.icon}</span>${fr ? m.short_fr : m.short_en}
     </button>`;
   }).join('');
-  if (lbl) lbl.textContent = fr ? COL_VIS[cur].fr : COL_VIS[cur].en;
+  // Compte privé : « Public » ne sort pas du cercle des amis (règle appliquée par la base)
+  const privNote = (obProfile.isPublic === false && cur === 'public')
+    ? (fr ? ' · Ton compte est privé : seuls tes amis la voient.' : ' · Your account is private: only your friends see it.') : '';
+  if (lbl) lbl.textContent = (fr ? COL_VIS[cur].fr : COL_VIS[cur].en) + privNote;
   document.getElementById('collection-action-sheet').style.display = 'flex';
 }
 
@@ -13743,13 +13518,6 @@ async function openSagaCollection(id) {
   }).join('');
 }
 
-// ── QUIZ CHALLENGE (friend profile) ──
-function challengeFriendToQuiz() {
-  _quizChallengedFriendId = _fpFriendUserId || null;
-  const sub = document.getElementById('qpm-subtitle');
-  if (sub) sub.textContent = _lang === 'en' ? 'Pick a quiz to challenge your friend' : 'Choisis un quiz pour défier ton ami';
-  openQuizPicker();
-}
 
 function openQuizPicker() {
   renderQuizHub();
@@ -13884,52 +13652,6 @@ function simOpenDetail(id, cacheKey) {
   openDetail(id);
 }
 
-// ══════════════════════════════════════
-// WRAPPED — récap mensuel
-// ══════════════════════════════════════
-function openWrapped() {
-  const now   = new Date();
-  const month = now.toLocaleString('fr-FR', { month: 'long', year: 'numeric' });
-  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const all   = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
-
-  // This month = approximation via updated_at in localStorage (or just all-time for now)
-  const finished  = all.filter(g => isDone(g.status));
-  const playing   = all.filter(g => isPlaying(g.status) || g.status === 'paused');
-  const totalHours= all.reduce((s, g) => s + (g.hours || 0), 0);
-  const avgScore  = (() => { const rated = finished.filter(g => g.score > 0); return rated.length ? (rated.reduce((s,g)=>s+g.score,0)/rated.length).toFixed(1) : null; })();
-  const topGame   = [...finished].sort((a,b) => (b.score||0) - (a.score||0))[0];
-  const genreScore= {};
-  all.forEach(g => { if (g.genre) genreScore[g.genre] = (genreScore[g.genre]||0) + 1; });
-  const topGenre  = Object.entries(genreScore).sort((a,b)=>b[1]-a[1])[0]?.[0];
-
-  document.getElementById('wrapped-title').textContent = `Ton récap — ${month.charAt(0).toUpperCase()+month.slice(1)}`;
-  document.getElementById('wrapped-subtitle').textContent = `Tout ce que tu as accompli jusqu\'ici`;
-
-  const cards = [
-    { emoji: '🎮', label: 'Jeux dans ta bibliothèque', value: all.length },
-    { emoji: '✅', label: 'Jeux terminés (finis + 100%)', value: finished.length },
-    { emoji: '▶', label: 'En cours ou en pause', value: playing.length },
-    // heures retirées du récap — donnée peu fiable pour l'instant
-    avgScore ? { emoji: '⭐', label: 'Note moyenne sur tes jeux finis', value: `${avgScore}/10` } : null,
-    topGenre ? { emoji: '🏆', label: 'Genre le plus joué', value: topGenre } : null,
-    topGame ? { emoji: '👑', label: 'Ton jeu #1', value: topGame.title + (topGame.score ? ` — ★${topGame.score}` : '') } : null,
-  ].filter(Boolean);
-
-  document.getElementById('wrapped-content').innerHTML = cards.map(c => `
-    <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:28px;flex-shrink:0">${_esc(c.emoji)}</div>
-      <div>
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:2px">${c.label}</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">${c.value}</div>
-      </div>
-    </div>`).join('');
-
-  document.getElementById('wrapped-modal').style.display = 'flex';
-}
-function closeWrapped() {
-  document.getElementById('wrapped-modal').style.display = 'none';
-}
 
 // ══════════════════════════════════════
 // PUBLIC TIER LIST PAGE (shared link)
@@ -14294,8 +14016,6 @@ function applyProfileToUI() {
   renderProfileBgPicker();
   applyProfileBg();
   _setPrivateToggleUI(document.getElementById('private-toggle'), obProfile.isPublic === false);
-  applyAccentTheme();
-  renderAccentPicker();
   // Show active account email
   _sb.auth.getSession().then(({ data: { session } }) => {
     const email = session?.user?.email;
@@ -17812,7 +17532,7 @@ function _renderStreakPanel() {
 }
 
 function openQuiz(id) {
-  const isChallengeMode = !!_quizChallengedFriendId;
+  const isChallengeMode = false; // défis 1v1 retirés
   _quizActive = QUIZ_DATA.find(q => q.id === id);
   if (!_quizActive) return;
   // Déjà fait aujourd'hui (jour UTC, aligné sur la rotation) → on ouvre le
@@ -17838,31 +17558,12 @@ function openQuiz(id) {
   overlay.classList.add('open');
   document.getElementById('quiz-title-bar').textContent = _qzTitle(_quizActive);
   document.getElementById('quiz-progress-fill').style.background = _quizActive.gradient;
-  if (isChallengeMode && _quizChallengedFriendId) {
-    _createQuizChallenge(_quizActive.id, _quizActive.title, _quizChallengedFriendId).then(id => { _quizChallengeId = id; });
-    _quizChallengedFriendId = null;
-  }
   renderQuizQuestion();
 }
 
 function closeQuiz() {
   const inProgress = _quizActive && _quizAnswerLog.length > 0 && _quizAnswerLog.length < _quizActive.questions.length;
-  if (inProgress && _quizIsChallenge) {
-    // Défi 1v1 : abandonner = les questions restantes comptent fausses (sinon
-    // on pourrait recommencer le défi en connaissant les questions).
-    const total = _quizActive.questions.length;
-    while (_quizAnswerLog.length < total) _quizAnswerLog.push(false);
-    _quizScore = _quizAnswerLog.filter(Boolean).length;
-    _quizLocalScores[_quizActive.id] = { score: _quizScore, total, ts: Date.now() };
-    localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
-    saveQuizScore(_quizActive.id, _quizScore, total);
-    submitQuizChallengeScore(_quizScore, total);
-    if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(5, 'quiz', _quizActive.title || ''); }
-    showToast(_lang === 'en' ? `Challenge abandoned — score saved: ${_quizScore}/${total}` : `Défi abandonné — score enregistré : ${_quizScore}/${total}`);
-    try { _bumpQuizStreak(); } catch (e) {}
-    _qipClear(_quizActive.id);
-    renderDailyQuizCard();
-  } else if (inProgress) {
+  if (inProgress) {
     // Solo : les réponses données sont gelées, on reprendra à la question suivante.
     showToast(_lang === 'en'
       ? `⏸ Paused at ${_quizAnswerLog.length}/${_quizActive.questions.length} — resume anytime today`
@@ -17913,22 +17614,6 @@ function _restoreAbandonedQuiz() {
   } catch (e) {}
 }
 
-// Open a quiz to answer an EXISTING challenge (no cooldown, no new row created)
-function openQuizForChallenge(challengeId, quizId) {
-  closeNotifDrawer();
-  _quizActive = QUIZ_DATA.find(q => q.id === quizId);
-  if (!_quizActive) { showToast('Quiz introuvable'); return; }
-  _quizQIdx = 0; _quizScore = 0; _quizAnswered = false; _quizAnswerLog = [];
-  _quizIsChallenge = true;
-  _quizChallengeId = challengeId;
-  _quizChallengedFriendId = null;
-  _quizPublished.delete(quizId);
-  const overlay = document.getElementById('quiz-overlay');
-  overlay.classList.add('open');
-  document.getElementById('quiz-title-bar').textContent = _qzTitle(_quizActive);
-  document.getElementById('quiz-progress-fill').style.background = _quizActive.gradient;
-  renderQuizQuestion();
-}
 
 function renderQuizQuestion() {
   if (!_quizActive) return;
@@ -17982,7 +17667,6 @@ function showQuizResults() {
   _quizLocalScores[_quizActive.id] = { score:_quizScore, total, ts:Date.now() };
   localStorage.setItem('gs_quiz_scores', JSON.stringify(_quizLocalScores));
   saveQuizScore(_quizActive.id, _quizScore, total);
-  if (_quizIsChallenge) submitQuizChallengeScore(_quizScore, total);
   if (!_xpFlags('quizzed').has(String(_quizActive.id))) { _setXpFlag('quizzed', _quizActive.id); gainXp(5, 'quiz', _quizActive.title || ''); }
   document.getElementById('quiz-progress-fill').style.width = '100%';
   document.getElementById('quiz-next-btn-wrap').style.display = 'none';
@@ -17996,12 +17680,7 @@ function showQuizResults() {
         <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:${rank.color}">${rank.label}</span>
       </div>
       <div style="font-size:12px;color:var(--muted2);margin-bottom:36px">${pct}% de bonnes réponses</div>
-      ${_quizIsChallenge ? `
-      <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:20px;margin-bottom:10px;text-align:center">
-        <div style="font-size:28px;margin-bottom:8px">⏳</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px">En attente de l'adversaire</div>
-        <div style="font-size:12px;color:var(--muted2)">Ton score est enregistré. Tu seras notifié quand il aura répondu.</div>
-      </div>` : ''}
+
       <div id="quiz-friends-lb" style="width:100%;text-align:left"></div>
       <button onclick="shareQuizResult()" style="width:100%;padding:14px;margin-bottom:10px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:#fff;cursor:pointer">🔗 ${_lang==='en'?'Share my score':'Partager mon score'}</button>
       <button onclick="closeQuiz()" style="width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
@@ -18088,206 +17767,11 @@ async function _maybeSendDailyQuizPush() {
   } catch (e) {}
 }
 
-async function submitQuizChallengeScore(score, total) {
-  if (!_quizChallengeId) return;
-  try {
-    const { data: { user } } = await _sb.auth.getUser();
-    if (!user) return;
-    const { data: ch } = await _sb.from('quiz_challenges').select('*').eq('id', _quizChallengeId).maybeSingle();
-    if (!ch) return;
-    const isChallenger = ch.challenger_id === user.id;
-    const otherHasScore = isChallenger ? ch.challenged_score !== null : ch.challenger_score !== null;
-    const newStatus = otherHasScore ? 'completed' : (isChallenger ? 'challenger_done' : 'challenged_done');
-    const update = isChallenger
-      ? { challenger_score: score, challenger_total: total, challenger_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() }
-      : { challenged_score: score, challenged_total: total, challenged_answers: _quizAnswerLog, status: newStatus, updated_at: new Date().toISOString() };
-    const { data: updated } = await _sb.from('quiz_challenges').update(update).eq('id', _quizChallengeId).select('*').maybeSingle();
-    if (typeof checkPendingRequests === 'function') checkPendingRequests(); // rafraîchit la pastille (défi répondu)
-    if (newStatus === 'completed') {
-      // Notify the other player
-      const otherId = isChallenger ? ch.challenged_id : ch.challenger_id;
-      const { data: { session } } = await _sb.auth.getSession();
-      if (session?.access_token) {
-        fetch('https://gameshelf-back-end.vercel.app/api/push', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-          body: JSON.stringify({ type: 'quiz_result', to: otherId, challengeId: _quizChallengeId })
-        }).catch(() => {});
-      }
-      // Show confrontation directly to the player who just finished
-      if (updated) setTimeout(() => { closeQuiz(); showQuizConfrontation(updated); }, 800);
-    }
-  } catch(e) {}
-}
 
-function closeQuizConfrontation() {
-  document.getElementById('quiz-confrontation').style.display = 'none';
-}
 
-async function openChallengeResult(challengeId) {
-  closeNotifDrawer();
-  try {
-    const { data: ch } = await _sb.from('quiz_challenges').select('*').eq('id', challengeId).maybeSingle();
-    if (!ch) return showToast('Défi introuvable');
-    if (ch.status !== 'completed') return showToast('Le duel n\'est pas encore terminé');
-    await showQuizConfrontation(ch);
-  } catch(e) { showToast('Erreur lors du chargement'); }
-}
 
-async function showQuizConfrontation(ch) {
-  const { data: { user } } = await _sb.auth.getUser();
-  if (!user) return;
 
-  // Fetch both players' profiles
-  const ids = [ch.challenger_id, ch.challenged_id];
-  const { data: profiles } = await _sb.from('profiles').select('id,username,avatar,avatar_grad').in('id', ids);
-  const getP = id => (profiles||[]).find(p => p.id === id) || { username: 'Joueur', avatar: '🎮', avatar_grad: 'linear-gradient(135deg,#6c5ce7,#a29bfe)' };
-  const pA = getP(ch.challenger_id);
-  const pB = getP(ch.challenged_id);
-  const isMe = user.id === ch.challenger_id;
-  const meP = isMe ? pA : pB;
-  const oppP = isMe ? pB : pA;
-  const meScore = isMe ? ch.challenger_score : ch.challenged_score;
-  const oppScore = isMe ? ch.challenged_score : ch.challenger_score;
-  const meTotal = isMe ? ch.challenger_total : ch.challenged_total;
-  const meAnswers = isMe ? (ch.challenger_answers || []) : (ch.challenged_answers || []);
-  const oppAnswers = isMe ? (ch.challenged_answers || []) : (ch.challenger_answers || []);
-  const total = meTotal || meAnswers.length || 8;
-  const won = meScore > oppScore;
-  const draw = meScore === oppScore;
-  const _challXpKey = `xp_chall_${ch.id}`;
-  const _localAch = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
-  if (won && !_localAch.has(_challXpKey)) {
-    _setXpFlag('chall_won', ch.id);
-    gainXp(30, 'challenge', '');
-    _localAch.add(_challXpKey);
-    localStorage.setItem('gs_achievements', JSON.stringify([..._localAch]));
-    try {
-      const _cs = await _sb.auth.getSession();
-      if (_cs.data.session?.user) {
-        const _pi = await _sb.from('profiles').select('achievements').eq('id', _cs.data.session.user.id).single();
-        const _da = new Set(Array.isArray(_pi.data?.achievements) ? _pi.data.achievements : []);
-        _da.add(_challXpKey);
-        _sb.from('profiles').update({ achievements: [..._da] }).eq('id', _cs.data.session.user.id).then(() => {});
-      }
-    } catch(e) {}
-  }
 
-  const resultColor = won ? '#55efc4' : draw ? 'var(--amber)' : '#ff7675';
-  const resultLabel = won ? '🏆 Victoire !' : draw ? '🤝 Égalité !' : '💀 Défaite';
-  const quizData = QUIZ_DATA.find(q => q.id === ch.quiz_id);
-
-  // Per-question rows (only if answer logs are available)
-  const hasBreakdown = meAnswers.length > 0 || oppAnswers.length > 0;
-  let questionRows = '';
-  if (hasBreakdown && quizData) {
-    const qs = quizData.questions;
-    questionRows = `
-      <div style="margin-top:20px">
-        <div style="display:flex;align-items:center;margin-bottom:8px">
-          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;flex:1">Détail par question</div>
-          <div style="display:flex;gap:8px;font-size:10px;font-weight:700;color:var(--muted2)">
-            <span style="min-width:36px;text-align:center">${_esc(meP.username.slice(0,6))}</span>
-            <span style="min-width:36px;text-align:center">${_esc(oppP.username.slice(0,6))}</span>
-          </div>
-        </div>
-        ${qs.map((q, i) => {
-          const myOk = meAnswers[i];
-          const oppOk = oppAnswers[i];
-          const badge = (v) => {
-            if (v === undefined || v === null) return `<div style="min-width:36px;height:28px;border-radius:8px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted2)">—</div>`;
-            return v
-              ? `<div style="min-width:36px;height:28px;border-radius:8px;background:rgba(85,239,196,0.18);border:0.5px solid #55efc4;display:flex;align-items:center;justify-content:center;font-size:14px">✓</div>`
-              : `<div style="min-width:36px;height:28px;border-radius:8px;background:rgba(255,118,117,0.18);border:0.5px solid #ff7675;display:flex;align-items:center;justify-content:center;font-size:14px">✗</div>`;
-          };
-          return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:0.5px solid var(--border2)">
-            <div style="width:20px;height:20px;border-radius:50%;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted2);flex-shrink:0">${i+1}</div>
-            <div style="flex:1;font-size:12px;color:var(--text);line-height:1.3">${_esc(_qzQ(q))}</div>
-            <div style="display:flex;gap:6px;flex-shrink:0">${badge(myOk)}${badge(oppOk)}</div>
-          </div>`;
-        }).join('')}
-      </div>`;
-  }
-
-  document.getElementById('qconf-title').textContent = ch.quiz_name;
-  document.getElementById('qconf-body').innerHTML = `
-    <!-- Result banner -->
-    <div style="text-align:center;padding:28px 0 20px">
-      <div style="font-size:52px;margin-bottom:10px">${won?'🏆':draw?'🤝':'💀'}</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:${resultColor}">${resultLabel}</div>
-    </div>
-    <!-- Score comparison -->
-    <div style="display:flex;align-items:center;gap:0;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;overflow:hidden;margin-bottom:8px">
-      <!-- Me -->
-      <div style="flex:1;padding:18px 14px;text-align:center;border-right:0.5px solid var(--border2)">
-        <div style="width:48px;height:48px;border-radius:50%;background:${_safeGrad(meP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)')};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${_esc(meP.avatar||'🎮')}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${_esc(meP.username)}</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:${resultColor};line-height:1">${meScore??'—'}</div>
-        <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
-      </div>
-      <!-- VS -->
-      <div style="padding:0 14px;font-size:13px;font-weight:700;color:var(--muted2)">VS</div>
-      <!-- Opp -->
-      <div style="flex:1;padding:18px 14px;text-align:center;border-left:0.5px solid var(--border2)">
-        <div style="width:48px;height:48px;border-radius:50%;background:${_safeGrad(oppP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)')};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${_esc(oppP.avatar||'🎮')}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${_esc(oppP.username)}</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:var(--muted2);line-height:1">${oppScore??'—'}</div>
-        <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
-      </div>
-    </div>
-    ${questionRows}
-    <button onclick="closeQuizConfrontation()" style="width:100%;margin-top:20px;padding:15px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">← Retour</button>
-  `;
-  document.getElementById('quiz-confrontation').style.display = 'flex';
-}
-
-async function loadQuizChallenges() {
-  try {
-    const { data: { user } } = await _sb.auth.getUser();
-    if (!user) return [];
-    const { data } = await _sb.from('quiz_challenges')
-      .select('*')
-      .or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    return data || [];
-  } catch(e) { return []; }
-}
-
-function renderQuizChallengeNotif(ch, myId) {
-  const isChallenger = ch.challenger_id === myId;
-  const completed = ch.status === 'completed';
-  const myScore = isChallenger ? ch.challenger_score : ch.challenged_score;
-  const oppScore = isChallenger ? ch.challenged_score : ch.challenger_score;
-  const myTotal = isChallenger ? ch.challenger_total : ch.challenged_total;
-  const waiting = !completed && myScore !== null;
-  const needsAnswer = !completed && myScore === null;
-
-  if (needsAnswer) {
-    return `<div onclick="openQuizForChallenge('${_jsId(ch.id)}','${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:4px">⚡ Défi Quiz en attente</div>
-      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
-      <div style="font-size:11px;color:var(--muted2);margin-top:2px">Tape ici pour répondre au défi !</div>
-    </div>`;
-  }
-  if (waiting) {
-    return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px 16px;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:var(--muted2);margin-bottom:4px">⏳ Défi Quiz</div>
-      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
-      <div style="font-size:11px;color:var(--muted2);margin-top:2px">En attente de la réponse de l'adversaire…</div>
-    </div>`;
-  }
-  if (completed && myScore !== null && oppScore !== null) {
-    const won = myScore > oppScore;
-    const draw = myScore === oppScore;
-    return `<div onclick="openChallengeResult('${_jsId(ch.id)}')" style="background:var(--s2);border:0.5px solid ${won?'#55efc4':draw?'var(--amber)':'#ff7675'};border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
-      <div style="font-size:12px;font-weight:700;color:${won?'#55efc4':draw?'var(--amber)':'#ff7675'};margin-bottom:4px">${won?'🏆 Victoire !':draw?'🤝 Égalité':'💀 Défaite'}</div>
-      <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
-      <div style="font-size:12px;color:var(--muted2);margin-top:4px">Toi : ${myScore}/${myTotal} · Adversaire : ${oppScore}/${myTotal} · Voir le détail →</div>
-    </div>`;
-  }
-  return '';
-}
 
 function publishQuizResult() {
   if (!_quizActive) return;
@@ -18314,39 +17798,6 @@ function publishQuizResult() {
   if (btn) { btn.textContent = '✓ Publié !'; btn.style.opacity = '0.5'; btn.style.pointerEvents = 'none'; }
 }
 
-async function _createQuizChallenge(quizId, quizName, friendId) {
-  try {
-    const { data: { user } } = await _sb.auth.getUser();
-    if (!user) return null;
-    // Block duplicate: prevent same quiz between same two players while one is still active
-    const { data: _dupCheck } = await _sb.from('quiz_challenges')
-      .select('id')
-      .or(`and(challenger_id.eq.${user.id},challenged_id.eq.${friendId}),and(challenger_id.eq.${friendId},challenged_id.eq.${user.id})`)
-      .eq('quiz_id', quizId)
-      .neq('status', 'completed')
-      .maybeSingle();
-    if (_dupCheck) {
-      showToast(_lang === 'en' ? 'A challenge for this quiz is already pending!' : 'Un défi pour ce quiz est déjà en cours !');
-      return null;
-    }
-    const { data, error } = await _sb.from('quiz_challenges').insert({
-      challenger_id: user.id, challenged_id: friendId,
-      quiz_id: quizId, quiz_name: quizName, status: 'pending'
-    }).select('id').single();
-    if (error || !data) return null;
-    // Send push notification to friend
-    const { data: { session } } = await _sb.auth.getSession();
-    if (session?.access_token) {
-      fetch('https://gameshelf-back-end.vercel.app/api/push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-        body: JSON.stringify({ type: 'quiz_challenge', to: friendId, quizName, challengeId: data.id })
-      }).catch(() => {});
-    }
-    setTimeout(() => _promptPushIfNeeded('quiz'), 800);
-    return data.id;
-  } catch(e) { return null; }
-}
 
 async function saveQuizScore(quizId, score, total, dayIdx, answers) {
   try {
@@ -18663,7 +18114,12 @@ async function _tlLoadPopular(token) {
 
 // Ordre du cycle au tap sur l'icône de visibilité d'une tier list
 const _TL_VIS_NEXT = { public: 'friends', friends: 'private', private: 'public' };
-function _visToast(v) { const m = COL_VIS[v]; showToast(`${m.icon} ${_lang === 'en' ? m.en : m.fr}`); }
+function _visToast(v) {
+  const m = COL_VIS[v];
+  const priv = obProfile.isPublic === false && v === 'public'
+    ? (_lang === 'en' ? ' (private account: friends only)' : ' (compte privé : amis seulement)') : '';
+  showToast(`${m.icon} ${_lang === 'en' ? m.en : m.fr}${priv}`);
+}
 
 function tlToggleVisibility() {
   _tlVis = _TL_VIS_NEXT[_tlVis] || 'public';
@@ -19696,19 +19152,6 @@ async function exportTierList() {
   </div>
 </div>
 
-<!-- WRAPPED MODAL -->
-<div id="wrapped-modal" style="display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);flex-direction:column;align-items:center;justify-content:flex-end" onclick="if(event.target===this)closeWrapped()">
-  <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:28px 28px 0 0;padding:28px 24px calc(36px + var(--safe-b));max-width:430px;width:100%;animation:slideUp 0.35s cubic-bezier(0.22,1,0.36,1);max-height:88dvh;overflow-y:auto">
-    <div style="text-align:center;margin-bottom:20px">
-      <div style="font-size:28px;margin-bottom:6px">✦</div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;background:linear-gradient(135deg,#a29bfe,var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text" id="wrapped-title">Ton récap</div>
-      <div style="font-size:13px;color:var(--muted2);margin-top:4px" id="wrapped-subtitle"></div>
-    </div>
-    <div id="wrapped-content" style="display:flex;flex-direction:column;gap:12px"></div>
-    <button onclick="closeWrapped()" class="btn-primary" style="margin-top:20px">Fermer</button>
-  </div>
-</div>
-
 <!-- Game Pass — Catalogue complet -->
 <div id="gp-all-overlay" onclick="closeGPAll()" style="display:none;opacity:0;transition:opacity 0.3s;position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);align-items:flex-end">
   <div onclick="event.stopPropagation()" style="width:100%;background:var(--s1);border-radius:24px 24px 0 0;max-height:88vh;display:flex;flex-direction:column">
@@ -19752,7 +19195,6 @@ window.addEventListener('popstate', function() {
   const el = id => document.getElementById(id);
   const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
 
-  if (visible('quiz-confrontation'))      { closeQuizConfrontation();           return; }
   if (visible('xp-modal'))                { closeXpModal();                  return; }
   if (visible('push-nudge-modal'))        { _closePushNudge();               return; }
   if (visible('whatsnew-modal'))          { closeWhatsNewModal();            return; }
