@@ -2259,7 +2259,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7809,6 +7809,7 @@ function appGoTo(screen) {
   // appGoTo returns early (e.g. opening a game while already on 'detail').
   closeFriendProfile();
   closeShelf();
+  if (screen === 'profile' && appCurrentScreen !== 'profile') _shotsGalleryOpen = false;
 
   // Écran inconnu → fallback sur le feed (évite un écran noir si aucun .screen actif)
   if (!document.getElementById('screen-' + screen)) screen = 'feed';
@@ -8895,9 +8896,11 @@ function _saveUnassigned() {
   }).catch(() => {});
 }
 
+// Galerie toujours repliée à l'ouverture de l'app : l'état dépliée n'est gardé qu'en mémoire
+let _shotsGalleryOpen = false;
+try { localStorage.removeItem('gs_shots_open'); } catch (e) {}
 function toggleShotsGallery() {
-  const open = localStorage.getItem('gs_shots_open') === '1';
-  localStorage.setItem('gs_shots_open', open ? '0' : '1');
+  _shotsGalleryOpen = !_shotsGalleryOpen;
   renderProfileStats();
 }
 
@@ -9471,7 +9474,7 @@ function renderProfileStats() {
     const allMedia = Object.entries(gameMedia).flatMap(([gid, items]) =>
       items.map((m, gi) => ({...m, gameId:gid, gameIdx:gi, gameTitle: GAMES.find(g=>g.id===gid)?.title||''}))
     );
-    window._shotsOpen = (localStorage.getItem('gs_shots_open') === '1');
+    window._shotsOpen = _shotsGalleryOpen;
     const unassignedHtml = _unassignedShots.map((sh, i) => `
       <div style="cursor:pointer" onclick="openProfileLightbox(${i})">
         <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px;border:1.5px dashed rgba(108,92,231,0.55)">
