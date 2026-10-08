@@ -1191,6 +1191,20 @@ html, body {
 @keyframes qIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
 .quiz-q-anim { animation:qIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards }
 .quiz-activity-item { display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border) }
+
+/* ══════════════════════════════════════
+   GRAND ÉCRAN / PAYSAGE — déclaré en fin de feuille pour passer après les règles de base
+══════════════════════════════════════ */
+@media (min-width: 768px) {
+  .game-grid { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
+}
+/* Téléphone en paysage : peu de hauteur, on compacte */
+@media (orientation: landscape) and (max-height: 520px) {
+  #app-nav { height: calc(48px + var(--safe-b-min)) !important; }
+  .nav-btn { flex-direction: row; gap: 6px; padding: 6px 14px; }
+  .scroll-area { padding-bottom: calc(60px + var(--safe-b-min)); }
+  .detail-hero { aspect-ratio: auto; height: 46vh; }
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
 </head>
@@ -2259,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -14946,8 +14960,7 @@ function updateLightbox() {
   document.getElementById('lb-prev').style.display = _lbMedia.length > 1 ? 'flex' : 'none';
   document.getElementById('lb-next').style.display = _lbMedia.length > 1 ? 'flex' : 'none';
 }
-// L'app est verrouillée portrait (manifest) — on libère la rotation UNIQUEMENT
-// pendant la visionneuse pour voir les captures en paysage, puis on reverrouille.
+// L'app suit la rotation du téléphone (manifest « any ») : pas de verrouillage ici.
 function _lbShow() {
   const _el = document.getElementById('lightbox');
   _el.style.display = 'flex';
@@ -14955,14 +14968,12 @@ function _lbShow() {
   const _img = document.getElementById('lb-img');
   if (window._lbMotion) window._lbMotion(true);
   if (_img && _img.complete && _img.naturalWidth && window._lbAutoRotate) window._lbAutoRotate();
-  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('any').catch(() => {}); } catch (e) {}
 }
 function closeLightbox() {
   if (window._lbMotion) window._lbMotion(false);
   if (window._lbResetRot) window._lbResetRot();
   if (window._lbResetZoom) window._lbResetZoom();
   document.getElementById('lightbox').style.display = 'none';
-  try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait-primary').catch(() => { try { screen.orientation.unlock(); } catch (e2) {} }); } catch (e) {}
 }
 
 // Visionneuse du profil : navigue sur TOUTES les captures (à trier + assignées)
@@ -15034,9 +15045,9 @@ function initLightboxGestures() {
     try { localStorage.setItem('gs_lb_autorot', rot ? '1' : '0'); } catch (e) {}
   };
   window._lbResetRot = () => { if (rot) { rot = 0; _applyRotSizing(); apply(); } };
-  // Inclinaison du téléphone : l'app est verrouillée en portrait côté Android, donc
-  // l'écran ne tourne pas. On lit l'accéléromètre (gravité) pendant la visionneuse
-  // et on pivote l'image du bon côté. tilt : 'up' (vertical) | 'left' (bord gauche
+  // Inclinaison du téléphone : normalement l'écran tourne tout seul. Si la rotation
+  // auto est coupée dans Android, l'écran reste en portrait : on lit alors
+  // l'accéléromètre (gravité) pendant la visionneuse et on pivote l'image. tilt : 'up' (vertical) | 'left' (bord gauche
   // vers le bas) | 'right' (bord droit vers le bas) | null (pas de capteur / à plat).
   let tilt = null, tiltCandidate = null, tiltSince = 0;
   const _onMotion = e => {
@@ -15048,28 +15059,30 @@ function initLightboxGestures() {
     else if (ay > 6.5 && ay > ax + 2) t = 'up';
     if (!t) return; // téléphone à plat ou entre deux positions : on garde l'état
     if (t !== tiltCandidate) { tiltCandidate = t; tiltSince = Date.now(); return; }
-    if (t !== tilt && Date.now() - tiltSince > 250) { tilt = t; window._lbAutoRotate(); } // anti-rebond
+    // anti-rebond ; on laisse à l'écran le temps de tourner avant de décider
+    if (t !== tilt && Date.now() - tiltSince > 250) { tilt = t; setTimeout(() => window._lbAutoRotate(), 700); }
   };
+  const _onResize = () => { if (document.getElementById('lightbox').style.display !== 'none') window._lbAutoRotate(); };
   window._lbMotion = on => {
     try {
-      if (on) window.addEventListener('devicemotion', _onMotion);
-      else { window.removeEventListener('devicemotion', _onMotion); tiltCandidate = null; }
+      if (on) { window.addEventListener('devicemotion', _onMotion); window.addEventListener('resize', _onResize); }
+      else { window.removeEventListener('devicemotion', _onMotion); window.removeEventListener('resize', _onResize); tiltCandidate = null; }
     } catch (e) {}
   };
   // Rotation voulue :
-  // - téléphone incliné → l'image se redresse pour celui qui regarde (±90°) ;
-  // - téléphone vertical (ou sans capteur) → une capture horizontale est pivotée
-  //   pour occuper toute la hauteur, une verticale reste droite.
-  // Le bouton 🔄 peut désactiver tout l'automatisme (préférence mémorisée).
+  // - l'écran a tourné (paysage) → image droite, l'écran fait le travail ;
+  // - téléphone incliné mais écran resté en portrait (rotation auto coupée) →
+  //   l'image se redresse pour celui qui regarde (±90°) ;
+  // - téléphone vertical → image droite (tourner le téléphone l'agrandit).
+  // Le bouton 🔄 reste disponible pour pivoter à la main.
   window._lbAutoRotate = () => {
     let pref = '1';
     try { pref = localStorage.getItem('gs_lb_autorot') || '1'; } catch (e) {}
-    if (pref !== '1') return _setRot(0);
+    const portrait = window.innerHeight > window.innerWidth;
+    if (pref !== '1' || !portrait) return _setRot(0);
     if (tilt === 'left')  return _setRot(90);
     if (tilt === 'right') return _setRot(-90);
-    const portrait = window.innerHeight > window.innerWidth;
-    const landscapeImg = img.naturalWidth > img.naturalHeight * 1.15;
-    _setRot(portrait && landscapeImg ? 90 : 0);
+    _setRot(0);
   };
   img.addEventListener('load', () => { if (document.getElementById('lightbox').style.display !== 'none') window._lbAutoRotate(); });
   window._lbResetZoom = () => { scale = 1; tx = 0; ty = 0; apply(); };
