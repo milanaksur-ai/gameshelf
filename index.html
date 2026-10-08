@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10966,6 +10966,18 @@ function initApp(){
   }, 200);
   // Check for shared tier list URL param
   if (window.__openProfileAfterBoot) { const _n = window.__openProfileAfterBoot; window.__openProfileAfterBoot = null; setTimeout(() => _openProfileFromLink(_n), 900); }
+  // Raccourcis de l'icône (appui long sur Android) : ?go=add|quiz|library
+  const _go = new URLSearchParams(location.search).get('go');
+  if (_go) {
+    try { history.replaceState(null, '', location.pathname); } catch (e) {}
+    setTimeout(() => {
+      try {
+        if (_go === 'library') appGoTo('library');
+        else if (_go === 'quiz') { appGoTo('feed'); openDailyQuizzes(); }
+        else if (_go === 'add') { appGoTo('feed'); openAddModal(); }
+      } catch (e) {}
+    }, 700);
+  }
   const tlParam = new URLSearchParams(location.search).get('tl');
   if (tlParam) setTimeout(() => loadSharedTierList(tlParam), 600);
 

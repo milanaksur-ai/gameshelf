@@ -1,14 +1,19 @@
 {
+  "id": "/",
   "name": "GameShelf",
   "short_name": "GameShelf",
   "description": "Ta bibliothèque de jeux vidéo · Quiz · Tier Lists",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#080810",
   "theme_color": "#080810",
   "orientation": "any",
   "lang": "fr",
-  "categories": ["games", "entertainment"],
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -31,10 +36,77 @@
   ],
   "screenshots": [
     {
-      "src": "/icon-512.png",
-      "sizes": "512x512",
+      "src": "/screenshot-01-bibliotheque.png",
+      "sizes": "1080x1920",
       "type": "image/png",
-      "form_factor": "narrow"
+      "form_factor": "narrow",
+      "label": "Ta bibliothèque de jeux"
+    },
+    {
+      "src": "/screenshot-02-fiche-jeu.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "La fiche d'un jeu"
+    },
+    {
+      "src": "/screenshot-03-social.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "L'activité de tes amis"
+    },
+    {
+      "src": "/screenshot-04-profil.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ton profil de joueur"
+    },
+    {
+      "src": "/screenshot-05-tierlist.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Tes tier lists"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ajouter un jeu",
+      "short_name": "Ajouter",
+      "url": "/?go=add",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Quiz du jour",
+      "short_name": "Quiz",
+      "url": "/?go=quiz",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Ma bibliothèque",
+      "short_name": "Biblio",
+      "url": "/?go=library",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
