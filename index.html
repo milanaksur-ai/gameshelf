@@ -2307,7 +2307,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 07.10i</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4802,7 +4802,7 @@ function _showTop20(games, owner, mine, ranked) {
       return `${first && i ? '<div style="height:10px"></div>' : ''}${i === 20 ? `<div style="font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin:6px 2px 6px">${fr ? 'Hors Top 20 — même note' : 'Outside Top 20 — same score'}</div>` : ''}
       <div style="display:flex;align-items:center;gap:10px;background:var(--s1);border:0.5px solid ${tied ? 'rgba(255,202,40,0.35)' : 'var(--border2)'};border-radius:12px;padding:8px 10px;margin-bottom:6px;${out ? 'opacity:0.6' : ''}">
         <div style="width:24px;text-align:center;font-size:12px;font-weight:800;color:var(--muted2);flex-shrink:0">${i + 1}</div>
-        <div style="width:30px;height:40px;border-radius:6px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}</div>
+        <div style="width:30px;height:40px;border-radius:6px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}</div>
         <div style="flex:1;min-width:0;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
         <div style="font-size:13px;font-weight:800;color:var(--amber);flex-shrink:0;margin-right:2px">★ ${g.score}</div>
         ${tied ? arrow(g, -1, same(g, list[i - 1])) + arrow(g, 1, same(g, list[i + 1])) : '<div style="width:74px;flex-shrink:0"></div>'}
@@ -4815,7 +4815,7 @@ function _showTop20(games, owner, mine, ranked) {
       const src = coverUrl(g);
       return `<div class="recap-pop" style="animation-delay:${Math.min(i * 0.045, 0.9).toFixed(2)}s;display:flex;align-items:center;gap:12px;background:${i < 3 ? 'linear-gradient(135deg,rgba(255,202,40,0.08),rgba(108,92,231,0.05))' : 'var(--s1)'};border:${i < 3 ? '1px solid rgba(255,202,40,0.25)' : '0.5px solid var(--border2)'};border-radius:14px;padding:9px 12px;margin-bottom:8px">
         <div style="width:30px;text-align:center;font-size:${i < 3 ? '20px' : '13px'};font-weight:800;color:var(--muted2);flex-shrink:0">${medal(i)}</div>
-        <div style="width:38px;height:52px;border-radius:8px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px">🎮</div>`}</div>
+        <div style="width:38px;height:52px;border-radius:8px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px">🎮</div>`}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:13.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
           ${g.status === 'platine' ? `<div style="font-size:10px;color:var(--amber);font-weight:700;margin-top:2px">🏆 100%</div>` : ''}
@@ -4968,7 +4968,7 @@ function openMonthlyRecap(key) {
         ${stat('🎭', r.topGenre ? _esc(r.topGenre) : '—', fr ? 'genre du mois' : 'genre of the month', 3)}
       </div>
       ${r.best ? `<div class="recap-pop" style="animation-delay:0.62s;background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:12px">
-        <div style="width:52px;height:70px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0">${bestSrc ? `<img src="${bestSrc}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">🎮</div>`}</div>
+        <div style="width:52px;height:70px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0">${bestSrc ? `<img src="${_attrUrl(bestSrc)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">🎮</div>`}</div>
         <div style="flex:1;min-width:0">
           <div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px">🏆 ${fr ? 'Jeu du mois' : 'Game of the month'}</div>
           <div style="font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(r.best.title)}</div>
@@ -5645,7 +5645,7 @@ function mapIgdbGame(g) {
     genreIds: (g.genres || []).map(x => x.id).filter(v => v != null),
     steamId,
     emoji: '🎮',
-    cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${imageId}.jpg` : null,
+    cover: imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${_igdbId(imageId)}.jpg` : null,
     imageId,
     meta: Math.round(g.aggregated_rating || g.rating || 0) || 0,
     category: (g.category ?? g.game_type ?? null),
@@ -5861,18 +5861,18 @@ function discCardHtml(g, ctx) {
     ? addedGames.find(a => a.id === g.id)?.status
     : (userGames[g.id]?.status || GAMES.find(x=>x.id===g.id)?.status);
   const btnLabel = added ? `✓ ${DISC_STATUS_LABELS[addedStatus]||t('added')}` : `+ ${t('social.add')}`;
-  const openAttr = ctx === 'lib' ? ` onclick="ldiscOpenDetail('${g.id}')" style="cursor:pointer"` : '';
+  const openAttr = ctx === 'lib' ? ` onclick="ldiscOpenDetail('${_jsId(g.id)}')" style="cursor:pointer"` : '';
   return `<div class="disc-card" id="disc-card-${ctx}-${g.id}">
     <div class="disc-cover"${openAttr}>
-      ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">` : ''}
+      ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none'">` : ''}
       <div class="disc-fallback">${initials}</div>
     </div>
     <div class="disc-body">
-      <div class="disc-title"${openAttr}>${g.title}</div>
+      <div class="disc-title"${openAttr}>${_esc(g.title)}</div>
       <div class="disc-meta">${meta}</div>
-      <button class="disc-add${added?' added':''}" id="disc-btn-${ctx}-${g.id}" onclick="discTogglePicker('${g.id}','${ctx}')">${btnLabel}</button>
+      <button class="disc-add${added?' added':''}" id="disc-btn-${ctx}-${g.id}" onclick="discTogglePicker('${_jsId(g.id)}','${ctx}')">${btnLabel}</button>
       <div class="disc-picker" id="disc-picker-${ctx}-${g.id}" style="display:none">
-        ${getDiscStatuses().map(([s,l]) => `<button class="disc-pick" onclick="discPick('${g.id}','${s}','${ctx}')">${l}</button>`).join('')}
+        ${getDiscStatuses().map(([s,l]) => `<button class="disc-pick" onclick="discPick('${_jsId(g.id)}','${s}','${ctx}')">${l}</button>`).join('')}
       </div>
     </div>
   </div>`;
@@ -6208,10 +6208,18 @@ function mockSearch(query) {
 
 function coverUrl(g) {
   if (!g) return null; // collection vide, entrée manquante… → pas de cover
-  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${g.imageId}.jpg`;
-  if (g.cover?.startsWith('https://images.igdb.com')) return g.cover;
-  if (g.steamId && g.steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`;
-  if (g.cover) return g.cover;
+  // Les jeux d'autres joueurs (collections, tier lists, bibliothèques d'amis) viennent
+  // de la base : on ne fabrique une URL qu'avec des valeurs au format attendu.
+  const imageId = String(g.imageId || '').replace(/[^A-Za-z0-9_-]/g, '');
+  if (imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big_2x/${_igdbId(imageId)}.jpg`;
+  const rawCover = String(g.cover || '').trim().replace(/^\/\//, 'https://').replace(/^http:\/\//, 'https://');
+  const cover = _safeUrl(rawCover);
+  if (cover.startsWith('https://images.igdb.com')) return cover;
+  const steamId = parseInt(g.steamId, 10);
+  if (steamId > 0) return `https://cdn.cloudflare.steamstatic.com/steam/apps/${steamId}/header.jpg`;
+  if (cover) return cover;
+  // blob: (aperçu local d'une capture pas encore envoyée)
+  if (typeof g.cover === 'string' && /^blob:https?:\/\/[^\s"'<>]+$/.test(g.cover)) return g.cover;
   return null;
 }
 
@@ -6884,11 +6892,11 @@ async function searchGames(q) {
       return `<div class="result-item ${isAdded?'added':''}" id="ri-${g.id}">
         <div class="result-cover" style="background:var(--s3)">
           ${src
-            ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:6px">`
+            ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:6px">`
             : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         </div>
-        <div class="result-info"><div class="result-title">${g.title}</div><div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>${renderPlatforms(g.platforms)}</div>
-        <button class="result-add" onclick="showObStatusPicker('${g.id}')">${isAdded?'\u2713':'+'}</button>
+        <div class="result-info"><div class="result-title">${_esc(g.title)}</div><div class="result-meta">${_esc(g.genre)}${g.year?' · '+g.year:''}</div>${renderPlatforms(g.platforms)}</div>
+        <button class="result-add" onclick="showObStatusPicker('${_jsId(g.id)}')">${isAdded?'\u2713':'+'}</button>
       </div>`;
     }).join('');
   }, 300);
@@ -6916,7 +6924,7 @@ function updateAddedChips() {
     const c = OB_STATUS_COLORS[s] || OB_STATUS_COLORS['backlog'];
     const icon = OB_STATUS_ICONS[s] || '📋';
     const safeG = JSON.stringify(g).replace(/"/g,'&quot;');
-    return `<div class="added-chip" style="background:${c.bg};border-color:${c.border};color:${c.color}">${icon} ${g.title}<button class="chip-remove" style="color:${c.color}" onclick="toggleGame(${safeG})">×</button></div>`;
+    return `<div class="added-chip" style="background:${c.bg};border-color:${c.border};color:${c.color}">${icon} ${_esc(g.title)}<button class="chip-remove" style="color:${c.color}" onclick="toggleGame(${safeG})">×</button></div>`;
   }).join('');
   const n = addedGames.length;
   const addedCountEl = document.getElementById('added-count');
@@ -6958,7 +6966,7 @@ function showObStatusPicker(id) {
   picker.innerHTML = options.map(([s,l,disabled]) =>
     disabled
       ? `<button class="ob-pick-btn" style="opacity:0.35;cursor:default" disabled>${l}</button>`
-      : `<button class="ob-pick-btn" onclick="addWithObStatus('${id}','${s}')">${l}</button>`
+      : `<button class="ob-pick-btn" onclick="addWithObStatus('${_jsId(id)}','${s}')">${l}</button>`
   ).join('');
   item.querySelector('.result-info').appendChild(picker);
 }
@@ -6993,10 +7001,10 @@ async function renderTrending() {
     const desc = [g.genre, g.year||''].filter(Boolean).join(' · ');
     return `<div class="result-item" id="tr-${g.id}" style="align-items:center;padding:10px 12px;gap:12px">
       <div style="width:80px;height:45px;border-radius:8px;flex-shrink:0;overflow:hidden;background:var(--s3);display:flex;align-items:center;justify-content:center">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : ''}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" crossorigin="anonymous" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : ''}
       </div>
       <div class="result-info" style="flex:1;min-width:0">
-        <div class="result-title" style="font-size:13px;font-weight:500;margin-bottom:3px">${g.title}</div>
+        <div class="result-title" style="font-size:13px;font-weight:500;margin-bottom:3px">${_esc(g.title)}</div>
         <div class="result-meta" style="font-size:11px;color:var(--muted2)">${desc}</div>
       </div>
       <button class="result-add" onclick="toggleTrending(${safeG},this)" style="flex-shrink:0">+</button>
@@ -7012,7 +7020,7 @@ function buildSuccessPreview() {
   const games = addedGames.length>0?addedGames.slice(0,4):MOCK_DB.filter(g=>g.steamId).slice(0,4);
   document.getElementById('success-preview').innerHTML = games.map(g=>{
     const src=g.steamId?`https://cdn.cloudflare.steamstatic.com/steam/apps/${g.steamId}/header.jpg`:null;
-    return `<div class="preview-cover">${src?`<img src="${src}" onerror="this.style.display='none';this.textContent='${g.emoji}'">`:`${g.emoji}`}</div>`;
+    return `<div class="preview-cover">${src?`<img src="${_attrUrl(src)}" onerror="this.style.display='none';this.textContent='${_esc(g.emoji)}'">`:`${_esc(g.emoji)}`}</div>`;
   }).join('');
 }
 
@@ -7109,7 +7117,29 @@ const GAMES = [];
 let userGames = {};
 GAMES.forEach(g=>{ userGames[g.id]={status:g.status,score:g.score,notes:g.notes||'',hours:g.hours||0}; });
 
-function _esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function _esc(s) { return String(s === 0 ? '0' : (s || '')).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+// ── Données venant d'autres joueurs : filtres stricts pour ce qui finit dans un
+// attribut (src, style) ou dans un appel onclick('…'), où l'échappement HTML ne suffit pas.
+// Identifiant utilisable dans onclick="f('…')" : lettres, chiffres, _ : . -
+function _jsId(x) { return String(x === 0 ? '0' : (x || '')).replace(/[^A-Za-z0-9_:.-]/g, ''); }
+// URL d'image : https, ou image encodée en base64 (photos de profil envoyées depuis
+// l'app), sans aucun caractère capable de sortir de l'attribut
+function _safeUrl(u) {
+  const v = String(u || '').trim();
+  if (/^https:\/\/[^\s"'<>`\\]+$/.test(v)) return v;
+  if (/^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(v)) return v;
+  return '';
+}
+// Valeur d'un attribut src : refuse tout caractère capable de sortir de l'attribut
+// (accepte aussi blob:, data: et chemins relatifs, utilisés pour les aperçus locaux)
+function _attrUrl(u) { const v = String(u || ''); return /["'<>`\s\\]/.test(v) ? '' : v; }
+// Identifiant d'image IGDB (ex. co1r7f)
+function _igdbId(x) { return String(x || '').replace(/[^A-Za-z0-9_-]/g, ''); }
+// Dégradé d'avatar : uniquement un *-gradient(...) fait de couleurs et de pourcentages
+function _safeGrad(g, fallback = 'linear-gradient(135deg,#6c5ce7,#fd79a8)') {
+  const v = String(g || '').trim();
+  return /^(linear|radial|conic)-gradient\([#0-9A-Za-z,.%\s()-]*\)$/.test(v) && !/url\s*\(/i.test(v) ? v : fallback;
+}
 let _authInProgress = false;
 let _pendingInterval = null;
 let _rvTimer = null;
@@ -7148,15 +7178,15 @@ function renderProfileCollections() {
   el.innerHTML = ordered.slice(0, PROFILE_COL_MAX).map(c => {
     const src = coverUrl((c.games||[])[0]);
     const pinned = _isPinned('col', c.id);
-    return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="openUserCollection('${_jsId(c.id)}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:110px;border-radius:12px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="height:65px;background:var(--s3);position:relative;display:flex;align-items:center;justify-content:center">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:22px">${c.emoji||'📚'}</span>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:22px">${_esc(c.emoji||'📚')}</span>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%)"></div>
-        <div style="position:absolute;bottom:4px;left:6px;font-size:14px">${c.emoji||'📚'}</div>
+        <div style="position:absolute;bottom:4px;left:6px;font-size:14px">${_esc(c.emoji||'📚')}</div>
         ${pinned ? '<div style="position:absolute;top:4px;right:4px;font-size:11px">📌</div>' : ((c.vibes||[]).length ? '<div style="position:absolute;top:4px;right:4px;background:rgba(108,92,231,0.85);border-radius:6px;padding:1px 5px;font-size:9px;font-weight:800;color:#fff">✨</div>' : '')}
       </div>
       <div style="padding:6px 8px 8px">
-        <div style="font-size:11px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+        <div style="font-size:11px;font-weight:700;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(c.name)}</div>
         <div style="font-size:9px;color:var(--muted2);margin-top:2px">${(c.games||[]).length} jeu${(c.games||[]).length!==1?'x':''}</div>
       </div>
     </div>`;
@@ -7462,7 +7492,7 @@ function _renderXpModal() {
       const checkBadge = done ? '<div style="position:absolute;top:7px;right:8px;font-size:10px;color:rgba(108,92,231,0.8)">✓</div>' : '';
       return `<div style="position:relative;padding:11px 10px;border-radius:14px;background:${done?'linear-gradient(135deg,rgba(108,92,231,0.14),rgba(253,121,168,0.07))':'var(--s2)'};border:${done?'1px solid rgba(108,92,231,0.3)':'0.5px solid var(--border2)'};display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px">
         ${checkBadge}
-        <div style="font-size:26px;${done?'':'filter:grayscale(1);opacity:0.2'}">${a.emoji}</div>
+        <div style="font-size:26px;${done?'':'filter:grayscale(1);opacity:0.2'}">${_esc(a.emoji)}</div>
         <div style="font-size:11px;font-weight:700;color:${done?'var(--text)':'var(--muted2)'};line-height:1.2">${atitle}</div>
         <div style="font-size:9px;color:var(--muted2);line-height:1.3;opacity:${done?0.7:0.5}">${adesc}</div>
         ${xpBadge}
@@ -7699,8 +7729,8 @@ function _renderTourSlide(isFirst) {
   const total = TOUR_SLIDES.length;
   if (s.onEnter) s.onEnter();
   document.getElementById('tour-slide').innerHTML = `
-    <div style="font-size:52px;margin-bottom:14px;line-height:1">${s.emoji}</div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:8px;color:var(--text)">${s.title}</div>
+    <div style="font-size:52px;margin-bottom:14px;line-height:1">${_esc(s.emoji)}</div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:800;margin-bottom:8px;color:var(--text)">${_esc(s.title)}</div>
     <div style="font-size:13px;color:var(--muted2);line-height:1.6;max-width:280px">${s.desc}</div>`;
   document.getElementById('tour-dots').innerHTML = Array.from({length:total}, (_,i) =>
     `<div style="width:${i===_tourStep?20:6}px;height:6px;border-radius:3px;background:${i===_tourStep?'var(--a)':'var(--border2)'};transition:all 0.25s"></div>`
@@ -7988,7 +8018,7 @@ async function renderFriendGameReviews(gameId) {
       .map(v => `<span style="font-size:10px;padding:2px 7px;border-radius:12px;background:rgba(108,92,231,0.12);color:var(--a);border:0.5px solid rgba(108,92,231,0.25)">${t('vibe.' + v.key)}</span>`).join('');
     const hLabel = _hoursLabel(r.hours);
     const notes = (r.notes || '').trim();
-    return `<div onclick="openFriendProfile('${r.user_id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="openFriendProfile('${_jsId(r.user_id)}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:${(vibeChips || notes) ? '8px' : '0'}">
         ${_friendAvHtml(f, 34)}
         <div style="flex:1;min-width:0">
@@ -8031,7 +8061,7 @@ function updateHoursRank(val) {
   const h = parseInt(val) || 0;
   const rank = hoursRank(h);
   if (rank) {
-    el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--a)">${rank.emoji} ${rank.label}</span>`;
+    el.innerHTML = `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;color:var(--a)">${_esc(rank.emoji)} ${rank.label}</span>`;
     el.style.display = 'block';
   } else {
     el.style.display = 'none';
@@ -8221,7 +8251,7 @@ function renderDetailPlatforms(g) {
     const bg = active ? (PLAT_COLORS[p] || 'var(--a)') : 'var(--s2)';
     const border = active ? (PLAT_COLORS[p] || 'var(--a)') : 'var(--border2)';
     const textColor = active ? '#fff' : 'var(--muted2)';
-    return `<span onclick="selectPlayedPlatform('${g.id}','${p}')"
+    return `<span onclick="selectPlayedPlatform('${_jsId(g.id)}','${p}')"
       style="background:${bg};border:1.5px solid ${border};border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;color:${textColor};cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px"
       ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       ${active ? '<span style="font-size:10px">✓</span>' : ''} ${PLAT_LABELS[p] || p}
@@ -8663,7 +8693,7 @@ function addMedia(gameId, item) {
 function _shotBadgeHtml(gameId, count, where) {
   const big = where === 'detail';
   const label = big ? ` ${count} ${count > 1 ? (_lang === 'en' ? 'screenshots' : 'captures') : (_lang === 'en' ? 'screenshot' : 'capture')}` : (count > 1 ? ` ${count}` : '');
-  return `<div onclick="event.stopPropagation();openLibShotsFor('${gameId}')" title="${_lang === 'en' ? 'See screenshots' : 'Voir les captures'}"
+  return `<div onclick="event.stopPropagation();openLibShotsFor('${_jsId(gameId)}')" title="${_lang === 'en' ? 'See screenshots' : 'Voir les captures'}"
     style="${big ? '' : 'position:absolute;bottom:3px;right:3px;'}display:flex;align-items:center;gap:${big ? 6 : 2}px;cursor:pointer;
     background:rgba(8,8,16,0.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:0.5px solid rgba(255,255,255,0.28);
     border-radius:${big ? 20 : 8}px;padding:${big ? '7px 12px' : '2px 5px'};font-size:${big ? 13 : 10}px;font-weight:700;color:#fff;line-height:1;white-space:nowrap">
@@ -8695,9 +8725,9 @@ function renderMediaGrid(gameId) {
   if (!grid) return;
   const items = gameMedia[gameId] || [];
   grid.innerHTML = items.map((m, i) => `
-    <div style="position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--s3);cursor:pointer" onclick="openLightbox('${gameId}',${i})">
-      <img src="${m.url}" style="width:100%;height:100%;object-fit:cover">
-      <button onclick="event.stopPropagation();removeMedia('${gameId}',${i})" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+    <div style="position:relative;aspect-ratio:16/9;border-radius:8px;overflow:hidden;background:var(--s3);cursor:pointer" onclick="openLightbox('${_jsId(gameId)}',${i})">
+      <img src="${_attrUrl(m.url)}" style="width:100%;height:100%;object-fit:cover">
+      <button onclick="event.stopPropagation();removeMedia('${_jsId(gameId)}',${i})" style="position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.6);border:none;color:white;cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
     </div>`).join('');
 }
 
@@ -8778,24 +8808,24 @@ function renderLibShots() {
     const open = _libShotsOpen.has(gr.id);
     const isUns = gr.kind === 'uns';
     const cover = gr.cover
-      ? `<img src="${gr.cover}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+      ? `<img src="${_attrUrl(gr.cover)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
       : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>`;
     const shots = isUns
       ? _unassignedShots.map((sh, i) => `
         <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--s3);cursor:pointer;border:1.5px dashed rgba(108,92,231,0.5)" onclick="openProfileLightbox(${i})">
-          <img src="${sh.url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
+          <img src="${_attrUrl(sh.url)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
           <div onclick="event.stopPropagation();openAssignShotPicker(${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
         </div>`).join('')
       : (gameMedia[gr.id] || []).map((m, i) => `
-        <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--s3);cursor:pointer" onclick="openLightbox('${gr.id}',${i})">
-          <img src="${m.url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
-          <div onclick="event.stopPropagation();openManageShot('${gr.id}',${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
+        <div style="position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;background:var(--s3);cursor:pointer" onclick="openLightbox('${_jsId(gr.id)}',${i})">
+          <img src="${_attrUrl(m.url)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2">
+          <div onclick="event.stopPropagation();openManageShot('${_jsId(gr.id)}',${i})" style="position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:11px">✏️</div>
         </div>`).join('');
     return `<div id="lib-acc-${gr.id}" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;margin-bottom:10px;overflow:hidden;scroll-margin-top:8px">
-      <div onclick="_libShotsToggle('${gr.id}')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer">
+      <div onclick="_libShotsToggle('${_jsId(gr.id)}')" style="display:flex;align-items:center;gap:12px;padding:10px 12px;cursor:pointer">
         <div style="width:40px;height:40px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0;${isUns ? 'border:1.5px dashed rgba(108,92,231,0.5)' : ''}">${cover}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap${isUns ? ';color:var(--a)' : ''}">${isUns ? gr.emoji + ' ' : ''}${_esc(gr.title)}</div>
+          <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap${isUns ? ';color:var(--a)' : ''}">${_esc(isUns ? gr.emoji + ' ' : '')}${_esc(gr.title)}</div>
           <div style="font-size:11px;color:var(--muted2);margin-top:1px">${gr.count} ${gr.count > 1 ? (_lang === 'en' ? 'screenshots' : 'captures') : (_lang === 'en' ? 'screenshot' : 'capture')}</div>
         </div>
         <div id="lib-acc-chev-${gr.id}" style="color:var(--muted2);flex-shrink:0;transition:transform 0.25s ease;transform:rotate(${open ? 90 : 0}deg)">
@@ -8968,7 +8998,7 @@ function openShotEditor(ref) {
     : (fr ? 'Assigne-la à un jeu, ou supprime-la' : 'Assign it to a game, or delete it');
   document.getElementById('psp-game-list').innerHTML = `
     <div style="display:flex;align-items:center;gap:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:12px;margin-bottom:14px">
-      <img src="${shot.url}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0">
+      <img src="${_attrUrl(shot.url)}" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0">
       <div style="flex:1;min-width:0">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${fr ? 'Jeu actuel' : 'Current game'}</div>
         <div style="font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${curGame ? 'var(--text)' : 'var(--a)'}">${curGame ? _esc(curGame.title) : (fr ? '📌 À trier' : '📌 To sort')}</div>
@@ -9025,9 +9055,9 @@ function _renderShotEdList() {
     const src = coverUrl(g);
     const isCur = g.id === curId;
     const shots = (gameMedia[g.id] || []).length;
-    return `<div onclick="selectPspGame('${g.id}')" style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:0.5px solid var(--border);cursor:pointer${isCur ? ';opacity:0.4;pointer-events:none' : ''}" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
+    return `<div onclick="selectPspGame('${_jsId(g.id)}')" style="display:flex;align-items:center;gap:12px;padding:9px 4px;border-bottom:0.5px solid var(--border);cursor:pointer${isCur ? ';opacity:0.4;pointer-events:none' : ''}" ontouchstart="this.style.opacity=.6" ontouchend="this.style.opacity=1">
       <div style="width:34px;height:46px;border-radius:6px;background:var(--s3);flex-shrink:0;overflow:hidden">
-        ${src ? `<img src="${src}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>'}
+        ${src ? `<img src="${_attrUrl(src)}" style="width:100%;height:100%;object-fit:cover">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>'}
       </div>
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
@@ -9140,10 +9170,10 @@ function _upcCardHtml(g, fr, extra) {
   const days = Math.ceil((d - Date.now()) / 86400000);
   const dateStr = d.toLocaleDateString(fr ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' }) + (d.getFullYear() > new Date().getFullYear() ? ' ' + d.getFullYear() : '');
   const chip = days <= 7 ? (fr ? `🔥 dans ${days}j` : `🔥 in ${days}d`) : (days <= 60 ? (fr ? `dans ${days}j` : `in ${days}d`) : dateStr);
-  const src = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg` : null;
+  const src = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.imageId)}.jpg` : null;
   return `<div onclick="${g.onclick}" style="flex-shrink:0;width:104px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
     <div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);margin-bottom:5px">
-      ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">🎮</div>`}
+      ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px">🎮</div>`}
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.75) 0%,transparent 45%)"></div>
       ${extra || ''}
       <div style="position:absolute;bottom:5px;left:5px;right:5px;background:${days <= 7 ? 'rgba(255,159,67,0.95)' : 'rgba(108,92,231,0.92)'};border-radius:7px;padding:2px 6px;font-size:9px;font-weight:800;color:#fff;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${chip}</div>
@@ -9306,12 +9336,12 @@ function renderProfileTierLists() {
     const pinned = _isPinned('tl', tl.id);
     return `<div style="background:var(--s1);border:0.5px solid ${pinned ? 'rgba(108,92,231,0.45)' : 'var(--border2)'};border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pinned ? '📌 ' : ''}${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${tl.name||'Tier List'}</div>
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${pinned ? '📌 ' : ''}${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${_esc(tl.name||'Tier List')}</div>
         <div style="font-size:11px;color:var(--muted2);margin-top:2px">${count} · ${date}</div>
       </div>
-      <button onclick="togglePinTierlist(event,'${tl.id}')" title="${pinned ? (fr ? 'Désépingler' : 'Unpin') : (fr ? 'Épingler' : 'Pin')}" style="background:${pinned ? 'var(--a)' : 'var(--s2)'};border:0.5px solid ${pinned ? 'var(--a)' : 'var(--border2)'};border-radius:10px;padding:7px 9px;font-size:13px;cursor:pointer;flex-shrink:0">📌</button>
-      <button onclick="editTierList('${tl.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;flex-shrink:0">✏️</button>
-      <button onclick="deleteSavedTierList('${tl.id}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px;flex-shrink:0">🗑️</button>
+      <button onclick="togglePinTierlist(event,'${_jsId(tl.id)}')" title="${pinned ? (fr ? 'Désépingler' : 'Unpin') : (fr ? 'Épingler' : 'Pin')}" style="background:${pinned ? 'var(--a)' : 'var(--s2)'};border:0.5px solid ${pinned ? 'var(--a)' : 'var(--border2)'};border-radius:10px;padding:7px 9px;font-size:13px;cursor:pointer;flex-shrink:0">📌</button>
+      <button onclick="editTierList('${_jsId(tl.id)}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;flex-shrink:0">✏️</button>
+      <button onclick="deleteSavedTierList('${_jsId(tl.id)}')" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--muted);padding:4px;flex-shrink:0">🗑️</button>
     </div>`;
   }).join('')
   + ((hidden > 0 || _tlProfileExpanded) ? `<div onclick="_tlProfileExpanded=!_tlProfileExpanded;renderProfileTierLists()" style="text-align:center;padding:9px;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;font-size:12px;font-weight:600;color:var(--a);cursor:pointer">${
@@ -9436,12 +9466,12 @@ function renderProfileStats() {
       const vibeChips = vibeKeys.map(k => VIBES.find(v => v.key === k)).filter(Boolean)
         .map(v => `<span style="font-size:9px;padding:1px 5px;border-radius:8px;background:rgba(0,0,0,0.55);color:#fff;white-space:nowrap">${t('vibe.'+v.key)}</span>`).join('');
       const numColor = i === 0 ? 'var(--amber)' : i === 1 ? '#b0bec5' : i === 2 ? '#cd7f32' : 'rgba(255,255,255,0.5)';
-      return `<div onclick="openDetail('${g.id}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
+      return `<div onclick="openDetail('${_jsId(g.id)}')" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
         <div style="position:absolute;top:6px;left:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:800;color:${numColor};background:rgba(0,0,0,0.55);border:0.5px solid rgba(255,255,255,0.12);backdrop-filter:blur(4px);padding:2px 6px;border-radius:8px">#${i+1}</div>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:6px 7px">
-          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;margin-bottom:3px">${g.title}</div>
+          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;margin-bottom:3px">${_esc(g.title)}</div>
           ${g.score > 0 ? `<div style="font-size:9px;color:var(--amber);margin-bottom:${vibeChips?'3px':'0'}">★ ${g.score}/10</div>` : ''}
           ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:2px">${vibeChips}</div>` : ''}
         </div>
@@ -9472,12 +9502,12 @@ function renderProfileStats() {
       const score  = g.score > 0 ? `<span style="color:var(--amber)"> · ★ ${g.score}/10</span>` : '';
       const src = coverUrl(g);
       const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-      return `<div class="feed-item" onclick="openDetail('${g.id}')">
+      return `<div class="feed-item" onclick="openDetail('${_jsId(g.id)}')">
         <div style="width:36px;height:36px;border-radius:8px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
-          ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+          ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         </div>
         <div class="feed-content">
-          <div class="feed-name" style="font-size:12px">${t('friend.self')} ${action} <strong>${g.title}</strong>${score}</div>
+          <div class="feed-name" style="font-size:12px">${t('friend.self')} ${action} <strong>${_esc(g.title)}</strong>${score}</div>
         </div>
       </div>`;
     }).join('');
@@ -9493,7 +9523,7 @@ function renderProfileStats() {
     const unassignedHtml = _unassignedShots.map((sh, i) => `
       <div style="cursor:pointer" onclick="openProfileLightbox(${i})">
         <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px;border:1.5px dashed rgba(108,92,231,0.55)">
-          <img src="${sh.url}" style="width:100%;height:100%;object-fit:cover">
+          <img src="${_attrUrl(sh.url)}" style="width:100%;height:100%;object-fit:cover">
           <div style="position:absolute;bottom:3px;left:3px;background:rgba(108,92,231,0.92);border-radius:6px;padding:1px 6px;font-size:8px;font-weight:800;color:#fff">📌 ${_lang === 'en' ? 'to sort' : 'à trier'}</div>
           <div onclick="event.stopPropagation();openAssignShotPicker(${i})" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">✏️</div>
         </div>
@@ -9507,7 +9537,7 @@ function renderProfileStats() {
       profileMedia.innerHTML = `<div onclick="toggleShotsGallery()" style="display:flex;align-items:center;gap:16px;cursor:pointer;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px" ontouchstart="this.style.opacity=.8" ontouchend="this.style.opacity=1">
         <div style="position:relative;width:${52 + 64}px;height:74px;flex-shrink:0">
           ${stack.map((u, i) => `<div style="position:absolute;left:${offs[i]}px;top:${i * 2}px;width:60px;height:66px;border-radius:8px;overflow:hidden;transform:rotate(${rots[i]}deg);border:2px solid var(--s3);box-shadow:0 4px 12px rgba(0,0,0,0.45);z-index:${3 - i}">
-            <img src="${u}" style="width:100%;height:100%;object-fit:cover">
+            <img src="${_attrUrl(u)}" style="width:100%;height:100%;object-fit:cover">
           </div>`).join('')}
         </div>
         <div style="flex:1;min-width:0">
@@ -9529,8 +9559,8 @@ function renderProfileStats() {
         allMedia.map((m, idx) => `
           <div style="cursor:pointer" onclick="openProfileLightbox(${_unassignedShots.length} + ${idx})">
             <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);position:relative;margin-bottom:3px">
-              <img src="${m.url}" style="width:100%;height:100%;object-fit:cover">
-              <div onclick="event.stopPropagation();openManageShot('${m.gameId}',${m.gameIdx})" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">✏️</div>
+              <img src="${_attrUrl(m.url)}" style="width:100%;height:100%;object-fit:cover">
+              <div onclick="event.stopPropagation();openManageShot('${_jsId(m.gameId)}',${m.gameIdx})" style="position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">✏️</div>
             </div>
             <div style="font-size:9px;color:var(--muted2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 1px">${m.gameTitle}</div>
           </div>`).join('') + `</div>` +
@@ -9607,7 +9637,7 @@ function _trvGameCard(g, containerId) {
   const MAX = 100;
   const needsExpand = review.length > MAX;
   const short = needsExpand ? review.slice(0, MAX) + '…' : review;
-  const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${g.id}','${encodeURIComponent(review).replace(/'/g,'%27')}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
+  const notesHtml = review ? `<div id="trv-notes-${g.id}" style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5">${short}</div>${needsExpand ? `<button onclick="event.stopPropagation();expandTrv('${_jsId(g.id)}','${encodeURIComponent(review).replace(/'/g,'%27')}')" style="background:none;border:none;font-size:10px;color:var(--a);font-weight:600;cursor:pointer;padding:2px 0;margin-top:1px">Voir plus ›</button>` : ''}` : '';
   const scoreStr = g.score % 1 ? g.score + '/10' : Math.round(g.score) + '/10';
   const accentColor = g.score >= 8 ? 'var(--amber)' : g.score >= 6 ? 'rgba(108,92,231,0.6)' : 'var(--border2)';
   const clickFn = containerId.startsWith('fp-') ? `openFriendGamePopup` : `openDetail`;
@@ -9615,10 +9645,10 @@ function _trvGameCard(g, containerId) {
   const onclickAttr = containerId.startsWith('fp-') ? `openFriendGamePopup(${typeof _fpAllGames !== 'undefined' ? _fpAllGames.findIndex(x=>String(x.id||x.game_id||'')===String(g.id||'')) : -1})` : `openDetail('${g.id}')`;
   return `<div onclick="${onclickAttr}" style="display:flex;gap:12px;padding:12px;background:var(--s2);border-radius:14px;margin-bottom:8px;border:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s;position:relative;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
     <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${accentColor};border-radius:14px 0 0 14px"></div>
-    ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:48px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-left:4px">` : `<div style="width:48px;height:66px;border-radius:8px;background:var(--s3);flex-shrink:0;margin-left:4px;display:flex;align-items:center;justify-content:center;font-size:20px">${(g.title||'?')[0]}</div>`}
+    ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:48px;height:66px;object-fit:cover;border-radius:8px;flex-shrink:0;margin-left:4px">` : `<div style="width:48px;height:66px;border-radius:8px;background:var(--s3);flex-shrink:0;margin-left:4px;display:flex;align-items:center;justify-content:center;font-size:20px">${_esc((g.title||'?')[0])}</div>`}
     <div style="flex:1;min-width:0">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(g.title)}</div>
         <div style="flex-shrink:0;background:rgba(255,195,0,0.15);border:0.5px solid rgba(255,195,0,0.3);border-radius:8px;padding:2px 7px;font-size:11px;font-weight:700;color:var(--amber)">${scoreStr}</div>
       </div>
       ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${vibeChips}</div>` : ''}
@@ -9696,13 +9726,13 @@ function profileGameRow(g) {
   const ug = userGames[g.id]||g;
   const src = coverUrl(g);
   const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-  return `<div class="feed-item" onclick="openDetail('${g.id}');closeShelf()" style="cursor:pointer">
+  return `<div class="feed-item" onclick="openDetail('${_jsId(g.id)}');closeShelf()" style="cursor:pointer">
     <div style="width:44px;height:25px;border-radius:6px;background:var(--s3);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center">
-      ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:10px;font-weight:700;color:var(--muted)">${initials}</span>`}
+      ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<span style="font-size:10px;font-weight:700;color:var(--muted)">${initials}</span>`}
     </div>
     <div class="feed-content">
-      <div class="feed-name" style="font-size:13px">${g.title}</div>
-      <div style="font-size:11px;color:var(--muted2)">${g.genre||''}${ug.score>0?` · ★ ${ug.score}/10`:''}</div>
+      <div class="feed-name" style="font-size:13px">${_esc(g.title)}</div>
+      <div style="font-size:11px;color:var(--muted2)">${_esc(g.genre||'')}${ug.score>0?` · ★ ${ug.score}/10`:''}</div>
     </div>
   </div>`;
 }
@@ -9812,14 +9842,14 @@ function renderShelfGrid() {
     const clickAct = isFriend ? `openFriendGamePopup(${g._fpIdx});closeShelf()` : `openDetail('${g.id}');closeShelf()`;
     return `<div class="shelf-item" onclick="${clickAct}">
       <div class="shelf-cover">
-        ${src ? `<div class="shelf-cover-blur" style="background-image:url('${src}')"></div>` : ''}
+        ${src ? `<div class="shelf-cover-blur" style="background-image:url('${_attrUrl(src)}')"></div>` : ''}
         ${src
-          ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy">`
+          ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy">`
           : `<div class="shelf-cover-initials">${initials}</div>`}
         ${dot ? `<div class="shelf-status-dot" style="background:${dot}"></div>` : ''}
       </div>
-      ${src ? `<div class="shelf-reflection"><img src="${src}" referrerpolicy="no-referrer" loading="lazy"></div>` : '<div style="height:52px"></div>'}
-      <div class="shelf-name" style="font-size:11px;margin-top:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted2)">${g.title}</div>
+      ${src ? `<div class="shelf-reflection"><img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy"></div>` : '<div style="height:52px"></div>'}
+      <div class="shelf-name" style="font-size:11px;margin-top:6px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted2)">${_esc(g.title)}</div>
     </div>`;
   }).join('');
   if (typeof anime !== 'undefined') {
@@ -9890,14 +9920,14 @@ async function renderHomeRecos(refresh = false) {
     const btnBorder = inLib ? 'rgba(0,230,118,0.25)' : 'rgba(0,206,201,0.3)';
     const btnColor = inLib ? 'var(--green)' : 'var(--a3)';
     const btnLabel = inLib ? (isWish ? `✓ ${t('status.wish')}` : `✓ ${t('added')}`) : `✦ ${t('status.wish')}`;
-    return `<div class="now-card anim" style="cursor:pointer" onclick="recoOpenDetail('${g.id}')">
+    return `<div class="now-card anim" style="cursor:pointer" onclick="recoOpenDetail('${_jsId(g.id)}')">
       <div class="now-cover" style="background:var(--s3)">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
       </div>
       <div class="now-info" style="flex:1;min-width:0">
-        <div class="now-title">${g.title}</div>
-        <div class="now-sub">${g.genre}${g.year?' · '+g.year:''}</div>
-        <button id="reco-btn-${g.id}" onclick="recoWishToggle('${g.id}')" style="margin-top:6px;width:100%;background:${btnBg};border:0.5px solid ${btnBorder};border-radius:8px;padding:4px 8px;font-size:11px;font-weight:600;color:${btnColor};cursor:pointer">${btnLabel}</button>
+        <div class="now-title">${_esc(g.title)}</div>
+        <div class="now-sub">${_esc(g.genre)}${g.year?' · '+g.year:''}</div>
+        <button id="reco-btn-${g.id}" onclick="recoWishToggle('${_jsId(g.id)}')" style="margin-top:6px;width:100%;background:${btnBg};border:0.5px solid ${btnBorder};border-radius:8px;padding:4px 8px;font-size:11px;font-weight:600;color:${btnColor};cursor:pointer">${btnLabel}</button>
       </div>
     </div>`;
   }).join('');
@@ -9961,20 +9991,20 @@ function renderGameGrid(games=GAMES){
     const cell=document.createElement('div'); cell.className='game-cell'+(isPlaying(ug.status)?' cell-playing':'')+(ug.status==='platine'?' cell-platine':'')+(ug.status==='finished'?' cell-finished':''); cell.dataset.id=g.id; cell.onclick=()=>openDetail(g.id);
     cell.innerHTML=`<div class="game-cover" style="background:var(--s3);position:relative">
       ${src
-        ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
+        ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`
         : `<span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</span>`}
-      <button onclick="event.stopPropagation();removeGame('${g.id}')" data-remove="${g.id}" title="Retirer"
+      <button onclick="event.stopPropagation();removeGame('${_jsId(g.id)}')" data-remove="${g.id}" title="Retirer"
         style="position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.65);border:none;color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;"
         class="remove-game-btn">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="game-info">
-      <div class="game-title">${g.title}</div>
+      <div class="game-title">${_esc(g.title)}</div>
       <div class="game-bottom"><span class="status-badge ${badge}">${label}</span>${ug.score>0?`<span class="score-mini">★ ${ug.score}</span>`:''}</div>
       <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap">
         ${ug.platform?`<span style="font-size:9px;font-weight:700;background:${PLAT_COLORS[ug.platform]||'var(--s3)'};color:#fff;border-radius:4px;padding:2px 6px">${ug.platform}</span>`:''}
-        ${(()=>{const _hr=hoursRank(ug.hours||g.hours);return _hr?`<span style="font-size:9px;font-weight:700;color:var(--a);opacity:0.85">${_hr.emoji}</span>`:''})()}
+        ${(()=>{const _hr=hoursRank(ug.hours||g.hours);return _hr?`<span style="font-size:9px;font-weight:700;color:var(--a);opacity:0.85">${_esc(_hr.emoji)}</span>`:''})()}
         ${isOnGamePass(g.title)?`<span class="gp-badge">GAME PASS</span>`:''}
       </div>
       ${quickActionBtn(g.id, ug.status)}
@@ -10010,22 +10040,22 @@ function renderGameGrid(games=GAMES){
 
 function quickActionBtn(id, status) {
   if (status === 'wish')
-    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
+    return `<button onclick="event.stopPropagation();quickStatusChange('${_jsId(id)}','backlog')"
       style="margin-top:6px;width:100%;background:rgba(0,206,201,0.12);border:0.5px solid rgba(0,206,201,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a3);cursor:pointer;">${t('profile.quick_bought')}</button>`;
   if (status === 'backlog')
-    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','playing-solo')"
+    return `<button onclick="event.stopPropagation();quickStatusChange('${_jsId(id)}','playing-solo')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.12);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_play')}</button>`;
   // Jeu en cours / en pause : rangée d'actions rapides au lieu d'un bouton unique
   // (fini · 100% · pause · abandon) — l'action principale garde le texte, les
   // secondaires sont des icônes compactes pour tenir sur une carte étroite.
   const _qchip = (target, label, color, bg, border, grow, tip) =>
-    `<button onclick="event.stopPropagation();quickStatusChange('${id}','${target}')" title="${tip || ''}"
+    `<button onclick="event.stopPropagation();quickStatusChange('${_jsId(id)}','${target}')" title="${tip || ''}"
       style="${grow ? 'flex:1;min-width:0' : 'flex:0 0 auto;width:30px'};background:${bg};border:0.5px ${border};border-radius:8px;padding:5px 4px;font-size:10px;font-weight:600;color:${color};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</button>`;
   // Libellés à la première personne : on déclare une action (« J'ai fini ! »),
   // jamais un état. Deux lignes : action principale pleine largeur (lisible sur
   // mobile), icônes secondaires en bandeau égal dessous.
   const _qmain = (target, label, color, bg, border) =>
-    `<button onclick="event.stopPropagation();quickStatusChange('${id}','${target}')"
+    `<button onclick="event.stopPropagation();quickStatusChange('${_jsId(id)}','${target}')"
       style="width:100%;background:${bg};border:0.5px ${border};border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:${color};cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</button>`;
   if (status === 'playing-solo' || status === 'playing-multi')
     return `<div style="margin-top:6px">${
@@ -10043,7 +10073,7 @@ function quickActionBtn(id, status) {
       + _qchip('abandoned', '✕', 'var(--muted2)', 'var(--s2)', 'solid var(--border2)', true, _lang === 'en' ? 'I give up' : 'J\'abandonne')
     }</div></div>`;
   if (status === 'abandoned')
-    return `<button onclick="event.stopPropagation();quickStatusChange('${id}','backlog')"
+    return `<button onclick="event.stopPropagation();quickStatusChange('${_jsId(id)}','backlog')"
       style="margin-top:6px;width:100%;background:rgba(108,92,231,0.08);border:0.5px solid rgba(108,92,231,0.3);border-radius:8px;padding:5px 8px;font-size:10px;font-weight:600;color:var(--a);cursor:pointer;">${t('profile.quick_retry')}</button>`;
   return '';
 }
@@ -10082,14 +10112,14 @@ function renderFeed(){
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
     const media = (gameMedia[g.id]||[]);
     const hasMedia = media.length > 0;
-    return `<div class="now-card anim" onclick="openDetail('${g.id}')">
+    return `<div class="now-card anim" onclick="openDetail('${_jsId(g.id)}')">
       <div class="now-cover" style="background:var(--s3);position:relative">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         ${hasMedia ? _shotBadgeHtml(g.id, media.length, 'card') : ''}
       </div>
       <div class="now-info">
-        <div class="now-title">${g.title}</div>
-        <div class="now-sub">${g.genre}${ug.score > 0 ? ' · ★ '+ug.score+'/10'+(isPlaying(ug.status)?` <span style="color:var(--green);font-size:10px">${t('detail.score_temp')}</span>`:'') : ''}${ug.endless ? ' · <span style="color:var(--a2)">∞</span>' : ''}</div>
+        <div class="now-title">${_esc(g.title)}</div>
+        <div class="now-sub">${_esc(g.genre)}${ug.score > 0 ? ' · ★ '+ug.score+'/10'+(isPlaying(ug.status)?` <span style="color:var(--green);font-size:10px">${t('detail.score_temp')}</span>`:'') : ''}${ug.endless ? ' · <span style="color:var(--a2)">∞</span>' : ''}</div>
       </div>
     </div>`;
   }
@@ -10433,19 +10463,19 @@ async function addSingleGame(titleRaw, defaultStatus) {
     if (status !== 'backlog' && userGames[existing.id]) {
       userGames[existing.id].status = status;
       refreshViews();
-      return `<strong>${g.title}</strong> déjà en bibliothèque — statut mis à jour : ${status.replace('-',' ')}.`;
+      return `<strong>${_esc(g.title)}</strong> déjà en bibliothèque — statut mis à jour : ${status.replace('-',' ')}.`;
     }
-    return `<strong>${g.title}</strong> est déjà dans ta bibliothèque.`;
+    return `<strong>${_esc(g.title)}</strong> est déjà dans ta bibliothèque.`;
   }
   GAMES.push({...g, status, score:0, notes:'', hours:0});
   userGames[g.id] = {status, score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
   refreshViews();
   const src = coverUrl(g);
   const coverHtml = src
-    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
+    ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
     : '';
   const statusLabel = {backlog:'Backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
-  return `${coverHtml}<strong>${g.title}</strong> (${g.genre}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${g.id}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
+  return `${coverHtml}<strong>${_esc(g.title)}</strong> (${_esc(g.genre)}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${_jsId(g.id)}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
 }
 
 async function handleAddGame(games, defaultStatus) {
@@ -10863,7 +10893,7 @@ async function openNotifDrawer() {
         if (evts.length) actHtml = `
           <div class="ndr-sec" style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">📰 Fil d'actu</div>
           ${evts.map(e => `<div onclick="closeNotifDrawer();appGoTo('social')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer">
-            <span style="font-size:16px;flex-shrink:0">${e.emoji}</span>
+            <span style="font-size:16px;flex-shrink:0">${_esc(e.emoji)}</span>
             <div style="flex:1;min-width:0;font-size:12.5px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.txt}</div>
             <span style="font-size:11px;color:var(--muted);flex-shrink:0">${timeAgo(e.ts)}</span>
           </div>`).join('')}`;
@@ -10886,14 +10916,14 @@ async function openNotifDrawer() {
       ${rows.map(r => {
         const p = profileMap[r.requester_id] || {};
         return `<div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
-          <div style="width:44px;height:44px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+          <div style="width:44px;height:44px;border-radius:50%;background:${_safeGrad(p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)')};font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${_esc(p.avatar||'🎮')}</div>
           <div style="flex:1;min-width:0">
-            <div style="font-weight:700;font-size:14px">${p.username||'Gamer'}</div>
+            <div style="font-weight:700;font-size:14px">${_esc(p.username||'Gamer')}</div>
             <div style="font-size:11px;color:var(--muted2)">veut être ton ami</div>
           </div>
           <div style="display:flex;gap:6px">
-            <button onclick="acceptFriendFromNotif('${r.id}',this)" style="background:var(--a);border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">Accepter</button>
-            <button onclick="declineFriendFromNotif('${r.id}',this)" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
+            <button onclick="acceptFriendFromNotif('${_jsId(r.id)}',this)" style="background:var(--a);border:none;border-radius:10px;padding:8px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">Accepter</button>
+            <button onclick="declineFriendFromNotif('${_jsId(r.id)}',this)" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
           </div>
         </div>`;
       }).join('')}` : '';
@@ -11180,12 +11210,12 @@ function forceRelogin() {
 
 function _friendAvHtml(p, size) {
   const s = size || 44;
-  const grad = p.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
-  const av   = p.avatar || '🎮';
-  const url  = p.avatar_url || null;
+  const grad = _safeGrad(p.avatar_grad);
+  const av   = _esc(String(p.avatar || '🎮').slice(0, 16));
+  const url  = _safeUrl(p.avatar_url) || null;
   const base = `width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;overflow:hidden;`;
   const inner = url
-    ? `<div style="${base}background:${grad}"><img src="${url}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.parentElement.innerHTML='${av}';this.parentElement.style.background='${grad}';this.parentElement.style.display='flex';this.parentElement.style.alignItems='center';this.parentElement.style.justifyContent='center';this.parentElement.style.fontSize='${Math.round(s*0.45)}px'"></div>`
+    ? `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px"><img src="${_attrUrl(url)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" alt="${av}" onerror="this.replaceWith(document.createTextNode(this.alt))"></div>`
     : `<div style="${base}background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.45)}px">${av}</div>`;
   // Cadre de palier : uniquement si l'XP du joueur est connue et l'avatar assez grand
   const lvl = (p && p.xp !== undefined && p.xp !== null) ? getLevel(p.xp || 0).level : 0;
@@ -11219,11 +11249,11 @@ function renderSocialLeaderboard() {
     const grad = e.avatar_grad || 'linear-gradient(135deg,#6c5ce7,#fd79a8)';
     // _friendAvHtml → cadres de palier et aura Légende visibles dans le classement
     const av = _friendAvHtml(e, 36);
-    return `<div ${e.isMe ? '' : `onclick="openFriendProfile('${e.id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px${e.isMe ? '' : ';cursor:pointer;transition:opacity 0.15s'}">
+    return `<div ${e.isMe ? '' : `onclick="openFriendProfile('${_jsId(e.id)}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="${bg};${border};border-radius:14px;padding:10px 14px;display:flex;align-items:center;gap:10px${e.isMe ? '' : ';cursor:pointer;transition:opacity 0.15s'}">
       <div style="width:24px;text-align:center;font-size:${i<3?18:13}px;font-weight:700;flex-shrink:0${i>=3?';color:var(--muted2)':''}">${medal}</div>
       ${av}
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;font-weight:700;${e.isMe?'color:var(--a)':'color:var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${e.isMe?'⭐ '+e.username:e.username}</div>
+        <div style="font-size:13px;font-weight:700;${e.isMe?'color:var(--a)':'color:var(--text)'};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(e.isMe?'⭐ '+e.username:e.username)}</div>
         <div style="font-size:11px;color:var(--muted2)">${lvlTitle}</div>
       </div>
       <div style="font-size:13px;font-weight:800;font-family:'Space Grotesk',sans-serif;${e.isMe?'color:var(--a)':'color:var(--text);opacity:0.8'}">${e.xp||0} XP</div>
@@ -11296,11 +11326,11 @@ function renderSocialScreen(uid) {
       <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:8px">
         ${_friendAvHtml(r.profile||{},40)}
         <div style="flex:1;min-width:0">
-          <div style="font-weight:600;font-size:14px">${r.profile?.username||'Gamer'}</div>
+          <div style="font-weight:600;font-size:14px">${_esc(r.profile?.username||'Gamer')}</div>
           <div style="font-size:11px;color:var(--muted2)">${t('social.wants_friend')}</div>
         </div>
-        <button onclick="acceptFriend('${r.id}')" style="background:var(--a);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">${t('social.accept')}</button>
-        <button onclick="declineFriend('${r.id}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
+        <button onclick="acceptFriend('${_jsId(r.id)}')" style="background:var(--a);border:none;border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700;color:#fff;cursor:pointer">${t('social.accept')}</button>
+        <button onclick="declineFriend('${_jsId(r.id)}')" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:10px;padding:7px 10px;font-size:12px;color:var(--muted2);cursor:pointer">✕</button>
       </div>`).join('');
   } else {
     pendingEl.style.display = 'none';
@@ -11314,7 +11344,7 @@ function renderSocialScreen(uid) {
       const _fLvl = getLevel(p.xp || 0) || {};
       const _fLvlEmoji = (_fLvl.title_fr || '').split(' ')[0] || '🎮';
       return `
-      <div onclick="openFriendProfile('${p.id}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;width:70px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <div onclick="openFriendProfile('${_jsId(p.id)}')" style="display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;flex-shrink:0;width:70px;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="position:relative">
           <div style="padding:2.5px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--a2))">
             <div style="padding:2px;border-radius:50%;background:var(--bg);display:flex">
@@ -11323,7 +11353,7 @@ function renderSocialScreen(uid) {
           </div>
           <div style="position:absolute;bottom:0;right:0;background:var(--bg);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.4)">${_fLvlEmoji}</div>
         </div>
-        <div style="font-size:11px;font-weight:600;color:var(--text);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${p.username||'Gamer'}</div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center">${_esc(p.username||'Gamer')}</div>
         <div style="font-size:10px;color:var(--muted2);font-weight:600">${p.xp||0} XP</div>
       </div>`;
     }).join('') + `
@@ -11375,7 +11405,7 @@ async function renderSocialDiscover() {
     const mosaic  = covers.length
       ? covers.map((src, i) => `<img src="${_esc(src)}" referrerpolicy="no-referrer" style="position:absolute;top:0;left:${i * 33}%;width:34%;height:100%;object-fit:cover" onerror="this.style.display='none'">`).join('')
       : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px">🏆</div>`;
-    return `<div onclick="loadSharedTierList('${tl.id}', { fromApp: true })" style="flex-shrink:0;width:150px;border-radius:14px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="loadSharedTierList('${_jsId(tl.id)}', { fromApp: true })" style="flex-shrink:0;width:150px;border-radius:14px;overflow:hidden;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="position:relative;height:72px;background:var(--s3)">
         ${mosaic}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.6) 0%,transparent 65%)"></div>
@@ -11424,11 +11454,11 @@ async function searchUsers(q) {
   }
   resultsEl.style.display = 'block';
   resultsEl.innerHTML = data.map(p => `
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="sendFriendRequest('${p.id}', this)">
-      <div style="width:36px;height:36px;border-radius:50%;background:${p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'};font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${p.avatar||'🎮'}</div>
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:0.5px solid var(--border);cursor:pointer" onclick="sendFriendRequest('${_jsId(p.id)}', this)">
+      <div style="width:36px;height:36px;border-radius:50%;background:${_safeGrad(p.avatar_grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)')};font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0">${_esc(p.avatar||'🎮')}</div>
       <div style="flex:1">
-        <div style="font-size:13px;font-weight:600">${p.username||'Gamer'}</div>
-        <div style="font-size:11px;color:var(--muted2)">@${(p.username||'').toLowerCase().replace(/\s+/g,'')}</div>
+        <div style="font-size:13px;font-weight:600">${_esc(p.username||'Gamer')}</div>
+        <div style="font-size:11px;color:var(--muted2)">@${_esc((p.username||'').toLowerCase().replace(/\s+/g,''))}</div>
       </div>
       <span style="font-size:11px;color:var(--a);font-weight:600">+ ${t('social.add')}</span>
     </div>`).join('');
@@ -11473,12 +11503,16 @@ async function declineFriend(friendshipId) {
 }
 
 function _activityCoverCircle(steamId, grad, avatar, size, borderColor) {
+  // Valeurs issues des données d'autres joueurs : formats stricts avant insertion
+  steamId = parseInt(steamId, 10) || 0;
+  grad = _safeGrad(grad);
+  avatar = _esc(String(avatar || '').slice(0, 16));
   const coverUrl = steamId ? `https://cdn.akamai.steamstatic.com/steam/apps/${steamId}/library_600x900.jpg` : null;
   const s = size || 44;
   const border = borderColor || 'var(--a2)';
   if (coverUrl) {
     return `<div style="width:${s}px;height:${s}px;border-radius:50%;overflow:hidden;flex-shrink:0;border:2px solid ${border};background:${grad}">
-      <img src="${coverUrl}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px\\'>${avatar}</div>'">
+      <img src="${_attrUrl(coverUrl)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.innerHTML='<div style=\\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px\\'>${avatar}</div>'">
     </div>`;
   }
   return `<div style="width:${s}px;height:${s}px;border-radius:50%;flex-shrink:0;border:2px solid ${border};background:${grad};display:flex;align-items:center;justify-content:center;font-size:${Math.round(s*0.4)}px">${avatar}</div>`;
@@ -11494,9 +11528,9 @@ function _renderActivityItem(item, size=44, borderColor='var(--a2)', compact=fal
     const _qliked = _actLikes[_qk] ? true : false;
     const quizLikeBtn = compact ? '' : `<button onclick="event.stopPropagation();toggleLike('${_qk.replace(/'/g,"\\'")}',this)" style="background:none;border:none;font-size:12px;cursor:pointer;color:${_qliked?'var(--a2)':'var(--muted)'};padding:0;margin-top:4px">${_qliked?'❤️':'🤍'}${_qliked?' 1':''}</button>`;
     return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
-      <div style="width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;background:${item.grad};border:2px solid ${item.quizColor||borderColor};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px">${item.avatar}</div>
+      <div style="width:${size}px;height:${size}px;border-radius:50%;flex-shrink:0;background:${item.grad};border:2px solid ${item.quizColor||borderColor};display:flex;align-items:center;justify-content:center;font-size:${Math.round(size*0.38)}px">${_esc(item.avatar)}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:${compact?'12':'13'}px;line-height:1.45"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">a complété</span> ${quizBadge} <span style="color:var(--muted2)">·</span> ${rankBadge}</div>
+        <div style="font-size:${compact?'12':'13'}px;line-height:1.45"><span style="font-weight:600">${_esc(item.username)}</span> <span style="color:var(--muted2)">a complété</span> ${quizBadge} <span style="color:var(--muted2)">·</span> ${rankBadge}</div>
         ${challengeBtn ? `<div style="margin-top:5px">${challengeBtn}</div>` : ''}
         <div style="font-size:10px;color:var(--muted);margin-top:3px">${item.ago}</div>
         ${quizLikeBtn}
@@ -11509,7 +11543,7 @@ function _renderActivityItem(item, size=44, borderColor='var(--a2)', compact=fal
   return `<div style="display:flex;align-items:center;gap:10px;padding:${compact?'8':'10'}px 0;border-bottom:0.5px solid var(--border)">
     ${_activityCoverCircle(item.steamId, item.grad, item.avatar, size, borderColor)}
     <div style="flex:1;min-width:0">
-      <div style="font-size:${compact?'12':'13'}px;line-height:1.4"><span style="font-weight:600">${item.username}</span> <span style="color:var(--muted2)">${ACTION[item.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${item.title}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
+      <div style="font-size:${compact?'12':'13'}px;line-height:1.4"><span style="font-weight:600">${_esc(item.username)}</span> <span style="color:var(--muted2)">${ACTION[item.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${_esc(item.title)}</span>${item.score?` <span style="color:var(--amber)">★${item.score}</span>`:''}</div>
       ${!compact ? `<div style="font-size:11px;color:var(--muted);margin-top:2px">${item.ago}</div>` : ''}
       ${likeBtn}
     </div>
@@ -11551,7 +11585,7 @@ let _fpMyTitles = new Set();
 const FP_SL = new Proxy({}, { get: (_, s) => statusLabel(s) });
 
 function fpCoverSrc(g) {
-  if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
+  if (g.image_id) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.image_id)}.jpg`;
   if (g.steamId) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
   return null;
 }
@@ -11559,7 +11593,7 @@ function fpCover(g, w, h, r) {
   const src = fpCoverSrc(g);
   const fs = Math.round(w * 0.36);
   const st = `width:${w}px;height:${h}px;border-radius:${r||10}px;background:var(--s2);overflow:hidden;flex-shrink:0`;
-  if (src) return `<div style="${st}"><img src="${src}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="width:100%;height:100%;display:none;align-items:center;justify-content:center;font-size:${fs}px">🎮</div></div>`;
+  if (src) return `<div style="${st}"><img src="${_attrUrl(src)}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div style="width:100%;height:100%;display:none;align-items:center;justify-content:center;font-size:${fs}px">🎮</div></div>`;
   return `<div style="${st};display:flex;align-items:center;justify-content:center;font-size:${fs}px">🎮</div>`;
 }
 
@@ -11576,7 +11610,7 @@ function fpGameRow(idx) {
   return `<div onclick="openFriendGamePopup(${idx})" style="background:var(--s1);border:0.5px solid var(--border2);border-radius:14px;padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;margin-bottom:8px;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
     ${fpCover(g,44,56,8)}
     <div style="flex:1;min-width:0">
-      <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+      <div style="font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(g.title)}</div>
       <div style="font-size:12px;color:var(--muted2);margin-top:2px">${FP_SL[g.status]||g.status}${g.score?` · <span style="color:var(--amber);font-weight:700">★${g.score}</span>`:''}</div>
       ${mine ? `<div style="font-size:11px;color:var(--muted2);margin-top:1px">${t('friend.mine')} : ${FP_SL[mine.status]||''}${mine.score?` · <span style="color:var(--amber)">★${mine.score}</span>`:''}</div>` : ''}
       ${(platBadge || vibeChips) ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px">${platBadge}${vibeChips}</div>` : ''}
@@ -11593,7 +11627,7 @@ function fpCommonCard(idx) {
   const myScore = mine.score ? `<span style="color:var(--a);font-weight:700">★${mine.score}</span>` : mine.status ? `<span style="color:var(--muted2)">${FP_SL[mine.status]||''}</span>` : '';
   return `<div onclick="openFriendGamePopup(${idx})" style="flex-shrink:0;width:90px;cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
     ${fpCover(g, 90, 120, 10)}
-    <div style="margin-top:6px;font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    <div style="margin-top:6px;font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     <div style="font-size:10px;margin-top:2px;display:flex;gap:5px;flex-wrap:wrap">${friendScore}${myScore ? `<span style="color:var(--border2)">·</span>${myScore}` : ''}</div>
   </div>`;
 }
@@ -11602,7 +11636,7 @@ function fpRecoCard(idx) {
   const g = _fpAllGames[idx];
   return `<div onclick="openFriendGamePopup(${idx})" style="flex-shrink:0;width:100px;cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
     ${fpCover(g,100,133,12)}
-    <div style="margin-top:6px;font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+    <div style="margin-top:6px;font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     <div style="font-size:11px;color:var(--amber);font-weight:700;margin-top:1px">★${g.score}</div>
   </div>`;
 }
@@ -11672,7 +11706,7 @@ function fpSetBanner(games) {
   if (!src) return;
   const blur = document.createElement('div');
   blur.className = 'fp-blur';
-  blur.style.cssText = `position:absolute;inset:-30px;background:url('${src}') center/cover;filter:blur(28px);opacity:0.45;z-index:0`;
+  blur.style.cssText = `position:absolute;inset:-30px;background:url('${_attrUrl(src)}') center/cover;filter:blur(28px);opacity:0.45;z-index:0`;
   const grad = document.createElement('div');
   grad.className = 'fp-grad';
   grad.style.cssText = 'position:absolute;inset:0;background:linear-gradient(to bottom,rgba(8,8,16,0.1) 0%,rgba(8,8,16,0.82) 58%,var(--s1) 100%);z-index:1';
@@ -11711,10 +11745,10 @@ function renderFriendActivity(activities) {
     const src = fpCoverSrc(a);
     return `<div style="display:flex;gap:10px;align-items:flex-start">
       <div style="width:36px;height:46px;border-radius:8px;overflow:hidden;flex-shrink:0;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:14px">
-        ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" onerror="this.style.display='none'">🎮`:'🎮'}
+        ${src?`<img src="${_attrUrl(src)}" style="width:100%;height:100%;object-fit:cover" referrerpolicy="no-referrer" onerror="this.style.display='none'">🎮`:'🎮'}
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${a.title}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
+        <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${_esc(a.title)}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.ago||formatTimeAgo(a.updated_at)}</div>
       </div>
     </div>`;
@@ -11729,7 +11763,7 @@ function renderFriendProfile(friend) {
   document.getElementById('fp-title').textContent = friend.username;
   const av = document.getElementById('fp-avatar');
   if (friend.avatar_url) {
-    av.innerHTML = `<img src="${friend.avatar_url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${friend.avatar||'🎮'}';this.remove()">`;
+    av.innerHTML = `<img src="${_safeUrl(friend.avatar_url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${_esc(friend.avatar||'🎮')}';this.remove()">`;
     av.style.background = 'transparent';
   } else {
     av.textContent = friend.avatar || '🎮';
@@ -11866,11 +11900,11 @@ function renderFriendProfile(friend) {
       const src = fpCoverSrc(g);
       const numColor = i===0?'var(--amber)':i===1?'#b0bec5':i===2?'#cd7f32':'rgba(255,255,255,0.5)';
       return `<div onclick="openFriendGamePopup(${gi})" style="background:var(--s2);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;position:relative;aspect-ratio:3/4">
-        ${src?`<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--muted)">${(g.title||'?')[0]}</div>`}
+        ${src?`<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">`:`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--muted)">${_esc((g.title||'?')[0])}</div>`}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
         <div style="position:absolute;top:5px;left:5px;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:800;color:${numColor};background:rgba(0,0,0,0.55);border:0.5px solid rgba(255,255,255,0.12);padding:2px 5px;border-radius:6px">#${i+1}</div>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:5px 6px">
-          <div style="font-size:9px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:1px">${g.title}</div>
+          <div style="font-size:9px;font-weight:700;color:#fff;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;margin-bottom:1px">${_esc(g.title)}</div>
           ${g.score?`<div style="font-size:9px;color:var(--amber)">★ ${g.score}/10</div>`:''}
         </div>
       </div>`;
@@ -11922,10 +11956,10 @@ async function openFriendGamePopup(idx) {
     <div style="display:flex;gap:14px;margin-bottom:14px">
       ${fpCover(g, 72, 96, 12)}
       <div style="flex:1;min-width:0">
-        <div style="font-size:17px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2;margin-bottom:6px">${g.title}</div>
+        <div style="font-size:17px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2;margin-bottom:6px">${_esc(g.title)}</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">
           ${platColor ? `<span style="font-size:10px;font-weight:700;background:${platColor};color:#fff;border-radius:4px;padding:2px 7px">${g.platform}</span>` : ''}
-          ${rank ? `<span style="font-size:10px;font-weight:700;background:rgba(108,92,231,0.15);color:var(--a);border-radius:10px;padding:2px 7px">${rank.emoji} ${rank.label}</span>` : ''}
+          ${rank ? `<span style="font-size:10px;font-weight:700;background:rgba(108,92,231,0.15);color:var(--a);border-radius:10px;padding:2px 7px">${_esc(rank.emoji)} ${rank.label}</span>` : ''}
         </div>
         <div style="font-size:13px;margin-bottom:4px"><span style="color:var(--muted2)">${profileName} : </span><span style="font-weight:600">${FP_SL[g.status]||g.status}</span>${g.score ? ` <span style="color:var(--amber);font-weight:700">★${g.score}/10</span>` : ''}</div>
       </div>
@@ -11938,7 +11972,7 @@ async function openFriendGamePopup(idx) {
     </div>` : ''}
     ${screenshotHtml}
     ${mine
-      ? `<button onclick="closeFriendGamePopup();openDetail('${gid}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
+      ? `<button onclick="closeFriendGamePopup();openDetail('${_jsId(gid)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
       : `<button onclick="openFriendGameDetail(${idx})" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir la fiche du jeu →</button>`
     }
     <button onclick="closeFriendGamePopup()" style="width:100%;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:14px;font-size:14px;font-weight:600;cursor:pointer;color:var(--text);margin-top:8px">Fermer</button>`;
@@ -11954,7 +11988,7 @@ async function openFriendGamePopup(idx) {
   } else if (!isDummy && _fpProfile?.id && gid) {
     const { data: files } = await _sb.storage.from('screenshots').list(`${_fpProfile.id}/${gid}`);
     (files || []).filter(f => !f.name.startsWith('.')).forEach(f => {
-      urls.push(`${SUPABASE_URL}/storage/v1/object/public/screenshots/${_fpProfile.id}/${gid}/${f.name}`);
+      urls.push(`${SUPABASE_URL}/storage/v1/object/public/screenshots/${encodeURIComponent(_fpProfile.id)}/${encodeURIComponent(gid)}/${encodeURIComponent(f.name)}`);
     });
   }
   _fpScreenshotUrls = urls;
@@ -11962,7 +11996,7 @@ async function openFriendGamePopup(idx) {
     <div style="margin-bottom:14px">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Captures</div>
       <div style="display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:4px">
-        ${urls.map((url, i) => `<div onclick="openFriendScreenshot(${i})" style="flex-shrink:0;height:88px;border-radius:8px;overflow:hidden;background:var(--s2);cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"><img src="${url}" referrerpolicy="no-referrer" style="height:100%;width:auto;max-width:160px;object-fit:cover" onerror="this.parentNode.style.display='none'"></div>`).join('')}
+        ${urls.map((url, i) => `<div onclick="openFriendScreenshot(${i})" style="flex-shrink:0;height:88px;border-radius:8px;overflow:hidden;background:var(--s2);cursor:pointer;transition:opacity .15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"><img src="${_attrUrl(url)}" referrerpolicy="no-referrer" style="height:100%;width:auto;max-width:160px;object-fit:cover" onerror="this.parentNode.style.display='none'"></div>`).join('')}
       </div>
     </div>` : '';
   el.innerHTML = buildHtml(screenshotHtml);
@@ -12153,13 +12187,13 @@ async function renderFriendProfileCollections(userId) {
     section.style.display = 'block';
     row.innerHTML = visible.map(col => {
       const covers = (col.games || []).slice(0, 4).map(g => {
-        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.imageId}.jpg` : (g.cover || '');
-        return img ? `<img src="${img}" style="width:32px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
+        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${_igdbId(g.imageId)}.jpg` : (g.cover || '');
+        return img ? `<img src="${_attrUrl(img)}" style="width:32px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
       }).join('');
-      return `<div onclick="openFriendCollection('${col.id}','${userId}')" style="flex-shrink:0;width:130px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
-        <div style="height:68px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">${col.emoji}</div>`}</div>
+      return `<div onclick="openFriendCollection('${_jsId(col.id)}','${_jsId(userId)}')" style="flex-shrink:0;width:130px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
+        <div style="height:68px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">${_esc(col.emoji)}</div>`}</div>
         <div style="padding:6px 8px 8px">
-          <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${col.emoji} ${col.name}</div>
+          <div style="font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(col.emoji)} ${_esc(col.name)}</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:1px">${(col.games||[]).length} jeux${(col.vibes||[]).length ? ' · <span style="color:var(--a);font-weight:700">✨ auto</span>' : ''}</div>
         </div>
       </div>`;
@@ -12181,10 +12215,10 @@ async function renderFriendProfileTierLists(userId) {
       const defs = (Array.isArray(l.tier_defs) && l.tier_defs.length) ? l.tier_defs : TIER_CONFIG;
       const ranked = Object.values(l.tiers || {}).flat().length;
       const strip = defs.slice(0, 6).map(d => `<div style="flex:1;height:7px;background:${d.bg}"></div>`).join('');
-      return `<div onclick="loadSharedTierList('${l.id}',{fromApp:true})" style="flex-shrink:0;width:150px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+      return `<div onclick="loadSharedTierList('${_jsId(l.id)}',{fromApp:true})" style="flex-shrink:0;width:150px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
         <div style="display:flex">${strip}</div>
         <div style="padding:10px 12px 12px">
-          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
+          <div style="font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(l.name)}</div>
           <div style="font-size:10px;color:var(--muted2);margin-top:2px">🏆 ${ranked} jeu${ranked > 1 ? 'x' : ''} classé${ranked > 1 ? 's' : ''}</div>
         </div>
       </div>`;
@@ -12206,9 +12240,9 @@ function renderFriendProfileScreenshots(games) {
   grid.innerHTML = allMedia.map(m => `
     <div style="cursor:pointer" onclick="openImageLightbox('${m.url}')">
       <div style="aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--s3);margin-bottom:3px">
-        <img src="${m.url}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
+        <img src="${_attrUrl(m.url)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">
       </div>
-      <div style="font-size:9px;color:var(--muted2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 1px">${m.title}</div>
+      <div style="font-size:9px;color:var(--muted2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;padding:0 1px">${_esc(m.title)}</div>
     </div>`).join('');
 }
 
@@ -12311,7 +12345,7 @@ async function loadFriendActivity(friendIds) {
   };
   _actFeedRows = data || [];
   const _coverHtml = (src, w, h, r) => `<div style="width:${w}px;height:${h}px;border-radius:${r}px;overflow:hidden;background:var(--s2);flex-shrink:0">${src
-    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
+    ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:${Math.round(h*0.32)}px">🎮</div>`}</div>`;
   // Chaque entrée = { grp, html } pour pouvoir composer la version repliée ET complète
   const _tlStrip = (l, w, h, r) => {
@@ -12327,13 +12361,13 @@ async function loadFriendActivity(friendIds) {
       const parts = title.split(' ');
       const emoji = parts[0] || '🎉';
       const name = parts.slice(1).join(' ') || ('Niveau ' + row.level);
-      const html = `<div onclick="openFriendProfile('${row.id}')" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      const html = `<div onclick="openFriendProfile('${_jsId(row.id)}')" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="position:relative;flex-shrink:0">
           <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,rgba(108,92,231,0.25),rgba(253,121,168,0.2));display:flex;align-items:center;justify-content:center;font-size:22px">${emoji}</div>
           <div style="position:absolute;right:-6px;bottom:-4px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({ ...lp, avatar_url: lp.avatar_url || null }, 20)}</div>
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${lp.username || 'Gamer'}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached' : 'est passé'}</span> <span style="font-weight:600">${_lang === 'en' ? 'level' : 'niveau'} ${row.level} · ${emoji} ${name}</span></div>
+          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${_esc(lp.username || 'Gamer')}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached' : 'est passé'}</span> <span style="font-weight:600">${_lang === 'en' ? 'level' : 'niveau'} ${row.level} · ${emoji} ${name}</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeAgo(entry.ts)}</div>
         </div>
         <div style="width:26px;height:26px;border-radius:50%;background:rgba(108,92,231,0.18);color:var(--a);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0">⬆</div>
@@ -12344,13 +12378,13 @@ async function loadFriendActivity(friendIds) {
       const l = entry.row;
       const tp = profileMap[l.user_id] || {};
       const ranked = Object.values(l.tiers || {}).flat().length;
-      const html = `<div onclick="loadSharedTierList('${l.id}',{fromApp:true})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      const html = `<div onclick="loadSharedTierList('${_jsId(l.id)}',{fromApp:true})" style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="position:relative;flex-shrink:0">
           ${_tlStrip(l, 42, 56, 8)}
           <div style="position:absolute;right:-7px;bottom:-5px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({...tp, avatar_url: tp.avatar_url||null}, 20)}</div>
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${tp.username||'Gamer'}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${l.name}</span></div>
+          <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${_esc(tp.username||'Gamer')}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${_esc(l.name)}</span></div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">${ranked} jeu${ranked > 1 ? 'x' : ''} classé${ranked > 1 ? 's' : ''} · ${timeAgo(entry.ts)}</div>
         </div>
         <div style="width:26px;height:26px;border-radius:50%;background:rgba(255,202,40,0.16);color:#ffca28;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🏆</div>
@@ -12359,7 +12393,7 @@ async function loadFriendActivity(friendIds) {
     }
     const item = entry.row, i = entry.idx;
     const p = profileMap[item.user_id] || {};
-    const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
+    const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${_igdbId(item.image_id)}.jpg` : null;
     const ago = timeAgo(item.updated_at);
     const grp = _actDayGroup(item.updated_at);
     const [bIcon, bBg, bColor] = BADGE[item.status] || ['•','var(--s2)','var(--muted2)'];
@@ -12369,7 +12403,7 @@ async function loadFriendActivity(friendIds) {
         <div style="position:absolute;right:-7px;bottom:-5px;border:2px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 20)}</div>
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
+        <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${_esc(p.username||'Gamer')}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${_esc(item.title)}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
       </div>
       <div style="width:26px;height:26px;border-radius:50%;background:${bBg};color:${bColor};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${bIcon}</div>
@@ -12411,33 +12445,33 @@ async function loadFriendActivity(friendIds) {
       const parts = title.split(' ');
       const emoji = parts[0] || '🎉';
       const name = parts.slice(1).join(' ') || ('Niveau ' + row.level);
-      return `<div onclick="openFriendProfile('${row.id}')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      return `<div onclick="openFriendProfile('${_jsId(row.id)}')" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="position:relative;flex-shrink:0">
           <div style="width:30px;height:40px;border-radius:6px;background:linear-gradient(135deg,rgba(108,92,231,0.25),rgba(253,121,168,0.2));display:flex;align-items:center;justify-content:center;font-size:17px">${emoji}</div>
           <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...lp, avatar_url: lp.avatar_url||null}, 16)}</div>
         </div>
-        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${lp.username||'Gamer'}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached level' : 'est passé niveau'}</span> <span style="font-weight:600">${row.level} · ${emoji} ${name}</span></div>
+        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${_esc(lp.username||'Gamer')}</span> <span style="color:var(--muted2)">${_lang === 'en' ? 'reached level' : 'est passé niveau'}</span> <span style="font-weight:600">${row.level} · ${emoji} ${name}</span></div>
       </div>`;
     }
     const p = profileMap[entry.row.user_id] || {};
     if (entry.kind === 'tl') {
       const l = entry.row;
-      return `<div onclick="loadSharedTierList('${l.id}',{fromApp:true})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      return `<div onclick="loadSharedTierList('${_jsId(l.id)}',{fromApp:true})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
         <div style="position:relative;flex-shrink:0">
           ${_tlStrip(l, 30, 40, 6)}
           <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 16)}</div>
         </div>
-        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${l.name}</span></div>
+        <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${_esc(p.username||'Gamer')}</span> <span style="color:var(--muted2)">a publié une tier list</span> <span style="font-weight:600">${_esc(l.name)}</span></div>
       </div>`;
     }
     const item = entry.row, i = entry.idx;
-    const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${item.image_id}.jpg` : null;
+    const src = item.image_id ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${_igdbId(item.image_id)}.jpg` : null;
     return `<div onclick="openActivityGame(${i})" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:opacity 0.15s" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
       <div style="position:relative;flex-shrink:0">
         ${_coverHtml(src, 30, 40, 6)}
         <div style="position:absolute;right:-5px;bottom:-4px;border:1.5px solid var(--bg);border-radius:50%">${_friendAvHtml({...p, avatar_url: p.avatar_url||null}, 16)}</div>
       </div>
-      <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${p.username||'Gamer'}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${item.title}</span></div>
+      <div style="flex:1;min-width:0;font-size:12px;line-height:1.4"><span style="font-weight:600">${_esc(p.username||'Gamer')}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${_esc(item.title)}</span></div>
     </div>`;
   }).join('');
 }
@@ -12534,13 +12568,13 @@ function renderGPSection() {
   const displayGames = (_gpData.newGames?.length >= 5 ? _gpData.newGames : _gpData.games).slice(0, 20);
   row.innerHTML = displayGames.map(g => {
     const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
-    return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openGPGame('${g.title.replace(/'/g,"\\'")}')" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openGPGame('${_esc(g.title.replace(/'/g,"\\'"))}')" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">
-        ${g.img ? `<img src="${g.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
+        ${g.img ? `<img src="${_attrUrl(g.img)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
         <div style="position:absolute;bottom:4px;left:4px;background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px;letter-spacing:0.03em">GP</div>
         ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
       </div>
-      <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     </div>`;
   }).join('');
 }
@@ -12550,13 +12584,13 @@ function openGPAll() {
   const sorted = [..._gpData.games].sort((a,b) => (b.first_release_date||0) - (a.first_release_date||0));
   document.getElementById('gp-all-grid').innerHTML = sorted.map(g => {
     const inLib = GAMES.some(x => _normGP(x.title) === _normGP(g.title));
-    return `<div style="cursor:pointer" onclick="openGPGame('${g.title.replace(/'/g,"\\'")}');closeGPAll()" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div style="cursor:pointer" onclick="openGPGame('${_esc(g.title.replace(/'/g,"\\'"))}');closeGPAll()" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:100%;aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative">
-        ${g.img ? `<img src="${g.img}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
+        ${g.img ? `<img src="${_attrUrl(g.img)}" style="width:100%;height:100%;object-fit:cover" loading="lazy">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
         <div style="position:absolute;bottom:4px;left:4px;background:#107c10;color:#fff;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px">GP</div>
         ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
       </div>
-      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     </div>`;
   }).join('');
   const overlay = document.getElementById('gp-all-overlay');
@@ -12615,13 +12649,13 @@ async function renderHomeTrending(refresh = false) {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    return `<div onclick="trendingOpenDetail('${g.id}')" style="flex-shrink:0;width:110px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="trendingOpenDetail('${_jsId(g.id)}')" style="flex-shrink:0;width:110px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:110px;height:145px;border-radius:12px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:6px">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--muted)">${initials}</div>`}
         ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
       </div>
-      <div style="font-size:11px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
-      <div style="font-size:10px;color:var(--muted2);margin-top:1px">${g.genre||''}</div>
+      <div style="font-size:11px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(g.title)}</div>
+      <div style="font-size:10px;color:var(--muted2);margin-top:1px">${_esc(g.genre||'')}</div>
     </div>`;
   }).join('');
 }
@@ -12673,13 +12707,13 @@ async function renderHomeCollections() {
   const el = document.getElementById('home-collections');
   if (!el) return;
   el.innerHTML = COLLECTIONS.map(c => `
-    <div onclick="openCollection('${c.id}')" style="flex-shrink:0;width:160px;height:90px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:flex-end" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    <div onclick="openCollection('${_jsId(c.id)}')" style="flex-shrink:0;width:160px;height:90px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:flex-end" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div id="col-covers-${c.id}" style="position:absolute;inset:0;display:flex">
         <div style="flex:1;background:var(--s3)"></div><div style="flex:1;background:var(--s2);opacity:0.7"></div><div style="flex:1;background:var(--s1);opacity:0.4"></div>
       </div>
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.88) 0%,transparent 55%)"></div>
       <div style="position:relative;padding:8px 10px;z-index:1">
-        <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2">${c.emoji} ${c.title}</div>
+        <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;line-height:1.2">${_esc(c.emoji)} ${_esc(c.title)}</div>
         <div style="font-size:10px;color:rgba(255,255,255,0.55);margin-top:1px">${c.sub}</div>
       </div>
     </div>`).join('');
@@ -12691,8 +12725,8 @@ function renderStudios() {
   const el = document.getElementById('studio-selector');
   if (!el) return;
   el.innerHTML = STUDIO_COLLECTIONS.map(s => `
-    <div onclick="openStudioCollection('${s.id}')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;cursor:pointer;transition:opacity 0.15s;font-size:13px;font-weight:600" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
-      <span style="font-size:16px">${s.emoji}</span>${s.name}
+    <div onclick="openStudioCollection('${_jsId(s.id)}')" style="flex-shrink:0;display:flex;align-items:center;gap:7px;padding:8px 14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;cursor:pointer;transition:opacity 0.15s;font-size:13px;font-weight:600" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+      <span style="font-size:16px">${_esc(s.emoji)}</span>${_esc(s.name)}
     </div>`).join('');
 }
 
@@ -12721,9 +12755,9 @@ async function openStudioCollection(studioId) {
     const src = coverUrl(g);
     return `<div onclick="addGameFromCollection(${JSON.stringify(g).replace(/"/g,'&quot;')})" style="cursor:pointer;position:relative" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="padding-top:133%;position:relative;border-radius:10px;overflow:hidden;background:var(--s2)">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px">🎮</div>`}
       </div>
-      <div style="margin-top:5px;font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      <div style="margin-top:5px;font-size:11px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
       ${g.meta ? `<div style="font-size:10px;color:var(--amber);font-weight:700">★${Math.round(g.meta)}</div>` : ''}
     </div>`;
   }).join('');
@@ -12750,7 +12784,7 @@ function renderCollectionThumbnail(id, games) {
   if (!el || !games.length) return;
   el.innerHTML = games.slice(0, 3).map(g => {
     const src = coverUrl(g);
-    return src ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
+    return src ? `<div style="flex:1;overflow:hidden"><img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.remove()"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
   }).join('');
 }
 
@@ -12783,13 +12817,13 @@ async function openCollection(id) {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    return `<div onclick="colOpenDetail('${g.id}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="colOpenDetail('${_jsId(g.id)}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="border-radius:12px;background:var(--s2);overflow:hidden;position:relative;aspect-ratio:3/4;margin-bottom:6px">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;color:var(--muted)">${initials}</div>`}
         ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 45%)"></div>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:8px">
-          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+          <div style="font-size:10px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
           ${g.meta ? `<div style="font-size:9px;color:rgba(255,255,255,0.65);margin-top:1px">MC ${g.meta}</div>` : ''}
         </div>
       </div>
@@ -13069,22 +13103,22 @@ function _userCollectionCard(c) {
   const covers = games.slice(0, 3).map(g => {
     const src = coverUrl(g);
     return src
-      ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>`
+      ? `<div style="flex:1;overflow:hidden"><img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>`
       : `<div style="flex:1;background:var(--s3)"></div>`;
   });
   while (covers.length < 3) covers.push(`<div style="flex:1;background:var(--s${Math.min(covers.length+2,4)})"></div>`);
   const pinned = _isPinned('col', c.id);
-  return `<div onclick="openUserCollection('${c.id}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+  return `<div onclick="openUserCollection('${_jsId(c.id)}')" class="${(c.vibes||[]).length ? 'col-card-smart' : 'col-card-anim'}" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
     <div style="height:85px;display:flex;position:relative">
       ${covers.join('')}
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 50%)"></div>
-      <div style="position:absolute;bottom:6px;left:8px;font-size:20px">${c.emoji||'📚'}</div>
-      <div onclick="togglePinCollection(event,'${c.id}')" title="${pinned ? 'Désépingler' : 'Épingler sur le profil'}" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:${pinned ? 'var(--a)' : 'rgba(0,0,0,0.55)'};${pinned ? '' : 'opacity:0.85;'}cursor:pointer">📌</div>
+      <div style="position:absolute;bottom:6px;left:8px;font-size:20px">${_esc(c.emoji||'📚')}</div>
+      <div onclick="togglePinCollection(event,'${_jsId(c.id)}')" title="${pinned ? 'Désépingler' : 'Épingler sur le profil'}" style="position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;background:${pinned ? 'var(--a)' : 'rgba(0,0,0,0.55)'};${pinned ? '' : 'opacity:0.85;'}cursor:pointer">📌</div>
       ${(c.vibes||[]).length ? '<div style="position:absolute;bottom:6px;right:6px;background:rgba(108,92,231,0.85);border-radius:8px;padding:2px 6px;font-size:10px;font-weight:800;color:#fff">✨ auto</div>' : ''}
       ${_colVis(c) !== 'public' ? `<div style="position:absolute;top:6px;left:6px;background:rgba(0,0,0,0.6);border-radius:8px;padding:2px 6px;font-size:10px">${COL_VIS[_colVis(c)].icon}</div>` : ''}
     </div>
     <div style="padding:8px 10px 10px">
-      <div style="font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${c.name}</div>
+      <div style="font-size:13px;font-weight:700;font-family:'Space Grotesk',sans-serif;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(c.name)}</div>
       <div style="font-size:10px;color:var(--muted2);margin-top:3px">${games.length} jeu${games.length!==1?'x':''}</div>
     </div>
   </div>`;
@@ -13121,14 +13155,14 @@ async function renderFriendCollections() {
     el.innerHTML = visible.map(col => {
       const friend = _socialFriends.find(f => f.id === col.user_id);
       const covers = (col.games || []).slice(0, 4).map(g => {
-        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${g.imageId}.jpg` : (g.cover || '');
-        return img ? `<img src="${img}" style="width:36px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
+        const img = g.imageId ? `https://images.igdb.com/igdb/image/upload/t_cover_small/${_igdbId(g.imageId)}.jpg` : (g.cover || '');
+        return img ? `<img src="${_attrUrl(img)}" style="width:36px;height:48px;object-fit:cover;border-radius:6px;flex-shrink:0">` : '';
       }).join('');
-      return `<div onclick="openFriendCollection('${col.id}','${(col.user_id||'').replace(/'/g,'')}')" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
-        <div style="height:80px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${col.emoji}</div>`}</div>
+      return `<div onclick="openFriendCollection('${_jsId(col.id)}','${(col.user_id||'').replace(/'/g,'')}')" style="flex-shrink:0;width:148px;border-radius:16px;background:var(--s2);border:0.5px solid var(--border2);cursor:pointer;overflow:hidden">
+        <div style="height:80px;background:var(--s3);display:flex;gap:3px;padding:8px;align-items:center;overflow:hidden">${covers || `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${_esc(col.emoji)}</div>`}</div>
         <div style="padding:8px 10px 10px">
-          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${col.emoji} ${col.name}</div>
-          <div style="font-size:11px;color:var(--muted2);margin-top:2px">${friend?.username || 'Ami'} · ${(col.games||[]).length} jeux${(col.vibes||[]).length ? ' · <span style="color:var(--a);font-weight:700">✨</span>' : ''}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(col.emoji)} ${_esc(col.name)}</div>
+          <div style="font-size:11px;color:var(--muted2);margin-top:2px">${_esc(friend?.username || 'Ami')} · ${(col.games||[]).length} jeux${(col.vibes||[]).length ? ' · <span style="color:var(--a);font-weight:700">✨</span>' : ''}</div>
         </div>
       </div>`;
     }).join('');
@@ -13277,12 +13311,12 @@ function _renderUCDGames(c) {
   grid.innerHTML = _ucdSortGames(games).map(g => {
     const src = coverUrl(g);
     return `<div style="position:relative">
-      <div onclick="openGameFromCollection('${g.id}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
-        ${_ucdIsOwner && !isAuto ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${g.id}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">×</button>` : ''}
+      <div onclick="openGameFromCollection('${_jsId(g.id)}')" style="cursor:pointer;border-radius:10px;background:var(--s2);overflow:hidden;aspect-ratio:3/4;position:relative;margin-bottom:4px" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:24px">🎮</div>`}
+        ${_ucdIsOwner && !isAuto ? `<button onclick="event.stopPropagation();removeGameFromUserCollection('${_jsId(g.id)}')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,0.75);border:none;color:#fff;font-size:14px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:2">×</button>` : ''}
         ${_colBadgeHtml(g, badges)}
       </div>
-      <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      <div style="font-size:10px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     </div>`;
   }).join('');
 }
@@ -13573,10 +13607,10 @@ function openAddToCollectionSheet(gameId, context) {
   } else {
     list.innerHTML = manualCols.map(c => {
       const inCol = (c.games||[]).some(g => String(g.id) === _atcGameId);
-      return `<div onclick="toggleGameInCollection('${c.id}')" id="atc-row-${c.id}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:12px;cursor:pointer" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
-        <div style="font-size:20px">${c.emoji||'📚'}</div>
+      return `<div onclick="toggleGameInCollection('${_jsId(c.id)}')" id="atc-row-${c.id}" style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--s2);border-radius:12px;cursor:pointer" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1">
+        <div style="font-size:20px">${_esc(c.emoji||'📚')}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.name}</div>
+          <div style="font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(c.name)}</div>
           <div style="font-size:11px;color:var(--muted2)">${(c.games||[]).length} jeu${(c.games||[]).length!==1?'x':''}</div>
         </div>
         <div id="atc-check-${c.id}" style="width:22px;height:22px;border-radius:50%;border:2px solid ${inCol?'var(--green)':'var(--border2)'};background:${inCol?'var(--green)':'transparent'};display:flex;align-items:center;justify-content:center;font-size:11px;color:#000;font-weight:700;flex-shrink:0">${inCol?'✓':''}</div>
@@ -13638,13 +13672,13 @@ async function renderSagaCollections() {
   const el = document.getElementById('saga-collections-row');
   if (!el) return;
   el.innerHTML = SAGA_COLLECTIONS.map(s => `
-    <div onclick="openSagaCollection('${s.id}')" style="flex-shrink:0;width:96px;cursor:pointer;text-align:center" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    <div onclick="openSagaCollection('${_jsId(s.id)}')" style="flex-shrink:0;width:96px;cursor:pointer;text-align:center" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div id="saga-covers-${s.id}" style="height:96px;border-radius:14px;background:var(--s2);border:0.5px solid var(--border2);overflow:hidden;position:relative;display:flex">
         <div style="flex:1;background:var(--s3)"></div><div style="flex:1;background:var(--s2)"></div>
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%)"></div>
-        <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${s.emoji}</div>
+        <div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${_esc(s.emoji)}</div>
       </div>
-      <div style="font-size:11px;font-weight:700;margin-top:5px;line-height:1.2">${s.name}</div>
+      <div style="font-size:11px;font-weight:700;margin-top:5px;line-height:1.2">${_esc(s.name)}</div>
     </div>`).join('');
   SAGA_COLLECTIONS.slice(0, 5).forEach(s => loadSagaCovers(s));
 }
@@ -13665,8 +13699,8 @@ function _renderSagaThumbnail(id, games) {
   const s = SAGA_COLLECTIONS.find(x => x.id === id);
   el.innerHTML = games.slice(0, 2).map(g => {
     const src = coverUrl(g);
-    return src ? `<div style="flex:1;overflow:hidden"><img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
-  }).join('') + `<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%)"></div><div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${s?.emoji||''}</div>`;
+    return src ? `<div style="flex:1;overflow:hidden"><img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.style.background='var(--s3)'"></div>` : `<div style="flex:1;background:var(--s3)"></div>`;
+  }).join('') + `<div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.7) 0%,transparent 50%)"></div><div style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:22px">${_esc(s?.emoji||'')}</div>`;
 }
 
 async function openSagaCollection(id) {
@@ -13695,13 +13729,13 @@ async function openSagaCollection(id) {
   grid.innerHTML = games.map(g => {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => String(x.id) === String(g.id));
-    return `<div onclick="colOpenDetail('${g.id}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="colOpenDetail('${_jsId(g.id)}')" style="cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="border-radius:12px;background:var(--s2);overflow:hidden;position:relative;aspect-ratio:3/4;margin-bottom:6px">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${s.emoji}</div>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px">${_esc(s.emoji)}</div>`}
         ${inLib ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
         <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 45%)"></div>
         <div style="position:absolute;bottom:0;left:0;right:0;padding:7px">
-          <div style="font-size:9px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+          <div style="font-size:9px;font-weight:700;color:#fff;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
           ${g.meta ? `<div style="font-size:8px;color:rgba(255,255,255,0.6);margin-top:1px">MC ${g.meta}</div>` : ''}
         </div>
       </div>
@@ -13761,10 +13795,10 @@ function colSearchQuery(q) {
       const inCol = (c?.games||[]).some(x => String(x.id) === String(g.id));
       return `<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:0.5px solid var(--border)">
         <div style="width:44px;height:60px;border-radius:8px;background:var(--s2);overflow:hidden;flex-shrink:0">
-          ${src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>`}
+          ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>`}
         </div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${g.title}</div>
+          <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title)}</div>
           ${g.meta ? `<div style="font-size:11px;color:var(--amber);font-weight:700;margin-top:2px">★ ${Math.round(g.meta)}</div>` : ''}
         </div>
         <button onclick="colSearchToggleGame(${JSON.stringify(g).replace(/"/g,'&quot;')},this)" style="flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:${inCol?'rgba(0,230,118,0.15)':'var(--a)'};color:${inCol?'var(--green)':'#fff'}">${inCol?'✓ Ajouté':'+ Ajouter'}</button>
@@ -13830,12 +13864,12 @@ async function loadSimilarGames(game) {
     const src = coverUrl(g);
     const inLib = !!GAMES.find(x => x.id === g.id);
     const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    return `<div onclick="simOpenDetail('${g.id}','${cacheKey}')" style="flex-shrink:0;width:90px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
+    return `<div onclick="simOpenDetail('${_jsId(g.id)}','${cacheKey}')" style="flex-shrink:0;width:90px;cursor:pointer" ontouchstart="this.style.opacity=.75" ontouchend="this.style.opacity=1">
       <div style="width:90px;height:120px;border-radius:10px;background:var(--s2);overflow:hidden;position:relative;margin-bottom:5px">
-        ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</div>`}
+        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--muted)">${initials}</div>`}
         ${inLib ? `<div style="position:absolute;top:4px;right:4px;background:rgba(0,230,118,0.9);border-radius:5px;padding:1px 5px;font-size:8px;font-weight:700;color:#000">✓</div>` : ''}
       </div>
-      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${g.title}</div>
+      <div style="font-size:10px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
     </div>`;
   }).join('');
 }
@@ -13884,7 +13918,7 @@ function openWrapped() {
 
   document.getElementById('wrapped-content').innerHTML = cards.map(c => `
     <div style="background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;padding:16px;display:flex;align-items:center;gap:14px">
-      <div style="font-size:28px;flex-shrink:0">${c.emoji}</div>
+      <div style="font-size:28px;flex-shrink:0">${_esc(c.emoji)}</div>
       <div>
         <div style="font-size:12px;color:var(--muted2);margin-bottom:2px">${c.label}</div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">${c.value}</div>
@@ -13948,7 +13982,7 @@ async function renderPublicCollectionShare(id) {
 
   const _cvr = g => {
     if (g.cover)   return g.cover;
-    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.imageId)}.jpg`;
     if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
     return null;
   };
@@ -13974,7 +14008,7 @@ async function renderPublicCollectionShare(id) {
     const games = Array.isArray(data.games) ? data.games : [];
     body.innerHTML = `
       <div style="padding:20px 20px 14px">
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${data.emoji || '📚'} ${_esc(data.name)}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;line-height:1.2;margin-bottom:6px">${_esc(data.emoji || '📚')} ${_esc(data.name)}</div>
         <div style="font-size:12px;color:rgba(255,255,255,0.4)">Par <span style="color:rgba(255,255,255,0.7);font-weight:600">@${_esc(owner).toLowerCase().replace(/\s+/g,'')}</span> · ${games.length} jeu${games.length > 1 ? 'x' : ''}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;padding:0 20px">
@@ -13982,7 +14016,7 @@ async function renderPublicCollectionShare(id) {
           const src = _cvr(g);
           return `<div>
             <div style="aspect-ratio:3/4;border-radius:10px;overflow:hidden;background:#1a1a2e;display:flex;align-items:center;justify-content:center">
-              ${src ? `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<span style="font-size:20px">🎮</span>`}
+              ${src ? `<img src="${_attrUrl(src)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none'">` : `<span style="font-size:20px">🎮</span>`}
             </div>
             <div style="font-size:10px;font-weight:600;color:rgba(255,255,255,0.75);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g.title || '')}</div>
           </div>`;
@@ -14023,7 +14057,7 @@ async function renderPublicTierList(id) {
 
   function coverUrl(g) {
     if (g.cover)   return g.cover;
-    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+    if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.imageId)}.jpg`;
     if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
     return null;
   }
@@ -14031,7 +14065,7 @@ async function renderPublicTierList(id) {
   function coverHtml(g) {
     const url = coverUrl(g);
     const initials = (g.title||'?').replace(/[^a-zA-Z0-9À-ɏ]/g,' ').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    if (url) return `<img src="${url}" alt="" crossorigin="anonymous" style="width:52px;height:70px;border-radius:8px;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div style="display:none;width:52px;height:70px;border-radius:8px;background:#1a1a2e;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:rgba(255,255,255,0.4)">${initials}</div>`;
+    if (url) return `<img src="${_attrUrl(url)}" alt="" crossorigin="anonymous" style="width:52px;height:70px;border-radius:8px;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div style="display:none;width:52px;height:70px;border-radius:8px;background:#1a1a2e;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:rgba(255,255,255,0.4)">${initials}</div>`;
     return `<div style="width:52px;height:70px;border-radius:8px;background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:rgba(255,255,255,0.4)">${initials}</div>`;
   }
 
@@ -14065,7 +14099,7 @@ async function renderPublicTierList(id) {
             <span style="font-family:'Space Grotesk',sans-serif;font-size:${lbl.length <= 2 ? 20 : 12}px;font-weight:900;color:${d.color};text-align:center;word-break:break-word;padding:0 3px">${lbl}</span>
           </div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;align-content:flex-start">
-            ${games.map(g => `<div style="position:relative" title="${g.title}">${coverHtml(g)}</div>`).join('')}
+            ${games.map(g => `<div style="position:relative" title="${_esc(g.title)}">${coverHtml(g)}</div>`).join('')}
           </div>
         </div>`;
     }
@@ -14098,7 +14132,7 @@ async function renderPublicGameShare(gameId, userId) {
 
   function gpCover(g) {
     if (g.cover)     return g.cover;
-    if (g.image_id)  return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.image_id}.jpg`;
+    if (g.image_id)  return `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.image_id)}.jpg`;
     if (g.steam_id)  return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steam_id}/library_600x900.jpg`;
     return null;
   }
@@ -14155,7 +14189,7 @@ async function renderPublicGameShare(gameId, userId) {
 
     const coverUrl = gpCover(g);
     const coverImg = coverUrl
-      ? `<img src="${coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+      ? `<img src="${_attrUrl(coverUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
       : '';
     const initials = (g.title||'?').replace(/[^a-zA-Z0-9À-ɏ]/g,' ').trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
 
@@ -14186,11 +14220,11 @@ async function renderPublicGameShare(gameId, userId) {
       <div style="padding:0 20px 20px;margin-top:-80px;position:relative">
         <div style="display:flex;gap:14px;align-items:flex-end;margin-bottom:20px">
           <div style="width:90px;height:120px;border-radius:12px;overflow:hidden;flex-shrink:0;box-shadow:0 8px 32px rgba(0,0,0,0.7);background:#1a1a2e;display:flex;align-items:center;justify-content:center;font-size:28px">
-            ${coverUrl ? `<img src="${coverUrl}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div style="display:none;font-size:28px">${initials}</div>` : `<div>${initials}</div>`}
+            ${coverUrl ? `<img src="${_attrUrl(coverUrl)}" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><div style="display:none;font-size:28px">${initials}</div>` : `<div>${initials}</div>`}
           </div>
           <div style="padding-bottom:4px;min-width:0">
             <div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;line-height:1.25;margin-bottom:4px">${_esc(g.title)}</div>
-            ${(g.genre||g.year) ? `<div style="font-size:12px;color:rgba(255,255,255,0.4)">${[g.genre,g.year].filter(Boolean).join(' · ')}</div>` : ''}
+            ${(g.genre||g.year) ? `<div style="font-size:12px;color:rgba(255,255,255,0.4)">${_esc([g.genre,g.year].filter(Boolean).join(' · '))}</div>` : ''}
           </div>
         </div>
 
@@ -14237,7 +14271,7 @@ function gpPubJoin() {
 function _setAvatarEl(el, av, grad, url) {
   if (!el) return;
   if (url) {
-    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${av}';this.parentElement.style.background='${grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}';this.remove()">`;
+    el.innerHTML = `<img src="${_attrUrl(url)}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block" onerror="this.parentElement.textContent='${av}';this.parentElement.style.background='${grad||'linear-gradient(135deg,#6c5ce7,#fd79a8)'}';this.remove()">`;
     el.style.background = 'transparent';
   } else {
     el.innerHTML = av;
@@ -14505,11 +14539,11 @@ function searchAddModal(q) {
       const safeG = JSON.stringify({id:g.id,title:g.title,year:g.year,genre:g.genre,steamId:g.steamId||0,emoji:'🎮',cover:g.cover||'',imageId:g.imageId||null,platforms:g.platforms||[]}).replace(/"/g,'&quot;');
       return `<div class="result-item ${inLib?'added':''}" id="am-${g.id}" style="padding:10px 12px">
         <div class="result-cover">
-          ${src ? `<img src="${src}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+          ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
         </div>
         <div class="result-info">
-          <div class="result-title">${g.title}</div>
-          <div class="result-meta">${g.genre}${g.year?' · '+g.year:''}</div>
+          <div class="result-title">${_esc(g.title)}</div>
+          <div class="result-meta">${_esc(g.genre)}${g.year?' · '+g.year:''}</div>
           ${renderPlatforms(g.platforms)}
         </div>
         <button class="result-add" onclick="addGameFromModal(${safeG},this)">${inLib?'✓':'+'}</button>
@@ -14875,7 +14909,7 @@ function openEditProfile() {
   const bannerPreview = document.getElementById('avatar-upload-preview');
   if (bannerPreview) {
     if (obProfile.avatarUrl) {
-      bannerPreview.innerHTML = `<img src="${obProfile.avatarUrl}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+      bannerPreview.innerHTML = `<img src="${_safeUrl(obProfile.avatarUrl)}" style="width:100%;height:100%;object-fit:cover;display:block">`;
       bannerPreview.style.background = 'transparent';
       const banner = document.getElementById('avatar-upload-banner');
       if (banner) { banner.style.borderColor = 'var(--a)'; banner.style.borderWidth = '1.5px'; }
@@ -14886,7 +14920,7 @@ function openEditProfile() {
   }
   if (avatarGrid) {
     avatarGrid.innerHTML = EDIT_AVATARS.map(av => `
-      <div onclick="selectEditAvatar('${av}',this)" data-av="${av}" style="width:46px;height:46px;border-radius:12px;background:${av===currentAvatar && !obProfile.avatarUrl?'rgba(108,92,231,0.2)':'var(--s2)'};border:0.5px solid ${av===currentAvatar && !obProfile.avatarUrl?'var(--a)':'var(--border2)'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.15s">${av}</div>
+      <div onclick="selectEditAvatar('${av}',this)" data-av="${av}" style="width:46px;height:46px;border-radius:12px;background:${_safeUrl(av===currentAvatar && !obProfile.avatarUrl?'rgba(108,92,231,0.2)':'var(--s2)')};border:0.5px solid ${_safeUrl(av===currentAvatar && !obProfile.avatarUrl?'var(--a)':'var(--border2)')};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all 0.15s">${av}</div>
     `).join('');
   }
   // Populate name
@@ -14956,7 +14990,7 @@ async function handleAvatarUpload(input, previewId = 'avatar-upload-preview', gr
     obProfile.avatarUrl = dataUrl;
     const preview = document.getElementById(previewId);
     if (preview) {
-      preview.innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%">`;
+      preview.innerHTML = `<img src="${_attrUrl(dataUrl)}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%">`;
       preview.style.background = 'transparent';
     }
     const banner = document.getElementById('avatar-upload-banner');
@@ -14997,7 +15031,7 @@ function applyAvatarUrl(url, previewId = 'avatar-upload-preview', gridId = 'edit
   obProfile.avatarUrl = trimmed;
   const preview = document.getElementById(previewId);
   if (preview) {
-    preview.innerHTML = `<img src="${trimmed}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%" onerror="this.parentElement.textContent='🎮';this.remove()">`;
+    preview.innerHTML = `<img src="${_attrUrl(trimmed)}" style="width:100%;height:100%;object-fit:cover;display:block;border-radius:50%" onerror="this.parentElement.textContent='🎮';this.remove()">`;
     preview.style.background = 'transparent';
   }
   document.querySelectorAll(`#${gridId} [data-av]`).forEach(d => {
@@ -16945,7 +16979,7 @@ async function _renderGlobalQuizLb(quizId) {
     const isMe = r.user_id === data.myId;
     const pub = (data.profMap[r.user_id] || {}).is_public !== false;
     const clickable = !isMe && pub;
-    return `<div ${clickable ? `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${r.user_id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"` : ''} style="display:flex;align-items:center;gap:10px;background:${isMe ? 'rgba(108,92,231,0.1)' : 'var(--s2)'};border:0.5px solid ${isMe ? 'rgba(108,92,231,0.35)' : 'var(--border2)'};border-radius:12px;padding:10px 12px${clickable ? ';cursor:pointer' : ''}">
+    return `<div ${clickable ? `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${_jsId(r.user_id)}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"` : ''} style="display:flex;align-items:center;gap:10px;background:${isMe ? 'rgba(108,92,231,0.1)' : 'var(--s2)'};border:0.5px solid ${isMe ? 'rgba(108,92,231,0.35)' : 'var(--border2)'};border-radius:12px;padding:10px 12px${clickable ? ';cursor:pointer' : ''}">
       <div style="width:26px;text-align:center;font-size:${rank <= 3 ? '16px' : '12px'};font-weight:800;color:var(--muted2)">${medals[rank - 1] || rank}</div>
       ${_gqAv(r.user_id, data.myId, data.profMap)}
       <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_gqName(r.user_id, data.myId, data.profMap))}${isMe && myRank ? ` <span style="color:var(--muted2);font-weight:600">· #${myRank}</span>` : ''}</div>
@@ -17005,12 +17039,12 @@ function renderQuizHub() {
     const doneToday = best && best.ts && Math.floor(best.ts / 86400000) === _quizDayIndex();
     const rank = best ? getQuizRank(best.score, best.total) : null;
     const _paused = !doneToday && (() => { const st = _qipGet(q.id); return st && st.day === _quizDayIndex() && st.log.length > 0; })();
-    return `<div class="quiz-card" onclick="openQuiz('${q.id}')">
-      <div style="font-size:32px;margin-bottom:8px">${q.emoji}</div>
+    return `<div class="quiz-card" onclick="openQuiz('${_jsId(q.id)}')">
+      <div style="font-size:32px;margin-bottom:8px">${_esc(q.emoji)}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${_esc(_qzTitle(q))}</div>
       <div style="font-size:11px;color:var(--muted2)">${q.questions.length} questions</div>
       <div id="qcard-social-${q.id}" style="font-size:11px;font-weight:600;color:var(--muted2);margin-top:4px;min-height:14px"></div>
-      ${rank && doneToday ? `<div class="quiz-best-badge">${rank.emoji} ${best.score}/${best.total}</div>` : (_paused ? `<div class="quiz-best-badge">⏸ ${_qipGet(q.id).log.length}/${q.questions.length}</div>` : '')}
+      ${rank && doneToday ? `<div class="quiz-best-badge">${_esc(rank.emoji)} ${best.score}/${best.total}</div>` : (_paused ? `<div class="quiz-best-badge">⏸ ${_qipGet(q.id).log.length}/${q.questions.length}</div>` : '')}
       <div style="position:absolute;inset:0;border-radius:16px;background:${q.gradient};opacity:0.05;pointer-events:none"></div>
     </div>`;
   }).join('');
@@ -17106,12 +17140,12 @@ async function openQuizLb(quizId) {
   list.innerHTML = rows.map((r, i) => {
     const isMe = r.user_id === data.myId;
     const canCompare = !isMe && myRow && Array.isArray(myRow.answers) && myRow.answers.length && Array.isArray(r.answers) && r.answers.length;
-    return `<div ${isMe ? '' : `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${r.user_id}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="display:flex;align-items:center;gap:10px;background:${isMe?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${isMe?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:10px 12px${isMe?'':';cursor:pointer'}">
+    return `<div ${isMe ? '' : `onclick="closeQuizLb();closeQuizPicker();openFriendProfile('${_jsId(r.user_id)}')" ontouchstart="this.style.opacity=.7" ontouchend="this.style.opacity=1"`} style="display:flex;align-items:center;gap:10px;background:${isMe?'rgba(108,92,231,0.1)':'var(--s2)'};border:0.5px solid ${isMe?'rgba(108,92,231,0.35)':'var(--border2)'};border-radius:12px;padding:10px 12px${isMe?'':';cursor:pointer'}">
       <div style="width:22px;text-align:center;font-size:${i<3?'16px':'12px'};font-weight:800;color:var(--muted2)">${medals[i] || (i+1)}</div>
       ${_quizUserAv(r.user_id, data.myId)}
       <div style="flex:1;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(_quizUserName(r.user_id, data.myId))}</div>
       <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--amber)">${r.score}/${r.total}</div>
-      ${canCompare ? `<button onclick="event.stopPropagation();compareQuizAnswers('${r.user_id}')" style="flex-shrink:0;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.4);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer">↔</button>` : ''}
+      ${canCompare ? `<button onclick="event.stopPropagation();compareQuizAnswers('${_jsId(r.user_id)}')" style="flex-shrink:0;background:rgba(108,92,231,0.15);border:0.5px solid rgba(108,92,231,0.4);border-radius:10px;padding:6px 10px;font-size:13px;font-weight:700;color:var(--a);cursor:pointer">↔</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -17218,10 +17252,10 @@ function _renderQuizCompare() {
     const mine = byUQ[st.myId + '|' + q.id];
     // Verrou : je n'ai pas fait ce quiz → pas le droit de voir les réponses des autres
     if (!mine) {
-      return `<div onclick="closeQuizCompare();openQuiz('${q.id}')" style="display:flex;align-items:center;gap:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:16px;padding:14px;cursor:pointer">
+      return `<div onclick="closeQuizCompare();openQuiz('${_jsId(q.id)}')" style="display:flex;align-items:center;gap:11px;background:var(--s2);border:1px dashed var(--border2);border-radius:16px;padding:14px;cursor:pointer">
         <span style="font-size:20px">🔒</span>
         <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:700">${q.emoji} ${_esc(_qzTitle(q))}</div>
+          <div style="font-size:13px;font-weight:700">${_esc(q.emoji)} ${_esc(_qzTitle(q))}</div>
           <div style="font-size:11px;color:var(--muted2);margin-top:1px">${fr ? 'Fais ce quiz pour débloquer la comparaison' : 'Play this quiz to unlock the comparison'}</div>
         </div>
         <span style="font-size:15px;color:var(--muted2)">›</span>
@@ -17229,7 +17263,7 @@ function _renderQuizCompare() {
     }
     // En-tête : titre + colonnes avatars avec score /8
     const header = `<div style="display:flex;align-items:flex-end;gap:8px;margin-bottom:10px">
-      <div style="flex:1;min-width:0;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;padding-bottom:2px">${q.emoji} ${_esc(_qzTitle(q))}</div>
+      <div style="flex:1;min-width:0;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;padding-bottom:2px">${_esc(q.emoji)} ${_esc(_qzTitle(q))}</div>
       ${parts.map(uid => {
         const r = byUQ[uid + '|' + q.id];
         return `<div style="width:30px;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0">
@@ -17642,7 +17676,7 @@ async function renderDailyQuizCard() {
     const done = best && best.ts && Math.floor(best.ts / 86400000) === today;
     const st = _qipGet(q.id);
     const paused = !done && st && st.day === today && st.log.length > 0;
-    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${q.id}')` : `openQuiz('${q.id}')`}" style="position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : paused ? 'rgba(253,203,110,0.1)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : paused ? '1.5px solid rgba(253,203,110,0.55)' : '1.5px dashed rgba(255,255,255,0.18)'}">
+    return `<div onclick="event.stopPropagation();${done ? `openQuizLb('${_jsId(q.id)}')` : `openQuiz('${_jsId(q.id)}')`}" style="position:relative;width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;background:${done ? 'rgba(0,230,118,0.12)' : paused ? 'rgba(253,203,110,0.1)' : 'rgba(255,255,255,0.06)'};border:${done ? '1.5px solid rgba(0,230,118,0.5)' : paused ? '1.5px solid rgba(253,203,110,0.55)' : '1.5px dashed rgba(255,255,255,0.18)'}">
       ${q.emoji}
       ${done ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;font-size:10px;color:#03130a;font-weight:800">✓</div>' : paused ? '<div style="position:absolute;bottom:-3px;right:-3px;width:17px;height:17px;border-radius:50%;background:#fdcb6e;display:flex;align-items:center;justify-content:center;font-size:9px;color:#3a2b00;font-weight:800">⏸</div>' : ''}
     </div>`;
@@ -17956,7 +17990,7 @@ function showQuizResults() {
   const qid = _quizActive.id;
   document.getElementById('quiz-q-area').innerHTML = `
     <div class="quiz-q-anim" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:16px 0 24px">
-      <div style="font-size:72px;margin-bottom:20px;line-height:1">${rank.emoji}</div>
+      <div style="font-size:72px;margin-bottom:20px;line-height:1">${_esc(rank.emoji)}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:800;background:${_quizActive.gradient};-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:12px">${_quizScore}<span style="font-size:28px;opacity:0.6">/${total}</span></div>
       <div style="display:inline-flex;align-items:center;gap:8px;background:${rank.bg};border:0.5px solid ${rank.color};border-radius:50px;padding:8px 22px;margin-bottom:6px">
         <span style="font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:${rank.color}">${rank.label}</span>
@@ -18153,8 +18187,8 @@ async function showQuizConfrontation(ch) {
         <div style="display:flex;align-items:center;margin-bottom:8px">
           <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;flex:1">Détail par question</div>
           <div style="display:flex;gap:8px;font-size:10px;font-weight:700;color:var(--muted2)">
-            <span style="min-width:36px;text-align:center">${meP.username.slice(0,6)}</span>
-            <span style="min-width:36px;text-align:center">${oppP.username.slice(0,6)}</span>
+            <span style="min-width:36px;text-align:center">${_esc(meP.username.slice(0,6))}</span>
+            <span style="min-width:36px;text-align:center">${_esc(oppP.username.slice(0,6))}</span>
           </div>
         </div>
         ${qs.map((q, i) => {
@@ -18186,8 +18220,8 @@ async function showQuizConfrontation(ch) {
     <div style="display:flex;align-items:center;gap:0;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;overflow:hidden;margin-bottom:8px">
       <!-- Me -->
       <div style="flex:1;padding:18px 14px;text-align:center;border-right:0.5px solid var(--border2)">
-        <div style="width:48px;height:48px;border-radius:50%;background:${meP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)'};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${meP.avatar||'🎮'}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${meP.username}</div>
+        <div style="width:48px;height:48px;border-radius:50%;background:${_safeGrad(meP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)')};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${_esc(meP.avatar||'🎮')}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${_esc(meP.username)}</div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:${resultColor};line-height:1">${meScore??'—'}</div>
         <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
       </div>
@@ -18195,8 +18229,8 @@ async function showQuizConfrontation(ch) {
       <div style="padding:0 14px;font-size:13px;font-weight:700;color:var(--muted2)">VS</div>
       <!-- Opp -->
       <div style="flex:1;padding:18px 14px;text-align:center;border-left:0.5px solid var(--border2)">
-        <div style="width:48px;height:48px;border-radius:50%;background:${oppP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)'};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${oppP.avatar||'🎮'}</div>
-        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${oppP.username}</div>
+        <div style="width:48px;height:48px;border-radius:50%;background:${_safeGrad(oppP.avatar_grad||'linear-gradient(135deg,#6c5ce7,#a29bfe)')};font-size:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px">${_esc(oppP.avatar||'🎮')}</div>
+        <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:4px">${_esc(oppP.username)}</div>
         <div style="font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;color:var(--muted2);line-height:1">${oppScore??'—'}</div>
         <div style="font-size:11px;color:var(--muted2)">/ ${total}</div>
       </div>
@@ -18230,7 +18264,7 @@ function renderQuizChallengeNotif(ch, myId) {
   const needsAnswer = !completed && myScore === null;
 
   if (needsAnswer) {
-    return `<div onclick="openQuizForChallenge('${ch.id}','${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
+    return `<div onclick="openQuizForChallenge('${_jsId(ch.id)}','${ch.quiz_id}')" style="background:var(--s2);border:0.5px solid var(--a);border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:var(--a);margin-bottom:4px">⚡ Défi Quiz en attente</div>
       <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
       <div style="font-size:11px;color:var(--muted2);margin-top:2px">Tape ici pour répondre au défi !</div>
@@ -18246,7 +18280,7 @@ function renderQuizChallengeNotif(ch, myId) {
   if (completed && myScore !== null && oppScore !== null) {
     const won = myScore > oppScore;
     const draw = myScore === oppScore;
-    return `<div onclick="openChallengeResult('${ch.id}')" style="background:var(--s2);border:0.5px solid ${won?'#55efc4':draw?'var(--amber)':'#ff7675'};border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
+    return `<div onclick="openChallengeResult('${_jsId(ch.id)}')" style="background:var(--s2);border:0.5px solid ${won?'#55efc4':draw?'var(--amber)':'#ff7675'};border-radius:14px;padding:14px 16px;cursor:pointer;margin-bottom:10px">
       <div style="font-size:12px;font-weight:700;color:${won?'#55efc4':draw?'var(--amber)':'#ff7675'};margin-bottom:4px">${won?'🏆 Victoire !':draw?'🤝 Égalité':'💀 Défaite'}</div>
       <div style="font-size:13px;font-weight:600;color:var(--text)">${ch.quiz_name}</div>
       <div style="font-size:12px;color:var(--muted2);margin-top:4px">Toi : ${myScore}/${myTotal} · Adversaire : ${oppScore}/${myTotal} · Voir le détail →</div>
@@ -18492,7 +18526,7 @@ const TL_COLOR_PRESETS = [
 ];
 
 function _tlCoverSrc(g) {
-  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${g.imageId}.jpg`;
+  if (g.imageId) return `https://images.igdb.com/igdb/image/upload/t_cover_big/${_igdbId(g.imageId)}.jpg`;
   if (g.steamId && g.steamId > 0) return `https://cdn.akamai.steamstatic.com/steam/apps/${g.steamId}/library_600x900.jpg`;
   if (g.cover) {
     if (typeof g.cover === 'string' && g.cover.includes('images.igdb.com'))
@@ -18508,10 +18542,10 @@ function _tlCoverHtml(g, cls, wrapCls, onclick) {
   const w = cls === 'pool-cover' ? 52 : 46;
   const h = cls === 'pool-cover' ? 70 : 62;
   const inner = src
-    ? `<img src="${src}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
+    ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`+
       `<div style="display:none;width:100%;height:100%;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-align:center;padding:2px">${init}</div>`
     : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk',sans-serif;font-size:10px;font-weight:700;color:var(--muted2);text-align:center;padding:2px">${init}</div>`;
-  return `<div class="${wrapCls}" onclick="${onclick}" title="${g.title.replace(/"/g,'&quot;')}">
+  return `<div class="${wrapCls}" onclick="${onclick}" title="${_esc(g.title.replace(/"/g,'&quot;'))}">
     <div class="${cls}" style="width:${w}px;height:${h}px">${inner}</div>
   </div>`;
 }
@@ -18716,8 +18750,8 @@ async function _tlSearchAdd(q) {
       const imgId = g.cover?.image_id;
       const src = imgId ? `https://images.igdb.com/igdb/image/upload/t_cover_big/${imgId}.jpg` : null;
       const inPool = _tlPool.find(p => p.id === 'igdb_'+g.id) || Object.values(_tlTiers).flat().find(p => p.id === 'igdb_'+g.id);
-      return `<div onclick="_tlAddFromSearch(${g.id},'${(g.name||'').replace(/'/g,"\\'")}','${imgId||''}')" style="flex-shrink:0;cursor:pointer;position:relative;opacity:${inPool?'0.4':'1'}">
-        ${src ? `<img src="${src}" style="width:68px;height:92px;border-radius:10px;object-fit:cover;display:block" loading="lazy">` : `<div style="width:68px;height:92px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted2);text-align:center;padding:4px">${(g.name||'').slice(0,8)}</div>`}
+      return `<div onclick="_tlAddFromSearch(${g.id},'${_esc((g.name||'').replace(/'/g,"\\'"))}','${imgId||''}')" style="flex-shrink:0;cursor:pointer;position:relative;opacity:${inPool?'0.4':'1'}">
+        ${src ? `<img src="${_attrUrl(src)}" style="width:68px;height:92px;border-radius:10px;object-fit:cover;display:block" loading="lazy">` : `<div style="width:68px;height:92px;border-radius:10px;background:var(--s3);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted2);text-align:center;padding:4px">${_esc((g.name||'').slice(0,8))}</div>`}
         ${inPool ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px">✓</div>' : '<div style="position:absolute;bottom:3px;right:3px;background:var(--a);border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">+</div>'}
       </div>`;
     }).join('');
@@ -18890,8 +18924,8 @@ async function openTlCompare() {
     _tlCmpCands = cands;
     const listEl = document.getElementById('tl-cmp-picker-list');
     if (listEl) listEl.innerHTML = cands.map(x => `
-      <button onclick="document.getElementById('tl-cmp-picker').style.display='none';_tlCompareById('${x.l.id}')" style="width:100%;text-align:left;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--text)">
-        <div style="font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:2px">${x.l.name}</div>
+      <button onclick="document.getElementById('tl-cmp-picker').style.display='none';_tlCompareById('${_jsId(x.l.id)}')" style="width:100%;text-align:left;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 15px;cursor:pointer;color:var(--text)">
+        <div style="font-size:14px;font-weight:700;font-family:'Space Grotesk',sans-serif;margin-bottom:2px">${_esc(x.l.name)}</div>
         <div style="font-size:11px;color:var(--muted2)">${x.common} jeu${x.common > 1 ? 'x' : ''} en commun</div>
       </button>`).join('');
     document.getElementById('tl-cmp-picker').style.display = 'flex';
@@ -18919,10 +18953,10 @@ function renderTlCompare(myList) {
   const clash = pairs.filter(p => p.diff >= 2).sort((a, b) => b.diff - a.diff);
   const verdict = score >= 90 ? 'Jumeaux de goûts 👯' : score >= 75 ? 'Très compatibles 🤝' : score >= 55 ? 'Souvent d\'accord 👍' : score >= 35 ? 'Ça débat sec 🍿' : 'Ennemis jurés du classement ⚔️';
   const chip = (e) => `<span style="display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 6px;border-radius:7px;background:${e.def.bg};color:${e.def.color};font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:800">${(e.def.label || e.def.id).slice(0, 4)}</span>`;
-  const cov = (g) => { const src = _tlCoverSrc(g); return src ? `<img src="${src}" referrerpolicy="no-referrer" style="width:34px;height:46px;border-radius:7px;object-fit:cover;flex-shrink:0" onerror="this.style.visibility='hidden'">` : `<div style="width:34px;height:46px;border-radius:7px;background:var(--s3);flex-shrink:0"></div>`; };
+  const cov = (g) => { const src = _tlCoverSrc(g); return src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:34px;height:46px;border-radius:7px;object-fit:cover;flex-shrink:0" onerror="this.style.visibility='hidden'">` : `<div style="width:34px;height:46px;border-radius:7px;background:var(--s3);flex-shrink:0"></div>`; };
   const row = (p) => `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--border)">
     ${cov(p.g)}
-    <div style="flex:1;min-width:0;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.g.title}</div>
+    <div style="flex:1;min-width:0;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(p.g.title)}</div>
     <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">${chip(p.a)}<span style="font-size:10px;color:var(--muted2)">vs</span>${chip(p.b)}</div>
   </div>`;
   const section = (title, arr) => arr.length ? `
@@ -18934,7 +18968,7 @@ function renderTlCompare(myList) {
   const ringColor = score >= 75 ? 'var(--green)' : score >= 45 ? 'var(--amber)' : 'var(--red)';
   body.innerHTML = `<div style="max-width:560px;margin:0 auto">
     <div style="background:var(--s1);border:0.5px solid var(--border2);border-radius:20px;padding:20px;text-align:center">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:12px"><b style="color:var(--text)">${myName}</b> · ${myList.name}&nbsp;&nbsp;vs&nbsp;&nbsp;<b style="color:var(--text)">${friendName}</b> · ${_tlViewData.name}</div>
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:12px"><b style="color:var(--text)">${myName}</b> · ${_esc(myList.name)}&nbsp;&nbsp;vs&nbsp;&nbsp;<b style="color:var(--text)">${friendName}</b> · ${_esc(_tlViewData.name)}</div>
       <div style="width:84px;height:84px;position:relative;margin:0 auto 10px">
         <svg viewBox="0 0 84 84" style="transform:rotate(-90deg);width:84px;height:84px">
           <circle cx="42" cy="42" r="34" fill="none" stroke="var(--border2)" stroke-width="8"/>
@@ -18963,9 +18997,9 @@ function renderTierListHub() {
   const licScroll = document.getElementById('tl-licence-scroll');
   if (licScroll) {
     licScroll.innerHTML = TIERLIST_LICENCES.map(lic => `
-      <div onclick="openTierList('licence',{licenceId:'${lic.id}'})" style="flex-shrink:0;width:110px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px 10px;cursor:pointer;position:relative;overflow:hidden;text-align:center;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.95)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
-        <div style="font-size:26px;margin-bottom:6px;line-height:1">${lic.emoji}</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px">${lic.title}</div>
+      <div onclick="openTierList('licence',{licenceId:'${_jsId(lic.id)}'})" style="flex-shrink:0;width:110px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px 10px;cursor:pointer;position:relative;overflow:hidden;text-align:center;-webkit-tap-highlight-color:transparent" ontouchstart="" onmousedown="this.style.transform='scale(0.95)'" ontouchend="this.style.transform=''" onmouseup="this.style.transform=''">
+        <div style="font-size:26px;margin-bottom:6px;line-height:1">${_esc(lic.emoji)}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:3px">${_esc(lic.title)}</div>
         <div style="font-size:10px;color:var(--muted2)">${lic.games.length} jeux</div>
         <div style="position:absolute;inset:0;border-radius:14px;background:${lic.gradient};opacity:0.05;pointer-events:none"></div>
       </div>`).join('');
@@ -19027,13 +19061,13 @@ function _renderTlMyListRows() {
       const count = (l.rankedCount != null) ? `${l.rankedCount} classés` : `${l.itemCount} jeux`;
       return `
       <div style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border);border-radius:14px;padding:12px 12px 12px 14px;margin-bottom:8px">
-        <div onclick="editTierList('${l.id}')" style="flex:1;min-width:0;cursor:pointer">
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${l.name}</div>
+        <div onclick="editTierList('${_jsId(l.id)}')" style="flex:1;min-width:0;cursor:pointer">
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${vis === 'public' ? '' : COL_VIS[vis].icon + ' '}${_esc(l.name)}</div>
           <div style="font-size:11px;color:var(--muted2)">${count} · ${new Date(l.createdAt).toLocaleDateString('fr')}</div>
         </div>
-        <button onclick="tlToggleListPublic('${l.id}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">${COL_VIS[vis].icon}</button>
-        <button onclick="_tlShareFromHub('${l.id}','${(l.name || '').replace(/'/g,"\\'")}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;color:var(--a);cursor:pointer">🔗</button>
-        <button onclick="deleteSavedTierList('${l.id}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">🗑️</button>
+        <button onclick="tlToggleListPublic('${_jsId(l.id)}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">${COL_VIS[vis].icon}</button>
+        <button onclick="_tlShareFromHub('${_jsId(l.id)}','${_esc((l.name || '').replace(/'/g,"\\'"))}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;font-weight:700;color:var(--a);cursor:pointer">🔗</button>
+        <button onclick="deleteSavedTierList('${_jsId(l.id)}')" style="background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:6px 9px;font-size:12px;cursor:pointer">🗑️</button>
       </div>`;
     }).join('')}
   `;
@@ -19108,8 +19142,8 @@ function renderTierListTiers() {
   const longest = Math.max(1, ..._tlDefs.map(d => (d.label || d.id).length));
   const labW = longest <= 2 ? 44 : Math.min(96, 18 + longest * 7);
   el.innerHTML = _tlDefs.map(d => `
-    <div class="tier-row" id="tl-row-${d.id}" onclick="placeTierCard('${d.id}')">
-      <div class="tier-label" style="background:${d.bg};color:${d.color};position:relative;width:${labW}px;flex-shrink:0" onclick="event.stopPropagation();_tlLabelTap('${d.id}')">
+    <div class="tier-row" id="tl-row-${d.id}" onclick="placeTierCard('${_jsId(d.id)}')">
+      <div class="tier-label" style="background:${d.bg};color:${d.color};position:relative;width:${labW}px;flex-shrink:0" onclick="event.stopPropagation();_tlLabelTap('${_jsId(d.id)}')">
         <span style="${(d.label || d.id).length > 2 ? 'font-size:12px;font-weight:800;line-height:1.2;word-break:break-word;text-align:center;padding:0 3px' : ''}">${d.label || d.id}</span>
         ${_tlReadOnly ? '' : '<span style="position:absolute;bottom:3px;right:4px;font-size:8px;opacity:0.75">✎</span>'}
       </div>
@@ -19147,7 +19181,7 @@ function renderTierListPool() {
     ? `<div style="padding:12px 0;font-size:13px;color:var(--muted2)">Tout classé ! 🎉 Lance l'export.</div>`
     : _tlPool.map(g => {
         const sel = _tlSelected === g.id;
-        return `<div class="pool-cover-wrap${sel?' sel':''}" id="pc-${g.id}" onclick="selectPoolCard('${g.id}')">
+        return `<div class="pool-cover-wrap${sel?' sel':''}" id="pc-${g.id}" onclick="selectPoolCard('${_jsId(g.id)}')">
           ${_tlCoverHtml(g,'pool-cover','','').replace('<div class="" ','<div ').replace(' onclick=""','')}
         </div>`;
       }).join('');
@@ -19232,7 +19266,7 @@ function _tlRenderCardActions() {
   const cur = mode === 'tier' ? _tlTierSel.tier : null;
   const chips = document.getElementById('tl-ca-tiers');
   if (chips) chips.innerHTML = _tlDefs.map(d =>
-    `<button onclick="_tlBarTier('${d.id}')" style="min-width:24px;height:24px;padding:0 4px;border-radius:7px;border:${d.id === cur ? '1.5px solid #fff' : 'none'};cursor:pointer;font-size:10px;font-weight:800;font-family:'Space Grotesk',sans-serif;background:${d.bg};color:${d.color};opacity:${d.id === cur ? '1' : '0.6'}">${(d.label || d.id).slice(0, 2)}</button>`
+    `<button onclick="_tlBarTier('${_jsId(d.id)}')" style="min-width:24px;height:24px;padding:0 4px;border-radius:7px;border:${d.id === cur ? '1.5px solid #fff' : 'none'};cursor:pointer;font-size:10px;font-weight:800;font-family:'Space Grotesk',sans-serif;background:${d.bg};color:${d.color};opacity:${d.id === cur ? '1' : '0.6'}">${(d.label || d.id).slice(0, 2)}</button>`
   ).join('');
 }
 
@@ -19437,10 +19471,10 @@ function _tlAddRow(g) {
   const placed = existing && !_tlPool.find(x => x.id === existing.id);
   const src = _tlCoverSrc(g);
   const sub = [g.year || null, g.genre || null].filter(Boolean).join(' · ');
-  return `<div id="tlar-${g.id}" onclick="tlAddToggle('${g.id}')" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;opacity:${placed ? 0.55 : 1}">
-    ${src ? `<img src="${src}" referrerpolicy="no-referrer" loading="lazy" style="width:44px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--s3)" onerror="this.style.visibility='hidden'">` : `<div style="width:44px;height:60px;border-radius:8px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>`}
+  return `<div id="tlar-${g.id}" onclick="tlAddToggle('${_jsId(g.id)}')" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:0.5px solid var(--border);cursor:pointer;opacity:${placed ? 0.55 : 1}">
+    ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" loading="lazy" style="width:44px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--s3)" onerror="this.style.visibility='hidden'">` : `<div style="width:44px;height:60px;border-radius:8px;background:var(--s3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px">🎮</div>`}
     <div style="flex:1;min-width:0">
-      <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${g.title}</div>
+      <div style="font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(g.title)}</div>
       ${sub ? `<div style="font-size:11px;color:var(--muted2);margin-top:2px">${sub}</div>` : ''}
     </div>
     ${placed
