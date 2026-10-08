@@ -1566,13 +1566,13 @@ html, body {
           <button onclick="openGPAll()" style="font-size:11px;font-weight:700;color:var(--a);background:none;border:none;cursor:pointer;padding:4px 0" data-i18n="feed.see_all">Voir tout →</button>
         </div>
         <div id="gp-row" style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch"></div>
+        <div id="gp-leaving" style="display:none"></div>
       </div>
 
 
       <!-- RECOMMANDATIONS PERSONNALISÉES -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 16px 8px">
-        <div class="sec-label" style="padding:0" data-i18n="feed.foryou">Pour toi</div>
-        <button onclick="renderHomeRecos(true)" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:16px;padding:4px 6px;border-radius:8px" title="Rafraîchir">↻</button>
+        <div class="sec-label" style="padding:0" data-i18n="feed.mystery">🎁 Jeu mystère du jour</div>
       </div>
       <div id="home-recos" style="padding:0 16px 24px;display:flex;flex-direction:column;gap:8px"></div>
 
@@ -1939,10 +1939,13 @@ html, body {
             <div id="app-xp-next" style="font-size:10px;font-weight:600;color:var(--muted);opacity:0.65"></div>
           </div>
         </button>
-        <button onclick="openEditProfile()" style="margin-top:10px;background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:6px">
+        <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+        <button onclick="openEditProfile()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 18px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer;display:flex;align-items:center;gap:6px">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
           <span data-i18n="profile.edit">Modifier le profil</span>
         </button>
+          <button onclick="shareMyProfile()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--muted2);cursor:pointer">🔗 <span data-i18n="profile.share_profile">Partager</span></button>
+        </div>
       </div>
 
       <!-- PINNED ACHIEVEMENTS (level 2+) -->
@@ -2256,7 +2259,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2419,6 +2422,7 @@ html, body {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
       </button>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:700;flex:1" id="fp-title" data-i18n="misc.friend_profile_title">Profil</div>
+      <button id="fp-follow-btn" onclick="toggleFollow()" style="display:none;border-radius:10px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer"></button>
       <button id="fp-remove-btn" style="display:none;background:rgba(255,82,82,0.12);border:0.5px solid rgba(255,82,82,0.3);border-radius:10px;padding:7px 12px;font-size:12px;font-weight:600;color:var(--red);cursor:pointer" onclick="removeFriend()" data-i18n="friend.remove_btn">Retirer</button>
     </div>
     <div class="scroll-area" style="position:relative;z-index:1;padding:0 16px calc(80px + env(safe-area-inset-bottom))">
@@ -2889,7 +2893,8 @@ html, body {
 <div id="add-modal" onclick="if(event.target===this)closeAddModal()">
   <div id="add-modal-inner">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;flex-shrink:0;border-bottom:0.5px solid var(--border)">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700" data-i18n="profile.add_game">Ajouter un jeu</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;flex:1" data-i18n="profile.add_game">Ajouter un jeu</div>
+      <button onclick="closeAddModal();openCsvImport()" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:20px;padding:6px 12px;font-size:11.5px;font-weight:700;color:var(--a);cursor:pointer;margin-right:8px">📥 <span data-i18n="misc.csv_import">Importer un CSV</span></button>
       <button onclick="closeAddModal()" style="background:var(--s2);border:none;border-radius:50%;width:28px;height:28px;color:var(--muted2);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
     </div>
     <div style="padding:12px 16px 8px;flex-shrink:0">
@@ -3463,7 +3468,7 @@ const LANG = {
     feed: {
       playing:'En cours', playing_multi:'👥 Multi en cours', friends:'Chez tes amis', trending:'Tendances du moment',
       upcoming:'🗓️ Sorties à venir', upc_wish:'Souhaits', upc_all:'Tout',
-      gamepass:'Nouveautés Game Pass', foryou:'Pour toi', see_all:'Voir tout →',
+      gamepass:'Nouveautés Game Pass', foryou:'Pour toi', mystery:'🎁 Jeu mystère du jour', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
     },
     toast: {
@@ -3883,7 +3888,7 @@ const LANG = {
     feed: {
       playing:'Playing', playing_multi:'👥 Multiplayer', friends:'Friends activity', trending:'Trending now',
       upcoming:'🗓️ Coming soon', upc_wish:'Wishlist', upc_all:'All',
-      gamepass:'New on Game Pass', foryou:'For you', see_all:'See all →',
+      gamepass:'New on Game Pass', foryou:'For you', mystery:'🎁 Daily mystery game', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
     },
     toast: {
@@ -7297,9 +7302,10 @@ async function loadHomeActivityFeed() {
       .select('requester_id,addressee_id')
       .or(`requester_id.eq.${uid},addressee_id.eq.${uid}`)
       .eq('status', 'accepted');
-    if (!rows || !rows.length) return;
-    const ids = rows.map(r => r.requester_id === uid ? r.addressee_id : r.requester_id);
-    loadFriendActivity(ids);
+    const ids = (rows || []).map(r => r.requester_id === uid ? r.addressee_id : r.requester_id);
+    const all = [...new Set([...ids, ...(await _followeeIds())])];
+    if (!all.length) return;
+    loadFriendActivity(all);
   } catch(e) {}
 }
 
@@ -9823,47 +9829,430 @@ function updateShelfCoverflow() {
 }
 
 let _recoPool = [];
-async function renderHomeRecos(refresh = false) {
+// ══ JEU MYSTÈRE DU JOUR (remplace « Pour toi ») ══════════════════════════════
+// Un jeu que le joueur n'a pas, choisi parmi les « jeux similaires » IGDB de ses
+// jeux notés 8+ : plus il y a de favoris qui y mènent, plus il est rare.
+// Un seul par jour (même jour UTC que les quiz), ouvert par un appui long.
+const MYSTERY_RARITY = {
+  common:    { fr: 'Commun',     en: 'Common',    color: '#9aa4b2' },
+  rare:      { fr: 'Rare',       en: 'Rare',      color: '#3fa9f5' },
+  epic:      { fr: 'Épique',     en: 'Epic',      color: '#a55eea' },
+  legendary: { fr: 'Légendaire', en: 'Legendary', color: '#f7b731' },
+};
+let _mysteryLoading = false;
+function _mysteryState() { try { return JSON.parse(localStorage.getItem('gs_mystery') || 'null'); } catch (e) { return null; } }
+function _saveMystery(st) { try { localStorage.setItem('gs_mystery', JSON.stringify(st)); } catch (e) {} }
+function _mysterySeen() { try { return new Set(JSON.parse(localStorage.getItem('gs_mystery_seen') || '[]')); } catch (e) { return new Set(); } }
+
+async function _pickMystery(day) {
+  const owned = new Set(GAMES.map(g => String(g.id)));
+  const ownedTitles = new Set(GAMES.map(g => (g.title || '').toLowerCase().trim()));
+  const seen = _mysterySeen();
+  const favs = GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }))
+    .filter(g => (g.score || 0) >= 8 && /^\d+$/.test(String(g.id)))
+    .sort((a, b) => (b.score - a.score) || String(a.id).localeCompare(String(b.id)));
+  if (!favs.length) return { locked: true };
+  // Rotation quotidienne parmi les favoris : un mystère différent chaque jour
+  const start = favs.length ? day % favs.length : 0;
+  const pick = [...favs.slice(start), ...favs.slice(0, start)].slice(0, 6);
+  const cand = new Map();
+  await Promise.all(pick.map(async f => {
+    const data = await igdbFetch('similar', { gameId: String(f.id), limit: 10 });
+    (data || []).map(mapIgdbGame).forEach(g => {
+      if (owned.has(String(g.id)) || seen.has(String(g.id)) || ownedTitles.has((g.title || '').toLowerCase().trim())) return;
+      const e = cand.get(g.id) || { game: g, sources: [] };
+      if (!e.sources.some(s => s.id === f.id)) e.sources.push({ id: f.id, title: f.title, imageId: f.imageId, cover: f.cover, steamId: f.steamId });
+      cand.set(g.id, e);
+    });
+  }));
+  if (!cand.size) return { empty: true };
+  // Départage stable sur la journée (pas d'aléatoire : même tirage sur tous les appareils)
+  const best = [...cand.values()].sort((a, b) =>
+    (b.sources.length - a.sources.length) || ((b.game.meta || 0) - (a.game.meta || 0)) || String(a.game.id).localeCompare(String(b.game.id)))[0];
+  const n = best.sources.length;
+  const rarity = n >= 3 ? ((best.game.meta || 0) >= 85 ? 'legendary' : 'epic') : n === 2 ? 'rare' : 'common';
+  const seenArr = [...seen, String(best.game.id)].slice(-300);
+  try { localStorage.setItem('gs_mystery_seen', JSON.stringify(seenArr)); } catch (e) {}
+  return { game: best.game, sources: best.sources.slice(0, 3), rarity };
+}
+
+function _mysteryCss() {
+  if (document.getElementById('mystery-css')) return;
+  const st = document.createElement('style');
+  st.id = 'mystery-css';
+  st.textContent = `
+  @keyframes mysPulse { 0%,100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(162,155,254,0.0), 0 8px 30px rgba(108,92,231,0.25); } 50% { transform: scale(1.015); box-shadow: 0 0 0 6px rgba(162,155,254,0.08), 0 8px 40px rgba(253,121,168,0.3); } }
+  @keyframes mysShake { 0%,100% { transform: translate(0,0) rotate(0); } 20% { transform: translate(-4px,1px) rotate(-2deg); } 40% { transform: translate(4px,-1px) rotate(2deg); } 60% { transform: translate(-3px,0) rotate(-1.5deg); } 80% { transform: translate(3px,1px) rotate(1.5deg); } }
+  @keyframes mysBurst { 0% { transform: scale(0.2); opacity: 0.95; } 100% { transform: scale(3.2); opacity: 0; } }
+  @keyframes mysReveal { 0% { transform: perspective(700px) rotateY(90deg); opacity: 0; } 100% { transform: perspective(700px) rotateY(0); opacity: 1; } }
+  @keyframes mysShine { 0% { background-position: -150% 0; } 100% { background-position: 250% 0; } }
+  .mys-closed { animation: mysPulse 2.6s ease-in-out infinite; }
+  .mys-shake { animation: mysShake 0.5s ease-in-out; }
+  .mys-reveal { animation: mysReveal 0.55s cubic-bezier(0.2,0.8,0.2,1); }
+  @media (prefers-reduced-motion: reduce) { .mys-closed, .mys-shake, .mys-reveal { animation: none !important; } }`;
+  document.head.appendChild(st);
+}
+
+async function renderHomeRecos() {
   const container = document.getElementById('home-recos');
   if (!container) return;
-
-  if (refresh || _recoPool.length === 0) {
+  _mysteryCss();
+  const fr = _lang !== 'en';
+  const day = _quizDayIndex();
+  let st = _mysteryState();
+  if (!st || st.day !== day) {
+    if (_mysteryLoading) return;
+    _mysteryLoading = true;
     container.innerHTML = '<div class="loading-dots" style="padding:16px 0"><span></span><span></span><span></span></div>';
     try {
-      const data = await igdbFetch('trending', { limit: 20 });
-      if (data?.length) {
-        const mapped = data.map(mapIgdbGame);
-        _recoPool = mapped.filter(g => !GAMES.find(x => x.id === g.id)).sort(() => Math.random() - 0.5);
-      }
-    } catch(e) { /* silent */ }
+      const r = await _pickMystery(day);
+      st = { day, ...r, opened: false, choice: null };
+      if (!r.locked && !r.empty) _saveMystery(st);
+    } catch (e) { st = { day, empty: true }; }
+    _mysteryLoading = false;
   }
-
-  if (!_recoPool.length) {
-    container.innerHTML = '<div style="font-size:13px;color:var(--muted);padding:4px 0">Aucune recommandation disponible.</div>';
+  if (st.locked || st.empty) {
+    container.innerHTML = `<div style="background:var(--s1);border:0.5px dashed var(--border2);border-radius:18px;padding:22px 18px;text-align:center;color:var(--muted2);font-size:13px;line-height:1.5">
+      <div style="font-size:30px;margin-bottom:6px">🎁</div>
+      ${st.locked
+        ? (fr ? 'Note au moins un jeu <b>8/10</b> ou plus pour débloquer ton jeu mystère quotidien.' : 'Rate at least one game <b>8/10</b> or higher to unlock your daily mystery game.')
+        : (fr ? 'Pas de jeu mystère aujourd\'hui — reviens demain.' : 'No mystery game today — come back tomorrow.')}</div>`;
     return;
   }
+  if (!st.opened) { _renderMysteryClosed(container); return; }
+  _renderMysteryOpen(container, st, false);
+}
 
-  const recs = _recoPool.slice(0, 5);
-  container.innerHTML = recs.map(g => {
-    const src = coverUrl(g);
-    const initials = (g.title||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
-    const inLib = !!GAMES.find(x => x.id === g.id);
-    const isWish = inLib && (userGames[g.id]?.status === 'wish');
-    const btnBg = inLib ? 'rgba(0,230,118,0.1)' : 'rgba(0,206,201,0.08)';
-    const btnBorder = inLib ? 'rgba(0,230,118,0.25)' : 'rgba(0,206,201,0.3)';
-    const btnColor = inLib ? 'var(--green)' : 'var(--a3)';
-    const btnLabel = inLib ? (isWish ? `✓ ${t('status.wish')}` : `✓ ${t('added')}`) : `✦ ${t('status.wish')}`;
-    return `<div class="now-card anim" style="cursor:pointer" onclick="recoOpenDetail('${_jsId(g.id)}')">
-      <div class="now-cover" style="background:var(--s3)">
-        ${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.style.display='none'">` : `<span style="font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;color:var(--muted)">${initials}</span>`}
+function _renderMysteryClosed(container) {
+  const fr = _lang !== 'en';
+  const R = 34, C = 2 * Math.PI * R;
+  container.innerHTML = `
+    <button id="mys-card" class="mys-closed" aria-label="${fr ? 'Maintiens pour ouvrir ton jeu mystère' : 'Hold to open your mystery game'}"
+      style="position:relative;overflow:hidden;width:100%;border:1px solid rgba(162,155,254,0.4);border-radius:20px;padding:26px 18px 22px;cursor:pointer;color:#fff;text-align:center;
+      background:radial-gradient(circle at 30% 20%,rgba(253,121,168,0.35),transparent 55%),radial-gradient(circle at 75% 80%,rgba(108,92,231,0.45),transparent 60%),linear-gradient(135deg,#1c1640,#120f26);
+      touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none">
+      <div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.12) 50%,transparent 60%);background-size:200% 100%;animation:mysShine 3.2s linear infinite;pointer-events:none"></div>
+      <div style="position:relative;width:84px;height:84px;margin:0 auto 12px">
+        <svg width="84" height="84" viewBox="0 0 84 84" style="position:absolute;inset:0;transform:rotate(-90deg)">
+          <circle cx="42" cy="42" r="${R}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5"/>
+          <circle id="mys-ring" cx="42" cy="42" r="${R}" fill="none" stroke="url(#mysGrad)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/>
+          <defs><linearGradient id="mysGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a29bfe"/><stop offset="1" stop-color="#fd79a8"/></linearGradient></defs>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px">🎁</div>
       </div>
-      <div class="now-info" style="flex:1;min-width:0">
-        <div class="now-title">${_esc(g.title)}</div>
-        <div class="now-sub">${_esc(g.genre)}${g.year?' · '+g.year:''}</div>
-        <button id="reco-btn-${g.id}" onclick="recoWishToggle('${_jsId(g.id)}')" style="margin-top:6px;width:100%;background:${btnBg};border:0.5px solid ${btnBorder};border-radius:8px;padding:4px 8px;font-size:11px;font-weight:600;color:${btnColor};cursor:pointer">${btnLabel}</button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">${fr ? 'Ton jeu mystère du jour' : 'Your daily mystery game'}</div>
+      <div id="mys-hint" style="font-size:12.5px;color:rgba(255,255,255,0.7);margin-top:5px">${fr ? 'Maintiens appuyé pour l\'ouvrir' : 'Press and hold to open'}</div>
+    </button>`;
+  const card = container.querySelector('#mys-card');
+  const ring = container.querySelector('#mys-ring');
+  let raf = null, t0 = 0;
+  const HOLD = 1000;
+  const setP = p => { ring.style.strokeDashoffset = String(C * (1 - p)); };
+  const cancel = () => { if (raf) cancelAnimationFrame(raf); raf = null; setP(0); };
+  const step = now => {
+    const p = Math.min(1, (now - t0) / HOLD);
+    setP(p);
+    if (p >= 1) { raf = null; _openMystery(card); return; }
+    raf = requestAnimationFrame(step);
+  };
+  card.addEventListener('pointerdown', e => { e.preventDefault(); t0 = performance.now(); raf = requestAnimationFrame(step); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => card.addEventListener(ev, () => { if (raf) cancel(); }));
+  card.addEventListener('contextmenu', e => e.preventDefault());
+  // Clavier : Entrée / Espace ouvrent directement
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _openMystery(card); } });
+}
+
+function _openMystery(card) {
+  const st = _mysteryState();
+  if (!st || st.opened) return;
+  st.opened = true;
+  _saveMystery(st);
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const container = document.getElementById('home-recos');
+  if (reduce) { _renderMysteryOpen(container, st, false); return; }
+  const color = (MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common).color;
+  card.classList.remove('mys-closed');
+  card.classList.add('mys-shake');
+  setTimeout(() => {
+    const burst = document.createElement('div');
+    burst.style.cssText = `position:absolute;left:50%;top:42%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff 0%,${color} 35%,transparent 70%);animation:mysBurst 0.55s ease-out forwards`;
+    card.appendChild(burst);
+    setTimeout(() => _renderMysteryOpen(container, st, true), 380);
+  }, 500);
+}
+
+function _renderMysteryOpen(container, st, animate) {
+  const fr = _lang !== 'en';
+  const g = st.game;
+  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
+  const src = coverUrl(g);
+  const inLib = GAMES.some(x => String(x.id) === String(g.id) && (userGames[x.id] || {}).status);
+  const choice = st.choice || (inLib ? 'wish' : null);
+  const hrs = _hoursUntilNextRotation();
+  const srcs = (st.sources || []).map(s => {
+    const c = coverUrl(s);
+    return `<div title="${_esc(s.title)}" style="width:30px;height:40px;border-radius:6px;overflow:hidden;background:var(--s3);flex-shrink:0;border:1.5px solid var(--bg);margin-left:-6px">${c ? `<img src="${_attrUrl(c)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : ''}</div>`;
+  }).join('');
+  const because = (st.sources || []).map(s => s.title).slice(0, 2).join(fr ? ' et ' : ' and ');
+  const btn = (k, label, primary) => `<button onclick="event.stopPropagation();mysteryChoice('${k}')" style="flex:1;padding:10px 6px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;${primary
+    ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff'
+    : 'border:0.5px solid var(--border2);background:var(--s2);color:var(--text)'}">${label}</button>`;
+  const done = choice === 'wish' ? (fr ? '✦ Ajouté à tes souhaits' : '✦ Added to your wishlist')
+    : choice === 'no' ? (fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again')
+    : choice === 'known' ? (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it') : '';
+  container.innerHTML = `
+    <div class="${animate ? 'mys-reveal' : ''}" style="border-radius:20px;padding:2px;background:linear-gradient(135deg,${rar.color},rgba(255,255,255,0.08) 55%,${rar.color})">
+      <div style="background:var(--s1);border-radius:18px;padding:14px">
+        <div onclick="openExternalGameDetail(_mysteryState().game)" style="display:flex;gap:14px;cursor:pointer">
+          <div style="width:92px;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:var(--s3);flex-shrink:0;box-shadow:0 0 24px ${rar.color}55">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : ''}</div>
+          <div style="flex:1;min-width:0">
+            <div style="display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:0.08em;text-transform:uppercase;color:${rar.color};border:1px solid ${rar.color}88;border-radius:20px;padding:3px 9px">${fr ? rar.fr : rar.en}</div>
+            <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;line-height:1.2;margin-top:7px">${_esc(g.title)}</div>
+            <div style="font-size:11.5px;color:var(--muted2);margin-top:3px">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${g.meta ? ' · ★ ' + _esc(g.meta) : ''}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+              <div style="display:flex;padding-left:6px">${srcs}</div>
+              <div style="font-size:11px;color:var(--muted2);line-height:1.35;min-width:0">${fr ? 'Parce que tu as aimé' : 'Because you loved'} <b style="color:var(--text)">${_esc(because)}</b></div>
+            </div>
+          </div>
+        </div>
+        ${done ? `<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--muted2);text-align:center">${done}</div>`
+          : `<div style="display:flex;gap:8px;margin-top:12px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+        <div style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center">🔄 ${fr ? `Nouveau mystère dans ${hrs}h` : `New mystery in ${hrs}h`}</div>
       </div>
     </div>`;
-  }).join('');
+}
+
+function mysteryChoice(k) {
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  st.choice = k;
+  _saveMystery(st);
+  const g = st.game;
+  if (k === 'wish' && !GAMES.find(x => String(x.id) === String(g.id))) {
+    GAMES.push({ ...g, status: 'wish', score: 0, notes: '', hours: 0 });
+    userGames[g.id] = { status: 'wish', score: 0, notes: '', hours: 0, lastActivityAt: new Date().toISOString() };
+    saveToStorage();
+    refreshViews();
+  }
+  if (k === 'known') openExternalGameDetail(g);
+  _renderMysteryOpen(document.getElementById('home-recos'), st, false);
+}
+
+// ══ IMPORT CSV (Backloggd, Grouvee, tableur…) ════════════════════════════════
+// Colonnes détectées par leur nom ; notes ramenées sur 10 ; chaque titre est
+// retrouvé dans IGDB, puis tout est montré en aperçu avant l'import.
+const CSV_MAX_ROWS = 500;
+let _csvRows = [];       // [{ title, status, score, notes, match, state }]
+let _csvAbort = false;
+
+function _parseCsv(text) {
+  text = String(text || '').replace(/^﻿/, '');
+  const first = text.split(/\r?\n/, 1)[0] || '';
+  const delim = [',', ';', '\t'].sort((a, b) => first.split(b).length - first.split(a).length)[0];
+  const rows = []; let row = [], cell = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') q = false;
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === delim) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') {
+      if (c === '\r' && text[i + 1] === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.some(v => v.trim() !== '')) rows.push(row);
+      row = [];
+    } else cell += c;
+  }
+  row.push(cell);
+  if (row.some(v => v.trim() !== '')) rows.push(row);
+  return rows;
+}
+
+function _csvCol(headers, names) {
+  const h = headers.map(x => String(x || '').toLowerCase().trim());
+  for (const n of names) { const i = h.indexOf(n); if (i >= 0) return i; }
+  for (const n of names) { const i = h.findIndex(x => x.includes(n)); if (i >= 0) return i; }
+  return -1;
+}
+
+function _csvStatus(raw) {
+  const v = String(raw || '').toLowerCase();
+  if (/master|100 ?%|platin|completionist/.test(v)) return 'platine';
+  if (/playing|en cours|in progress|currently/.test(v)) return 'playing-solo';
+  if (/complet|beaten|finish|fini|termin|played|done/.test(v)) return 'finished';
+  if (/abandon|dropped|retired|shelved/.test(v)) return 'abandoned';
+  if (/pause|on hold/.test(v)) return 'paused';
+  if (/wish|souhait|want/.test(v)) return 'wish';
+  return 'backlog';
+}
+
+function openCsvImport() {
+  const fr = _lang !== 'en';
+  let m = document.getElementById('csv-import-modal');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'csv-import-modal';
+    m.style.cssText = 'display:none;position:fixed;inset:0;z-index:1150;background:rgba(0,0,0,0.75);align-items:flex-end;justify-content:center';
+    m.addEventListener('click', e => { if (e.target === m) closeCsvImport(); });
+    document.body.appendChild(m);
+  }
+  m.innerHTML = `
+    <div style="width:100%;max-width:520px;max-height:88dvh;display:flex;flex-direction:column;background:var(--s1);border-radius:24px 24px 0 0;padding:20px 18px calc(var(--safe-b) + 20px);box-sizing:border-box">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;flex:1">📥 ${fr ? 'Importer un fichier CSV' : 'Import a CSV file'}</div>
+        <button onclick="closeCsvImport()" style="background:var(--s2);border:none;border-radius:50%;width:30px;height:30px;color:var(--text);cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <div style="font-size:12.5px;color:var(--muted2);line-height:1.5">${fr
+        ? 'Depuis <b>Backloggd</b> (Paramètres → Exporter), <b>Grouvee</b> (Profil → Exporter) ou n\'importe quel tableur avec une colonne de titres. Les statuts et notes sont repris quand ils existent.'
+        : 'From <b>Backloggd</b> (Settings → Export), <b>Grouvee</b> (Profile → Export) or any spreadsheet with a title column. Statuses and ratings are kept when present.'}</div>
+      <label style="display:block;margin-top:14px;padding:16px;border:1.5px dashed var(--border2);border-radius:14px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--a)">
+        ${fr ? 'Choisir un fichier .csv' : 'Choose a .csv file'}
+        <input id="csv-file" type="file" accept=".csv,text/csv,text/plain" style="display:none" onchange="_csvLoadFile(this)">
+      </label>
+      <div id="csv-status" style="font-size:12px;color:var(--muted2);margin-top:10px;min-height:16px"></div>
+      <div id="csv-list" style="flex:1;overflow-y:auto;margin-top:8px;display:flex;flex-direction:column;gap:6px"></div>
+      <button id="csv-go" onclick="_csvImportNow()" disabled style="margin-top:12px;padding:14px;border:none;border-radius:14px;font-size:14px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--a),var(--a2));opacity:0.4;cursor:pointer"></button>
+    </div>`;
+  m.style.display = 'flex';
+  _csvRows = []; _csvAbort = false;
+  _csvRenderGo();
+}
+function closeCsvImport() {
+  _csvAbort = true;
+  const m = document.getElementById('csv-import-modal');
+  if (m) m.style.display = 'none';
+}
+
+async function _csvLoadFile(input) {
+  const fr = _lang !== 'en';
+  const status = document.getElementById('csv-status');
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { status.textContent = fr ? '⚠️ Fichier trop gros (5 Mo maximum).' : '⚠️ File too large (5 MB max).'; return; }
+  const rows = _parseCsv(await file.text());
+  if (rows.length < 2) { status.textContent = fr ? '⚠️ Fichier vide ou illisible.' : '⚠️ Empty or unreadable file.'; return; }
+  const h = rows[0];
+  const iTitle  = _csvCol(h, ['name', 'title', 'game title', 'game name', 'game', 'titre', 'jeu']);
+  const iStatus = _csvCol(h, ['status', 'statuses', 'shelves', 'shelf', 'statut', 'list']);
+  const iScore  = _csvCol(h, ['rating', 'my rating', 'user rating', 'score', 'stars', 'note']);
+  const iNotes  = _csvCol(h, ['review', 'notes', 'comment', 'avis']);
+  if (iTitle < 0) { status.textContent = fr ? '⚠️ Aucune colonne de titre trouvée (« name », « title »…).' : '⚠️ No title column found ("name", "title"…).'; return; }
+  const body = rows.slice(1, CSV_MAX_ROWS + 1);
+  const nums = body.map(r => parseFloat(String(r[iScore] || '').replace(',', '.'))).filter(n => Number.isFinite(n) && n > 0);
+  const max = nums.length ? Math.max(...nums) : 10;
+  const factor = max <= 5 ? 2 : max <= 10 ? 1 : 0.1;  // 5 étoiles → ×2 ; sur 100 → ÷10
+  const owned = new Set(GAMES.filter(g => (userGames[g.id] || {}).status).map(g => (g.title || '').toLowerCase().trim()));
+  _csvRows = body.map(r => {
+    const title = String(r[iTitle] || '').trim().slice(0, 150);
+    const n = iScore >= 0 ? parseFloat(String(r[iScore] || '').replace(',', '.')) : NaN;
+    const score = Number.isFinite(n) && n > 0 ? Math.min(10, Math.round(n * factor * 2) / 2) : 0;
+    return { title, status: _csvStatus(iStatus >= 0 ? r[iStatus] : ''), score,
+      notes: iNotes >= 0 ? String(r[iNotes] || '').trim().slice(0, 2000) : '', match: null,
+      state: !title ? 'skip' : owned.has(title.toLowerCase()) ? 'owned' : 'pending' };
+  }).filter(r => r.title);
+  const extra = rows.length - 1 - body.length;
+  status.textContent = (fr ? `${_csvRows.length} jeux lus` : `${_csvRows.length} games read`)
+    + (extra > 0 ? (fr ? ` (${extra} au-delà de ${CSV_MAX_ROWS} ignorés)` : ` (${extra} beyond ${CSV_MAX_ROWS} skipped)`) : '');
+  _csvRenderList();
+  await _csvMatchAll();
+}
+
+async function _csvMatchAll() {
+  const fr = _lang !== 'en';
+  const status = document.getElementById('csv-status');
+  const todo = _csvRows.filter(r => r.state === 'pending');
+  let done = 0;
+  const norm = s => String(s || '').toLowerCase().replace(/[™®©:’'"!.,-]/g, '').replace(/\s+/g, ' ').trim();
+  const worker = async () => {
+    while (todo.length && !_csvAbort) {
+      const r = todo.shift();
+      try {
+        const res = await igdbSearch(r.title, 5);
+        const exact = (res || []).find(g => norm(g.title) === norm(r.title));
+        r.match = exact || (res || [])[0] || null;
+        r.state = r.match ? (GAMES.some(g => String(g.id) === String(r.match.id) && (userGames[g.id] || {}).status) ? 'owned' : (exact ? 'ok' : 'approx')) : 'notfound';
+      } catch (e) { r.state = 'notfound'; }
+      done++;
+      if (status) status.textContent = fr ? `Recherche dans IGDB… ${done}/${done + todo.length}` : `Searching IGDB… ${done}/${done + todo.length}`;
+      _csvRenderList();
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  if (_csvAbort) return;
+  const ok = _csvRows.filter(r => r.state === 'ok' || r.state === 'approx').length;
+  if (status) status.textContent = fr
+    ? `${ok} jeux prêts à importer · ${_csvRows.filter(r => r.state === 'owned').length} déjà dans ta bibliothèque · ${_csvRows.filter(r => r.state === 'notfound').length} introuvables`
+    : `${ok} games ready · ${_csvRows.filter(r => r.state === 'owned').length} already in your library · ${_csvRows.filter(r => r.state === 'notfound').length} not found`;
+  _csvRenderGo();
+}
+
+function _csvToggle(i) {
+  const r = _csvRows[i];
+  if (!r) return;
+  if (r.state === 'ok' || r.state === 'approx') { r._prev = r.state; r.state = 'off'; }
+  else if (r.state === 'off') r.state = r._prev || 'ok';
+  _csvRenderList(); _csvRenderGo();
+}
+
+function _csvRenderList() {
+  const el = document.getElementById('csv-list');
+  if (!el) return;
+  const fr = _lang !== 'en';
+  const lbl = { ok: '', approx: fr ? 'proche' : 'close match', owned: fr ? 'déjà là' : 'owned', notfound: fr ? 'introuvable' : 'not found', pending: '…', off: fr ? 'ignoré' : 'skipped' };
+  const st = { 'playing-solo': fr ? 'En cours' : 'Playing', finished: fr ? 'Fini' : 'Finished', platine: '100%', backlog: 'Backlog', wish: fr ? 'Souhait' : 'Wishlist', abandoned: fr ? 'Abandonné' : 'Dropped', paused: fr ? 'Pause' : 'Paused' };
+  el.innerHTML = _csvRows.slice(0, 200).map((r, i) => {
+    const g = r.match;
+    const src = g ? coverUrl(g) : null;
+    const active = r.state === 'ok' || r.state === 'approx';
+    const dim = !active && r.state !== 'pending';
+    return `<div onclick="_csvToggle(${i})" style="display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:12px;background:var(--s2);cursor:pointer;opacity:${dim ? 0.45 : 1}">
+      <div style="width:28px;height:38px;border-radius:5px;overflow:hidden;background:var(--s3);flex-shrink:0">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : ''}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(g ? g.title : r.title)}</div>
+        <div style="font-size:10.5px;color:var(--muted2)">${_esc(st[r.status] || r.status)}${r.score ? ' · ★ ' + r.score : ''}${g && r.state === 'approx' ? ' · ' + _esc(fr ? 'fichier : ' : 'file: ') + _esc(r.title) : ''}</div>
+      </div>
+      <div style="font-size:10.5px;font-weight:700;color:${active ? 'var(--green)' : 'var(--muted)'};flex-shrink:0">${active ? '✓' : ''} ${_esc(lbl[r.state] || '')}</div>
+    </div>`;
+  }).join('') + (_csvRows.length > 200 ? `<div style="font-size:11px;color:var(--muted);text-align:center;padding:6px">+ ${_csvRows.length - 200}</div>` : '');
+}
+
+function _csvRenderGo() {
+  const b = document.getElementById('csv-go');
+  if (!b) return;
+  const n = _csvRows.filter(r => r.state === 'ok' || r.state === 'approx').length;
+  const busy = _csvRows.some(r => r.state === 'pending');
+  b.disabled = !n || busy;
+  b.style.opacity = b.disabled ? '0.4' : '1';
+  b.textContent = _lang === 'en' ? `Import ${n} game${n > 1 ? 's' : ''}` : `Importer ${n} jeu${n > 1 ? 'x' : ''}`;
+}
+
+function _csvImportNow() {
+  const fr = _lang !== 'en';
+  const now = new Date().toISOString();
+  let added = 0, demoted = 0;
+  let solo = GAMES.filter(g => (userGames[g.id] || {}).status === 'playing-solo').length;
+  for (const r of _csvRows) {
+    if (!(r.state === 'ok' || r.state === 'approx') || !r.match) continue;
+    const g = r.match;
+    if (GAMES.some(x => String(x.id) === String(g.id) && (userGames[x.id] || {}).status)) continue;
+    let status = r.status;
+    // « En cours » solo est limité à 10 dans l'app : le surplus part au backlog
+    if (status === 'playing-solo') { if (solo >= 10) { status = 'backlog'; demoted++; } else solo++; }
+    const i = GAMES.findIndex(x => String(x.id) === String(g.id));
+    if (i < 0) GAMES.push({ ...g, status, score: r.score, notes: r.notes, hours: 0 });
+    userGames[g.id] = { status, score: r.score, notes: r.notes, hours: 0, vibe: null,
+      ratedAt: r.score ? now : null, lastActivityAt: now };
+    added++;
+  }
+  saveToStorage();
+  refreshViews();
+  _scheduleXpSync(4000);
+  closeCsvImport();
+  showToast(fr ? `📥 ${added} jeux importés${demoted ? ` · ${demoted} « en cours » passés au backlog (max 10)` : ''}`
+               : `📥 ${added} games imported${demoted ? ` · ${demoted} "playing" moved to backlog (max 10)` : ''}`);
 }
 
 let _tempRecoId = null;
@@ -10419,7 +10808,8 @@ async function openNotifDrawer() {
       }
     } catch (e) {}
 
-    if ((!rows || rows.length === 0) && !_friendQuizRows.length && !actHtml) {
+    const rxHtml = await _receivedReactionsHtml(uid);
+    if ((!rows || rows.length === 0) && !_friendQuizRows.length && !actHtml && !rxHtml) {
       body.innerHTML = '<div style="text-align:center;padding:40px 0"><div style="font-size:32px;margin-bottom:8px">🔔</div><div style="color:var(--muted2);font-size:14px">Aucune notification pour l\'instant</div></div>';
       _updateFriendBadges(0);
       return;
@@ -10464,7 +10854,7 @@ async function openNotifDrawer() {
       }).join('')}` : '';
 
     if (actHtml && ((rows||[]).length || _friendQuizRows.length)) actHtml = actHtml.replace('class="ndr-sec" style="', 'class="ndr-sec" style="margin-top:18px;');
-    body.innerHTML = friendReqHtml + dailyQuizHtml + actHtml;
+    body.innerHTML = friendReqHtml + rxHtml + dailyQuizHtml + actHtml;
     _updateFriendBadges((rows||[]).length);
   } catch(e) {
     body.innerHTML = `<div style="text-align:center;padding:32px 0;color:var(--red);font-size:13px">${t('toast.error_loading')}</div>`;
@@ -10545,6 +10935,7 @@ function initApp(){
     if (obProfile.gamepass) loadGamePass();
   }, 200);
   // Check for shared tier list URL param
+  if (window.__openProfileAfterBoot) { const _n = window.__openProfileAfterBoot; window.__openProfileAfterBoot = null; setTimeout(() => _openProfileFromLink(_n), 900); }
   const tlParam = new URLSearchParams(location.search).get('tl');
   if (tlParam) setTimeout(() => loadSharedTierList(tlParam), 600);
 
@@ -10691,8 +11082,9 @@ async function loadSocialScreen() {
   try { renderDailyQuizCard(); } catch (e) { console.warn('renderDailyQuizCard', e); _gsShowErrBanner('Quiz : ' + e.message); }
   try { renderWeeklyPoll(); } catch (e) { console.warn('renderWeeklyPoll', e); }
   try { renderSocialLeaderboard(); } catch (e) { console.warn('renderSocialLeaderboard', e); _gsShowErrBanner('Podium : ' + e.message); }
-  if (friends.length) {
-    loadFriendActivity(acceptedIds);
+  const _followIds = await _followeeIds();
+  if (friends.length || _followIds.length) {
+    loadFriendActivity([...new Set([...acceptedIds, ..._followIds])]);
   } else {
     const actSection = document.getElementById('social-activity-section');
     const actList = document.getElementById('social-activity-list');
@@ -11625,6 +12017,163 @@ async function openExternalGameDetail(fg) {
 let _fpFriendshipId = null;
 let _fpFriendUserId = null;
 
+// ── Abonnements : suivre un compte public sans amitié réciproque ─────────────
+let _followCache = null;
+async function _followeeIds(force = false) {
+  if (_followCache && !force) return _followCache;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return [];
+    const { data, error } = await _sb.from('follows').select('followee_id').eq('follower_id', session.user.id);
+    _followCache = error ? [] : (data || []).map(r => r.followee_id);
+  } catch (e) { _followCache = []; }
+  return _followCache;
+}
+let _fpFollowTarget = null;
+async function _setupFollowBtn(userId, isFriend, profile) {
+  const btn = document.getElementById('fp-follow-btn');
+  if (!btn) return;
+  btn.style.display = 'none';
+  _fpFollowTarget = userId;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    // Pas de bouton pour soi-même, ses amis (déjà dans le fil) ni un compte privé
+    if (!session || session.user.id === userId || isFriend || profile.is_public === false) return;
+    const following = (await _followeeIds()).includes(userId);
+    _renderFollowBtn(following);
+    btn.style.display = 'block';
+  } catch (e) {}
+}
+function _renderFollowBtn(following) {
+  const btn = document.getElementById('fp-follow-btn');
+  if (!btn) return;
+  const fr = _lang !== 'en';
+  btn.dataset.following = following ? '1' : '';
+  btn.textContent = following ? (fr ? '✓ Abonné' : '✓ Following') : (fr ? '+ Suivre' : '+ Follow');
+  btn.style.background = following ? 'var(--s2)' : 'linear-gradient(135deg,var(--a),var(--a2))';
+  btn.style.border = following ? '0.5px solid var(--border2)' : 'none';
+  btn.style.color = following ? 'var(--muted2)' : '#fff';
+}
+async function toggleFollow() {
+  const btn = document.getElementById('fp-follow-btn');
+  const target = _fpFollowTarget;
+  if (!btn || !target) return;
+  const following = !!btn.dataset.following;
+  _renderFollowBtn(!following); // optimiste
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) throw new Error('no session');
+    const q = following
+      ? _sb.from('follows').delete().eq('follower_id', session.user.id).eq('followee_id', target)
+      : _sb.from('follows').insert({ follower_id: session.user.id, followee_id: target });
+    const { error } = await q;
+    if (error) throw error;
+    _followCache = following ? (_followCache || []).filter(id => id !== target) : [...(_followCache || []), target];
+    showToast(following ? (_lang === 'en' ? 'Unfollowed' : 'Abonnement retiré')
+                        : (_lang === 'en' ? '✓ Following — their activity shows up in your feed' : '✓ Abonné — son activité apparaît dans ton fil'));
+  } catch (e) {
+    _renderFollowBtn(following);
+    showToast(_lang === 'en' ? 'Could not update — try again' : 'Impossible pour le moment — réessaie');
+  }
+}
+
+// ── Profil public partageable : /u/<pseudo> ─────────────────────────────────
+async function _resolveProfile(nameOrId) {
+  const v = String(nameOrId || '').trim();
+  if (!v) return null;
+  const cols = 'id,username,avatar,avatar_grad,avatar_url,bio,xp,is_public,top_order';
+  if (/^[0-9a-f-]{36}$/i.test(v)) {
+    const { data } = await _sb.from('profiles').select(cols).eq('id', v).maybeSingle();
+    return data || null;
+  }
+  // Correspondance exacte, sans tenir compte de la casse (% et _ neutralisés)
+  const { data } = await _sb.from('profiles').select(cols).ilike('username', v.replace(/[\\%_]/g, m => '\\' + m)).limit(1);
+  return (data && data[0]) || null;
+}
+
+function shareMyProfile() {
+  const fr = _lang !== 'en';
+  if (obProfile.isPublic === false) {
+    showToast(fr ? '🔒 Ton compte est privé — passe-le en public pour partager ton profil' : '🔒 Your account is private — make it public to share your profile');
+    return;
+  }
+  const url = location.origin + '/u/' + encodeURIComponent(obProfile.username || '');
+  const text = (fr ? 'Mon profil gamer sur GameShelf' : 'My gamer profile on GameShelf') + ' 🎮';
+  if (navigator.share) navigator.share({ title: 'GameShelf', text, url }).catch(() => {});
+  else navigator.clipboard.writeText(url).then(() => showToast(t('toast.copied'))).catch(() => showToast(url));
+}
+
+// Ouverture depuis un lien, joueur connecté : fiche dans l'app (avec « Suivre »)
+async function _openProfileFromLink(name) {
+  try {
+    history.replaceState(null, '', '/');
+    const p = await _resolveProfile(name);
+    if (!p) { showToast(_lang === 'en' ? 'Profile not found' : 'Profil introuvable'); return; }
+    openFriendProfile(p.id);
+  } catch (e) {}
+}
+
+// Ouverture depuis un lien, visiteur sans compte : page publique en lecture seule
+async function renderPublicProfile(name) {
+  document.getElementById('view-onboarding').style.display = 'none';
+  const fr = _lang !== 'en';
+  const page = document.createElement('div');
+  page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
+  page.innerHTML = `
+    <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
+      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">GameShelf</div>
+      <div style="flex:1"></div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.4)">${fr ? 'Profil' : 'Profile'}</div>
+    </div>
+    <div id="pubp-body" style="flex:1;padding:0 16px 150px;width:100%;max-width:640px;margin:0 auto;box-sizing:border-box">
+      <div style="padding:48px 20px;text-align:center;color:rgba(255,255,255,0.4);font-size:14px">${fr ? 'Chargement…' : 'Loading…'}</div>
+    </div>
+    <div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px max(env(safe-area-inset-bottom),16px);background:linear-gradient(to top,#080810 70%,transparent)">
+      <a href="/" style="display:block;text-decoration:none;max-width:640px;margin:0 auto;background:linear-gradient(135deg,#6c5ce7,#fd79a8);border-radius:16px;padding:15px 18px;text-align:center;color:#fff;font-weight:800;font-size:15px">🎮 ${fr ? 'Crée ton GameShelf — gratuit' : 'Create your GameShelf — free'}</a>
+    </div>`;
+  document.body.appendChild(page);
+  const body = page.querySelector('#pubp-body');
+  try {
+    const p = await _resolveProfile(name);
+    if (!p || p.is_public === false) {
+      body.innerHTML = `<div style="padding:64px 20px;text-align:center;color:rgba(255,255,255,0.5);font-size:14px;line-height:1.6">🔒 ${fr ? 'Ce profil est privé ou introuvable.' : 'This profile is private or doesn\'t exist.'}</div>`;
+      return;
+    }
+    const [{ data: games }, { data: cols }, { data: tls }] = await Promise.all([
+      _sb.from('user_games').select('*').eq('user_id', p.id),
+      _sb.from('collections').select('id,name,emoji,games,visibility').eq('user_id', p.id).eq('visibility', 'public').limit(12),
+      _sb.from('tier_lists').select('id,name,tiers,visibility').eq('user_id', p.id).eq('visibility', 'public').limit(12),
+    ]);
+    const all = (games || []).map(g => ({ id: String(g.game_id), title: g.title, score: g.score, status: g.status,
+      imageId: g.image_id, cover: g.cover, steamId: g.steam_id }));
+    const finished = all.filter(g => g.status === 'finished' || g.status === 'platine').length;
+    const top = _rankByScore(all, p.top_order).slice(0, 6);
+    const lvl = getLevel(p.xp || 0);
+    const stat = (n, l) => `<div style="flex:1;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:14px;padding:12px 8px;text-align:center"><div style="font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800">${n}</div><div style="font-size:11px;color:rgba(255,255,255,0.5)">${l}</div></div>`;
+    const head = (t) => `<div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin:26px 2px 10px">${t}</div>`;
+    const row = (href, emoji, name, n) => `<a href="${href}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff;background:rgba(255,255,255,0.05);border:0.5px solid rgba(255,255,255,0.1);border-radius:12px;padding:11px 13px;margin-bottom:7px"><span style="font-size:18px">${_esc(emoji)}</span><span style="flex:1;min-width:0;font-weight:700;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(name)}</span><span style="font-size:11px;color:rgba(255,255,255,0.45)">${n}</span></a>`;
+    body.innerHTML = `
+      <div style="text-align:center;padding:28px 0 6px">
+        <div style="display:inline-flex">${_friendAvHtml(p, 84)}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;margin-top:10px">${_esc(p.username || 'Gamer')}</div>
+        <div style="font-size:12px;color:#a29bfe;font-weight:700;margin-top:3px">${_esc(fr ? lvl.title_fr : lvl.title_en)} · ${fr ? 'niv.' : 'lvl'} ${lvl.level}</div>
+        ${p.bio ? `<div style="font-size:13px;color:rgba(255,255,255,0.65);line-height:1.5;margin-top:10px">${_esc(p.bio)}</div>` : ''}
+      </div>
+      <div style="display:flex;gap:8px;margin-top:16px">${stat(all.length, fr ? 'jeux' : 'games')}${stat(finished, fr ? 'terminés' : 'finished')}${stat((cols || []).length + (tls || []).length, fr ? 'listes' : 'lists')}</div>
+      ${top.length ? head(fr ? '🏆 Son top' : '🏆 Top games') + `<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">${top.map(g => {
+        const src = coverUrl(g);
+        return `<div style="position:relative;aspect-ratio:3/4;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.06)">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : ''}
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:16px 6px 5px;background:linear-gradient(to top,rgba(0,0,0,0.85),transparent);font-size:10.5px;font-weight:700;line-height:1.25">${_esc(g.title)}<div style="color:#ffca28">★ ${_esc(g.score)}</div></div></div>`;
+      }).join('')}</div>` : ''}
+      ${(cols || []).length ? head('📚 Collections') + (cols || []).map(c => row('/?col=' + encodeURIComponent(c.id), c.emoji || '📚', c.name, (c.games || []).length)).join('') : ''}
+      ${(tls || []).length ? head('🏆 Tier lists') + (tls || []).map(l => row('/?tl=' + encodeURIComponent(l.id), '🏆', l.name, Object.values(l.tiers || {}).flat().length)).join('') : ''}`;
+  } catch (e) {
+    body.innerHTML = `<div style="padding:64px 20px;text-align:center;color:rgba(255,255,255,0.5);font-size:14px">${fr ? 'Profil indisponible pour le moment.' : 'Profile unavailable right now.'}</div>`;
+  }
+}
+
+
 async function removeFriend() {
   if (!_fpFriendUserId) return;
   if (!confirm(t('friend.remove_confirm'))) return;
@@ -11675,6 +12224,7 @@ async function openFriendProfile(userId) {
   // Show remove + quiz challenge buttons if this person is in our accepted friends list
   const isFriend = (_socialFriends || []).some(f => f.id === userId);
   document.getElementById('fp-remove-btn').style.display = isFriend ? 'block' : 'none';
+  _setupFollowBtn(userId, isFriend, profile);
   _friendProfileData = { profile, games: games || [] };
   renderFriendProfile({
     username: profile.username || 'Gamer',
@@ -11793,6 +12343,143 @@ function openActivityGame(i) {
   if (item) openExternalGameDetail(item);
 }
 
+// ── Réactions à l'avis d'un ami sur un jeu ───────────────────────────────────
+// Une réaction par personne et par jeu (table game_reactions), modifiable ;
+// re-taper sa réaction l'enlève. L'ami reçoit une notification regroupée.
+const RX = [
+  { k: 'agree',    e: '👍', fr: 'Même avis',     en: 'Same take' },
+  { k: 'disagree', e: '🤨', fr: "Pas d'accord",  en: 'Disagree' },
+  { k: 'want',     e: '🎯', fr: 'Ça me tente',   en: 'Want to play' },
+  { k: 'gg',       e: '🏆', fr: 'GG',            en: 'GG' },
+];
+let _rxByKey = {}, _rxNames = {}, _rxMe = null;
+const _rxKey = row => row.user_id + ':' + row.game_id;
+
+async function _hydrateReactions() {
+  const rows = (_actFeedRows || []).filter(r => r && r.game_id);
+  if (!rows.length) return;
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    _rxMe = session?.user?.id || null;
+    if (!_rxMe) return;
+    const owners = [...new Set(rows.map(r => r.user_id))];
+    const games = [...new Set(rows.map(r => String(r.game_id)))];
+    const { data, error } = await _sb.from('game_reactions')
+      .select('reactor_id,owner_id,game_id,reaction').in('owner_id', owners).in('game_id', games);
+    if (error) return; // table pas encore créée → pas de barre
+    _rxByKey = {};
+    (data || []).forEach(x => { (_rxByKey[x.owner_id + ':' + x.game_id] = _rxByKey[x.owner_id + ':' + x.game_id] || []).push(x); });
+    const ids = [...new Set((data || []).map(x => x.reactor_id))].filter(id => id !== _rxMe && !_rxNames[id]);
+    if (ids.length) {
+      const { data: ps } = await _sb.from('profiles').select('id,username').in('id', ids);
+      (ps || []).forEach(p => { _rxNames[p.id] = p.username || 'Gamer'; });
+    }
+  } catch (e) { return; }
+  document.querySelectorAll('.rx-bar[data-i]').forEach(_renderRxBar);
+}
+
+function _renderRxBar(el) {
+  const i = +el.dataset.i;
+  const row = _actFeedRows[i];
+  if (!row || !row.game_id || !_rxMe) return;
+  const fr = _lang !== 'en';
+  const list = _rxByKey[_rxKey(row)] || [];
+  const mine = (list.find(x => x.reactor_id === _rxMe) || {}).reaction || null;
+  const btn = r => {
+    const n = list.filter(x => x.reaction === r.k).length;
+    const on = mine === r.k;
+    return `<button onclick="event.stopPropagation();setReaction(${i},'${r.k}')" title="${fr ? r.fr : r.en}" aria-pressed="${on}" style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:12px;line-height:1.4;cursor:pointer;border:0.5px solid ${on ? 'var(--a)' : 'var(--border2)'};background:${on ? 'rgba(108,92,231,0.2)' : 'transparent'};color:${on ? 'var(--text)' : 'var(--muted2)'}">${r.e}${n ? `<span style="font-size:11px;font-weight:700">${n}</span>` : ''}</button>`;
+  };
+  const inLib = GAMES.some(g => String(g.id) === String(row.game_id) && (userGames[g.id] || {}).status)
+    || GAMES.some(g => (g.title || '').toLowerCase() === (row.title || '').toLowerCase() && (userGames[g.id] || {}).status);
+  const chip = mine === 'want' && !inLib
+    ? `<button onclick="event.stopPropagation();_wishFromActivity(${i})" style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer;border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff">✦ ${fr ? 'Souhaits' : 'Wishlist'}</button>` : '';
+  const others = list.filter(x => x.reactor_id !== _rxMe).map(x => _rxNames[x.reactor_id]).filter(Boolean);
+  const who = !others.length ? '' : others.length === 1
+    ? `${others[0]} ${fr ? 'a réagi' : 'reacted'}`
+    : `${others[0]} ${fr ? 'et' : 'and'} ${others.length - 1} ${fr ? (others.length > 2 ? 'autres ont réagi' : 'autre ont réagi') : (others.length > 2 ? 'others reacted' : 'other reacted')}`;
+  el.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:7px;align-items:center">${RX.map(btn).join('')}${chip}</div>`
+    + (who ? `<div style="font-size:10.5px;color:var(--muted);margin-top:4px">${_esc(who)}</div>` : '');
+}
+
+async function setReaction(i, k) {
+  const row = _actFeedRows[i];
+  if (!row || !row.game_id || !_rxMe) return;
+  const key = _rxKey(row);
+  const before = (_rxByKey[key] || []).map(x => ({ ...x }));
+  const prev = before.find(x => x.reactor_id === _rxMe);
+  const next = prev && prev.reaction === k ? null : k;
+  // Optimiste : on met à jour tout de suite toutes les barres de ce jeu
+  _rxByKey[key] = before.filter(x => x.reactor_id !== _rxMe)
+    .concat(next ? [{ reactor_id: _rxMe, owner_id: row.user_id, game_id: String(row.game_id), reaction: next }] : []);
+  const rerender = () => document.querySelectorAll('.rx-bar[data-i]').forEach(el => {
+    const r = _actFeedRows[+el.dataset.i]; if (r && _rxKey(r) === key) _renderRxBar(el);
+  });
+  rerender();
+  try {
+    if (next) {
+      const { error } = await _sb.from('game_reactions').upsert(
+        { reactor_id: _rxMe, owner_id: row.user_id, game_id: String(row.game_id), reaction: next },
+        { onConflict: 'reactor_id,owner_id,game_id' });
+      if (error) throw error;
+      if (!prev) _pushReaction(row.user_id, next, row.title);
+    } else {
+      const { error } = await _sb.from('game_reactions').delete()
+        .eq('reactor_id', _rxMe).eq('owner_id', row.user_id).eq('game_id', String(row.game_id));
+      if (error) throw error;
+    }
+  } catch (e) {
+    _rxByKey[key] = before; rerender();
+    showToast(_lang === 'en' ? 'Reaction not saved — try again' : 'Réaction non enregistrée — réessaie');
+  }
+}
+
+async function _pushReaction(to, reaction, title) {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return;
+    fetch(PUSH_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ type: 'reaction', to, reaction, gameTitle: String(title || '').slice(0, 60) }),
+    }).catch(() => {});
+  } catch (e) {}
+}
+
+// 🎯 → ajout aux souhaits en un tap (ouvre la fiche, puis statut « souhait »)
+async function _wishFromActivity(i) {
+  const row = _actFeedRows[i];
+  if (!row) return;
+  await openExternalGameDetail(row);
+  if (currentGame) { setStatus('wish'); showToast(_lang === 'en' ? '✦ Added to your wishlist' : '✦ Ajouté à tes souhaits'); }
+}
+
+// Réactions reçues (7 derniers jours) pour la cloche
+async function _receivedReactionsHtml(uid) {
+  try {
+    const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+    const { data, error } = await _sb.from('game_reactions').select('reactor_id,game_id,reaction,created_at')
+      .eq('owner_id', uid).gte('created_at', since).order('created_at', { ascending: false }).limit(10);
+    if (error || !data || !data.length) return '';
+    const ids = [...new Set(data.map(x => x.reactor_id))];
+    const { data: ps } = await _sb.from('profiles').select('id,username').in('id', ids);
+    const names = {}; (ps || []).forEach(p => { names[p.id] = p.username || 'Gamer'; });
+    const fr = _lang !== 'en';
+    const label = { agree: fr ? 'est du même avis sur' : 'agrees on', disagree: fr ? "n'est pas d'accord sur" : 'disagrees on',
+                    want: fr ? 'a envie de jouer à' : 'wants to play', gg: fr ? 'te félicite pour' : 'says GG for' };
+    return `<div class="ndr-sec" style="font-size:12px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px">💬 ${fr ? 'Réactions reçues' : 'Reactions'}</div>`
+      + data.map(x => {
+        const g = GAMES.find(gg => String(gg.id) === String(x.game_id));
+        const e = (RX.find(r => r.k === x.reaction) || {}).e || '•';
+        return `<div onclick="closeNotifDrawer();${g ? `openDetail('${_jsId(g.id)}')` : ''}" style="background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:11px 13px;margin-bottom:8px;display:flex;align-items:center;gap:10px;cursor:pointer">
+          <span style="font-size:16px;flex-shrink:0">${e}</span>
+          <div style="flex:1;min-width:0;font-size:12.5px;line-height:1.4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><b>${_esc(names[x.reactor_id] || 'Gamer')}</b> ${label[x.reaction] || ''} <b>${_esc(g ? g.title : '')}</b></div>
+          <span style="font-size:11px;color:var(--muted);flex-shrink:0">${timeAgo(x.created_at)}</span>
+        </div>`;
+      }).join('') + '<div style="height:10px"></div>';
+  } catch (e) { return ''; }
+}
+
 function _actDayGroup(ts) {
   const d = new Date(ts);
   const now = new Date();
@@ -11808,7 +12495,7 @@ async function loadFriendActivity(friendIds) {
   if (!friendIds.length) return;
   // Get recent game updates from friends (last 7 days)
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data } = await _sb.from('user_games').select('user_id,title,status,score,image_id,updated_at')
+  const { data } = await _sb.from('user_games').select('user_id,game_id,title,status,score,image_id,updated_at')
     .in('user_id', friendIds).gte('updated_at', since)
     .order('updated_at', { ascending: false }).limit(30);
   // Tier lists publiées / mises à jour par les amis → événements du fil
@@ -11933,6 +12620,7 @@ async function loadFriendActivity(friendIds) {
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${_esc(p.username||'Gamer')}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${_esc(item.title)}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
+        <div class="rx-bar" data-i="${i}" onclick="event.stopPropagation()"></div>
       </div>
       <div style="width:26px;height:26px;border-radius:50%;background:${bBg};color:${bColor};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${bIcon}</div>
     </div>`;
@@ -11964,6 +12652,7 @@ async function loadFriendActivity(friendIds) {
       );
     }
   }
+  _hydrateReactions();
   if (homeList) homeList.innerHTML = merged.slice(0,3).map(entry => {
     if (entry.kind === 'lvl') {
       const row = entry.row;
@@ -12060,7 +12749,7 @@ async function loadGamePass() {
   try {
     const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
     if (cached && Date.now() - cached.ts < TTL) {
-      _gpData = { ...cached, titles: new Set(cached.titlesArr), newGames: cached.newGames || [] };
+      _gpData = { ...cached, titles: new Set(cached.titlesArr), newGames: cached.newGames || [], leaving: cached.leaving || [] };
       renderGPSection(); return;
     }
   } catch(e) {}
@@ -12080,11 +12769,12 @@ async function loadGamePass() {
     const games = data.games || [];
     if (!games.length) throw new Error('Catalogue vide');
     const newGames = data.newGames || [];
+    const leaving = Array.isArray(data.leaving) ? data.leaving : [];
     const titlesArr = games.map(g => _normGP(g.title));
     // updatedAt = date réelle du catalogue (écrite par le workflow), ts = date du téléchargement
     const updatedAt = data.updatedAt || null;
-    _gpData = { games, newGames, titlesArr, titles: new Set(titlesArr), ts: Date.now(), updatedAt };
-    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, newGames, titlesArr, ts: _gpData.ts, updatedAt }));
+    _gpData = { games, newGames, leaving, titlesArr, titles: new Set(titlesArr), ts: Date.now(), updatedAt };
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ games, newGames, leaving, titlesArr, ts: _gpData.ts, updatedAt }));
     renderGPSection();
     renderGameGrid();
   } catch(e) {
@@ -12094,10 +12784,40 @@ async function loadGamePass() {
   }
 }
 
+// ⏳ Jeux qui quittent bientôt le Game Pass — ceux de ta bibliothèque ou de tes souhaits d'abord
+function renderGPLeaving() {
+  const el = document.getElementById('gp-leaving');
+  if (!el) return;
+  const list = (_gpData && _gpData.leaving) || [];
+  if (!list.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const fr = _lang !== 'en';
+  const mine = g => GAMES.some(x => _normGP(x.title) === _normGP(g.title) && (userGames[x.id] || {}).status);
+  const sorted = [...list].sort((a, b) => mine(b) - mine(a));
+  const nMine = sorted.filter(mine).length;
+  el.style.display = 'block';
+  el.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px">
+      <div class="sec-label" style="padding:0;color:#ff9f43">⏳ ${fr ? 'Quitte bientôt le Game Pass' : 'Leaving Game Pass soon'}</div>
+      ${nMine ? `<div style="font-size:10.5px;font-weight:700;color:#ff9f43;background:rgba(255,159,67,0.12);border:0.5px solid rgba(255,159,67,0.4);border-radius:20px;padding:3px 9px">${nMine} ${fr ? 'chez toi' : 'in your library'}</div>` : ''}
+    </div>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding:0 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch">${sorted.slice(0, 20).map(g => {
+      const own = mine(g);
+      return `<div style="flex-shrink:0;width:90px;cursor:pointer" onclick="openGPGame('${_esc(String(g.title || '').replace(/'/g, "\\'"))}')">
+        <div style="width:90px;height:120px;border-radius:10px;overflow:hidden;background:var(--s3);margin-bottom:6px;position:relative;${own ? 'box-shadow:0 0 0 2px #ff9f43' : ''}">
+          ${g.img ? `<img src="${_attrUrl(g.img)}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.style.display='none'">` : ''}
+          <div style="position:absolute;bottom:4px;left:4px;background:#ff9f43;color:#1a1000;font-size:8px;font-weight:800;padding:2px 5px;border-radius:4px">⏳</div>
+          ${own ? `<div style="position:absolute;top:5px;right:5px;background:rgba(0,230,118,0.9);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:700;color:#000">✓</div>` : ''}
+        </div>
+        <div style="font-size:11px;font-weight:600;color:var(--text);line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${_esc(g.title)}</div>
+      </div>`;
+    }).join('')}</div>`;
+}
+
 function renderGPSection() {
   const sec = document.getElementById('gp-section');
   const row = document.getElementById('gp-row');
   if (!sec || !row || !_gpData?.games?.length) return;
+  try { renderGPLeaving(); } catch (e) {}
   const label = document.getElementById('gp-update-label');
   // Date du catalogue, pas du téléchargement : sinon un catalogue figé affiche quand même « aujourd'hui »
   if (label) label.textContent = (_lang === 'en' ? 'Updated ' : 'Màj ') + new Date(_gpData.updatedAt || _gpData.ts).toLocaleDateString(_lang === 'en' ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'short' });
@@ -13799,6 +14519,13 @@ function applyProfileToUI() {
   if (_tlPublicId) { renderPublicTierList(_tlPublicId); return; }
   const _colPublicId = new URLSearchParams(location.search).get('col');
   if (_colPublicId) { renderPublicCollectionShare(_colPublicId); return; }
+  // Profil public : /u/<pseudo> (ou ?profile=<pseudo>)
+  const _pubProfile = (location.pathname.match(/^\/u\/([^\/?#]+)/) || [])[1] || new URLSearchParams(location.search).get('profile');
+  if (_pubProfile) {
+    let _pn = _pubProfile; try { _pn = decodeURIComponent(_pubProfile); } catch (e) {}
+    if (!localStorage.getItem('gs_user_id')) { renderPublicProfile(_pn); return; }
+    window.__openProfileAfterBoot = _pn;
+  }
   const _gpGameId = new URLSearchParams(location.search).get('game');
   const _gpUserId = new URLSearchParams(location.search).get('u');
   if (_gpGameId && _gpUserId) { renderPublicGameShare(_gpGameId, _gpUserId); return; }

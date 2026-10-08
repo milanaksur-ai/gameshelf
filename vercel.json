@@ -48,5 +48,11 @@
         }
       ]
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/u/:name",
+      "destination": "/index.html"
+    }
   ]
 }
