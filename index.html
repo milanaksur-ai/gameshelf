@@ -2256,7 +2256,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -5608,9 +5608,12 @@ function extractIgdbSteamId(g) {
 
 async function igdbFetch(action, extra = {}) {
   try {
+    // Jeton de session si connecté : le relais n'applique alors pas la limite des visiteurs
+    let auth = {};
+    try { const t = (await _sb.auth.getSession()).data?.session?.access_token; if (t) auth = { Authorization: `Bearer ${t}` }; } catch (e) {}
     const res = await fetch(IGDB_PROXY, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...auth },
       body: JSON.stringify({ action, ...extra }),
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -10049,292 +10052,6 @@ function renderFeed(){
 }
 
 // ══════════════════════════════════════
-let GEMINI_KEY = localStorage.getItem('gemini_key') || null;
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-const GEMINI_MODELS = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-flash-latest'];
-
-// Voice recognition setup
-let recognition = null;
-let isListening = false;
-let currentQuickAction = null;
-
-function initVoice() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) return null;
-  const rec = new SpeechRecognition();
-  rec.lang = 'fr-FR';
-  rec.continuous = false;
-  rec.interimResults = true;
-  rec.onstart = () => {
-    isListening = true;
-    const btn = document.getElementById('mic-btn');
-    btn.style.background = 'rgba(255,82,82,0.2)';
-    btn.style.borderColor = 'var(--red)';
-    btn.classList.add('listening');
-    document.getElementById('mic-icon').setAttribute('stroke', 'var(--red)');
-    document.getElementById('voice-status').textContent = '🎤 En écoute…';
-  };
-  rec.onresult = (e) => {
-    const transcript = Array.from(e.results).map(r=>r[0].transcript).join('');
-    document.getElementById('chat-input').value = transcript;
-    if (e.results[e.results.length-1].isFinal) {
-      stopVoice();
-      sendChat();
-    }
-  };
-  rec.onend = () => stopVoice();
-  rec.onerror = () => { stopVoice(); showToast('Micro non disponible'); };
-  return rec;
-}
-
-function toggleVoice() {
-  if (!recognition) recognition = initVoice();
-  if (!recognition) { showToast('Reconnaissance vocale non supportée'); return; }
-  if (isListening) { stopVoice(); return; }
-  document.getElementById('chat-input').value = '';
-  recognition.start();
-}
-
-function stopVoice() {
-  isListening = false;
-  const btn = document.getElementById('mic-btn');
-  if (btn) {
-    btn.classList.remove('listening');
-    btn.style.background = 'rgba(108,92,231,0.15)';
-    btn.style.borderColor = 'rgba(108,92,231,0.3)';
-  }
-  const icon = document.getElementById('mic-icon');
-  if (icon) icon.setAttribute('stroke', '#a29bfe');
-  const vs = document.getElementById('voice-status');
-  if (vs) vs.textContent = '';
-  try { recognition?.stop(); } catch(e) {}
-}
-
-function quickAction(type) {
-  currentQuickAction = type;
-  const input = document.getElementById('chat-input');
-  const prompts = { add: 'Quel jeu veux-tu ajouter ?', recommend: 'Décris ton humeur ou ce que tu cherches…' };
-  input.placeholder = prompts[type] || 'Pose ta question…';
-  input.focus();
-  ['add','recommend'].forEach(t => {
-    const btn = document.getElementById('btn-quick-'+t);
-    if (btn) btn.style.borderColor = t===type ? 'var(--a)' : 'var(--border2)';
-  });
-}
-
-function addMsgUser(text) {
-  const msgs = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.style.cssText = 'align-self:flex-end;max-width:80%';
-  div.innerHTML = `<div style="background:linear-gradient(135deg,var(--a),var(--a2));border-radius:16px 4px 16px 16px;padding:10px 14px;font-size:13px;color:#fff;line-height:1.5">${text}</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-function addMsgAI(html, typing=false) {
-  const msgs = document.getElementById('chat-messages');
-  const div = document.createElement('div');
-  div.style.cssText = 'align-self:flex-start;max-width:88%';
-  if (typing) {
-    div.id = 'ai-typing';
-    div.innerHTML = `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px"><div class="loading-dots"><span></span><span></span><span></span></div></div>`;
-  } else {
-    div.innerHTML = `<div style="background:var(--s2);border:0.5px solid var(--border);border-radius:4px 16px 16px 16px;padding:12px 14px;font-size:13px;color:var(--text);line-height:1.6">${html}</div>`;
-  }
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
-
-function removeTyping() {
-  const t = document.getElementById('ai-typing');
-  if (t) t.remove();
-}
-
-function buildProfileContext() {
-  const all = GAMES.map(g => ({...g, ...(userGames[g.id]||{})}));
-  const finished  = all.filter(g => isDone(g.status));
-  const playing   = all.filter(g => isPlaying(g.status));
-  const backlog   = all.filter(g => g.status === 'backlog');
-  const topGenres = (() => {
-    const gc = {};
-    finished.forEach(g => { gc[g.genre] = (gc[g.genre]||0) + (g.score||5); });
-    return Object.entries(gc).sort((a,b)=>b[1]-a[1]).slice(0,3).map(e=>e[0]).join(', ');
-  })();
-  return `Profil du joueur :
-- Jeux finis (${finished.length}) : ${finished.slice(0,6).map(g=>`${g.title}${g.score?` (${g.score}/10)`:''}`).join(', ')}
-- En cours : ${playing.map(g=>g.title).join(', ') || 'aucun'}
-- À jouer (${backlog.length} jeux) : ${backlog.slice(0,8).map(g=>g.title).join(', ')}
-- Genres préférés : ${topGenres || 'variés'}`;
-}
-
-async function callGemini(userMsg, systemCtx) {
-  if (!GEMINI_KEY) {
-    return `⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé →</button>`;
-  }
-  const prompt = `${systemCtx}\n\nUtilisateur : ${userMsg}\n\nRéponds en français, de façon concise et naturelle.`;
-  const body = JSON.stringify({
-    contents: [{parts: [{text: prompt}]}],
-    generationConfig: {maxOutputTokens: 500, temperature: 0.7}
-  });
-  for (const model of GEMINI_MODELS) {
-    try {
-      const ctrl = new AbortController();
-      const tid = setTimeout(() => ctrl.abort(), 20000);
-      const res = await fetch(`${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`, {
-        method: 'POST', headers: {'Content-Type':'application/json'}, body, signal: ctrl.signal
-      });
-      clearTimeout(tid);
-      if (res.status === 429) { await new Promise(r => setTimeout(r, 1000)); continue; }
-      if (!res.ok) continue;
-      const data = await res.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'Pas de réponse.';
-    } catch(e) {
-      if (e.name === 'AbortError') { console.warn('Gemini timeout:', model); continue; }
-      console.warn('Gemini error:', model, e);
-    }
-  }
-  return `⚠️ <strong>Assistant indisponible.</strong><br>Vérifie ta clé ou réessaie.<br><button onclick="promptGeminiKey()" style="margin-top:8px;background:var(--s3);border:0.5px solid var(--border2);border-radius:10px;padding:6px 14px;font-size:12px;color:var(--text);cursor:pointer">Changer la clé →</button>`;
-}
-
-// Parse intent via Gemini — returns JSON {action, games[], mood, question}
-async function parseIntent(text) {
-  try {
-    const prompt = `Tu es un parser d'intention pour une app de gaming. Analyse ce message et réponds UNIQUEMENT en JSON valide, sans markdown.
-
-Message : "${text}"
-
-Réponds avec ce format JSON exact :
-{"action":"add"|"recommend"|"question","games":["titre1","titre2"],"mood":"description humeur si recommandation","question":"question si besoin"}
-
-- action "add" : l'utilisateur veut ajouter un ou plusieurs jeux (mots-clés: ajoute, rajoute, mets, add)
-- action "recommend" : l'utilisateur veut une recommandation (mots-clés: que jouer, recommande, conseil, envie, humeur)  
-- action "question" : autre question gaming
-- games : liste des titres de jeux mentionnés (vides si pas de titre spécifique)
-- Pour "add" avec statut en cours, note aussi le statut voulu dans games comme "Titre|playing-solo" ou "Titre|playing-multi"`;
-
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(`${GEMINI_BASE}/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`, {
-      method: 'POST', signal: ctrl.signal,
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:{maxOutputTokens:200,temperature:0}})
-    });
-    clearTimeout(tid);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-    const clean = raw.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
-  } catch(e) {
-    // Fallback: simple regex parsing
-    const lc = text.toLowerCase();
-    if (/ajoute|rajoute|mets|add/i.test(lc)) return {action:'add', games:[text.replace(/^(ajoute|rajoute|mets|add)\s+/i,'').trim()]};
-    if (/jouer|recommande|conseil|humeur|envie/i.test(lc)) return {action:'recommend', mood:text};
-    return {action:'question', question:text};
-  }
-}
-
-async function addSingleGame(titleRaw, defaultStatus) {
-  // Support "Titre|status" format
-  const [title, statusHint] = titleRaw.split('|');
-  const status = statusHint || defaultStatus || 'backlog';
-  const results = await igdbSearch(title.trim(), 3);
-  if (!results.length) {
-    return `Jeu <strong>"${title}"</strong> non trouvé dans la base.`;
-  }
-  const g = results[0];
-  const existing = GAMES.find(x => x.id === g.id || x.title.toLowerCase() === g.title.toLowerCase());
-  if (existing) {
-    // If already in library, just update status if needed
-    if (status !== 'backlog' && userGames[existing.id]) {
-      userGames[existing.id].status = status;
-      refreshViews();
-      return `<strong>${_esc(g.title)}</strong> déjà en bibliothèque — statut mis à jour : ${status.replace('-',' ')}.`;
-    }
-    return `<strong>${_esc(g.title)}</strong> est déjà dans ta bibliothèque.`;
-  }
-  GAMES.push({...g, status, score:0, notes:'', hours:0});
-  userGames[g.id] = {status, score:0, notes:'', hours:0, lastActivityAt: new Date().toISOString()};
-  refreshViews();
-  const src = coverUrl(g);
-  const coverHtml = src
-    ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" style="width:72px;height:40px;object-fit:cover;border-radius:6px;display:block;margin-bottom:8px" onerror="this.style.display='none'">`
-    : '';
-  const statusLabel = {backlog:'Backlog','playing-solo':'Solo · En cours','playing-multi':'Multi · Actif',finished:'Fini'}[status]||status;
-  return `${coverHtml}<strong>${_esc(g.title)}</strong> (${_esc(g.genre)}${g.year?' · '+g.year:''}) — ajouté en <em>${statusLabel}</em> <button onclick="openDetail('${_jsId(g.id)}')" style="margin-left:4px;background:var(--s3);border:0.5px solid var(--border2);border-radius:8px;padding:4px 10px;font-size:11px;color:var(--text);cursor:pointer">Voir →</button>`;
-}
-
-async function handleAddGame(games, defaultStatus) {
-  addMsgAI('', true);
-  const results = await Promise.all(games.map(t => addSingleGame(t, defaultStatus)));
-  removeTyping();
-  addMsgAI(results.join('<br><br>'));
-}
-
-async function handleRecommend(mood) {
-  addMsgAI('', true);
-  const ctx = `Tu es un assistant gaming expert. ${buildProfileContext()}\n\nLe joueur cherche une recommandation. Analyse son profil et recommande UN jeu de son backlog (ou un nouveau) qui correspond à son humeur. Explique pourquoi en 2-3 phrases max. Donne le titre exact en gras.`;
-  const reply = await callGemini(mood || 'Que me conseilles-tu de jouer maintenant ?', ctx);
-  removeTyping();
-  addMsgAI(reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'));
-}
-
-async function sendChat() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  input.placeholder = 'Pose ta question…';
-  ['add','recommend'].forEach(t => {
-    const btn = document.getElementById('btn-quick-'+t);
-    if (btn) btn.style.borderColor = 'var(--border2)';
-  });
-  addMsgUser(text);
-
-  const savedAction = currentQuickAction;
-  currentQuickAction = null;
-
-  // If no Gemini key, use simple regex fallback
-  if (!GEMINI_KEY) {
-    addMsgAI(`⚠️ Clé Gemini manquante.<br><br><button onclick="promptGeminiKey()" style="background:var(--a);border:none;border-radius:10px;padding:8px 16px;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Ajouter ma clé Gemini</button>`);
-    return;
-  }
-
-  // Show typing while parsing
-  addMsgAI('', true);
-  const intent = await parseIntent(text);
-  removeTyping();
-
-  if (intent.action === 'add' && intent.games?.length) {
-    // Detect if "en cours" is mentioned to set status
-    const lc = text.toLowerCase();
-    const status = /multi/i.test(lc) ? 'playing-multi'
-                 : /solo|cours/i.test(lc) ? 'playing-solo'
-                 : 'backlog';
-    await handleAddGame(intent.games, status);
-  } else if (intent.action === 'recommend' || savedAction === 'recommend') {
-    await handleRecommend(intent.mood || text);
-  } else {
-    addMsgAI('', true);
-    const ctx = `Tu es un assistant gaming expert intégré à l'app GameShelf. ${buildProfileContext()}\n\nRéponds à la question de façon utile et concise. Mets les titres de jeux en gras.`;
-    const reply = await callGemini(text, ctx);
-    removeTyping();
-    addMsgAI(reply.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>'));
-  }
-}
-
-function promptGeminiKey() {
-  const k = prompt('Entre ta clé API Gemini (aistudio.google.com) :');
-  if (k && k.length > 10) {
-    localStorage.setItem('gemini_key', k);
-    GEMINI_KEY = k;
-    showToast('✓ Clé Gemini sauvegardée');
-  }
-}
-
-
-// ══════════════════════════════════════
 // BACKLOG BRACKET
 // ══════════════════════════════════════
 let bracketPool      = [];   // games in current round
@@ -11775,19 +11492,28 @@ async function openFriendGamePopup(idx) {
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
 
-// ── Traduction des notes d'amis (Google gtx, gratuit) ─────────────────────
+// ── Traduction des notes d'amis : via le backend (Claude), joueur connecté ──
 let _fpNoteText = '';
 let _fpNoteShown = 'original';
+const TRANSLATE_API = 'https://gameshelf-back-end.vercel.app/api/translate';
+const _trCache = new Map(); // évite de redemander la même traduction pendant la session
 async function _translateText(text, target) {
+  const key = target + ':' + text;
+  if (_trCache.has(key)) return _trCache.get(key);
   try {
-    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl='
-      + encodeURIComponent(target) + '&dt=t&q=' + encodeURIComponent(text);
-    const r = await fetch(url);
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return null;
+    const r = await fetch(TRANSLATE_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.access_token}` },
+      body: JSON.stringify({ text: String(text).slice(0, 1000), target: target === 'en' ? 'en' : 'fr' }),
+    });
     if (!r.ok) return null;
     const j = await r.json();
-    if (!Array.isArray(j) || !Array.isArray(j[0])) return null;
-    const translated = j[0].map(seg => (seg && seg[0]) || '').join('');
-    return { text: translated, detected: j[2] || null };
+    if (!j || typeof j.text !== 'string') return null;
+    const res = { text: j.text, detected: j.detected || null };
+    _trCache.set(key, res);
+    return res;
   } catch (e) { return null; }
 }
 async function _fpToggleTranslateNote() {
@@ -12309,9 +12035,18 @@ async function loadGamePass() {
     }
   } catch(e) {}
   try {
-    const res = await fetch('/gamepass.json?t=' + Date.now());
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    // Source : le backend (mis à jour chaque jour par une tâche Vercel). Secours :
+    // l'ancien fichier statique, si le backend est injoignable.
+    let data = null;
+    try {
+      const r = await fetch('https://gameshelf-back-end.vercel.app/api/gamepass');
+      if (r.ok) data = await r.json();
+    } catch (e) {}
+    if (!data || !(data.games || []).length) {
+      const res = await fetch('/gamepass.json?t=' + Date.now());
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      data = await res.json();
+    }
     const games = data.games || [];
     if (!games.length) throw new Error('Catalogue vide');
     const newGames = data.newGames || [];
