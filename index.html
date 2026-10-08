@@ -2259,7 +2259,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10a</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7966,10 +7966,12 @@ async function renderFriendGameReviews(gameId) {
       </div>
       ${vibeChips ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:${notes ? '6px' : '0'}">${vibeChips}</div>` : ''}
       ${notes ? `<div style="font-size:12px;color:var(--muted);line-height:1.5">${_esc(notes)}</div>` : ''}
+      ${_rxBar({ user_id: r.user_id, game_id: String(gameId), title: currentGame.title, image_id: currentGame.imageId || null })}
     </div>`;
   }).join('');
   el.innerHTML = `<div class="rating-label" style="margin-bottom:10px">${t('detail.friend_reviews')} <span style="color:var(--muted2);font-weight:600">(${reviews.length})</span></div>${cards}`;
   el.style.display = 'block';
+  _hydrateReactions();
 }
 function selectHoursRange(val, btn) {
   const inp = document.getElementById('hours-input');
@@ -11661,10 +11663,12 @@ function renderFriendActivity(activities) {
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="color:var(--muted2)">${VERB[a.status]||t('friend.verb_updated')}</span> <span style="font-weight:600">${_esc(a.title)}</span>${a.score?`<span style="color:var(--amber);font-weight:700"> ★${a.score}</span>`:''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${a.ago||formatTimeAgo(a.updated_at)}</div>
+        ${_rxBar(a)}
       </div>
     </div>`;
   }).join('');
   sec.style.display = 'block';
+  _hydrateReactions();
 }
 
 function renderFriendProfile(friend) {
@@ -12217,7 +12221,7 @@ async function openFriendProfile(userId) {
   const [{ data: profile }, { data: games }, { data: recentActivity }] = await Promise.all([
     _sb.from('profiles').select('*').eq('id', userId).single(),
     _sb.from('user_games').select('*').eq('user_id', userId),
-    _sb.from('user_games').select('title,status,score,image_id,updated_at').eq('user_id', userId)
+    _sb.from('user_games').select('user_id,game_id,title,status,score,image_id,updated_at').eq('user_id', userId)
       .gte('updated_at', since).order('updated_at', {ascending:false}).limit(8)
   ]);
   if (!profile) return;
@@ -12354,9 +12358,16 @@ const RX = [
 ];
 let _rxByKey = {}, _rxNames = {}, _rxMe = null;
 const _rxKey = row => row.user_id + ':' + row.game_id;
+// Cibles de réaction (fil, fiche d'un jeu, profil d'un ami) : chaque barre pointe un index ici
+const _rxT = [];
+function _rxBar(row) {
+  if (!row || !row.user_id || !row.game_id) return '';
+  _rxT.push(row);
+  return `<div class="rx-bar" data-i="${_rxT.length - 1}" onclick="event.stopPropagation()"></div>`;
+}
 
 async function _hydrateReactions() {
-  const rows = (_actFeedRows || []).filter(r => r && r.game_id);
+  const rows = [...document.querySelectorAll('.rx-bar[data-i]')].map(el => _rxT[+el.dataset.i]).filter(r => r && r.game_id);
   if (!rows.length) return;
   try {
     const { data: { session } } = await _sb.auth.getSession();
@@ -12367,7 +12378,7 @@ async function _hydrateReactions() {
     const { data, error } = await _sb.from('game_reactions')
       .select('reactor_id,owner_id,game_id,reaction').in('owner_id', owners).in('game_id', games);
     if (error) return; // table pas encore créée → pas de barre
-    _rxByKey = {};
+    rows.forEach(r => { _rxByKey[_rxKey(r)] = []; });
     (data || []).forEach(x => { (_rxByKey[x.owner_id + ':' + x.game_id] = _rxByKey[x.owner_id + ':' + x.game_id] || []).push(x); });
     const ids = [...new Set((data || []).map(x => x.reactor_id))].filter(id => id !== _rxMe && !_rxNames[id]);
     if (ids.length) {
@@ -12380,8 +12391,8 @@ async function _hydrateReactions() {
 
 function _renderRxBar(el) {
   const i = +el.dataset.i;
-  const row = _actFeedRows[i];
-  if (!row || !row.game_id || !_rxMe) return;
+  const row = _rxT[i];
+  if (!row || !row.game_id || !_rxMe || row.user_id === _rxMe) return;
   const fr = _lang !== 'en';
   const list = _rxByKey[_rxKey(row)] || [];
   const mine = (list.find(x => x.reactor_id === _rxMe) || {}).reaction || null;
@@ -12403,7 +12414,7 @@ function _renderRxBar(el) {
 }
 
 async function setReaction(i, k) {
-  const row = _actFeedRows[i];
+  const row = _rxT[i];
   if (!row || !row.game_id || !_rxMe) return;
   const key = _rxKey(row);
   const before = (_rxByKey[key] || []).map(x => ({ ...x }));
@@ -12413,7 +12424,7 @@ async function setReaction(i, k) {
   _rxByKey[key] = before.filter(x => x.reactor_id !== _rxMe)
     .concat(next ? [{ reactor_id: _rxMe, owner_id: row.user_id, game_id: String(row.game_id), reaction: next }] : []);
   const rerender = () => document.querySelectorAll('.rx-bar[data-i]').forEach(el => {
-    const r = _actFeedRows[+el.dataset.i]; if (r && _rxKey(r) === key) _renderRxBar(el);
+    const r = _rxT[+el.dataset.i]; if (r && _rxKey(r) === key) _renderRxBar(el);
   });
   rerender();
   try {
@@ -12448,9 +12459,9 @@ async function _pushReaction(to, reaction, title) {
 
 // 🎯 → ajout aux souhaits en un tap (ouvre la fiche, puis statut « souhait »)
 async function _wishFromActivity(i) {
-  const row = _actFeedRows[i];
+  const row = _rxT[i];
   if (!row) return;
-  await openExternalGameDetail(row);
+  if (!currentGame || String(currentGame.id) !== String(row.game_id)) await openExternalGameDetail(row);
   if (currentGame) { setStatus('wish'); showToast(_lang === 'en' ? '✦ Added to your wishlist' : '✦ Ajouté à tes souhaits'); }
 }
 
@@ -12620,7 +12631,7 @@ async function loadFriendActivity(friendIds) {
       <div style="flex:1;min-width:0">
         <div style="font-size:13px;line-height:1.4"><span style="font-weight:600">${_esc(p.username||'Gamer')}</span> <span style="color:var(--muted2)">${ACTION[item.status]||'a mis à jour'}</span> <span style="font-weight:600">${_esc(item.title)}</span>${item.score ? ` <span style="color:var(--amber)">★${item.score}</span>` : ''}</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px">${ago}</div>
-        <div class="rx-bar" data-i="${i}" onclick="event.stopPropagation()"></div>
+        ${_rxBar(item)}
       </div>
       <div style="width:26px;height:26px;border-radius:50%;background:${bBg};color:${bColor};display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">${bIcon}</div>
     </div>`;
