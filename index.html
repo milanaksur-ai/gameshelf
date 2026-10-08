@@ -2259,7 +2259,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -11885,6 +11885,7 @@ async function openFriendGamePopup(idx) {
       <div id="fp-note-text" style="font-size:13px;color:var(--text);line-height:1.55;font-style:italic">"${_esc(g.notes)}"</div>
       <button id="fp-note-tr-btn" onclick="_fpToggleTranslateNote()" style="margin-top:8px;background:none;border:none;padding:0;font-size:12px;font-weight:700;color:var(--a);cursor:pointer;font-style:normal">🌐 ${_lang === 'en' ? 'Translate' : 'Traduire'}</button>
     </div>` : ''}
+    ${(!isDummy && _fpProfile?.id && gid) ? `<div style="margin:-4px 0 12px">${_rxBar({ user_id: _fpProfile.id, game_id: gid, title: g.title, image_id: g.image_id || null })}</div>` : ''}
     ${screenshotHtml}
     ${mine
       ? `<button onclick="closeFriendGamePopup();openDetail('${_jsId(gid)}')" style="width:100%;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:14px;padding:14px;font-size:14px;font-weight:700;color:#fff;cursor:pointer;margin-top:4px;font-family:'Space Grotesk',sans-serif">Voir dans ma bibliothèque →</button>`
@@ -11895,6 +11896,7 @@ async function openFriendGamePopup(idx) {
 
   el.innerHTML = buildHtml('<div style="height:24px"></div>');
   overlay.style.display = 'flex';
+  _hydrateReactions();
 
   // Fetch / build screenshots async
   const urls = [];
@@ -11915,6 +11917,7 @@ async function openFriendGamePopup(idx) {
       </div>
     </div>` : '';
   el.innerHTML = buildHtml(screenshotHtml);
+  document.querySelectorAll('#fp-game-card-content .rx-bar[data-i]').forEach(_renderRxBar);
 }
 function closeFriendGamePopup() { document.getElementById('fp-game-overlay').style.display = 'none'; }
 
@@ -12461,6 +12464,8 @@ async function _pushReaction(to, reaction, title) {
 async function _wishFromActivity(i) {
   const row = _rxT[i];
   if (!row) return;
+  const ov = document.getElementById('fp-game-overlay');
+  if (ov && ov.style.display !== 'none' && typeof closeFriendGamePopup === 'function') closeFriendGamePopup();
   if (!currentGame || String(currentGame.id) !== String(row.game_id)) await openExternalGameDetail(row);
   if (currentGame) { setStatus('wish'); showToast(_lang === 'en' ? '✦ Added to your wishlist' : '✦ Ajouté à tes souhaits'); }
 }
