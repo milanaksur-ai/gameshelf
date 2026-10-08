@@ -2256,7 +2256,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.3 · build 08.10d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -4395,7 +4395,37 @@ function getLevelTitle(xp) {
 }
 function _xpFlags(key) { try { return new Set(JSON.parse(localStorage.getItem('gs_xp_'+key)||'[]')); } catch(e) { return new Set(); } }
 function _setXpFlag(key, val) { const s=_xpFlags(key); s.add(String(val)); localStorage.setItem('gs_xp_'+key, JSON.stringify([...s])); }
-async function gainXp(amount, reason, label) {
+// ── XP décidée par le serveur ────────────────────────────────────────────────
+// L'app affiche le gain tout de suite (optimiste), puis demande au serveur de le
+// constater à partir des données en base ; le total renvoyé par le serveur fait foi.
+// Fonctions serveur absentes (migration pas encore lancée) → ancien chemin.
+const _isMissingRpc = e => !!e && (e.code === 'PGRST202' || /could not find the function|does not exist/i.test(e.message || ''));
+let _xpSyncTimer = null;
+let _xpPendingLegacy = 0; // gains en attente, utilisés seulement si la migration serveur manque
+function _applyServerXp(total) {
+  if (typeof total !== 'number' || !Number.isFinite(total)) return;
+  obProfile.xp = total;
+  localStorage.setItem('gs_profile', JSON.stringify(obProfile));
+  renderXpBar();
+}
+// Note, vibe, avis, quiz : on attend que la donnée soit enregistrée avant de la faire constater
+function _scheduleXpSync(delay = 2500) {
+  clearTimeout(_xpSyncTimer);
+  _xpSyncTimer = setTimeout(async () => {
+    try {
+      await (_syncPromise || Promise.resolve()).catch(() => {});
+      const { data, error } = await _sb.rpc('sync_xp');
+      if (!error) { _xpPendingLegacy = 0; _applyServerXp(data); }
+      else if (_isMissingRpc(error) && _xpPendingLegacy > 0) {
+        const delta = _xpPendingLegacy; _xpPendingLegacy = 0;
+        const r = await _sb.rpc('increment_xp', { delta });
+        if (!r.error) _applyServerXp(r.data);
+      }
+    } catch (e) {}
+  }, delay);
+}
+
+async function gainXp(amount, reason, label, ref) {
   const before = obProfile.xp || 0;
   const lvlBefore = getLevel(before).level;
   obProfile.xp = before + amount; // optimiste (hors ligne)
@@ -4408,15 +4438,15 @@ async function gainXp(amount, reason, label) {
   try {
     const { data:{ user } } = await _sb.auth.getUser();
     if (user) {
-      const { data: serverXp, error } = await _sb.rpc('increment_xp', { delta: amount });
-      if (!error && typeof serverXp === 'number') {
-        obProfile.xp = serverXp;
-        localStorage.setItem('gs_profile', JSON.stringify(obProfile));
-        renderXpBar();
-      } else if (error) {
-        // RPC pas encore migrée → ancien chemin (écriture absolue)
-        _sb.from('profiles').update({ xp: obProfile.xp }).eq('id', user.id).then(() => {});
-      }
+      let res;
+      if (reason === 'achievement') res = await _sb.rpc('award_achievement', { p_ach: String(ref || '') });
+      else if (reason === 'quiz_rank' || reason === 'quiz_streak') res = { data: null, error: null }; // payé par claim_quiz_rewards
+      else { _xpPendingLegacy += amount; _scheduleXpSync(); res = { data: null, error: null }; }
+      if (res.error && _isMissingRpc(res.error)) {
+        // Migration serveur pas encore lancée : ancien chemin
+        const { data: serverXp, error } = await _sb.rpc('increment_xp', { delta: amount });
+        if (!error) _applyServerXp(serverXp);
+      } else if (!res.error) _applyServerXp(res.data);
     }
   } catch(e) {}
   // Level-up celebration
@@ -5346,7 +5376,7 @@ async function checkAchievements() {
       unlocked.add(a.id);
       localStorage.setItem('gs_achievements', JSON.stringify([...unlocked]));
       _celebrateAchievement(a, idx++);
-      if (a.xp > 0) await gainXp(a.xp, 'achievement', (_lang==='en'?a.title_en:a.title_fr));
+      if (a.xp > 0) await gainXp(a.xp, 'achievement', (_lang==='en'?a.title_en:a.title_fr), a.id);
       try {
         const { data:{ user } } = await _sb.auth.getUser();
         if (user) _sb.from('profiles').update({ achievements:[...unlocked] }).eq('id',user.id).then(()=>{});
@@ -16785,6 +16815,8 @@ function _bumpQuizStreak() {
     const ach = new Set(JSON.parse(localStorage.getItem('gs_achievements') || '[]'));
     if (!ach.has(key)) {
       (async () => {
+        // Série vérifiée et payée par le serveur (ancien chemin si migration absente)
+        if (!(await _claimQuizRewards()).missing) return;
         const merged = await _mergeAchievementsWithCloud();
         if (merged.has(key)) return; // déjà payé par un autre appareil
         merged.add(key);
@@ -17193,6 +17225,31 @@ async function renderDailyQuizCard() {
   </div>`;
 }
 
+// ── Récompenses quiz calculées par le serveur : podium d'hier + série de 7 jours ──
+// Renvoie { missing: true } si les fonctions serveur n'existent pas encore.
+async function _claimQuizRewards() {
+  try {
+    const { data, error } = await _sb.rpc('claim_quiz_rewards');
+    if (error) return { missing: _isMissingRpc(error) };
+    if (!data) return {};
+    _applyServerXp(data.xp);
+    const fr = _lang !== 'en';
+    if (data.rank_xp > 0) {
+      const r = data.rank;
+      const medal = data.participants >= 2 ? (r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '🥉' : '🎖️') : '🎖️';
+      _showXpFloat(data.rank_xp);
+      showToast(`${medal} ${fr ? `Classement quiz d'hier : ${r}${r === 1 ? 'er' : 'e'} · +${data.rank_xp} XP` : `Yesterday's quiz ranking: #${r} · +${data.rank_xp} XP`}`);
+    }
+    if (data.streak_xp > 0) {
+      setTimeout(() => {
+        _showXpFloat(data.streak_xp);
+        showToast(fr ? '🔥 7 jours de quiz d\'affilée ! +100 XP' : '🔥 7-day quiz streak! +100 XP');
+      }, data.rank_xp > 0 ? 2600 : 0);
+    }
+    return { data };
+  } catch (e) { return {}; }
+}
+
 // ── Attribution des XP du classement quiz d'hier (au lancement de l'app) ──
 async function _awardYesterdayQuizXp() {
   try {
@@ -17205,6 +17262,9 @@ async function _awardYesterdayQuizXp() {
     if (localAch.has(key)) return; // déjà récompensé sur cet appareil
     const { data: { user } } = await _sb.auth.getUser();
     if (!user) return;
+    // Calcul et paiement côté serveur ; l'ancien calcul ci-dessous ne sert que
+    // tant que la migration (section 14) n'est pas lancée.
+    if (!(await _claimQuizRewards()).missing) return;
     // Vérité serveur : un autre appareil (téléphone) a peut-être déjà attribué le podium
     const _srvAch = await _mergeAchievementsWithCloud();
     if (_srvAch.has(key)) return;
@@ -17538,6 +17598,13 @@ async function saveQuizScore(quizId, score, total, dayIdx, answers) {
   try {
     const { data:{ user } } = await _sb.auth.getUser();
     if (!user) return;
+    // Le serveur calcule le score à partir des réponses (jour courant, ou hier pour
+    // un quiz en pause finalisé au lancement) ; le premier score du jour est définitif.
+    const log = (answers !== undefined ? answers : (_quizAnswerLog || [])).map(Boolean);
+    const rpc = await _sb.rpc('submit_quiz_score', { p_quiz_id: quizId, p_answers: log,
+      p_day: (dayIdx !== undefined ? dayIdx : _quizDayIndex()) });
+    if (!rpc.error) { _scheduleXpSync(); return; }
+    if (!_isMissingRpc(rpc.error)) return;
     const row = { user_id:user.id, quiz_id:quizId, score, total,
       day_index: (dayIdx !== undefined ? dayIdx : _quizDayIndex()),
       answers: (answers !== undefined ? answers : (_quizAnswerLog || [])) };
