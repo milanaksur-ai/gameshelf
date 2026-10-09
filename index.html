@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2290,7 +2290,10 @@ html, body {
     <div class="scroll-area">
       <div class="detail-hero" id="detail-hero">
         <div class="detail-hero-overlay"></div>
-        <div id="detail-shots-badge" style="position:absolute;top:calc(var(--safe-t, 0px) + 14px);right:14px;z-index:3;display:none"></div>
+        <div style="position:absolute;top:calc(var(--safe-t, 0px) + 14px);right:14px;z-index:3;display:flex;gap:8px;align-items:center">
+          <div id="detail-stuck-btn" style="display:none"></div>
+          <div id="detail-shots-badge" style="display:none"></div>
+        </div>
         <div class="detail-hero-info">
           <div class="detail-title" id="detail-title"></div>
           <div class="detail-meta"  id="detail-meta"></div>
@@ -8397,7 +8400,7 @@ function openDetail(gameId) {
     hero.insertBefore(fb, hero.firstChild);
   }
   document.getElementById('detail-title').textContent = g.title;
-  document.getElementById('detail-meta').innerHTML = (g.genre + ' · ' + g.year) + (isOnGamePass(g.title) ? ' &nbsp;<span class="gp-badge">GAME PASS</span>' : '');
+  document.getElementById('detail-meta').innerHTML = [g.genre, g.year].filter(Boolean).map(_esc).join(' · ') + (isOnGamePass(g.title) ? ' &nbsp;<span class="gp-badge">GAME PASS</span>' : '');
   document.getElementById('meta-score').textContent   = g.meta || '—';
   renderStars(ug.score, ug.status, false);
   renderVibe(ug.vibe || null, (ug.score || 0) > 0);
@@ -8732,6 +8735,7 @@ function clearScore() {
 }
 
 function renderStatus(s) {
+  try { _updateDetailStuckBtn(s); } catch (e) {}
   document.querySelectorAll('.status-btn').forEach(b => {
     b.className = 'status-btn';
     if (b.dataset.s === s) {
@@ -8988,6 +8992,90 @@ function _updateDetailShotsBadge(gameId) {
   const n = (gameMedia[gameId] || []).filter(m => m.type === 'image').length;
   el.style.display = n ? 'block' : 'none';
   el.innerHTML = n ? _shotBadgeHtml(gameId, n, 'detail') : '';
+}
+
+// ── « 💡 Bloqué ? » : seulement sur un jeu en cours ou en pause. Recherche de
+// soluce (écrite, vidéo, trophées) + les amis qui l'ont terminé. Rien d'autre sur la fiche.
+function _updateDetailStuckBtn(s) {
+  const el = document.getElementById('detail-stuck-btn');
+  if (!el) return;
+  const on = !!currentGame && (s === 'playing-solo' || s === 'playing-multi' || s === 'paused');
+  el.style.display = on ? 'block' : 'none';
+  el.innerHTML = on ? `<div onclick="event.stopPropagation();openStuckSheet()" title="${_lang === 'en' ? 'Stuck? Find a walkthrough' : 'Bloqué ? Trouve une soluce'}"
+    style="display:flex;align-items:center;gap:6px;cursor:pointer;background:rgba(8,8,16,0.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:0.5px solid rgba(255,202,40,0.55);
+    border-radius:20px;padding:7px 12px;font-size:13px;font-weight:700;color:#fff;line-height:1;white-space:nowrap"><span style="font-size:15px">💡</span>${_lang === 'en' ? 'Stuck?' : 'Bloqué ?'}</div>` : '';
+}
+
+function openStuckSheet() {
+  if (!currentGame) return;
+  const fr = _lang !== 'en';
+  let ov = document.getElementById('stuck-overlay');
+  if (!ov) {
+    ov = document.createElement('div');
+    ov.id = 'stuck-overlay';
+    ov.style.cssText = 'display:none;position:fixed;inset:0;z-index:960;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center';
+    ov.onclick = closeStuckSheet;
+    document.body.appendChild(ov);
+  }
+  const btn = (k, em, label, sub) => `<button onclick="_stuckSearch('${k}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 14px;margin-bottom:8px;cursor:pointer;color:var(--text)">
+      <span style="font-size:22px;width:28px;text-align:center">${em}</span>
+      <span style="flex:1;min-width:0"><span style="display:block;font-size:14px;font-weight:700">${label}</span><span style="display:block;font-size:11.5px;color:var(--muted2);margin-top:1px">${sub}</span></span>
+      <span style="color:var(--muted2)">↗</span></button>`;
+  ov.innerHTML = `<div onclick="event.stopPropagation()" style="width:100%;max-width:560px;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 20px);max-height:86vh;overflow-y:auto">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 16px"></div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;margin-bottom:2px">💡 ${fr ? 'Bloqué ?' : 'Stuck?'}</div>
+    <div style="font-size:12.5px;color:var(--muted2);margin-bottom:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(currentGame.title)}</div>
+    <input id="stuck-q" type="text" maxlength="80" enterkeyhint="search" onkeydown="if(event.key==='Enter'){this.blur();_stuckSearch('guide')}"
+      placeholder="${fr ? 'Où tu bloques ? (facultatif) ex. boss Malenia' : 'Where are you stuck? (optional) e.g. Malenia boss'}"
+      style="width:100%;box-sizing:border-box;background:var(--s2);border:0.5px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:14px;color:var(--text);margin-bottom:12px;font-family:inherit">
+    ${btn('guide', '📖', fr ? 'Soluce écrite' : 'Written guide', fr ? 'Jeuxvideo.com, GameFAQs, wikis…' : 'GameFAQs, wikis, guides…')}
+    ${btn('video', '▶️', fr ? 'Vidéo' : 'Video', 'YouTube')}
+    ${btn('trophy', '🏆', fr ? 'Trophées et succès' : 'Trophies & achievements', fr ? 'Guides pour le 100 %' : 'Guides for 100%')}
+    <div id="stuck-friends"></div>
+  </div>`;
+  ov.style.display = 'flex';
+  _stuckFriends(currentGame.id);
+}
+
+function closeStuckSheet() {
+  const ov = document.getElementById('stuck-overlay');
+  if (ov) ov.style.display = 'none';
+}
+
+function _stuckSearch(kind) {
+  if (!currentGame) return;
+  const fr = _lang !== 'en';
+  const q = (document.getElementById('stuck-q')?.value || '').trim();
+  const title = currentGame.title || '';
+  const terms = {
+    guide:  fr ? `soluce ${title} ${q}` : `${title} walkthrough ${q}`,
+    video:  fr ? `${title} ${q || 'soluce'}` : `${title} ${q || 'walkthrough'}`,
+    trophy: fr ? `${title} guide trophées succès ${q}` : `${title} trophy achievement guide ${q}`,
+  };
+  const qs = terms[kind].replace(/\s+/g, ' ').trim();
+  const url = kind === 'video'
+    ? 'https://www.youtube.com/results?search_query=' + encodeURIComponent(qs)
+    : 'https://www.google.com/search?q=' + encodeURIComponent(qs);
+  window.open(url, '_blank', 'noopener');
+}
+
+// Amis qui ont terminé ce jeu (un tap ouvre leur profil)
+async function _stuckFriends(gameId) {
+  const el = document.getElementById('stuck-friends');
+  if (!el) return;
+  try {
+    await _ensureFriendsLoaded();
+    const friends = (_socialFriends || []).filter(f => f.id && !String(f.id).startsWith('__dummy_'));
+    if (!friends.length) return;
+    const { data } = await _sb.from('user_games').select('user_id,status,score')
+      .eq('game_id', String(gameId)).in('user_id', friends.map(f => f.id)).in('status', ['finished', 'platine']);
+    if (!data || !data.length || !currentGame || String(currentGame.id) !== String(gameId)) return;
+    const fr = _lang !== 'en';
+    const byId = Object.fromEntries(friends.map(f => [f.id, f]));
+    el.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin:14px 2px 8px">👥 ${fr ? 'Tes amis qui l\'ont fini' : 'Friends who finished it'}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">${data.map(r => { const f = byId[r.user_id] || {}; return `<div onclick="closeStuckSheet();openFriendProfile('${_jsId(r.user_id)}')" style="display:flex;align-items:center;gap:8px;background:var(--s2);border:0.5px solid var(--border2);border-radius:30px;padding:5px 12px 5px 5px;cursor:pointer">
+        ${_friendAvHtml(f, 28)}<span style="font-size:13px;font-weight:700">${_esc(f.username || 'Ami')}</span>${r.status === 'platine' ? '<span style="font-size:11px">🏆</span>' : ''}</div>`; }).join('')}</div>`;
+  } catch (e) {}
 }
 
 // Ouvre « Mes captures » avec la section du jeu dépliée et amenée à l'écran
