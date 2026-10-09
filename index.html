@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10199,8 +10199,9 @@ async function _pickMystery(day) {
     .filter(g => (g.score || 0) >= 8 && /^\d+$/.test(String(g.id)))
     .sort((a, b) => (b.score - a.score) || String(a.id).localeCompare(String(b.id)));
   if (!favs.length) return { locked: true };
-  // Rotation quotidienne parmi les favoris : un mystère différent chaque jour
-  const start = favs.length ? day % favs.length : 0;
+  // Rotation quotidienne par blocs de 6 favoris : deux jours de suite ne partagent
+  // (presque) aucune source, donc pas le même tirage, même sur un autre appareil
+  const start = favs.length ? (day * 6) % favs.length : 0;
   const pick = [...favs.slice(start), ...favs.slice(0, start)].slice(0, 6);
   const cand = new Map();
   await Promise.all(pick.map(async f => {
@@ -10212,10 +10213,15 @@ async function _pickMystery(day) {
       cand.set(g.id, e);
     });
   }));
+  // Jamais le tirage d'hier (mémorisé), même s'il reste le meilleur candidat
+  const prev = _mysteryState();
+  if (prev && prev.game && prev.day !== day) [...cand.keys()].forEach(k => { if (String(k) === String(prev.game.id)) cand.delete(k); });
   if (!cand.size) return { empty: true };
-  // Départage stable sur la journée (pas d'aléatoire : même tirage sur tous les appareils)
+  // Départage stable sur la journée (pas d'aléatoire : même tirage sur tous les appareils),
+  // mais qui change chaque jour entre candidats à égalité
+  const h = id => { let x = day * 2654435761 % 4294967296; for (const c of String(id)) x = (x ^ c.charCodeAt(0)) * 16777619 % 4294967296; return x; };
   const best = [...cand.values()].sort((a, b) =>
-    (b.sources.length - a.sources.length) || ((b.game.meta || 0) - (a.game.meta || 0)) || String(a.game.id).localeCompare(String(b.game.id)))[0];
+    (b.sources.length - a.sources.length) || (h(a.game.id) - h(b.game.id)))[0];
   const n = best.sources.length;
   const rarity = n >= 3 ? ((best.game.meta || 0) >= 85 ? 'legendary' : 'epic') : n === 2 ? 'rare' : 'common';
   const seenArr = [...seen, String(best.game.id)].slice(-300);
