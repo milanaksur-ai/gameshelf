@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10a</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2457,6 +2457,7 @@ html, body {
                Les défis 1v1 ont été entièrement retirés. -->
         </div>
       </div>
+      <div id="fp-recap-btn" style="display:none;margin-bottom:16px"></div>
       <!-- Comparaison 1v1 -->
       <div id="fp-vs-section" style="display:none;margin-bottom:16px"></div>
       <!-- Screenshots de l'ami -->
@@ -4874,13 +4875,17 @@ function _recapLabel(key) {
   return name + ' ' + y;
 }
 
-function _computeMonthlyRecap(key) {
+// src (facultatif) : le récap d'un ami → { uid, name, xp, games: lignes user_games }
+function _computeMonthlyRecap(key, src) {
   const [y, m] = key.split('-').map(Number);
   const start = new Date(y, m - 1, 1), end = new Date(y, m, 1);
   const pStart = new Date(y, m - 2, 1);
   const inRange = ts => { if (!ts) return false; const d = new Date(ts); return d >= start && d < end; };
   const inPrev = ts => { if (!ts) return false; const d = new Date(ts); return d >= pStart && d < start; };
-  const all = GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }));
+  const all = src
+    ? (src.games || []).map(g => ({ id: String(g.game_id || g.id || ''), title: g.title, genre: g.genre, imageId: g.image_id || g.imageId || null, cover: g.cover || null,
+        status: g.status, score: g.score || 0, vibe: g.vibe, hours: g.hours || 0, platform: g.platform || null, ratedAt: g.rated_at || g.ratedAt || null, lastActivityAt: g.updated_at || g.lastActivityAt || null }))
+    : GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }));
   const finished = all.filter(g => (g.status === 'finished' || g.status === 'platine') && inRange(g.lastActivityAt));
   const rated = all.filter(g => g.score > 0 && inRange(g.ratedAt));
   const ratedPrev = all.filter(g => g.score > 0 && inPrev(g.ratedAt));
@@ -4898,12 +4903,13 @@ function _computeMonthlyRecap(key) {
   const avg = list => list.length ? Math.round(list.reduce((s, g) => s + g.score, 0) / list.length * 10) / 10 : null;
   const hours = finished.reduce((s, g) => s + hoursToRange(g.hours), 0);
   // Repli local (avant le chargement serveur, ou si la base ne répond pas)
-  let xp = 0;
-  try { JSON.parse(localStorage.getItem('gs_xp_log') || '[]').forEach(e => { if (inRange(e.ts)) xp += (e.amount || 0); }); } catch (e) {}
-  let quizzes = 0;
-  try { Object.values(_quizLocalScores || {}).forEach(s => { if (s && inRange(s.ts)) quizzes++; }); } catch (e) {}
+  let xp = 0, quizzes = 0;
+  if (!src) {
+    try { JSON.parse(localStorage.getItem('gs_xp_log') || '[]').forEach(e => { if (inRange(e.ts)) xp += (e.amount || 0); }); } catch (e) {}
+    try { Object.values(_quizLocalScores || {}).forEach(s => { if (s && inRange(s.ts)) quizzes++; }); } catch (e) {}
+  }
   const empty = !finished.length && !rated.length && !quizzes && !xp;
-  return { key, start, end, finished, rated, best, topGenre, topPlatform, topVibe, hours,
+  return { key, start, end, self: !src, uid: src ? src.uid : null, name: src ? src.name : (obProfile.username || 'Gamer'), totalXp: src ? (src.xp || 0) : (obProfile.xp || 0), finished, rated, best, topGenre, topPlatform, topVibe, hours,
            avgScore: avg(rated), avgPrev: avg(ratedPrev), xp, quizzes, activeCount: active.length, empty,
            added: null, quizAvg: null, perfect: 0, quizRank: null, quizPlayers: 0,
            rxIn: 0, rxOut: 0, rxTop: null, rxFan: null, levelFrom: null, levelTo: null, achievements: [] };
@@ -4913,27 +4919,35 @@ function _computeMonthlyRecap(key) {
 // une table absente ou une requête refusée laisse simplement la valeur locale.
 async function _recapServerStats(r) {
   const { data: { session } } = await _sb.auth.getSession();
-  const uid = session?.user?.id;
+  const me = session?.user?.id;
+  if (!me) return r;
+  const uid = r.self ? me : r.uid;
   if (!uid) return r;
   const s = r.start.toISOString(), e = r.end.toISOString();
   const d0 = Math.floor(r.start.getTime() / 86400000), d1 = Math.floor(r.end.getTime() / 86400000) - 1;
   const q = p => Promise.resolve(p).then(x => x, () => ({ error: true }));
   const [xpRes, quizRes, rxInRes, rxOutRes, addRes] = await Promise.all([
-    q(_sb.from('xp_events').select('reason,ref,amount,created_at').eq('user_id', uid).gte('created_at', s)),
+    r.self ? q(_sb.from('xp_events').select('reason,ref,amount,created_at').eq('user_id', uid).gte('created_at', s))
+           : q(_sb.rpc('recap_xp', { p_user: uid, p_start: s, p_end: e })),
     q(_sb.from('quiz_scores').select('quiz_id,score,total,day_index').eq('user_id', uid).gte('day_index', d0).lte('day_index', d1)),
     q(_sb.from('game_reactions').select('reactor_id,reaction').eq('owner_id', uid).gte('created_at', s).lt('created_at', e)),
-    q(_sb.from('game_reactions').select('owner_id').eq('reactor_id', uid).gte('created_at', s).lt('created_at', e)),
+    r.self ? q(_sb.from('game_reactions').select('owner_id').eq('reactor_id', uid).gte('created_at', s).lt('created_at', e)) : Promise.resolve({ error: true }),
     q(_sb.from('user_games').select('game_id').eq('user_id', uid).gte('created_at', s).lt('created_at', e)),
   ]);
+  let xpAfter = null, achIds = [];
   if (!xpRes.error && Array.isArray(xpRes.data)) {
     const inM = xpRes.data.filter(x => x.created_at < e);
-    const after = xpRes.data.filter(x => x.created_at >= e).reduce((t, x) => t + (x.amount || 0), 0);
+    xpAfter = xpRes.data.filter(x => x.created_at >= e).reduce((t, x) => t + (x.amount || 0), 0);
     r.xp = inM.reduce((t, x) => t + (x.amount || 0), 0);
-    const xpEnd = Math.max(0, (obProfile.xp || 0) - after);
+    achIds = inM.filter(x => x.reason === 'achievement' && x.amount > 0).map(x => x.ref);
+  } else if (!xpRes.error && xpRes.data && typeof xpRes.data === 'object') {
+    r.xp = +xpRes.data.xp || 0; xpAfter = +xpRes.data.after || 0; achIds = xpRes.data.achievements || [];
+  }
+  if (xpAfter != null) {
+    const xpEnd = Math.max(0, (r.totalXp || 0) - xpAfter);
     r.levelTo = getLevel(xpEnd).level;
     r.levelFrom = getLevel(Math.max(0, xpEnd - r.xp)).level;
-    r.achievements = inM.filter(x => x.reason === 'achievement' && x.amount > 0)
-      .map(x => ACHIEVEMENTS.find(a => a.id === x.ref)).filter(Boolean);
+    r.achievements = achIds.map(id => ACHIEVEMENTS.find(a => a.id === id)).filter(Boolean);
   }
   if (!quizRes.error && Array.isArray(quizRes.data)) {
     const rows = quizRes.data;
@@ -4941,7 +4955,7 @@ async function _recapServerStats(r) {
     r.perfect = rows.filter(x => x.total && x.score >= x.total).length;
     const pct = rows.filter(x => x.total).map(x => x.score / x.total);
     r.quizAvg = pct.length ? Math.round(pct.reduce((a, b) => a + b, 0) / pct.length * 100) : null;
-    if (rows.length) {
+    if (rows.length && r.self) {
       try {
         await _ensureFriendsLoaded();
         const ids = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
@@ -4967,7 +4981,7 @@ async function _recapServerStats(r) {
     if (k) r.rxTop = { key: k[0], n: k[1] };
     const p = Object.entries(byP).sort((a, b) => b[1] - a[1])[0];
     if (p) {
-      let name = (_socialFriends || []).find(f => f.id === p[0])?.username || _rxNames[p[0]];
+      let name = p[0] === me ? (_lang === 'en' ? 'You 😎' : 'Toi 😎') : ((_socialFriends || []).find(f => f.id === p[0])?.username || _rxNames[p[0]]);
       if (!name) { const pr = await q(_sb.from('profiles').select('username').eq('id', p[0]).maybeSingle()); name = pr.data?.username; }
       r.rxFan = { name: name || 'Gamer', n: p[1] };
     }
@@ -5008,6 +5022,8 @@ const _RX_LBL = { agree: ['👍', 'Même avis', 'Same take'], disagree: ['🤨',
 
 function _recapBuildSlides(r) {
   const fr = _lang !== 'en';
+  // Formulations « toi » (mon récap) ou « lui/elle » (récap d'un ami)
+  const T = (selfFr, otherFr, selfEn, otherEn) => r.self ? (fr ? selfFr : selfEn) : (fr ? otherFr : otherEn);
   const INK = '#0b0a18', W = '#ffffff';
   const big = (v, id) => `<div class="rc-big"${id ? ` id="${id}"` : ''}>${v}</div>`;
   const lbl = t => `<div class="rc-lbl">${t}</div>`;
@@ -5015,9 +5031,9 @@ function _recapBuildSlides(r) {
   const S = [];
   const month = _recapLabel(r.key).split(' ')[0];
   S.push({ bg: '#6c5ce7', ink: W, html: `
-    <div class="rc-kicker">${fr ? 'Ton récap' : 'Your recap'}</div>
-    <div class="rc-h1">${fr ? 'Ton mois de' : 'Your'}<br><span style="color:#ffca28">${_esc(month)}</span>${fr ? '' : ' in games'}</div>
-    <div class="rc-sub">${_esc(obProfile.username || 'Gamer')} · GameShelf</div>
+    <div class="rc-kicker">${T('Ton récap', 'Le récap de ' + _esc(r.name), 'Your recap', _esc(r.name) + "'s recap")}</div>
+    <div class="rc-h1">${T('Ton mois de', 'Son mois de', 'Your', 'Their')}<br><span style="color:#ffca28">${_esc(month)}</span>${fr ? '' : ' in games'}</div>
+    <div class="rc-sub">${_esc(r.name)} · GameShelf</div>
     <div class="rc-hint">${fr ? 'Touche pour continuer →' : 'Tap to continue →'}</div>` });
   if (r.finished.length) {
     const covers = r.finished.slice(0, 6).map(g => { const src = coverUrl(g); return src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''; }).join('');
@@ -5031,7 +5047,7 @@ function _recapBuildSlides(r) {
     const src = coverUrl(r.best);
     const vb = _vibeArr(r.best.vibe).filter(k => VIBES.some(v => v.key === k)).slice(0, 2).map(k => t('vibe.' + k)).join(' · ');
     S.push({ bg: src ? '#1a1030' : '#6c5ce7', ink: W, cover: src, confetti: true, html: `
-      ${lbl('🏆 ' + (fr ? 'Ton jeu du mois' : 'Your game of the month'))}
+      ${lbl('🏆 ' + T('Ton jeu du mois', 'Son jeu du mois', 'Your game of the month', 'Their game of the month'))}
       ${src ? `<img class="rc-hero" src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
       <div class="rc-h2">${_esc(r.best.title)}</div>
       ${r.best.score ? `<div class="rc-score">★ ${r.best.score}<small>/10</small></div>` : ''}
@@ -5047,7 +5063,7 @@ function _recapBuildSlides(r) {
       ${big(r.rated.length, 'rc-n-rated')}
       ${r.avgScore != null ? line('⭐', (fr ? 'Note moyenne ' : 'Average score ') + `<b>${r.avgScore}/10</b>`) : ''}
       ${verdict ? line('', verdict) : ''}
-      ${r.topVibe ? line('✨', (fr ? 'Ta vibe du mois : ' : 'Vibe of the month: ') + `<b>${t('vibe.' + r.topVibe)}</b>`) : ''}` });
+      ${r.topVibe ? line('✨', T('Ta vibe du mois : ', 'Sa vibe du mois : ', 'Vibe of the month: ', 'Vibe of the month: ') + `<b>${t('vibe.' + r.topVibe)}</b>`) : ''}` });
   }
   if (r.added != null || r.hours || r.topPlatform || r.topGenre) {
     const rows = [];
@@ -5056,10 +5072,10 @@ function _recapBuildSlides(r) {
     if (r.topPlatform) rows.push(line('🕹️', (fr ? 'Plateforme du mois : ' : 'Platform of the month: ') + `<b>${_esc(PLAT_LABELS[r.topPlatform] || r.topPlatform)}</b>`));
     if (r.topGenre) rows.push(line('🎭', (fr ? 'Genre du mois : ' : 'Genre of the month: ') + `<b>${_esc(_recapShort(r.topGenre))}</b>`));
     const bal = r.added == null ? '' : r.added > r.finished.length
-      ? (fr ? 'Ton backlog a grossi 😅' : 'Your backlog grew 😅')
-      : (fr ? 'Ton backlog fond 💪' : 'Your backlog is shrinking 💪');
+      ? T('Ton backlog a grossi 😅', 'Son backlog a grossi 😅', 'Your backlog grew 😅', 'Their backlog grew 😅')
+      : T('Ton backlog fond 💪', 'Son backlog fond 💪', 'Your backlog is shrinking 💪', 'Their backlog is shrinking 💪');
     S.push({ bg: '#00cec9', ink: INK, html: `
-      ${lbl(fr ? 'Ton mois en chiffres' : 'Your month in numbers')}
+      ${lbl(T('Ton mois en chiffres', 'Son mois en chiffres', 'Your month in numbers', 'Their month in numbers'))}
       ${bal ? `<div class="rc-h2">${bal}</div>` : ''}
       <div class="rc-lines">${rows.join('')}</div>` });
   }
@@ -5077,7 +5093,7 @@ function _recapBuildSlides(r) {
   if (r.rxIn || r.rxOut) {
     const rows = [];
     if (r.rxTop) { const L = _RX_LBL[r.rxTop.key] || ['💬', r.rxTop.key, r.rxTop.key]; rows.push(line(L[0], `<b>${r.rxTop.n}×</b> « ${fr ? L[1] : L[2]} »`)); }
-    if (r.rxFan) rows.push(line('⭐', (fr ? 'Ton plus grand fan : ' : 'Your biggest fan: ') + `<b>${_esc(r.rxFan.name)}</b>`));
+    if (r.rxFan) rows.push(line('⭐', T('Ton plus grand fan : ', 'Son plus grand fan : ', 'Your biggest fan: ', 'Their biggest fan: ') + `<b>${_esc(r.rxFan.name)}</b>`));
     if (r.rxOut) rows.push(line('💬', fr ? `Tu as réagi <b>${r.rxOut}</b> fois` : `You reacted <b>${r.rxOut}</b> times`));
     S.push({ bg: '#fd79a8', ink: INK, count: ['rc-n-rx', r.rxIn, ''], html: `
       ${lbl(fr ? 'Réactions reçues' : 'Reactions received')}
@@ -5102,14 +5118,37 @@ function _recapBuildSlides(r) {
     ['+' + r.xp, 'XP'],
   ];
   S.push({ bg: p.color, ink: p.color === '#6c5ce7' ? W : INK, confetti: true, final: true, html: `
-    ${lbl(fr ? 'Ton profil du mois' : 'Your player type')}
+    ${lbl(T('Ton profil du mois', 'Son profil du mois', 'Your player type', 'Their player type'))}
     <div class="rc-emoji">${p.emoji}</div>
     <div class="rc-h1" style="font-size:40px">${_esc(p.title)}</div>
-    <div class="rc-sub">${_esc(p.desc)}</div>
+    ${r.self ? `<div class="rc-sub">${_esc(p.desc)}</div>` : ''}
     <div class="rc-trio">${key3.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>
-    <button id="recap-share-btn" onclick="event.stopPropagation();shareMonthlyRecap()" class="rc-btn">📤 ${fr ? 'Partager mon récap' : 'Share my recap'}</button>
+    ${r.self ? `<button id="recap-share-btn" onclick="event.stopPropagation();shareMonthlyRecap()" class="rc-btn">📤 ${fr ? 'Partager mon récap' : 'Share my recap'}</button>` : ''}
     <button onclick="event.stopPropagation();closeMonthlyRecap()" class="rc-btn rc-btn2">${fr ? 'Fermer' : 'Close'}</button>` });
   return S;
+}
+
+// Profil d'un ami : bouton vers son récap du mois
+function _renderFriendRecapBtn(friend) {
+  const el = document.getElementById('fp-recap-btn');
+  if (!el) return;
+  const isFriend = friend && friend.id && !String(friend.id).startsWith('__dummy_') && (_socialFriends || []).some(f => f.id === friend.id);
+  if (!isFriend) { el.style.display = 'none'; el.innerHTML = ''; return; }
+  const fr = _lang !== 'en';
+  el.style.display = 'block';
+  el.innerHTML = `<div onclick="openFriendRecap()" style="display:flex;align-items:center;gap:12px;background:#6c5ce7;border-radius:16px;padding:14px 16px;cursor:pointer;color:#fff" ontouchstart="this.style.opacity=.85" ontouchend="this.style.opacity=1">
+    <div style="font-size:24px">📊</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800">${fr ? 'Son récap de ' + _recapLabel(_recapDefaultKey()).split(' ')[0] : 'Their ' + _recapLabel(_recapDefaultKey()).split(' ')[0] + ' recap'}</div>
+      <div style="font-size:12px;opacity:.8;margin-top:1px">${fr ? 'Jeux finis, quiz, profil du mois' : 'Games finished, quizzes, player type'}</div>
+    </div>
+    <div style="font-size:18px;opacity:.8">›</div>
+  </div>`;
+}
+function openFriendRecap() {
+  const f = _fpProfile;
+  if (!f) return;
+  openMonthlyRecap(null, { uid: f.id, name: f.username || 'Gamer', xp: f.xp || 0, games: _fpAllGames || [] });
 }
 
 function _recapPrevKey(key) {
@@ -5193,7 +5232,7 @@ function _recapTap(ev) {
   else if (_recapIdx < _recapSlides.length - 1) _recapShow(_recapIdx + 1);
 }
 
-async function openMonthlyRecap(key) {
+async function openMonthlyRecap(key, src) {
   key = key || _recapDefaultKey();
   _recapCss();
   const fr = _lang !== 'en';
@@ -5205,7 +5244,7 @@ async function openMonthlyRecap(key) {
   ov.style.display = 'flex';
   _recapSlides = [{ bg: '#6c5ce7', ink: '#fff', html: `<div class="rc-kicker">${fr ? 'Ton récap' : 'Your recap'}</div><div class="rc-h1">${fr ? 'On compte…' : 'Counting…'}</div><div class="loading-dots" style="justify-content:flex-start"><span></span><span></span><span></span></div>` }];
   _recapShow(0);
-  let r = _computeMonthlyRecap(key);
+  let r = _computeMonthlyRecap(key, src);
   try { r = await Promise.race([_recapServerStats(r), new Promise(res => setTimeout(() => res(r), 6000))]); } catch (e) {}
   if (ov.style.display === 'none') return; // fermé pendant le chargement
   _recapData = r;
@@ -5213,11 +5252,12 @@ async function openMonthlyRecap(key) {
     _recapSlides = [{ bg: '#6c5ce7', ink: '#fff', html: `
       <div class="rc-emoji">🌙</div>
       <div class="rc-h1" style="font-size:40px">${fr ? 'Mois calme côté gaming' : 'A quiet gaming month'}</div>
-      <div class="rc-sub">${fr ? 'Termine un jeu, note-le ou fais des quiz : ton récap se remplira tout seul.' : 'Finish a game, rate it or play quizzes: your recap will fill up.'}</div>
+      <div class="rc-sub">${r.self ? (fr ? 'Termine un jeu, note-le ou fais des quiz : ton récap se remplira tout seul.' : 'Finish a game, rate it or play quizzes: your recap will fill up.')
+                                   : (fr ? _esc(r.name) + " n'a pas beaucoup joué ce mois-ci." : _esc(r.name) + " didn't play much this month.")}</div>
       <button onclick="event.stopPropagation();closeMonthlyRecap()" class="rc-btn" style="margin-top:28px">${fr ? 'Fermer' : 'Close'}</button>` }];
   } else {
     _recapSlides = _recapBuildSlides(r);
-    try { navigator.vibrate && navigator.vibrate([12, 50, 16]); } catch (e) {}
+    if (r.self) { try { navigator.vibrate && navigator.vibrate([12, 50, 16]); } catch (e) {} }
   }
   _recapShow(0);
 }
@@ -12156,6 +12196,7 @@ function renderFriendProfile(friend) {
 
   // D — Activité récente
   renderFriendActivity(friend.activity || null);
+  try { _renderFriendRecapBtn(friend); _ensureFriendsLoaded().then(() => { if (_fpProfile === friend) _renderFriendRecapBtn(friend); }).catch(() => {}); } catch (e) {}
 
   const libSec = document.getElementById('fp-lib-section');
   libSec.style.display = 'block';
