@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -20189,33 +20189,85 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) { try { if (!history.state || !history.state.gs) history.pushState({ gs: true }, ''); } catch (e) {} }
 });
 
+// Chaque menu, pop-up ou panneau ouvrable, avec sa fonction de fermeture. Au retour,
+// on ferme celui qui est au-dessus (z-index le plus haut, puis le plus récent dans
+// la page) ; s'il n'y en a aucun, on revient à l'écran précédent.
+const _hide = id => () => { const e = document.getElementById(id); if (e) e.style.display = 'none'; };
+const BACK_CLOSERS = {
+  'share-game-modal': () => closeShareModal(),
+  'tirage-intro': () => closeTirageIntro(),
+  'csv-import-modal': () => closeCsvImport(),
+  'lightbox': () => closeLightbox(),
+  'levelup-overlay': () => closeLevelUpOverlay(),
+  'recap-overlay': () => closeMonthlyRecap(),
+  'fp-game-overlay': () => closeFriendGamePopup(),
+  'top20-overlay': () => closeTop20(),
+  'feature-tour': () => closeTour(),
+  'push-nudge-modal': () => _closePushNudge(),
+  'review-prompt': () => closeReviewPrompt(),
+  'xp-modal': () => closeXpModal(),
+  'whatsnew-modal': () => closeWhatsNewModal(),
+  'faq-modal': () => closeFaqModal(),
+  'privacy-modal': () => closePrivacyModal(),
+  'avatar-url-popup': () => closeAvatarUrlPopup(),
+  'stuck-overlay': () => closeStuckSheet(),
+  'notif-drawer': () => closeNotifDrawer(),
+  'edit-profile-modal': () => closeEditProfile(),
+  'tl-cmp-picker': _hide('tl-cmp-picker'),
+  'tl-add-modal': () => closeTlAdd(),
+  'collection-badges-modal': () => closeCollectionBadges(),
+  'tl-rename-modal': _hide('tl-rename-modal'),
+  'tl-tier-edit-modal': () => closeTierEdit(),
+  'rename-collection-modal': () => closeRenameCollection(),
+  'profile-screenshot-picker': () => closeProfileScreenshotPicker(),
+  'tl-share-modal': () => closeTlShareModal(),
+  'collection-action-sheet': () => closeCollectionActionSheet(),
+  'tl-custom-prompt': _hide('tl-custom-prompt'),
+  'new-collection-modal': () => closeNewCollectionModal(),
+  'add-to-collection-sheet': () => closeAddToCollectionSheet(),
+  'ach-picker-modal': () => closeAchPicker(),
+  'tl-new-modal': () => closeTlNewModal(),
+  'ldisc-modal': () => closeLdisc(),
+  'quiz-compare-modal': () => closeQuizCompare(),
+  'quiz-lb-modal': () => closeQuizLb(),
+  'quiz-picker-modal': () => closeQuizPicker(),
+  'col-search-overlay': () => closeColSearch(),
+  'user-collection-detail': () => closeUserCollection(),
+  'tl-compare-overlay': () => closeTlCompare(),
+  'quiz-overlay': () => closeQuiz(),
+  'tierlist-overlay': () => closeTierList(),
+  'collection-modal': () => closeCollection(),
+  'lib-shots-modal': () => closeLibShots(),
+  'confirm-modal': () => closeConfirmModal(),
+  'gp-all-overlay': () => closeGPAll(),
+  'bracket-overlay': () => closeBracket(),
+  'fp-lib-modal': _hide('fp-lib-modal'),
+  'add-modal': () => closeAddModal(),
+  'shelf-backdrop': () => closeShelf(),
+  'screen-friend-profile': () => closeFriendProfile(),
+};
+
+function _topOpenLayer() {
+  let best = null, bestZ = -Infinity, bestOrder = -1;
+  const all = document.getElementsByTagName('*');
+  for (const id in BACK_CLOSERS) {
+    const e = document.getElementById(id);
+    if (!e) continue;
+    const cs = getComputedStyle(e);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || e.getClientRects().length === 0) continue;
+    if (id === 'shelf-backdrop' && cs.opacity === '0') continue; // panneau en cours de fermeture
+    const z = parseInt(cs.zIndex, 10) || 0;
+    const order = Array.prototype.indexOf.call(all, e);
+    if (z > bestZ || (z === bestZ && order > bestOrder)) { best = id; bestZ = z; bestOrder = order; }
+  }
+  return best;
+}
+
 window.addEventListener('popstate', function() {
   // Always re-push so subsequent back presses are also intercepted
   history.pushState({ gs: true }, '');
-
-  // Close overlays from most specific (topmost z-index) to least
-  const el = id => document.getElementById(id);
-  const visible = id => { const e = el(id); return e && e.style.display === 'flex'; };
-
-  if (visible('xp-modal'))                { closeXpModal();                  return; }
-  if (visible('push-nudge-modal'))        { _closePushNudge();               return; }
-  if (visible('whatsnew-modal'))          { closeWhatsNewModal();            return; }
-  if (visible('faq-modal'))               { closeFaqModal();                 return; }
-  if (visible('privacy-modal'))           { closePrivacyModal();             return; }
-  if (visible('profile-screenshot-picker')){ closeProfileScreenshotPicker();   return; }
-  if (el('quiz-overlay')?.classList.contains('open')) { closeQuiz();       return; }
-  if (visible('rename-collection-modal')) { closeRenameCollection();        return; }
-  if (visible('collection-action-sheet')){ closeCollectionActionSheet();   return; }
-  if (visible('new-collection-modal'))   { closeNewCollectionModal();       return; }
-  if (visible('add-to-collection-sheet')){ closeAddToCollectionSheet();     return; }
-  if (document.getElementById('quiz-overlay')?.classList.contains('open')) { closeQuiz(); return; }
-  if (visible('quiz-compare-modal'))     { closeQuizCompare();              return; }
-  if (visible('quiz-lb-modal'))          { closeQuizLb();                   return; }
-  if (visible('quiz-picker-modal'))      { closeQuizPicker();               return; }
-  if (visible('notif-drawer'))           { closeNotifDrawer();              return; }
-  if (visible('col-search-overlay'))     { closeColSearch();                return; }
-  if (visible('user-collection-detail')) { closeUserCollection();           return; }
-  if (visible('screen-friend-profile'))  { closeFriendProfile();            return; }
+  const top = _topOpenLayer();
+  if (top) { try { BACK_CLOSERS[top](); } catch (e) { _hide(top)(); } return; }
   if (appCurrentScreen === 'detail')     { appGoBack();                     return; }
   if (appCurrentScreen !== 'feed')       { appGoTo('feed');                 return; }
 });
