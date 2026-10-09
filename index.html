@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 08.10g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -2527,13 +2527,17 @@ html, body {
   </div>
 
   <!-- RÉCAP MENSUEL OVERLAY -->
-  <div id="recap-overlay" style="display:none;position:fixed;inset:0;z-index:990;background:var(--bg);flex-direction:column">
+  <div id="recap-overlay" onclick="_recapTap(event)" style="display:none;position:fixed;inset:0;z-index:990;flex-direction:column;background-color:#6c5ce7;color:#fff;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none">
+    <div id="recap-deco" style="position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden"></div>
     <canvas id="recap-canvas" style="position:absolute;inset:0;pointer-events:none;z-index:3"></canvas>
-    <div style="display:flex;align-items:center;gap:12px;padding:calc(14px + env(safe-area-inset-top)) 16px 12px;flex-shrink:0">
-      <button onclick="closeMonthlyRecap()" style="width:34px;height:34px;border-radius:50%;background:var(--s2);border:0.5px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;color:var(--text)">✕</button>
-      <div style="flex:1;font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800" id="recap-title" data-i18n="misc.recap_modal_title">📊 Récap</div>
+    <div style="position:relative;z-index:4;padding:calc(10px + env(safe-area-inset-top)) 16px 0;flex-shrink:0;width:100%;max-width:560px;margin:0 auto;box-sizing:border-box">
+      <div id="recap-bars" style="display:flex;gap:4px"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <div id="recap-title" style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.8">Récap</div>
+        <button onclick="event.stopPropagation();closeMonthlyRecap()" aria-label="Fermer" style="width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.18);border:none;color:inherit;font-size:15px;cursor:pointer">✕</button>
+      </div>
     </div>
-    <div id="recap-body" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px calc(24px + env(safe-area-inset-bottom))"></div>
+    <div id="recap-body" style="position:relative;z-index:2;flex:1;display:flex;flex-direction:column;justify-content:center;padding:12px 28px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:560px;margin:0 auto;box-sizing:border-box;overflow:hidden"></div>
   </div>
 
   <!-- LEVEL-UP OVERLAY -->
@@ -4873,87 +4877,351 @@ function _recapLabel(key) {
 function _computeMonthlyRecap(key) {
   const [y, m] = key.split('-').map(Number);
   const start = new Date(y, m - 1, 1), end = new Date(y, m, 1);
+  const pStart = new Date(y, m - 2, 1);
   const inRange = ts => { if (!ts) return false; const d = new Date(ts); return d >= start && d < end; };
+  const inPrev = ts => { if (!ts) return false; const d = new Date(ts); return d >= pStart && d < start; };
   const all = GAMES.map(g => ({ ...g, ...(userGames[g.id] || {}) }));
   const finished = all.filter(g => (g.status === 'finished' || g.status === 'platine') && inRange(g.lastActivityAt));
   const rated = all.filter(g => g.score > 0 && inRange(g.ratedAt));
+  const ratedPrev = all.filter(g => g.score > 0 && inPrev(g.ratedAt));
   const active = all.filter(g => inRange(g.lastActivityAt) || inRange(g.ratedAt));
   const best = [...rated].sort((a, b) => b.score - a.score)[0]
     || [...finished].sort((a, b) => (b.score || 0) - (a.score || 0))[0] || null;
-  const gc = {};
-  active.forEach(g => { if (g.genre) gc[g.genre] = (gc[g.genre] || 0) + 1; });
-  const topGenre = (Object.entries(gc).sort((a, b) => b[1] - a[1])[0] || [null])[0];
+  const top = (arr, keyFn) => {
+    const c = {};
+    arr.forEach(g => [].concat(keyFn(g) || []).forEach(k => { if (k) c[k] = (c[k] || 0) + 1; }));
+    return (Object.entries(c).sort((a, b) => b[1] - a[1])[0] || [null])[0];
+  };
+  const topGenre = top(active, g => g.genre);
+  const topPlatform = top(active, g => g.platform);
+  const topVibe = top(active, g => _vibeArr(g.vibe).filter(k => VIBES.some(v => v.key === k)));
+  const avg = list => list.length ? Math.round(list.reduce((s, g) => s + g.score, 0) / list.length * 10) / 10 : null;
+  const hours = finished.reduce((s, g) => s + hoursToRange(g.hours), 0);
+  // Repli local (avant le chargement serveur, ou si la base ne répond pas)
   let xp = 0;
   try { JSON.parse(localStorage.getItem('gs_xp_log') || '[]').forEach(e => { if (inRange(e.ts)) xp += (e.amount || 0); }); } catch (e) {}
   let quizzes = 0;
   try { Object.values(_quizLocalScores || {}).forEach(s => { if (s && inRange(s.ts)) quizzes++; }); } catch (e) {}
   const empty = !finished.length && !rated.length && !quizzes && !xp;
-  return { key, finished, rated, best, topGenre, xp, quizzes, activeCount: active.length, empty };
+  return { key, start, end, finished, rated, best, topGenre, topPlatform, topVibe, hours,
+           avgScore: avg(rated), avgPrev: avg(ratedPrev), xp, quizzes, activeCount: active.length, empty,
+           added: null, quizAvg: null, perfect: 0, quizRank: null, quizPlayers: 0,
+           rxIn: 0, rxOut: 0, rxTop: null, rxFan: null, levelFrom: null, levelTo: null, achievements: [] };
 }
 
-function openMonthlyRecap(key) {
+// Vérité serveur : XP, quiz, réactions, jeux ajoutés. Chaque bloc est indépendant :
+// une table absente ou une requête refusée laisse simplement la valeur locale.
+async function _recapServerStats(r) {
+  const { data: { session } } = await _sb.auth.getSession();
+  const uid = session?.user?.id;
+  if (!uid) return r;
+  const s = r.start.toISOString(), e = r.end.toISOString();
+  const d0 = Math.floor(r.start.getTime() / 86400000), d1 = Math.floor(r.end.getTime() / 86400000) - 1;
+  const q = p => Promise.resolve(p).then(x => x, () => ({ error: true }));
+  const [xpRes, quizRes, rxInRes, rxOutRes, addRes] = await Promise.all([
+    q(_sb.from('xp_events').select('reason,ref,amount,created_at').eq('user_id', uid).gte('created_at', s)),
+    q(_sb.from('quiz_scores').select('quiz_id,score,total,day_index').eq('user_id', uid).gte('day_index', d0).lte('day_index', d1)),
+    q(_sb.from('game_reactions').select('reactor_id,reaction').eq('owner_id', uid).gte('created_at', s).lt('created_at', e)),
+    q(_sb.from('game_reactions').select('owner_id').eq('reactor_id', uid).gte('created_at', s).lt('created_at', e)),
+    q(_sb.from('user_games').select('game_id').eq('user_id', uid).gte('created_at', s).lt('created_at', e)),
+  ]);
+  if (!xpRes.error && Array.isArray(xpRes.data)) {
+    const inM = xpRes.data.filter(x => x.created_at < e);
+    const after = xpRes.data.filter(x => x.created_at >= e).reduce((t, x) => t + (x.amount || 0), 0);
+    r.xp = inM.reduce((t, x) => t + (x.amount || 0), 0);
+    const xpEnd = Math.max(0, (obProfile.xp || 0) - after);
+    r.levelTo = getLevel(xpEnd).level;
+    r.levelFrom = getLevel(Math.max(0, xpEnd - r.xp)).level;
+    r.achievements = inM.filter(x => x.reason === 'achievement' && x.amount > 0)
+      .map(x => ACHIEVEMENTS.find(a => a.id === x.ref)).filter(Boolean);
+  }
+  if (!quizRes.error && Array.isArray(quizRes.data)) {
+    const rows = quizRes.data;
+    r.quizzes = rows.length;
+    r.perfect = rows.filter(x => x.total && x.score >= x.total).length;
+    const pct = rows.filter(x => x.total).map(x => x.score / x.total);
+    r.quizAvg = pct.length ? Math.round(pct.reduce((a, b) => a + b, 0) / pct.length * 100) : null;
+    if (rows.length) {
+      try {
+        await _ensureFriendsLoaded();
+        const ids = (_socialFriends || []).map(f => f.id).filter(id => id && !String(id).startsWith('__dummy_'));
+        if (ids.length) {
+          const fr = await q(_sb.from('quiz_scores').select('user_id,score').in('user_id', ids).gte('day_index', d0).lte('day_index', d1));
+          if (!fr.error && Array.isArray(fr.data)) {
+            const tot = { [uid]: rows.reduce((t, x) => t + (x.score || 0), 0) };
+            fr.data.forEach(x => { tot[x.user_id] = (tot[x.user_id] || 0) + (x.score || 0); });
+            const ranked = Object.entries(tot).sort((a, b) => b[1] - a[1]);
+            r.quizPlayers = ranked.length;
+            r.quizRank = ranked.findIndex(([id]) => id === uid) + 1;
+          }
+        }
+      } catch (err) {}
+    }
+  }
+  if (!rxInRes.error && Array.isArray(rxInRes.data)) {
+    const rows = rxInRes.data;
+    r.rxIn = rows.length;
+    const byK = {}, byP = {};
+    rows.forEach(x => { byK[x.reaction] = (byK[x.reaction] || 0) + 1; byP[x.reactor_id] = (byP[x.reactor_id] || 0) + 1; });
+    const k = Object.entries(byK).sort((a, b) => b[1] - a[1])[0];
+    if (k) r.rxTop = { key: k[0], n: k[1] };
+    const p = Object.entries(byP).sort((a, b) => b[1] - a[1])[0];
+    if (p) {
+      let name = (_socialFriends || []).find(f => f.id === p[0])?.username || _rxNames[p[0]];
+      if (!name) { const pr = await q(_sb.from('profiles').select('username').eq('id', p[0]).maybeSingle()); name = pr.data?.username; }
+      r.rxFan = { name: name || 'Gamer', n: p[1] };
+    }
+  }
+  if (!rxOutRes.error && Array.isArray(rxOutRes.data)) r.rxOut = rxOutRes.data.length;
+  if (!addRes.error && Array.isArray(addRes.data)) r.added = addRes.data.length;
+  r.empty = !r.finished.length && !r.rated.length && !r.quizzes && !r.xp && !r.rxIn && !r.rxOut && !r.added;
+  return r;
+}
+
+// Profil de joueur du mois : la dimension la plus marquée l'emporte
+function _recapPersona(r) {
+  const fr = _lang !== 'en';
+  const a = r.avgScore;
+  const critic = a != null && a <= 6.5 ? ['🧐', 'Le Critique sévère', 'The Tough Critic', 'Tu ne distribues pas les bonnes notes au hasard.', "You don't hand out good scores lightly."]
+    : a != null && a >= 8.5 ? ['💖', "Le Cœur d'artichaut", 'The Softie', 'Tu tombes amoureux de chaque jeu. Et tu assumes.', 'You fall for every game. And you own it.']
+    : ['🎯', 'Le Critique', 'The Critic', 'Chaque jeu passe sous ta loupe.', 'Every game goes under your microscope.'];
+  const P = [
+    { s: r.finished.length * 3, c: '#a29bfe', d: ['🏁', 'Le Finisseur', 'The Finisher', 'Tes jeux, tu les mènes jusqu\'au bout.', 'You see your games through to the end.'] },
+    { s: (r.added || 0) * 1.2, c: '#00cec9', d: ['🧭', "L'Explorateur", 'The Explorer', 'Toujours un nouveau jeu sous le coude.', 'Always a new game up your sleeve.'] },
+    { s: r.quizzes * 0.8 + r.perfect * 2, c: '#ffca28', d: ['🧠', 'Le Cerveau', 'The Brain', 'Les quiz n\'ont plus de secret pour toi.', 'Quizzes hold no secrets for you.'] },
+    { s: r.rated.length * 1.5, c: '#00b894', d: critic },
+    { s: (r.rxIn + r.rxOut) * 0.7, c: '#fd79a8', d: ['💬', "L'Âme sociale", 'The Social Butterfly', 'Tu fais vivre ta bande de joueurs.', 'You keep your gaming crew alive.'] },
+  ].sort((x, y) => y.s - x.s);
+  const w = P[0].s >= 2 ? P[0] : { c: '#6c5ce7', d: ['🌙', 'Le Joueur tranquille', 'The Chill Player', 'Un mois posé. Le prochain sera le bon.', 'A quiet month. The next one is yours.'] };
+  return { emoji: w.d[0], title: fr ? w.d[1] : w.d[2], desc: fr ? w.d[3] : w.d[4], color: w.c };
+}
+
+// « Role-playing (RPG) » → « RPG » : les libellés IGDB longs cassent la mise en page
+function _recapShort(s) {
+  if (!s) return '';
+  const m = String(s).match(/\(([^)]{2,12})\)/);
+  return m ? m[1] : String(s);
+}
+
+let _recapSlides = [], _recapIdx = 0;
+const _RX_LBL = { agree: ['👍', 'Même avis', 'Same take'], disagree: ['🤨', "Pas d'accord", 'Disagree'], want: ['🎯', 'Ça me tente', 'Want to play'], gg: ['🏆', 'GG', 'GG'] };
+
+function _recapBuildSlides(r) {
+  const fr = _lang !== 'en';
+  const INK = '#0b0a18', W = '#ffffff';
+  const big = (v, id) => `<div class="rc-big"${id ? ` id="${id}"` : ''}>${v}</div>`;
+  const lbl = t => `<div class="rc-lbl">${t}</div>`;
+  const line = (em, t) => `<div class="rc-line"><span>${em}</span><span>${t}</span></div>`;
+  const S = [];
+  const month = _recapLabel(r.key).split(' ')[0];
+  S.push({ bg: '#6c5ce7', ink: W, html: `
+    <div class="rc-kicker">${fr ? 'Ton récap' : 'Your recap'}</div>
+    <div class="rc-h1">${fr ? 'Ton mois de' : 'Your'}<br><span style="color:#ffca28">${_esc(month)}</span>${fr ? '' : ' in games'}</div>
+    <div class="rc-sub">${_esc(obProfile.username || 'Gamer')} · GameShelf</div>
+    <div class="rc-hint">${fr ? 'Touche pour continuer →' : 'Tap to continue →'}</div>` });
+  if (r.finished.length) {
+    const covers = r.finished.slice(0, 6).map(g => { const src = coverUrl(g); return src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">` : ''; }).join('');
+    S.push({ bg: '#a29bfe', ink: INK, count: ['rc-n-fin', r.finished.length, ''], html: `
+      ${lbl(fr ? 'Jeux terminés' : 'Games finished')}
+      ${big(r.finished.length, 'rc-n-fin')}
+      <div class="rc-covers">${covers}</div>
+      <div class="rc-list">${r.finished.slice(0, 4).map(g => `${g.status === 'platine' ? '🏆' : '✓'} ${_esc(g.title)}`).join('<br>')}${r.finished.length > 4 ? `<br>+${r.finished.length - 4}` : ''}</div>` });
+  }
+  if (r.best) {
+    const src = coverUrl(r.best);
+    const vb = _vibeArr(r.best.vibe).filter(k => VIBES.some(v => v.key === k)).slice(0, 2).map(k => t('vibe.' + k)).join(' · ');
+    S.push({ bg: src ? '#1a1030' : '#6c5ce7', ink: W, cover: src, confetti: true, html: `
+      ${lbl('🏆 ' + (fr ? 'Ton jeu du mois' : 'Your game of the month'))}
+      ${src ? `<img class="rc-hero" src="${_attrUrl(src)}" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}
+      <div class="rc-h2">${_esc(r.best.title)}</div>
+      ${r.best.score ? `<div class="rc-score">★ ${r.best.score}<small>/10</small></div>` : ''}
+      ${vb ? `<div class="rc-sub">${vb}</div>` : ''}` });
+  }
+  if (r.rated.length) {
+    let verdict = '';
+    if (r.avgScore != null && r.avgPrev != null && Math.abs(r.avgScore - r.avgPrev) >= 0.3)
+      verdict = r.avgScore > r.avgPrev ? (fr ? `↗ Plus généreux qu'en ${_recapLabel(_recapPrevKey(r.key)).split(' ')[0]} (${r.avgPrev})` : `↗ More generous than last month (${r.avgPrev})`)
+                                      : (fr ? `↘ Plus sévère qu'en ${_recapLabel(_recapPrevKey(r.key)).split(' ')[0]} (${r.avgPrev})` : `↘ Tougher than last month (${r.avgPrev})`);
+    S.push({ bg: '#00b894', ink: INK, count: ['rc-n-rated', r.rated.length, ''], html: `
+      ${lbl(fr ? 'Jeux notés' : 'Games rated')}
+      ${big(r.rated.length, 'rc-n-rated')}
+      ${r.avgScore != null ? line('⭐', (fr ? 'Note moyenne ' : 'Average score ') + `<b>${r.avgScore}/10</b>`) : ''}
+      ${verdict ? line('', verdict) : ''}
+      ${r.topVibe ? line('✨', (fr ? 'Ta vibe du mois : ' : 'Vibe of the month: ') + `<b>${t('vibe.' + r.topVibe)}</b>`) : ''}` });
+  }
+  if (r.added != null || r.hours || r.topPlatform || r.topGenre) {
+    const rows = [];
+    if (r.added != null) rows.push(line('📥', `<b>+${r.added}</b> ${fr ? (r.added > 1 ? 'jeux ajoutés' : 'jeu ajouté') : (r.added === 1 ? 'game added' : 'games added')} · <b>${r.finished.length}</b> ${fr ? (r.finished.length > 1 ? 'terminés' : 'terminé') : 'finished'}`));
+    if (r.hours) rows.push(line('⏱️', `<b>≈ ${r.hours} h</b> ${fr ? 'sur les jeux terminés' : 'on finished games'}`));
+    if (r.topPlatform) rows.push(line('🕹️', (fr ? 'Plateforme du mois : ' : 'Platform of the month: ') + `<b>${_esc(PLAT_LABELS[r.topPlatform] || r.topPlatform)}</b>`));
+    if (r.topGenre) rows.push(line('🎭', (fr ? 'Genre du mois : ' : 'Genre of the month: ') + `<b>${_esc(_recapShort(r.topGenre))}</b>`));
+    const bal = r.added == null ? '' : r.added > r.finished.length
+      ? (fr ? 'Ton backlog a grossi 😅' : 'Your backlog grew 😅')
+      : (fr ? 'Ton backlog fond 💪' : 'Your backlog is shrinking 💪');
+    S.push({ bg: '#00cec9', ink: INK, html: `
+      ${lbl(fr ? 'Ton mois en chiffres' : 'Your month in numbers')}
+      ${bal ? `<div class="rc-h2">${bal}</div>` : ''}
+      <div class="rc-lines">${rows.join('')}</div>` });
+  }
+  if (r.quizzes) {
+    const rows = [];
+    if (r.quizAvg != null) rows.push(line('🎯', (fr ? 'Score moyen ' : 'Average score ') + `<b>${r.quizAvg} %</b>`));
+    if (r.perfect) rows.push(line('💯', `<b>${r.perfect}</b> ${fr ? (r.perfect > 1 ? 'sans-faute' : 'sans-faute') : (r.perfect > 1 ? 'perfect scores' : 'perfect score')}`));
+    if (r.quizRank) rows.push(line(r.quizRank === 1 ? '🥇' : r.quizRank === 2 ? '🥈' : r.quizRank === 3 ? '🥉' : '🏅',
+      fr ? `<b>${r.quizRank}${r.quizRank === 1 ? 'er' : 'e'}</b> sur ${r.quizPlayers} entre amis` : `<b>#${r.quizRank}</b> of ${r.quizPlayers} among friends`));
+    S.push({ bg: '#ffca28', ink: INK, count: ['rc-n-quiz', r.quizzes, ''], html: `
+      ${lbl(fr ? 'Quiz joués' : 'Quizzes played')}
+      ${big(r.quizzes, 'rc-n-quiz')}
+      <div class="rc-lines">${rows.join('')}</div>` });
+  }
+  if (r.rxIn || r.rxOut) {
+    const rows = [];
+    if (r.rxTop) { const L = _RX_LBL[r.rxTop.key] || ['💬', r.rxTop.key, r.rxTop.key]; rows.push(line(L[0], `<b>${r.rxTop.n}×</b> « ${fr ? L[1] : L[2]} »`)); }
+    if (r.rxFan) rows.push(line('⭐', (fr ? 'Ton plus grand fan : ' : 'Your biggest fan: ') + `<b>${_esc(r.rxFan.name)}</b>`));
+    if (r.rxOut) rows.push(line('💬', fr ? `Tu as réagi <b>${r.rxOut}</b> fois` : `You reacted <b>${r.rxOut}</b> times`));
+    S.push({ bg: '#fd79a8', ink: INK, count: ['rc-n-rx', r.rxIn, ''], html: `
+      ${lbl(fr ? 'Réactions reçues' : 'Reactions received')}
+      ${big(r.rxIn, 'rc-n-rx')}
+      <div class="rc-lines">${rows.join('')}</div>` });
+  }
+  if (r.xp > 0) {
+    const rows = [];
+    if (r.levelFrom != null && r.levelTo > r.levelFrom) rows.push(line('🆙', fr ? `Niveau <b>${r.levelFrom} → ${r.levelTo}</b>` : `Level <b>${r.levelFrom} → ${r.levelTo}</b>`));
+    r.achievements.slice(0, 3).forEach(a => rows.push(line(a.emoji, `<b>${_esc(fr ? a.title_fr : a.title_en)}</b>`)));
+    if (r.achievements.length > 3) rows.push(line('🏅', `+${r.achievements.length - 3} ${fr ? 'succès' : 'achievements'}`));
+    S.push({ bg: '#6c5ce7', ink: W, count: ['rc-n-xp', r.xp, '+'], html: `
+      ${lbl(fr ? 'XP gagnés' : 'XP earned')}
+      ${big('+' + r.xp, 'rc-n-xp')}
+      <div class="rc-lines">${rows.join('')}</div>` });
+  }
+  const p = _recapPersona(r);
+  r.persona = p;
+  const key3 = [
+    [r.finished.length, fr ? 'terminés' : 'finished'],
+    [r.quizzes, 'quiz'],
+    ['+' + r.xp, 'XP'],
+  ];
+  S.push({ bg: p.color, ink: p.color === '#6c5ce7' ? W : INK, confetti: true, final: true, html: `
+    ${lbl(fr ? 'Ton profil du mois' : 'Your player type')}
+    <div class="rc-emoji">${p.emoji}</div>
+    <div class="rc-h1" style="font-size:40px">${_esc(p.title)}</div>
+    <div class="rc-sub">${_esc(p.desc)}</div>
+    <div class="rc-trio">${key3.map(([v, l]) => `<div><b>${v}</b><span>${l}</span></div>`).join('')}</div>
+    <button id="recap-share-btn" onclick="event.stopPropagation();shareMonthlyRecap()" class="rc-btn">📤 ${fr ? 'Partager mon récap' : 'Share my recap'}</button>
+    <button onclick="event.stopPropagation();closeMonthlyRecap()" class="rc-btn rc-btn2">${fr ? 'Fermer' : 'Close'}</button>` });
+  return S;
+}
+
+function _recapPrevKey(key) {
+  const [y, m] = key.split('-').map(Number);
+  const d = new Date(y, m - 2, 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+function _recapCss() {
+  if (document.getElementById('recap-css')) return;
+  const st = document.createElement('style'); st.id = 'recap-css';
+  st.textContent = `
+  #recap-overlay{transition:background-color .45s ease,color .3s ease}
+  #recap-body>*{animation:recapPop .55s cubic-bezier(.34,1.56,.64,1) both}
+  #recap-body>*:nth-child(2){animation-delay:.08s}#recap-body>*:nth-child(3){animation-delay:.16s}
+  #recap-body>*:nth-child(4){animation-delay:.24s}#recap-body>*:nth-child(5){animation-delay:.32s}
+  #recap-body>*:nth-child(n+6){animation-delay:.4s}
+  .rc-kicker,.rc-lbl{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.75;margin-bottom:10px}
+  .rc-h1{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:900;line-height:1;letter-spacing:-1.5px;margin-bottom:14px}
+  .rc-h2{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:900;line-height:1.1;letter-spacing:-.5px;margin:8px 0 14px}
+  .rc-big{font-family:'Space Grotesk',sans-serif;font-size:128px;font-weight:900;line-height:.9;letter-spacing:-5px;margin-bottom:18px}
+  .rc-sub{font-size:16px;font-weight:600;opacity:.8;line-height:1.4}
+  .rc-hint{position:absolute;bottom:calc(36px + env(safe-area-inset-bottom));left:28px;font-size:13px;font-weight:700;opacity:.65;animation:recapWiggle 1.6s ease 1.2s infinite!important}
+  .rc-lines{display:flex;flex-direction:column;gap:10px}
+  .rc-line{display:flex;gap:10px;align-items:baseline;font-size:17px;line-height:1.35}
+  .rc-line>span:first-child{flex-shrink:0;width:22px;text-align:center}
+  .rc-covers{display:flex;gap:8px;margin-bottom:14px}
+  .rc-covers img{width:56px;height:75px;border-radius:9px;object-fit:cover;box-shadow:0 6px 18px rgba(0,0,0,.25);background:rgba(0,0,0,.12)}
+  .rc-covers img:nth-child(odd){transform:rotate(-3deg)}.rc-covers img:nth-child(even){transform:rotate(3deg)}
+  .rc-list{font-size:15px;font-weight:700;line-height:1.6;opacity:.85}
+  .rc-hero{width:150px;height:200px;object-fit:cover;border-radius:16px;box-shadow:0 18px 50px rgba(0,0,0,.55);margin:6px 0 16px;transform:rotate(-2deg)}
+  .rc-score{font-family:'Space Grotesk',sans-serif;font-size:44px;font-weight:900;color:#ffca28;margin-bottom:8px}
+  .rc-score small{font-size:20px;opacity:.7}
+  .rc-emoji{font-size:84px;line-height:1;margin:6px 0 12px}
+  .rc-trio{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0 20px}
+  .rc-trio>div{background:rgba(0,0,0,.12);border-radius:14px;padding:12px 6px;text-align:center}
+  .rc-trio b{display:block;font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:900}
+  .rc-trio span{font-size:11px;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.06em}
+  .rc-btn{width:100%;padding:15px;border:none;border-radius:16px;background:#0b0a18;color:#fff;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:10px}
+  .rc-btn2{background:rgba(0,0,0,.14);color:inherit;font-weight:700}
+  .rc-bar{flex:1;height:3px;border-radius:2px;background:currentColor;opacity:.25;overflow:hidden}
+  .rc-bar.on{opacity:.9}
+  @media (prefers-reduced-motion: reduce){#recap-body>*{animation:none!important}}`;
+  document.head.appendChild(st);
+}
+
+function _recapDeco(s, i) {
+  if (s.cover) return `<div style="position:absolute;inset:-60px;background:url('${_attrUrl(s.cover)}') center/cover;filter:blur(30px) saturate(1.4);opacity:.9"></div><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,8,16,.35),rgba(8,8,16,.8))"></div>`;
+  // Carrés « pixels » de la marque, placés de façon fixe par diapo
+  let seed = 7 + i * 13, out = '';
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 14; k++) {
+    const sz = 6 + Math.round(rnd() * 14);
+    const band = rnd() > .5 ? 6 + rnd() * 18 : 80 + rnd() * 16; // haut ou bas : jamais sous le texte
+    out += `<div style="position:absolute;left:${Math.round(rnd() * 100)}%;top:${band.toFixed(1)}%;width:${sz}px;height:${sz}px;border-radius:3px;background:${rnd() > .5 ? 'rgba(255,255,255,.28)' : 'rgba(0,0,0,.12)'}"></div>`;
+  }
+  return out;
+}
+
+function _recapShow(i) {
+  const S = _recapSlides;
+  if (!S.length) return;
+  _recapIdx = Math.max(0, Math.min(S.length - 1, i));
+  const s = S[_recapIdx];
+  const ov = document.getElementById('recap-overlay');
+  ov.style.backgroundColor = s.bg;
+  ov.style.color = s.ink;
+  document.getElementById('recap-deco').innerHTML = _recapDeco(s, _recapIdx);
+  document.getElementById('recap-bars').innerHTML = S.map((_, k) => `<div class="rc-bar${k <= _recapIdx ? ' on' : ''}"></div>`).join('');
+  document.getElementById('recap-body').innerHTML = s.html;
+  const rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (s.count) _recapCountUp(s.count[0], s.count[1], s.count[2], rm ? 1 : 900);
+  if (s.confetti && !rm) _recapConfetti();
+  if (s.final && !rm) setTimeout(() => { const b = document.getElementById('recap-share-btn'); if (b) b.style.animation = 'recapWiggle 0.8s ease 2'; }, 1800);
+}
+
+function _recapTap(ev) {
+  if (ev.target.closest('button')) return;
+  const x = ev.clientX / window.innerWidth;
+  if (x < 0.3) _recapShow(_recapIdx - 1);
+  else if (_recapIdx < _recapSlides.length - 1) _recapShow(_recapIdx + 1);
+}
+
+async function openMonthlyRecap(key) {
   key = key || _recapDefaultKey();
-  const r = _computeMonthlyRecap(key);
-  _recapData = r;
+  _recapCss();
   const fr = _lang !== 'en';
   const now = new Date();
   const isCurrent = key === now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
   const title = document.getElementById('recap-title');
-  if (title) title.textContent = '📊 ' + _recapLabel(key) + (isCurrent ? (fr ? ' · en cours' : ' · so far') : '');
-  const body = document.getElementById('recap-body');
-  if (!body) return;
+  if (title) title.textContent = _recapLabel(key) + (isCurrent ? (fr ? ' · en cours' : ' · so far') : '');
+  const ov = document.getElementById('recap-overlay');
+  ov.style.display = 'flex';
+  _recapSlides = [{ bg: '#6c5ce7', ink: '#fff', html: `<div class="rc-kicker">${fr ? 'Ton récap' : 'Your recap'}</div><div class="rc-h1">${fr ? 'On compte…' : 'Counting…'}</div><div class="loading-dots" style="justify-content:flex-start"><span></span><span></span><span></span></div>` }];
+  _recapShow(0);
+  let r = _computeMonthlyRecap(key);
+  try { r = await Promise.race([_recapServerStats(r), new Promise(res => setTimeout(() => res(r), 6000))]); } catch (e) {}
+  if (ov.style.display === 'none') return; // fermé pendant le chargement
+  _recapData = r;
   if (r.empty) {
-    body.innerHTML = `<div class="recap-pop" style="text-align:center;padding:60px 24px;color:var(--muted2)">
-      <div style="font-size:40px;margin-bottom:12px">🌙</div>
-      <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">${fr ? 'Mois calme côté gaming' : 'A quiet gaming month'}</div>
-      <div style="font-size:13px;line-height:1.5">${fr ? 'Termine un jeu, note-le ou fais des quiz — ton récap se remplira tout seul.' : 'Finish a game, rate it or play quizzes — your recap will fill up.'}</div>
-    </div>`;
+    _recapSlides = [{ bg: '#6c5ce7', ink: '#fff', html: `
+      <div class="rc-emoji">🌙</div>
+      <div class="rc-h1" style="font-size:40px">${fr ? 'Mois calme côté gaming' : 'A quiet gaming month'}</div>
+      <div class="rc-sub">${fr ? 'Termine un jeu, note-le ou fais des quiz : ton récap se remplira tout seul.' : 'Finish a game, rate it or play quizzes: your recap will fill up.'}</div>
+      <button onclick="event.stopPropagation();closeMonthlyRecap()" class="rc-btn" style="margin-top:28px">${fr ? 'Fermer' : 'Close'}</button>` }];
   } else {
-    const stat = (emoji, val, lbl, i, vid) => `<div class="recap-pop" style="animation-delay:${(0.22 + (i || 0) * 0.09).toFixed(2)}s;background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:16px 12px;text-align:center">
-      <div style="font-size:22px;margin-bottom:6px">${emoji}</div>
-      <div${vid ? ` id="${vid}"` : ''} style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900">${val}</div>
-      <div style="font-size:11px;color:var(--muted2);margin-top:2px">${lbl}</div>
-    </div>`;
-    const bestSrc = r.best ? coverUrl(r.best) : null;
-    body.innerHTML = `
-      <div class="recap-pop" style="animation-delay:0.05s;background:linear-gradient(135deg,rgba(108,92,231,0.22),rgba(253,121,168,0.1));border:1px solid rgba(108,92,231,0.4);border-radius:20px;padding:22px 18px;text-align:center;margin-bottom:12px">
-        <div style="font-size:12px;font-weight:700;color:var(--muted2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px">${fr ? 'Jeux terminés' : 'Games finished'}</div>
-        <div id="recap-hero-num" style="font-family:'Space Grotesk',sans-serif;font-size:56px;font-weight:900;line-height:1;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:recapGlow 2.6s ease-in-out 0.9s infinite">${r.finished.length}</div>
-        ${r.finished.length ? `<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:14px">${r.finished.slice(0, 6).map((g, i) => `<span class="recap-chip" style="animation-delay:${(0.55 + i * 0.09).toFixed(2)}s;font-size:11px;font-weight:600;background:rgba(0,0,0,0.25);border-radius:20px;padding:4px 11px">${g.status === 'platine' ? '🏆 ' : '✓ '}${_esc(g.title)}</span>`).join('')}${r.finished.length > 6 ? `<span class="recap-chip" style="animation-delay:${(0.55 + 6 * 0.09).toFixed(2)}s;font-size:11px;color:var(--muted2);padding:4px 6px">+${r.finished.length - 6}</span>` : ''}</div>` : ''}
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px">
-        ${stat('⭐', r.rated.length, fr ? 'jeux notés' : 'games rated', 0, 'recap-stat-rated')}
-        ${stat('🧠', r.quizzes, fr ? 'quiz joués' : 'quizzes played', 1, 'recap-stat-quiz')}
-        ${stat('⚡', '+' + r.xp, fr ? 'XP gagnés' : 'XP earned', 2, 'recap-stat-xp')}
-        ${stat('🎭', r.topGenre ? _esc(r.topGenre) : '—', fr ? 'genre du mois' : 'genre of the month', 3)}
-      </div>
-      ${r.best ? `<div class="recap-pop" style="animation-delay:0.62s;background:var(--s1);border:0.5px solid var(--border2);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:12px">
-        <div style="width:52px;height:70px;border-radius:10px;overflow:hidden;background:var(--s3);flex-shrink:0">${bestSrc ? `<img src="${_attrUrl(bestSrc)}" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:20px">🎮</div>`}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px">🏆 ${fr ? 'Jeu du mois' : 'Game of the month'}</div>
-          <div style="font-size:15px;font-weight:800;font-family:'Space Grotesk',sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${_esc(r.best.title)}</div>
-          ${r.best.score ? `<div style="font-size:13px;color:var(--amber);font-weight:800;margin-top:2px">★ ${r.best.score}/10</div>` : ''}
-        </div>
-      </div>` : ''}
-      <button id="recap-share-btn" onclick="shareMonthlyRecap()" class="recap-pop" style="animation-delay:0.75s;width:100%;padding:15px;background:linear-gradient(135deg,var(--a),var(--a2));border:none;border-radius:16px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:800;color:#fff;cursor:pointer;margin-bottom:10px">📤 ${fr ? 'Partager mon récap' : 'Share my recap'}</button>
-      <button onclick="closeMonthlyRecap()" class="recap-pop" style="animation-delay:0.85s;width:100%;padding:14px;background:var(--s2);border:0.5px solid var(--border2);border-radius:16px;font-size:14px;font-weight:600;color:var(--text);cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>`;
+    _recapSlides = _recapBuildSlides(r);
+    try { navigator.vibrate && navigator.vibrate([12, 50, 16]); } catch (e) {}
   }
-  document.getElementById('recap-overlay').style.display = 'flex';
-  // ── Juice : compteurs animés, confettis, vibration, wiggle du bouton ──
-  if (!r.empty) {
-    const rm = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    _recapCountUp('recap-hero-num', r.finished.length, '', rm ? 1 : 1100);
-    _recapCountUp('recap-stat-rated', r.rated.length, '', rm ? 1 : 900);
-    _recapCountUp('recap-stat-quiz', r.quizzes, '', rm ? 1 : 900);
-    _recapCountUp('recap-stat-xp', r.xp, '+', rm ? 1 : 1200);
-    if (!rm && r.finished.length) _recapConfetti();
-    if (!rm) { try { navigator.vibrate && navigator.vibrate([12, 50, 16]); } catch (e) {} }
-    setTimeout(() => {
-      const b = document.getElementById('recap-share-btn');
-      if (b) { b.style.opacity = '1'; b.style.animation = 'recapWiggle 0.8s ease 2'; }
-    }, 2400);
-  }
+  _recapShow(0);
 }
+
 
 // Compteur animé 0 → cible (easeOutQuart, indépendant d'anime.js)
 function _recapCountUp(id, target, prefix, dur) {
@@ -5016,55 +5284,64 @@ function closeMonthlyRecap() {
   if (cv && cv.width) { cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); }
 }
 
-// Image de partage 1080×1350 — texte + emoji uniquement (canvas jamais tainté)
+// Image de partage 1080×1920 (format story) — texte + emoji uniquement (canvas jamais tainté)
 async function shareMonthlyRecap() {
   const r = _recapData;
   if (!r) return;
   const fr = _lang !== 'en';
-  const c = document.createElement('canvas'); c.width = 1080; c.height = 1350;
+  const p = r.persona || _recapPersona(r);
+  const dark = p.color === '#6c5ce7';
+  const ink = dark ? '#ffffff' : '#0b0a18';
+  const c = document.createElement('canvas'); c.width = 1080; c.height = 1920;
   const x = c.getContext('2d');
-  const grad = x.createLinearGradient(0, 0, 1080, 1350);
-  grad.addColorStop(0, '#1a1040'); grad.addColorStop(0.55, '#0d0d1f'); grad.addColorStop(1, '#080810');
-  x.fillStyle = grad; x.fillRect(0, 0, 1080, 1350);
-  const glow = x.createRadialGradient(870, 190, 0, 870, 190, 430);
-  glow.addColorStop(0, 'rgba(108,92,231,0.35)'); glow.addColorStop(1, 'rgba(108,92,231,0)');
-  x.fillStyle = glow; x.fillRect(0, 0, 1080, 700);
-  x.textAlign = 'center';
-  x.fillStyle = '#a29bfe';
-  x.font = '700 40px "Space Grotesk", sans-serif';
-  x.fillText('🎮 GameShelf', 540, 120);
-  x.fillStyle = '#ffffff';
-  x.font = '900 64px "Space Grotesk", sans-serif';
-  x.fillText((fr ? 'Mon mois de ' : 'My month: ') + _recapLabel(r.key), 540, 230);
-  x.font = '900 260px "Space Grotesk", sans-serif';
-  x.fillStyle = '#a29bfe';
-  x.fillText(String(r.finished.length), 540, 560);
-  x.fillStyle = '#8888a8';
-  x.font = '700 44px "Space Grotesk", sans-serif';
-  x.fillText(fr ? (r.finished.length > 1 ? 'jeux terminés' : 'jeu terminé') : (r.finished.length > 1 ? 'games finished' : 'game finished'), 540, 640);
+  x.fillStyle = p.color; x.fillRect(0, 0, 1080, 1920);
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < 40; k++) {
+    const sz = 14 + rnd() * 30;
+    x.fillStyle = rnd() > 0.5 ? 'rgba(255,255,255,0.28)' : 'rgba(0,0,0,0.10)';
+    const edge = rnd(); // bandes du haut, du bas et bord droit : jamais sous le texte
+    const px = edge < 0.66 ? rnd() * 1080 : 1015 + rnd() * 40;
+    const py = edge < 0.33 ? rnd() * 110 : edge < 0.66 ? 1860 + rnd() * 50 : rnd() * 1920;
+    x.beginPath(); x.roundRect(px, py, sz, sz, 6); x.fill();
+  }
+  x.fillStyle = ink; x.textAlign = 'left';
+  x.globalAlpha = 0.75; x.font = '800 40px "Space Grotesk", sans-serif';
+  x.fillText('GAMESHELF · ' + _recapLabel(r.key).toUpperCase(), 90, 190);
+  x.globalAlpha = 1;
+  x.font = '180px sans-serif'; x.fillText(p.emoji, 80, 470);
+  x.font = '900 104px "Space Grotesk", sans-serif';
+  const words = p.title.split(' '); let ln = '', yy = 640;
+  words.forEach(w => { const t = ln ? ln + ' ' + w : w; if (x.measureText(t).width > 900 && ln) { x.fillText(ln, 90, yy); yy += 110; ln = w; } else ln = t; });
+  x.fillText(ln, 90, yy);
+  x.globalAlpha = 0.8; x.font = '600 44px "DM Sans", sans-serif';
+  x.fillText(p.desc.length > 44 ? p.desc.slice(0, 43) + '…' : p.desc, 90, yy + 90);
+  x.globalAlpha = 1;
   const rows = [
-    ['⭐', r.rated.length + (fr ? ' jeux notés' : ' games rated')],
-    ['🧠', r.quizzes + (fr ? ' quiz joués' : ' quizzes played')],
-    ['⚡', '+' + r.xp + (fr ? ' XP gagnés' : ' XP earned')],
+    [String(r.finished.length), fr ? (r.finished.length > 1 ? 'jeux terminés' : 'jeu terminé') : 'games finished'],
+    [String(r.rated.length), fr ? (r.rated.length > 1 ? 'jeux notés' : 'jeu noté') : 'games rated'],
+    [String(r.quizzes), fr ? 'quiz joués' : 'quizzes played'],
+    ['+' + r.xp, fr ? 'XP gagnés' : 'XP earned'],
   ];
-  if (r.best) rows.push(['🏆', (fr ? 'Jeu du mois : ' : 'Game of the month: ') + r.best.title + (r.best.score ? ' · ★' + r.best.score : '')]);
-  x.font = '600 42px "DM Sans", sans-serif';
-  let yy = 780;
-  rows.forEach(([em, txt]) => {
-    x.fillStyle = 'rgba(255,255,255,0.06)';
-    const w = 880;
-    x.beginPath(); x.roundRect((1080 - w) / 2, yy - 52, w, 84, 20); x.fill();
-    x.fillStyle = '#e8e0ff';
-    let line = em + '  ' + txt;
-    if (line.length > 38) line = line.slice(0, 37) + '…';
-    x.fillText(line, 540, yy + 4);
-    yy += 110;
+  let ry = 1040;
+  rows.forEach(([v, l]) => {
+    x.fillStyle = 'rgba(0,0,0,0.12)'; x.beginPath(); x.roundRect(90, ry, 900, 130, 28); x.fill();
+    x.fillStyle = ink; x.font = '900 72px "Space Grotesk", sans-serif'; x.fillText(v, 130, ry + 92);
+    const vw = x.measureText(v).width;
+    x.font = '700 40px "DM Sans", sans-serif'; x.globalAlpha = 0.8; x.fillText(l, 130 + vw + 26, ry + 84); x.globalAlpha = 1;
+    ry += 150;
   });
-  x.fillStyle = '#6c5ce7';
-  x.font = '700 34px "DM Sans", sans-serif';
-  x.fillText('gameshelf-seven.vercel.app', 540, 1290);
+  if (r.best) {
+    x.font = '700 40px "DM Sans", sans-serif';
+    let t = (fr ? '🏆 Jeu du mois : ' : '🏆 Game of the month: ') + r.best.title + (r.best.score ? ' · ★' + r.best.score : '');
+    while (x.measureText(t).width > 900 && t.length > 10) t = t.slice(0, -2);
+    x.fillText(t, 90, ry + 70);
+  }
+  x.globalAlpha = 0.7; x.font = '700 36px "DM Sans", sans-serif';
+  x.fillText('gameshelf-seven.vercel.app', 90, 1830);
+  x.globalAlpha = 1;
   c.toBlob(async blob => {
-    if (!blob) { showToast(_lang === 'en' ? 'Image error' : 'Erreur image'); return; }
+    if (!blob) { showToast(fr ? 'Erreur image' : 'Image error'); return; }
     const file = new File([blob], 'gameshelf-recap.png', { type: 'image/png' });
     try {
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -5076,7 +5353,7 @@ async function shareMonthlyRecap() {
     a.href = URL.createObjectURL(blob);
     a.download = 'gameshelf-recap.png';
     a.click();
-    showToast(_lang === 'en' ? '✓ Image downloaded' : '✓ Image téléchargée');
+    showToast(fr ? '✓ Image téléchargée' : '✓ Image downloaded');
   }, 'image/png');
 }
 
