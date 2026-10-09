@@ -10,8 +10,9 @@
 <meta name="referrer" content="no-referrer">
 <meta name="google-site-verification" content="YV66hWuAQx3sa3BxcHjiRIKGwuVO2VNkzHdwWM-Sv_g">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>GameShelf</title>
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -1224,6 +1225,7 @@ html, body {
   <div class="step active" id="step-0">
     <canvas id="particles" style="position:absolute;inset:0;pointer-events:none"></canvas>
     <div class="splash-content">
+      <img src="/icon-192.png" alt="" style="width:76px;height:76px;border-radius:21px;display:block;margin:0 auto 16px;box-shadow:0 10px 34px rgba(108,92,231,0.45)">
       <div class="splash-logo">GameShelf</div>
       <p class="splash-tagline" data-i18n-html="onboarding.tagline">Ta bibliothèque gaming.<br>Tes amis. Tes avis.</p>
       <div class="splash-icons">
@@ -1494,7 +1496,7 @@ html, body {
   <div class="screen active" id="screen-feed">
 
     <div class="feed-header">
-      <div class="logo">GameShelf</div>
+      <div style="display:flex;align-items:center;gap:9px"><img src="/icon-192.png" alt="" style="width:30px;height:30px;border-radius:9px;display:block"><div class="logo">GameShelf</div></div>
       <div style="display:flex;align-items:center;gap:8px">
         <!-- Bell notification button -->
         <div style="position:relative;display:inline-block">
@@ -2271,9 +2273,9 @@ html, body {
 
           <!-- À propos -->
           <div style="padding-top:8px;text-align:center">
-            <div style="font-size:22px;margin-bottom:8px">🎮</div>
+            <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -12585,7 +12587,7 @@ async function renderPublicProfile(name) {
   page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
   page.innerHTML = `
     <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:10px;display:block;flex-shrink:0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800">GameShelf</div>
       <div style="flex:1"></div>
       <div style="font-size:11px;color:rgba(255,255,255,0.4)">${fr ? 'Profil' : 'Profile'}</div>
@@ -14641,7 +14643,7 @@ async function renderPublicCollectionShare(id) {
   page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
   page.innerHTML = `
     <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:10px;display:block;flex-shrink:0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">GameShelf</div>
       <div style="flex:1"></div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35)">Collection</div>
@@ -14715,7 +14717,7 @@ async function renderPublicTierList(id) {
   page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
   page.innerHTML = `
     <div style="padding:max(env(safe-area-inset-top),20px) 20px 16px;display:flex;align-items:center;gap:10px;border-bottom:0.5px solid rgba(255,255,255,0.07);flex-shrink:0">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:10px;display:block;flex-shrink:0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">GameShelf</div>
       <div style="flex:1"></div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35)">Tier List</div>
@@ -14829,7 +14831,7 @@ async function renderPublicGameShare(gameId, userId) {
   page.style.cssText = 'position:fixed;inset:0;background:#080810;color:#fff;font-family:"DM Sans",sans-serif;overflow-y:auto;z-index:9999;display:flex;flex-direction:column';
   page.innerHTML = `
     <div style="padding:max(env(safe-area-inset-top),20px) 20px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;position:sticky;top:0;background:#080810;border-bottom:0.5px solid rgba(255,255,255,0.07);z-index:1">
-      <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#6c5ce7,#fd79a8);display:flex;align-items:center;justify-content:center;font-size:18px">🎮</div>
+      <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:10px;display:block;flex-shrink:0">
       <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:800;background:linear-gradient(135deg,#a29bfe,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">GameShelf</div>
       <div style="flex:1"></div>
       <div style="font-size:11px;color:rgba(255,255,255,0.35)">Fiche partagée</div>
