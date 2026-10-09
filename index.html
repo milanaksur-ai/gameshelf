@@ -2273,7 +2273,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <div style="font-size:22px;margin-bottom:8px">🎮</div>
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -5115,7 +5115,7 @@ function _recapBuildSlides(r) {
   const key3 = [
     [r.finished.length, fr ? 'terminés' : 'finished'],
     [r.quizzes, 'quiz'],
-    ['+' + r.xp, 'XP'],
+    r.xp > 0 ? ['+' + r.xp, 'XP'] : [r.rated.length, fr ? 'notés' : 'rated'],
   ];
   S.push({ bg: p.color, ink: p.color === '#6c5ce7' ? W : INK, confetti: true, final: true, html: `
     ${lbl(T('Ton profil du mois', 'Son profil du mois', 'Your player type', 'Their player type'))}
@@ -5361,7 +5361,7 @@ async function shareMonthlyRecap() {
     [String(r.finished.length), fr ? (r.finished.length > 1 ? 'jeux terminés' : 'jeu terminé') : 'games finished'],
     [String(r.rated.length), fr ? (r.rated.length > 1 ? 'jeux notés' : 'jeu noté') : 'games rated'],
     [String(r.quizzes), fr ? 'quiz joués' : 'quizzes played'],
-    ['+' + r.xp, fr ? 'XP gagnés' : 'XP earned'],
+    ...(r.xp > 0 ? [['+' + r.xp, fr ? 'XP gagnés' : 'XP earned']] : []),
   ];
   let ry = 1040;
   rows.forEach(([v, l]) => {
