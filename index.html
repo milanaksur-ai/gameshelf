@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10g</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10h</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10429,7 +10429,10 @@ function _packCss() {
     background: repeating-conic-gradient(from 0deg, var(--pk-c, #fff) 0deg 3deg, transparent 3deg 18deg); -webkit-mask: radial-gradient(circle, #000 18%, transparent 62%); mask: radial-gradient(circle, #000 18%, transparent 62%); animation: pkRays 18s linear infinite }
   .pk-jacket { position: absolute; left: 50%; top: 40%; width: var(--pk-w); height: calc(var(--pk-w) * 1.333); margin: calc(var(--pk-w) * -.6665) 0 0 calc(var(--pk-w) * -.5);
     transform-style: preserve-3d; cursor: pointer; z-index: 5 }
-  .pk-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s cubic-bezier(.2,.8,.2,1) }
+  .pk-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(var(--ps, 1)); transition: transform .5s cubic-bezier(.3,1.5,.5,1) }
+  .pk-jacket.pk-touch .pk-tilt { transition: transform .08s linear }
+  .pk-jacket.pk-touch .pk-front { box-shadow: 0 18px 40px rgba(0,0,0,.7), 0 0 0 2px rgba(162,155,254,.8), 0 0 40px rgba(162,155,254,.45), inset 0 0 60px rgba(108,92,231,.3) }
+  .pk-wave { position: absolute; left: 50%; top: 40%; width: calc(var(--pk-w) * 1.1); height: calc(var(--pk-w) * 1.1); margin: calc(var(--pk-w) * -.55) 0 0 calc(var(--pk-w) * -.55); border-radius: 50%; border: 3px solid var(--pk-c); pointer-events: none; z-index: 4; opacity: 0 }
   .pk-jacket.pk-idle .pk-tilt { animation: pkSway 5s ease-in-out infinite }
   .pk-spin { position: absolute; inset: 0; transform-style: preserve-3d }
   .pk-face { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden }
@@ -10443,13 +10446,13 @@ function _packCss() {
   .pk-front .pk-lbl { position: absolute; left: 0; right: 0; bottom: 9%; text-align: center; font-size: 10.5px; font-weight: 800; letter-spacing: .2em; opacity: .75 }
   .pk-wrap { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
     background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.28) 42%, rgba(180,230,255,.18) 48%, transparent 58%); background-size: 260% 100%; animation: pkWrap 3.6s ease-in-out infinite }
-  .pk-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgba(255,255,255,.22), transparent 45%) }
+  .pk-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgba(255,255,255,.35), transparent 48%); transition: background .1s }
   .pk-back { transform: rotateY(180deg); background: #0a0818; box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 0 3px var(--pk-c, #fff), 0 0 60px var(--pk-c, #fff) }
   .pk-back img { width: 100%; height: 100%; object-fit: cover; display: block }
   .pk-hint { position: absolute; left: 0; right: 0; top: calc(40% + var(--pk-w) * .78); text-align: center; font-size: 13px; font-weight: 700; color: rgba(255,255,255,.7); animation: pkHint 2s ease-in-out infinite }
   .pk-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, #fff, var(--pk-c, #fff) 30%, transparent 70%) }
-  .pk-tag { position: absolute; left: 50%; top: calc(40% + var(--pk-w) * .82); transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
-    padding: 5px 14px; border-radius: 20px; background: rgba(8,8,16,.7); border: 1px solid var(--pk-c); color: var(--pk-c); opacity: 0; transition: opacity .5s }
+  .pk-tag { display: inline-block; white-space: nowrap; font-size: 11px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 8px;
+    padding: 4px 12px; border-radius: 20px; background: rgba(8,8,16,.7); border: 1px solid var(--pk-c); color: var(--pk-c) }
   .pk-xpbar { position: absolute; left: 50%; top: calc(64px + env(safe-area-inset-top)); transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; z-index: 9;
     background: rgba(255,202,40,.12); border: 1px solid rgba(255,202,40,.45); color: #ffca28; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 16px; opacity: 0; transition: opacity .4s }
   .pk-xpbar.pk-pop { animation: pkPop .35s ease }
@@ -10519,7 +10522,6 @@ function openPackScene() {
         </div></div>
       </div>
       <div class="pk-hint" id="pk-hint">${fr ? 'Touche la jaquette pour l\'ouvrir' : 'Tap the box to open it'}</div>
-      <div class="pk-tag" id="pk-tag">${fr ? rar.fr : rar.en}</div>
       <div class="pk-flash" id="pk-flash"></div>
     </div>
     <div id="pk-panel-wrap"></div>`;
@@ -10575,24 +10577,40 @@ function _packBind() {
   const jk = document.getElementById('pk-jacket'), tilt = document.getElementById('pk-tilt'), glare = document.getElementById('pk-glare');
   const stage = document.getElementById('pk-stage');
   let down = null;
-  // Reflet et inclinaison qui suivent le doigt
+  const aim = (x, y, strong) => {
+    const r = jk.getBoundingClientRect();
+    const px = Math.max(-1, Math.min(1, (x - (r.left + r.width / 2)) / (r.width / 2)));
+    const py = Math.max(-1, Math.min(1, (y - (r.top + r.height / 2)) / (r.height / 2)));
+    const k = strong ? 1 : .55;
+    // La jaquette s'enfonce du côté touché, le reflet suit le doigt
+    tilt.style.setProperty('--rx', (py * 24 * k) + 'deg');
+    tilt.style.setProperty('--ry', (-px * 28 * k) + 'deg');
+    glare.style.setProperty('--gx', (50 + px * 50) + '%'); glare.style.setProperty('--gy', (50 + py * 50) + '%');
+  };
+  const rest = () => { tilt.style.setProperty('--rx', '0deg'); tilt.style.setProperty('--ry', '0deg'); tilt.style.setProperty('--ps', '1'); jk.classList.remove('pk-touch'); setTimeout(() => { if (!_packBusy && !down) jk.classList.add('pk-idle'); }, 500); };
+  stage.addEventListener('pointerdown', e => {
+    if (_packBusy) return;
+    down = { x: e.clientX, y: e.clientY, t: performance.now(), onJacket: !!e.target.closest('#pk-jacket') };
+    jk.classList.remove('pk-idle'); jk.classList.add('pk-touch');
+    tilt.style.setProperty('--ps', down.onJacket ? '.95' : '1');
+    aim(e.clientX, e.clientY, down.onJacket);
+  });
   stage.addEventListener('pointermove', e => {
     if (_packBusy) return;
-    const r = jk.getBoundingClientRect();
-    const px = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / r.width));
-    const py = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / r.height));
-    jk.classList.remove('pk-idle');
-    tilt.style.setProperty('--rx', (-py * 14) + 'deg'); tilt.style.setProperty('--ry', (px * 18) + 'deg');
-    glare.style.setProperty('--gx', (50 + px * 45) + '%'); glare.style.setProperty('--gy', (50 + py * 45) + '%');
+    if (down) aim(e.clientX, e.clientY, down.onJacket);
+    else if (e.pointerType === 'mouse') { jk.classList.remove('pk-idle'); aim(e.clientX, e.clientY, false); }
   });
-  stage.addEventListener('pointerleave', () => { if (!_packBusy) { tilt.style.setProperty('--rx', '0deg'); tilt.style.setProperty('--ry', '0deg'); jk.classList.add('pk-idle'); } });
-  // Un tap, ou un glissé vers le haut, sur la jaquette
-  jk.addEventListener('pointerdown', e => { down = { y: e.clientY, t: performance.now() }; });
-  jk.addEventListener('pointerup', e => {
-    if (!down) return;
-    const dy = down.y - e.clientY, dt = performance.now() - down.t; down = null;
-    if (dt < 500 || dy > 30) _packOpen();
-  });
+  const up = e => {
+    if (!down || _packBusy) { down = null; return; }
+    const d = down; down = null;
+    const dy = d.y - e.clientY, moved = Math.hypot(e.clientX - d.x, e.clientY - d.y), dt = performance.now() - d.t;
+    // Tap sur la jaquette, ou glissé vers le haut n'importe où
+    if ((d.onJacket && moved < 14 && dt < 600) || dy > 50) { jk.classList.remove('pk-touch'); _packOpen(); return; }
+    rest();
+  };
+  stage.addEventListener('pointerup', up);
+  stage.addEventListener('pointercancel', () => { down = null; rest(); });
+  stage.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse' && !down && !_packBusy) rest(); });
   jk.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _packOpen(); } });
 }
 
@@ -10602,8 +10620,9 @@ async function _packClaimXp(st) {
     const { data: { session } } = await _sb.auth.getSession();
     if (!session) return null;
     const { data, error } = await _sb.rpc('open_daily_pack', { p_day: st.day });
+    window._packErr = error ? (error.message || error.code || 'erreur') : null;
     return error ? null : data;
-  } catch (e) { return null; }
+  } catch (e) { window._packErr = e.message; return null; }
 }
 function _packApplyXp(st, res, before) {
   if (!res || !Array.isArray(res.xp)) return;
@@ -10637,28 +10656,33 @@ async function _packOpen() {
   if (hint) hint.style.display = 'none';
   const big = st.rarity === 'legendary' || st.rarity === 'epic';
   if (!reduce) {
-    // 1. Appui : la jaquette se tasse puis s'approche, les poussières sont aspirées
-    await _anim(jk, [{ transform: 'scale(1)' }, { transform: 'scale(.93)' }], { duration: 120, easing: 'ease-out' });
+    // 1. La jaquette s'arrache du sol et vient vers toi, les poussières sont aspirées
     _pkBoost = 1;
     aura.style.opacity = '.9'; aura.style.transform = 'scale(1.25)';
-    await _anim(jk, [{ transform: 'scale(.93)' }, { transform: 'scale(1.1) translateY(-6px)' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
-    // 2. Elle vibre de plus en plus, chargée de lumière
-    if (big) rays.style.opacity = '.55';
-    await _anim(jk, [0, 1, 2, 3, 4, 5, 6, 7].map(i => ({ transform: `scale(1.1) translate(${(i % 2 ? 1 : -1) * (1 + i * .6)}px, -6px) rotate(${(i % 2 ? 1 : -1) * (.4 + i * .25)}deg)` })), { duration: 520, easing: 'linear' });
+    await _anim(jk, [{ transform: 'translateY(0) scale(1) rotateX(0deg)' }, { transform: 'translateY(-14px) scale(1.12) rotateX(-8deg)' }], { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    // 2. Trois battements de lumière de plus en plus forts, dans la couleur de la rareté
+    const stage = document.getElementById('pk-stage');
+    for (let i = 0; i < 3; i++) {
+      const wave = document.createElement('div'); wave.className = 'pk-wave'; stage.appendChild(wave);
+      _anim(wave, [{ transform: 'scale(.7)', opacity: .9 }, { transform: `scale(${2 + i * .4})`, opacity: 0 }], { duration: 650, easing: 'cubic-bezier(.1,.7,.3,1)' }).then(() => wave.remove());
+      aura.style.opacity = String(.9 + i * .05); aura.style.transform = `scale(${1.3 + i * .12})`;
+      if (big && i === 1) rays.style.opacity = '.55';
+      await _anim(jk, [{ transform: 'translateY(-14px) scale(1.12) rotateX(-8deg)' }, { transform: `translateY(-14px) scale(${1.17 + i * .02}) rotateX(-8deg)`, offset: .35 }, { transform: 'translateY(-14px) scale(1.12) rotateX(-8deg)' }], { duration: 300 - i * 50, easing: 'ease-out' });
+      await _wait(110 - i * 30);
+    }
     // 3. Elle se retourne (1 tour et demi qui ralentit) sur la vraie jaquette
     _pkBoost = 0;
     const turn = _anim(spin, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(540deg)' }], { duration: 1100, easing: 'cubic-bezier(.15,.6,.15,1)' });
     await _wait(380);
     _anim(flash, [{ opacity: 0 }, { opacity: big ? 1 : .8, offset: .18 }, { opacity: 0 }], { duration: 750, easing: 'ease-out' });
     _packBurst(big ? 130 : 80);
-    _anim(jk, [{ transform: 'scale(1.1) translateY(-6px)' }, { transform: 'scale(1.12) translateY(-8px)' }], { duration: 700, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
+    _anim(jk, [{ transform: 'translateY(-14px) scale(1.12) rotateX(-8deg)' }, { transform: 'translateY(-8px) scale(1.12) rotateX(0deg)' }], { duration: 700, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
     if (st.rarity === 'legendary') rays.style.opacity = '.9';
     await turn;
   } else {
     spin.style.transform = 'rotateY(180deg)';
   }
-  document.getElementById('pk-tag').style.opacity = '1';
-  // 4. Les orbes d'XP sortent de la jaquette et rejoignent le compteur
+    // 4. Les orbes d'XP sortent de la jaquette et rejoignent le compteur
   const res = await Promise.race([xpReq, _wait(5000).then(() => null)]);
   _packApplyXp(st, res, before);
   if (Array.isArray(st.xp)) await _packOrbs(st.xp, !reduce);
@@ -10670,11 +10694,10 @@ async function _packShowOpened(st) {
   _packBusy = true;
   const jk = document.getElementById('pk-jacket');
   jk.classList.remove('pk-idle');
-  jk.style.transform = 'scale(1.12) translateY(-8px)';
+  jk.style.transform = 'translateY(-8px) scale(1.12)';
   document.getElementById('pk-spin').style.transform = 'rotateY(180deg)';
   document.getElementById('pk-hint').style.display = 'none';
-  document.getElementById('pk-tag').style.opacity = '1';
-  document.getElementById('pk-aura').style.opacity = '.8';
+    document.getElementById('pk-aura').style.opacity = '.8';
   if (st.rarity === 'legendary') document.getElementById('pk-rays').style.opacity = '.9';
   if (!Array.isArray(st.xp)) {
     const before = obProfile.xp || 0;
@@ -10729,14 +10752,37 @@ function _packPanel(st) {
     ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff' : 'border:0.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff'}">${label}</button>`;
   wrap.innerHTML = `<div class="pk-panel">
     <div style="text-align:center;margin-bottom:12px">
+      <div class="pk-tag">${fr ? (MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common).fr : (MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common).en}</div>
       <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900;line-height:1.15">${_esc(g.title)}</div>
       <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:5px;line-height:1.45">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${because ? `<br>${fr ? 'Parce que tu as aimé' : 'Because you loved'} <b style="color:#fff">${_esc(because)}</b>` : ''}</div>
     </div>
     ${done ? `<div style="text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:10px">${done}</div>`
       : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('knownSheet', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+    ${_packTestOn() && !Array.isArray(st.xp) ? `<div style="text-align:center;font-size:11.5px;color:#ff7675;margin-bottom:8px">⚠️ XP : ${_esc(window._packErr || (fr ? 'pas de réponse du serveur' : 'no server response'))}</div>` : ''}
     ${_packTestOn() ? `<button onclick="_packReplay()" style="width:100%;padding:13px;border-radius:14px;border:1px dashed #ffca28;background:rgba(255,202,40,.08);color:#ffca28;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px">🧪 ${fr ? 'Rejouer l\'ouverture' : 'Replay the opening'}</button>` : ''}
     <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
   </div>`;
+  requestAnimationFrame(_packFit);
+}
+
+// La jaquette révélée occupe exactement l'espace entre le compteur d'XP et le panneau
+function _packFit() {
+  const jk = document.getElementById('pk-jacket'), panel = document.querySelector('.pk-panel'), bar = document.getElementById('pk-xpbar'), ov = document.getElementById('pack-overlay');
+  if (!jk || !panel || !ov) return;
+  const top = (bar && bar.style.opacity === '1' ? bar.getBoundingClientRect().bottom : document.querySelector('#pack-overlay > div:nth-child(2)').getBoundingClientRect().bottom) + 14;
+  const bottom = panel.getBoundingClientRect().top + 26;
+  const w = parseFloat(getComputedStyle(ov).getPropertyValue('--pk-w')) || 240, h = w * 1.333;
+  const scale = Math.max(.5, Math.min(1.12, (bottom - top) / h));
+  const r = jk.getBoundingClientRect(), cy = r.top + r.height / 2;   // centre actuel (transformations comprises)
+  const cur = getComputedStyle(jk).transform;
+  const base = new DOMMatrix(cur === 'none' ? undefined : cur);
+  const dy = base.m42 + ((top + bottom) / 2 - cy);
+  // On fige la position actuelle (fin d'animation comprise) avant de glisser vers la nouvelle
+  jk.style.transition = 'none'; jk.style.transform = cur === 'none' ? '' : cur;
+  jk.getAnimations().forEach(a => a.cancel());
+  void jk.offsetWidth;
+  jk.style.transition = 'transform .55s cubic-bezier(.2,.9,.3,1)';
+  jk.style.transform = `translateY(${dy}px) scale(${scale})`;
 }
 
 // Mode test (?paquet=test) : actif seulement le jour où il a été activé
