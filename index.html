@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10f</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10g</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10823,6 +10823,7 @@ function _renderMysteryOpen(container, st, animate) {
         ${done ? `<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--muted2);text-align:center">${done}</div>`
           : `<div style="display:flex;gap:8px;margin-top:12px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('knownSheet', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
         ${Array.isArray(st.xp) && st.xp.length ? `<div onclick="openPackScene()" style="margin-top:10px;display:flex;gap:6px;justify-content:center;cursor:pointer">${st.xp.map(n => `<span style="font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:20px;background:rgba(255,202,40,0.14);color:#ffca28;border:0.5px solid rgba(255,202,40,0.35)">${n >= 20 ? '🌟' : '⚡'} +${n} XP</span>`).join('')}</div>` : ''}
+        ${_packTestOn() ? `<button onclick="event.stopPropagation();_packReplay()" style="width:100%;margin-top:10px;padding:11px;border-radius:12px;border:1px dashed #ffca28;background:rgba(255,202,40,.08);color:#ffca28;font-size:13px;font-weight:800;cursor:pointer">🧪 ${fr ? 'Rejouer l\'ouverture' : 'Replay the opening'}</button>` : ''}
         <div style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center">🔄 ${fr ? `Nouveau paquet dans ${hrs}h` : `New pack in ${hrs}h`}</div>
       </div>
     </div>`;
