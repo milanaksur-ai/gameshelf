@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 09.10h</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10a</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -7019,9 +7019,13 @@ async function onAuthSuccess(user) {
       if (profile.xp_backfilled) {
         localStorage.setItem('gs_xp_backfilled', '1');
       }
+      // Retour d'un compte déjà utilisé sur ce téléphone : on ressort ses données
+      // locales (quiz, jeu mystère, succès…) et on recharge pour les prendre en compte
+      const _restored = localStorage.getItem('gs_user_id') !== user.id && _restoreUserData(user.id);
       localStorage.setItem('gs_user_id', user.id);
       localStorage.setItem('gs_profile', JSON.stringify(obProfile));
       saveToStorage();
+      if (_restored) { location.reload(); return; }
       launchApp();
     } else {
       obStep(2);
@@ -7690,6 +7694,7 @@ function loadFromStorage() {
 function disconnectApp() {
   if (!confirm('Réinitialiser GameShelf ? Toutes tes données seront effacées.')) return;
   ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_user_id'].forEach(k => localStorage.removeItem(k));
+  _stashUserData(null);
   _sb.auth.signOut().finally(() => location.reload());
 }
 
@@ -8122,11 +8127,41 @@ async function forceRefresh() {
   location.reload(true);
 }
 
+// ── Données locales propres à chaque compte ──────────────────────────────────
+// Plusieurs comptes sur un même téléphone : à la déconnexion (ou au changement de
+// compte), on range les données locales du compte sortant à part, et on ressort
+// celles du compte qui se connecte. Bibliothèque et profil, eux, viennent du serveur.
+const _USER_KEYS = ['gs_achievements','gs_my_tierlists','gs_unassigned_shots','gs_quiz_inprogress','gs_quiz_streak',
+  'gs_quiz_scores','gs_quiz_seen_ts','gs_quiz_push_day','gs_quiz_activity','gs_qrank_checked','gs_mystery','gs_mystery_seen',
+  'gs_collections','gs_act_likes','gs_shot_recent','gs_upcoming_cache','gs_upcoming_all_cache','gs_last_screen','gs_shots_heal2_done'];
+const _USER_PREFIXES = ['gs_xp_','gs_recap_shown_','gs_push_nudge_','gs_poll_vote_'];
+const _isUserKey = k => _USER_KEYS.includes(k) || _USER_PREFIXES.some(p => k.startsWith(p));
+function _stashUserData(uid) {
+  try {
+    const keys = Object.keys(localStorage).filter(_isUserKey);
+    if (uid) {
+      const b = {}; keys.forEach(k => { b[k] = localStorage.getItem(k); });
+      localStorage.setItem('gs_acct_' + uid, JSON.stringify(b));
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+}
+function _restoreUserData(uid) {
+  try {
+    const raw = localStorage.getItem('gs_acct_' + uid);
+    if (!raw) return false;
+    Object.entries(JSON.parse(raw)).forEach(([k, v]) => localStorage.setItem(k, v));
+    localStorage.removeItem('gs_acct_' + uid);
+    return true;
+  } catch (e) { return false; }
+}
+
 async function logoutUser() {
   if (!confirm('Se déconnecter de GameShelf ?')) return;
   // Wait for any in-flight sync to finish — location.reload() would kill the request otherwise
   await _syncPromise;
   await _sb.auth.signOut();
+  _stashUserData(localStorage.getItem('gs_user_id'));
   ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
   location.reload();
 }
@@ -15111,7 +15146,10 @@ function applyProfileToUI() {
       // If gs_user_id is not set (pre-fix session) or belongs to a different user, discard cache.
       const localUserId = localStorage.getItem('gs_user_id');
       if (localUserId !== session.user.id) {
+        // Autre compte : on range ses données locales et on recharge proprement
+        _stashUserData(localUserId);
         ['gs_games','gs_userGames','gs_profile','gs_tirage_seen','gs_dirty','gs_user_id'].forEach(k => localStorage.removeItem(k));
+        if (_restoreUserData(session.user.id)) { location.reload(); return; }
         GAMES.length = 0;
         Object.keys(userGames).forEach(k => delete userGames[k]);
         await onAuthSuccess(session.user);
