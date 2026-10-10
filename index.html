@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10d</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10e</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10833,7 +10833,7 @@ function mysteryChoice(k) {
 }
 
 // « Je connais déjà » : on choisit où le ranger dans la bibliothèque
-const _KNOWN_STATUSES = ['playing-solo', 'finished', 'platine', 'paused', 'abandoned'];
+const _KNOWN_STATUSES = ['playing-solo', 'finished', 'platine', 'paused', 'backlog', 'abandoned'];
 function openKnownSheet() {
   const st = _mysteryState();
   if (!st || !st.game) return;
@@ -10846,7 +10846,7 @@ function openKnownSheet() {
     m.addEventListener('click', e => { if (e.target === m) closeKnownSheet(); });
     document.body.appendChild(m);
   }
-  const ico = { 'playing-solo': '▶️', finished: '✅', platine: '🏆', paused: '⏸️', abandoned: '🚫' };
+  const ico = { 'playing-solo': '▶️', finished: '✅', platine: '🏆', paused: '⏸️', backlog: '📚', abandoned: '🚫' };
   m.innerHTML = `<div style="width:100%;max-width:560px;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 20px)">
     <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px"></div>
     <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800">${fr ? 'Tu y as déjà joué ?' : 'Already played it?'}</div>
