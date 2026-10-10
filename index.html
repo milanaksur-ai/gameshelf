@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10b</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10c</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10402,90 +10402,84 @@ async function renderHomeRecos() {
 }
 
 // ══ PAQUET DU JOUR ════════════════════════════════════════════════════════════
-// Un paquet par jour : le jeu mystère + 2 loots d'XP (tirés par le serveur).
-// Ouverture façon jeu de cartes : on glisse le paquet sur le socle (ou un tap le
-// fait voler jusqu'au socle), il éclate dans la couleur de la rareté, puis les
-// 3 cartes se retournent seules : XP, XP, et le jeu mystère en dernier.
+// Une jaquette mystère par jour : le jeu mystère + 2 orbes d'XP (tirées par le
+// serveur). Un tap (ou un glissé vers le haut) : la jaquette s'approche, se
+// charge de la couleur de la rareté, se retourne sur la vraie jaquette, et les
+// orbes d'XP s'envolent vers le compteur.
 function _packCss() {
   if (document.getElementById('pack-css')) return;
   const st = document.createElement('style');
   st.id = 'pack-css';
   st.textContent = `
-  @keyframes pkBob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
-  @keyframes pkSocle { 0%,100% { box-shadow: 0 0 0 0 rgba(162,155,254,.35), inset 0 0 30px rgba(162,155,254,.25) } 50% { box-shadow: 0 0 0 14px rgba(162,155,254,0), inset 0 0 44px rgba(253,121,168,.35) } }
-  @keyframes pkSpin { to { transform: rotate(360deg) } }
-  @keyframes pkShake { 0%,100% { transform: translate(0,0) rotate(0) } 25% { transform: translate(-5px,2px) rotate(-3deg) } 50% { transform: translate(5px,-2px) rotate(3deg) } 75% { transform: translate(-4px,1px) rotate(-2deg) } }
-  @keyframes pkFlash { 0% { opacity: 0 } 15% { opacity: .95 } 100% { opacity: 0 } }
-  @keyframes pkScreen { 0%,100% { transform: translate(0,0) } 20% { transform: translate(-6px,3px) } 40% { transform: translate(6px,-4px) } 60% { transform: translate(-4px,-2px) } 80% { transform: translate(3px,4px) } }
-  @keyframes pkRise { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
-  @keyframes pkShine { from { background-position: -120% 0 } to { background-position: 220% 0 } }
+  @keyframes pkSway { 0%,100% { transform: rotateX(4deg) rotateY(-7deg) translateY(0) } 50% { transform: rotateX(-3deg) rotateY(7deg) translateY(-10px) } }
+  @keyframes pkWrap { from { background-position: 160% 0 } to { background-position: -60% 0 } }
+  @keyframes pkHint { 0%,100% { opacity: .45; transform: translateY(0) } 50% { opacity: .9; transform: translateY(-4px) } }
+  @keyframes pkRays { to { transform: rotate(360deg) } }
+  @keyframes pkRise { from { transform: translateY(36px); opacity: 0 } to { transform: none; opacity: 1 } }
+  @keyframes pkPop { 0% { transform: scale(1) } 40% { transform: scale(1.25) } 100% { transform: scale(1) } }
   #pack-overlay { position: fixed; inset: 0; z-index: 1080; display: none; flex-direction: column; overflow: hidden; color: #fff;
-    background: radial-gradient(ellipse 80% 55% at 50% 72%, rgba(108,92,231,.38), transparent 70%), radial-gradient(ellipse 70% 45% at 50% 10%, rgba(253,121,168,.16), transparent 70%), #07060f;
+    background: radial-gradient(ellipse 70% 50% at 50% 40%, rgba(60,40,130,.32), transparent 72%), #020207;
     -webkit-user-select: none; user-select: none; touch-action: none }
-  #pack-overlay.pk-quake { animation: pkScreen .5s ease-in-out 2 }
-  .pk-stage { position: relative; flex: 1; perspective: 900px }
-  .pk-pack { position: absolute; left: 50%; top: 34%; width: 170px; height: 236px; margin: -118px 0 0 -85px; cursor: grab; transform-style: preserve-3d; z-index: 5; will-change: transform }
-  .pk-pack.pk-idle .pk-body { animation: pkBob 3s ease-in-out infinite }
-  .pk-body { position: absolute; inset: 0; border-radius: 18px; transform-style: preserve-3d;
-    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .12s ease-out;
-    background: linear-gradient(150deg, #8f7cff 0%, #6c5ce7 35%, #b05cc8 70%, #fd79a8 100%);
-    box-shadow: 0 24px 50px rgba(0,0,0,.55), 0 0 40px rgba(162,155,254,.35), inset 0 0 0 2px rgba(255,255,255,.35) }
-  .pk-body::before { content: ''; position: absolute; inset: 10px; border-radius: 12px; border: 1.5px dashed rgba(255,255,255,.35) }
-  .pk-foil { position: absolute; inset: 0; border-radius: 18px; pointer-events: none; mix-blend-mode: overlay;
-    background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,.75) 38%, rgba(160,240,255,.5) 46%, rgba(255,160,230,.5) 54%, transparent 70%);
-    background-size: 250% 250%; background-position: var(--fx, 50%) var(--fy, 50%) }
-  .pk-logo { position: absolute; left: 50%; top: 42%; width: 74px; height: 74px; margin: -37px 0 0 -37px; border-radius: 20px; box-shadow: 0 8px 22px rgba(0,0,0,.35); transform: translateZ(30px) }
-  .pk-name { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: .14em; text-shadow: 0 2px 8px rgba(0,0,0,.35); transform: translateZ(20px) }
-  .pk-sub { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .16em; opacity: .85; transform: translateZ(14px) }
-  .pk-cracks { position: absolute; inset: -30%; border-radius: 50%; opacity: 0; pointer-events: none; transition: opacity .25s;
-    background: repeating-conic-gradient(from 0deg, var(--pk-c, #fff) 0deg 4deg, transparent 4deg 22deg); filter: blur(1px); mix-blend-mode: screen; animation: pkSpin 2.4s linear infinite }
-  .pk-socle { position: absolute; left: 50%; top: 76%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%;
-    border: 2px solid rgba(162,155,254,.55); background: radial-gradient(circle, rgba(108,92,231,.35), rgba(8,8,16,.2) 65%); animation: pkSocle 2.2s ease-in-out infinite;
-    display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.65); transition: transform .2s, border-color .2s }
-  .pk-socle::before { content: ''; position: absolute; inset: 14px; border-radius: 50%; border: 1px dashed rgba(255,255,255,.25); animation: pkSpin 14s linear infinite }
-  .pk-socle.pk-hot { transform: scale(1.12); border-color: #fd79a8 }
-  .pk-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 20 }
-  .pk-card { position: absolute; left: 50%; top: 45%; width: 104px; height: 146px; margin: -73px 0 0 -52px; perspective: 800px; z-index: 6;
-    transition: transform .6s cubic-bezier(.2,.9,.2,1.15), opacity .3s; opacity: 0 }
-  .pk-card.pk-big { width: 136px; height: 190px; margin: -95px 0 0 -68px; z-index: 7 }
-  .pk-in { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,1.3,.4,1) }
-  .pk-card.pk-flip .pk-in { transform: rotateY(180deg) }
-  .pk-face { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden }
-  .pk-back { background: radial-gradient(circle at 50% 45%, #3a2f7a, #15112e 70%); box-shadow: inset 0 0 0 2px rgba(162,155,254,.5), 0 14px 30px rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center }
-  .pk-back img { width: 40%; border-radius: 10px; opacity: .85 }
-  .pk-front { transform: rotateY(180deg); box-shadow: 0 14px 34px rgba(0,0,0,.55) }
-  .pk-xp { background: linear-gradient(160deg, #ffd86b, #ffb142 55%, #e17055); color: #2a1600; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 2px rgba(255,255,255,.5) }
-  .pk-xp b { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 900; line-height: 1 }
-  .pk-xp span { font-size: 11px; font-weight: 800; letter-spacing: .14em; margin-top: 4px }
-  .pk-xp i { font-style: normal; font-size: 26px; margin-bottom: 4px }
-  .pk-xp.pk-max { background: linear-gradient(160deg, #fff3b0, #ffca28 40%, #ff9f43); box-shadow: inset 0 0 0 2px #fff, 0 0 30px rgba(255,202,40,.8) }
-  .pk-game img { width: 100%; height: 100%; object-fit: cover; display: block }
-  .pk-game::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); background-size: 250% 100%; animation: pkShine 2.6s linear infinite }
-  .pk-tag { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: rgba(8,8,16,.75); opacity: 0; transition: opacity .4s .3s }
-  .pk-card.pk-flip .pk-tag { opacity: 1 }
-  .pk-panel { position: relative; z-index: 8; padding: 0 18px calc(18px + env(safe-area-inset-bottom)); animation: pkRise .5s cubic-bezier(.2,.9,.2,1) both; max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box }
-  .pk-hint { position: absolute; left: 0; right: 0; top: calc(76% + 98px); text-align: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.6) }
-  @media (prefers-reduced-motion: reduce) { .pk-pack.pk-idle .pk-body, .pk-socle, .pk-socle::before, .pk-cracks, .pk-game::after { animation: none !important } }`;
+  #pk-ambient { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0 }
+  .pk-stage { position: absolute; inset: 0; perspective: 1100px; z-index: 2 }
+  #pk-panel-wrap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 8 }
+  .pk-aura { position: absolute; left: 50%; top: 40%; width: 460px; height: 460px; margin: -230px 0 0 -230px; border-radius: 50%; pointer-events: none; opacity: .35;
+    background: radial-gradient(circle, var(--pk-c, #6c5ce7) 0%, transparent 62%); filter: blur(10px); transition: opacity .6s ease, transform .6s ease }
+  .pk-rays { position: absolute; left: 50%; top: 40%; width: 720px; height: 720px; margin: -360px 0 0 -360px; pointer-events: none; opacity: 0; transition: opacity .5s;
+    background: repeating-conic-gradient(from 0deg, var(--pk-c, #fff) 0deg 3deg, transparent 3deg 18deg); -webkit-mask: radial-gradient(circle, #000 18%, transparent 62%); mask: radial-gradient(circle, #000 18%, transparent 62%); animation: pkRays 18s linear infinite }
+  .pk-jacket { position: absolute; left: 50%; top: 40%; width: var(--pk-w); height: calc(var(--pk-w) * 1.333); margin: calc(var(--pk-w) * -.6665) 0 0 calc(var(--pk-w) * -.5);
+    transform-style: preserve-3d; cursor: pointer; z-index: 5 }
+  .pk-tilt { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .25s cubic-bezier(.2,.8,.2,1) }
+  .pk-jacket.pk-idle .pk-tilt { animation: pkSway 5s ease-in-out infinite }
+  .pk-spin { position: absolute; inset: 0; transform-style: preserve-3d }
+  .pk-face { position: absolute; inset: 0; border-radius: 14px; overflow: hidden; backface-visibility: hidden; -webkit-backface-visibility: hidden }
+  .pk-front { background: linear-gradient(160deg, #241a52 0%, #120d2c 55%, #0a0818 100%);
+    box-shadow: 0 30px 70px rgba(0,0,0,.7), 0 0 0 1.5px rgba(162,155,254,.45), inset 0 0 60px rgba(108,92,231,.25) }
+  .pk-front .pk-band { position: absolute; left: 0; right: 0; top: 0; height: 15%; background: linear-gradient(90deg, #6c5ce7, #fd79a8); display: flex; align-items: center; gap: 7px; padding: 0 10px;
+    font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 11px; letter-spacing: .12em }
+  .pk-front .pk-band img { width: 20px; height: 20px; border-radius: 6px }
+  .pk-front .pk-q { position: absolute; left: 0; right: 0; top: 24%; text-align: center; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: calc(var(--pk-w) * .55); line-height: 1;
+    background: linear-gradient(160deg, #fff, #a29bfe 55%, #fd79a8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 6px 18px rgba(162,155,254,.5)) }
+  .pk-front .pk-lbl { position: absolute; left: 0; right: 0; bottom: 9%; text-align: center; font-size: 10.5px; font-weight: 800; letter-spacing: .2em; opacity: .75 }
+  .pk-wrap { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.28) 42%, rgba(180,230,255,.18) 48%, transparent 58%); background-size: 260% 100%; animation: pkWrap 3.6s ease-in-out infinite }
+  .pk-glare { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at var(--gx, 30%) var(--gy, 20%), rgba(255,255,255,.22), transparent 45%) }
+  .pk-back { transform: rotateY(180deg); background: #0a0818; box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 0 3px var(--pk-c, #fff), 0 0 60px var(--pk-c, #fff) }
+  .pk-back img { width: 100%; height: 100%; object-fit: cover; display: block }
+  .pk-hint { position: absolute; left: 0; right: 0; top: calc(40% + var(--pk-w) * .78); text-align: center; font-size: 13px; font-weight: 700; color: rgba(255,255,255,.7); animation: pkHint 2s ease-in-out infinite }
+  .pk-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 20; background: radial-gradient(circle at 50% 40%, #fff, var(--pk-c, #fff) 30%, transparent 70%) }
+  .pk-tag { position: absolute; left: 50%; top: calc(40% + var(--pk-w) * .82); transform: translateX(-50%); white-space: nowrap; font-size: 12px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 20px; background: rgba(8,8,16,.7); border: 1px solid var(--pk-c); color: var(--pk-c); opacity: 0; transition: opacity .5s }
+  .pk-xpbar { position: absolute; left: 50%; top: calc(64px + env(safe-area-inset-top)); transform: translateX(-50%); display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 20px; z-index: 9;
+    background: rgba(255,202,40,.12); border: 1px solid rgba(255,202,40,.45); color: #ffca28; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 16px; opacity: 0; transition: opacity .4s }
+  .pk-xpbar.pk-pop { animation: pkPop .35s ease }
+  .pk-orb { position: absolute; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; z-index: 8; pointer-events: none; display: flex; align-items: center; justify-content: center;
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 900; color: #2a1600;
+    background: radial-gradient(circle at 35% 30%, #fff8d0, #ffca28 45%, #ff9f43); box-shadow: 0 0 22px rgba(255,202,40,.9), 0 0 50px rgba(255,159,67,.5) }
+  .pk-orb.pk-max { width: 46px; height: 46px; margin: -23px 0 0 -23px; font-size: 13px; background: radial-gradient(circle at 35% 30%, #fff, #ffe066 40%, #ffb142); box-shadow: 0 0 30px #ffe066, 0 0 70px rgba(255,202,40,.8) }
+  .pk-panel { position: relative; z-index: 8; padding: 34px 18px calc(18px + env(safe-area-inset-bottom)); background: linear-gradient(180deg, transparent, rgba(2,2,7,.92) 26%); animation: pkRise .55s cubic-bezier(.2,.9,.2,1) both; max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box }
+  @media (prefers-reduced-motion: reduce) { .pk-jacket.pk-idle .pk-tilt, .pk-wrap, .pk-rays, .pk-hint { animation: none !important } }`;
   document.head.appendChild(st);
 }
 
-let _packBusy = false;
+let _packBusy = false, _packAmbientOn = false;
 
-// Accueil : le paquet fermé (un tap ouvre la scène)
+// Accueil : la jaquette mystère fermée
 function _renderMysteryClosed(container) {
   const fr = _lang !== 'en';
   _packCss();
   container.innerHTML = `
     <button id="mys-card" onclick="openPackScene()" aria-label="${fr ? 'Ouvrir ton paquet du jour' : 'Open your daily pack'}"
-      style="position:relative;overflow:hidden;width:100%;border:1px solid rgba(162,155,254,0.4);border-radius:20px;padding:18px 16px;cursor:pointer;color:#fff;text-align:left;display:flex;align-items:center;gap:16px;
-      background:radial-gradient(circle at 20% 50%,rgba(108,92,231,0.5),transparent 60%),radial-gradient(circle at 90% 20%,rgba(253,121,168,0.3),transparent 55%),linear-gradient(135deg,#1c1640,#120f26)">
-      <div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.12) 50%,transparent 60%);background-size:200% 100%;animation:mysShine 3.2s linear infinite;pointer-events:none"></div>
-      <div style="position:relative;width:62px;height:86px;flex-shrink:0;border-radius:10px;transform:rotate(-6deg);background:linear-gradient(150deg,#8f7cff,#6c5ce7 35%,#b05cc8 70%,#fd79a8);box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center">
-        <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:9px">
+      style="position:relative;overflow:hidden;width:100%;border:1px solid rgba(162,155,254,0.35);border-radius:20px;padding:16px;cursor:pointer;color:#fff;text-align:left;display:flex;align-items:center;gap:16px;
+      background:radial-gradient(circle at 18% 50%,rgba(108,92,231,0.45),transparent 60%),linear-gradient(135deg,#120d2c,#07060f)">
+      <div style="position:relative;width:64px;height:85px;flex-shrink:0;border-radius:8px;overflow:hidden;transform:rotate(-5deg);background:linear-gradient(160deg,#241a52,#0a0818);box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 0 1px rgba(162,155,254,.5)">
+        <div style="height:15%;background:linear-gradient(90deg,#6c5ce7,#fd79a8)"></div>
+        <div style="text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:900;font-size:38px;line-height:1.3;background:linear-gradient(160deg,#fff,#a29bfe 55%,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent">?</div>
+        <div class="pk-wrap"></div>
       </div>
       <div style="position:relative;flex:1;min-width:0">
         <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800">${fr ? 'Ton paquet du jour' : 'Your daily pack'}</div>
-        <div style="font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:4px;line-height:1.4">${fr ? 'Un jeu mystère et 2 loots d\'XP' : 'A mystery game and 2 XP loots'}</div>
+        <div style="font-size:12.5px;color:rgba(255,255,255,0.7);margin-top:4px;line-height:1.4">${fr ? 'Un jeu mystère et 2 orbes d\'XP' : 'A mystery game and 2 XP orbs'}</div>
         <div style="display:inline-block;margin-top:9px;font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;background:linear-gradient(135deg,var(--a),var(--a2))">${fr ? 'Ouvrir →' : 'Open →'}</div>
       </div>
     </button>`;
@@ -10496,37 +10490,48 @@ function openPackScene() {
   if (!st || !st.game) return;
   _packCss();
   const fr = _lang !== 'en';
+  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
+  const src = coverUrl(st.game);
   let ov = document.getElementById('pack-overlay');
   if (!ov) { ov = document.createElement('div'); ov.id = 'pack-overlay'; document.body.appendChild(ov); }
-  ov.className = '';
+  const W = Math.min(window.innerWidth, 560);
+  ov.style.setProperty('--pk-w', Math.round(Math.min(W * 0.6, 260, window.innerHeight * 0.3)) + 'px');
+  ov.style.setProperty('--pk-c', rar.color);
   ov.innerHTML = `
+    <canvas id="pk-ambient"></canvas>
     <div style="position:relative;z-index:9;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 0">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75">🎁 ${fr ? 'Paquet du jour' : 'Daily pack'}</div>
-      <button onclick="closePackScene()" aria-label="${fr ? 'Fermer' : 'Close'}" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:15px;cursor:pointer">✕</button>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.7">🎁 ${fr ? 'Paquet du jour' : 'Daily pack'}</div>
+      <button onclick="closePackScene()" aria-label="${fr ? 'Fermer' : 'Close'}" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:15px;cursor:pointer">✕</button>
     </div>
     <div class="pk-stage" id="pk-stage">
-      <canvas id="pk-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4"></canvas>
-      <div class="pk-socle" id="pk-socle"><span style="position:relative;max-width:110px">${fr ? 'Glisse ton paquet ici' : 'Drop your pack here'}</span></div>
-      <div class="pk-hint" id="pk-hint">${fr ? 'ou touche le paquet' : 'or tap the pack'}</div>
-      <div class="pk-pack pk-idle" id="pk-pack">
-        <div class="pk-body" id="pk-body">
-          <div class="pk-cracks" id="pk-cracks"></div>
-          <img class="pk-logo" src="/icon-192.png" alt="">
-          <div class="pk-name">GAMESHELF</div>
-          <div class="pk-sub">${fr ? 'PAQUET DU JOUR' : 'DAILY PACK'}</div>
-          <div class="pk-foil"></div>
-        </div>
+      <div class="pk-xpbar" id="pk-xpbar">⚡ <span id="pk-xpn">+0</span> XP</div>
+      <div class="pk-aura" id="pk-aura"></div>
+      <div class="pk-rays" id="pk-rays"></div>
+      <div class="pk-jacket pk-idle" id="pk-jacket" tabindex="0" role="button" aria-label="${fr ? 'Ouvrir' : 'Open'}">
+        <div class="pk-tilt" id="pk-tilt"><div class="pk-spin" id="pk-spin">
+          <div class="pk-face pk-front">
+            <div class="pk-band"><img src="/icon-192.png" alt="">GAMESHELF</div>
+            <div class="pk-q">?</div>
+            <div class="pk-lbl">${fr ? 'JEU MYSTÈRE' : 'MYSTERY GAME'}</div>
+            <div class="pk-wrap"></div><div class="pk-glare" id="pk-glare"></div>
+          </div>
+          <div class="pk-face pk-back">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:56px">🎮</div>`}</div>
+        </div></div>
       </div>
+      <div class="pk-hint" id="pk-hint">${fr ? 'Touche la jaquette pour l\'ouvrir' : 'Tap the box to open it'}</div>
+      <div class="pk-tag" id="pk-tag">${fr ? rar.fr : rar.en}</div>
       <div class="pk-flash" id="pk-flash"></div>
     </div>
     <div id="pk-panel-wrap"></div>`;
   ov.style.display = 'flex';
-  if (st.opened) { _packShowResult(st, false); return; }
-  _packBindDrag();
+  _packAmbient();
+  if (st.opened) { _packShowOpened(st); return; }
+  _packBind();
 }
 
 function closePackScene() {
   const ov = document.getElementById('pack-overlay');
+  _packAmbientOn = false;
   if (ov) { ov.style.display = 'none'; ov.innerHTML = ''; }
   _packBusy = false;
   const c = document.getElementById('home-recos');
@@ -10535,162 +10540,180 @@ function closePackScene() {
   if (st && st._lvlUp) { const lv = XP_LEVELS.find(l => l.level === st._lvlUp); delete st._lvlUp; _saveMystery(st); if (lv) setTimeout(() => { try { _celebrateLevelUp(lv); } catch (e) {} }, 300); }
 }
 
-function _packBindDrag() {
-  const pack = document.getElementById('pk-pack');
-  const body = document.getElementById('pk-body');
-  const socle = document.getElementById('pk-socle');
-  const stage = document.getElementById('pk-stage');
-  let start = null, dx = 0, dy = 0, lastX = 0, t0 = 0;
-  const tilt = (rx, ry, fx, fy) => { body.style.setProperty('--rx', rx + 'deg'); body.style.setProperty('--ry', ry + 'deg'); body.style.setProperty('--fx', fx + '%'); body.style.setProperty('--fy', fy + '%'); };
-  const near = () => {
-    const a = pack.getBoundingClientRect(), b = socle.getBoundingClientRect();
-    return Math.hypot((a.left + a.width / 2) - (b.left + b.width / 2), (a.top + a.height / 2) - (b.top + b.height / 2)) < b.width * 0.75;
-  };
-  // Au repos : le paquet suit légèrement le doigt (reflet holographique)
-  stage.addEventListener('pointermove', e => {
-    if (start || _packBusy) return;
-    const r = pack.getBoundingClientRect();
-    const px = (e.clientX - (r.left + r.width / 2)) / r.width, py = (e.clientY - (r.top + r.height / 2)) / r.height;
-    tilt(Math.max(-14, Math.min(14, -py * 16)), Math.max(-16, Math.min(16, px * 18)), 50 + px * 60, 50 + py * 60);
-  });
-  pack.addEventListener('pointerdown', e => {
-    if (_packBusy) return;
-    e.preventDefault();
-    pack.setPointerCapture(e.pointerId);
-    start = { x: e.clientX, y: e.clientY }; dx = dy = 0; lastX = e.clientX; t0 = performance.now();
-    pack.classList.remove('pk-idle');
-    pack.style.transition = 'none';
-    pack.style.cursor = 'grabbing';
-  });
-  pack.addEventListener('pointermove', e => {
-    if (!start || _packBusy) return;
-    dx = e.clientX - start.x; dy = e.clientY - start.y;
-    const vx = e.clientX - lastX; lastX = e.clientX;
-    pack.style.transform = `translate3d(${dx}px,${dy}px,0) scale(1.05)`;
-    tilt(Math.max(-20, Math.min(20, -dy / 12)), Math.max(-28, Math.min(28, vx * 2.2)), 50 + vx * 4, 50 - dy / 6);
-    socle.classList.toggle('pk-hot', near());
-  });
-  const end = () => {
-    if (!start || _packBusy) return;
-    const moved = Math.hypot(dx, dy), quick = performance.now() - t0 < 350;
-    start = null; pack.style.cursor = '';
-    socle.classList.remove('pk-hot');
-    if (near() || (moved < 10 && quick)) { _packOpen(); return; }
-    // Relâché ailleurs : retour en place
-    pack.style.transition = 'transform .45s cubic-bezier(.3,1.4,.5,1)';
-    pack.style.transform = '';
-    tilt(0, 0, 50, 50);
-    setTimeout(() => { if (!_packBusy) pack.classList.add('pk-idle'); }, 450);
-  };
-  pack.addEventListener('pointerup', end);
-  pack.addEventListener('pointercancel', end);
-  pack.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _packOpen(); } });
-  pack.tabIndex = 0;
+// Poussières lumineuses qui dérivent lentement (s'accélèrent pendant l'ouverture)
+let _pkBoost = 0;
+function _packAmbient() {
+  const cv = document.getElementById('pk-ambient');
+  if (!cv) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+  const cols = ['#a29bfe', '#fd79a8', '#ffffff', '#6c5ce7', '#00cec9'];
+  const P = Array.from({ length: 46 }, () => ({ x: Math.random() * w, y: Math.random() * h, r: .6 + Math.random() * 1.8, s: .15 + Math.random() * .45, a: Math.random() * Math.PI * 2, c: cols[Math.floor(Math.random() * cols.length)], o: .25 + Math.random() * .55 }));
+  _packAmbientOn = true; _pkBoost = 0;
+  const cx = w / 2, cy = h * 0.40;
+  (function frame() {
+    if (!_packAmbientOn || !document.getElementById('pk-ambient')) return;
+    ctx.clearRect(0, 0, w, h);
+    for (const p of P) {
+      if (_pkBoost > 0) { // aspirées vers la jaquette
+        const dx = cx - p.x, dy = cy - p.y, d = Math.hypot(dx, dy) || 1;
+        p.x += dx / d * _pkBoost * 2.2; p.y += dy / d * _pkBoost * 2.2;
+        if (d < 30) { p.x = Math.random() * w; p.y = Math.random() < .5 ? -5 : h + 5; }
+      } else { p.a += .01; p.x += Math.cos(p.a) * .2; p.y -= p.s; if (p.y < -5) { p.y = h + 5; p.x = Math.random() * w; } }
+      ctx.globalAlpha = p.o * (.7 + .3 * Math.sin(p.a * 3));
+      ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    if (!reduce) requestAnimationFrame(frame);
+  })();
 }
 
-async function _packOpen() {
-  if (_packBusy) return;
-  _packBusy = true;
-  const st = _mysteryState();
-  if (!st || !st.game) return;
-  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
-  // Le serveur tire l'XP pendant l'animation
-  const before = obProfile.xp || 0;
-  const xpReq = (async () => {
-    try {
-      const { data: { session } } = await _sb.auth.getSession();
-      if (!session) return null;
-      const { data, error } = await _sb.rpc('open_daily_pack', { p_day: st.day });
-      return error ? null : data;
-    } catch (e) { return null; }
-  })();
-  st.opened = true;
-  _saveMystery(st);
-  const pack = document.getElementById('pk-pack');
-  const socle = document.getElementById('pk-socle');
-  const hint = document.getElementById('pk-hint');
-  if (hint) hint.style.opacity = '0';
-  if (!reduce) {
-    // 1. Le paquet vole jusqu'au socle et s'y pose
-    const a = pack.getBoundingClientRect(), b = socle.getBoundingClientRect();
-    const cur = new DOMMatrix(getComputedStyle(pack).transform);
-    const tx = cur.m41 + (b.left + b.width / 2) - (a.left + a.width / 2), ty = cur.m42 + (b.top + b.height / 2) - (a.top + a.height / 2);
-    pack.classList.remove('pk-idle');
-    pack.style.transition = 'transform .45s cubic-bezier(.2,.9,.25,1)';
-    pack.style.transform = `translate3d(${tx}px,${ty}px,0) scale(.82)`;
-    await new Promise(r => setTimeout(r, 470));
-    socle.style.borderColor = rar.color;
-    socle.style.boxShadow = `0 0 60px ${rar.color}, inset 0 0 50px ${rar.color}`;
-    // 2. Il tremble et se fissure dans la couleur de la rareté
-    const cracks = document.getElementById('pk-cracks');
-    cracks.style.setProperty('--pk-c', rar.color);
-    const body = document.getElementById('pk-body');
-    body.style.animation = 'pkShake .16s linear infinite';
-    cracks.style.opacity = '.55';
-    await new Promise(r => setTimeout(r, 650));
-    cracks.style.opacity = '1';
-    body.style.boxShadow = `0 0 80px ${rar.color}, 0 0 0 3px ${rar.color}`;
-    await new Promise(r => setTimeout(r, 450));
-    // 3. Éclat
-    const flash = document.getElementById('pk-flash');
-    flash.style.background = `radial-gradient(circle at 50% 76%, #fff, ${rar.color} 35%, transparent 75%)`;
-    flash.style.animation = 'pkFlash .7s ease-out forwards';
-    pack.style.transition = 'opacity .15s'; pack.style.opacity = '0';
-    _packBurst(rar.color, st.rarity === 'legendary' ? 140 : st.rarity === 'epic' ? 100 : 70);
-    if (st.rarity === 'legendary' || st.rarity === 'epic') document.getElementById('pack-overlay').classList.add('pk-quake');
-    socle.style.transition = 'opacity .5s'; socle.style.opacity = '0';
-  }
-  const res = await Promise.race([xpReq, new Promise(r => setTimeout(() => r(null), 5000))]);
-  st.xp = res && Array.isArray(res.xp) ? res.xp.map(n => +n || 0) : null;
-  if (res && typeof res.total === 'number') {
+function _packBind() {
+  const jk = document.getElementById('pk-jacket'), tilt = document.getElementById('pk-tilt'), glare = document.getElementById('pk-glare');
+  const stage = document.getElementById('pk-stage');
+  let down = null;
+  // Reflet et inclinaison qui suivent le doigt
+  stage.addEventListener('pointermove', e => {
+    if (_packBusy) return;
+    const r = jk.getBoundingClientRect();
+    const px = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / r.width));
+    const py = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height / 2)) / r.height));
+    jk.classList.remove('pk-idle');
+    tilt.style.setProperty('--rx', (-py * 14) + 'deg'); tilt.style.setProperty('--ry', (px * 18) + 'deg');
+    glare.style.setProperty('--gx', (50 + px * 45) + '%'); glare.style.setProperty('--gy', (50 + py * 45) + '%');
+  });
+  stage.addEventListener('pointerleave', () => { if (!_packBusy) { tilt.style.setProperty('--rx', '0deg'); tilt.style.setProperty('--ry', '0deg'); jk.classList.add('pk-idle'); } });
+  // Un tap, ou un glissé vers le haut, sur la jaquette
+  jk.addEventListener('pointerdown', e => { down = { y: e.clientY, t: performance.now() }; });
+  jk.addEventListener('pointerup', e => {
+    if (!down) return;
+    const dy = down.y - e.clientY, dt = performance.now() - down.t; down = null;
+    if (dt < 500 || dy > 30) _packOpen();
+  });
+  jk.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _packOpen(); } });
+}
+
+// XP du paquet : demandée au serveur (rejouable sans risque, le serveur ne la donne qu'une fois)
+async function _packClaimXp(st) {
+  try {
+    const { data: { session } } = await _sb.auth.getSession();
+    if (!session) return null;
+    const { data, error } = await _sb.rpc('open_daily_pack', { p_day: st.day });
+    return error ? null : data;
+  } catch (e) { return null; }
+}
+function _packApplyXp(st, res, before) {
+  if (!res || !Array.isArray(res.xp)) return;
+  st.xp = res.xp.map(n => +n || 0);
+  if (typeof res.total === 'number') {
     _applyServerXp(res.total);
     const lb = getLevel(before).level, la = getLevel(res.total).level;
     if (!res.already && la > lb) st._lvlUp = la;
   }
   _saveMystery(st);
-  _packShowResult(st, !reduce);
 }
 
-// Les 3 cartes : XP, XP, puis le jeu mystère
-function _packShowResult(st, animate) {
-  const fr = _lang !== 'en';
-  const stage = document.getElementById('pk-stage');
-  if (!stage) return;
-  const pack = document.getElementById('pk-pack'); if (pack) pack.style.display = 'none';
-  const socle = document.getElementById('pk-socle'); if (socle) socle.style.display = 'none';
-  const hint = document.getElementById('pk-hint'); if (hint) hint.style.display = 'none';
-  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
-  const xp = Array.isArray(st.xp) ? st.xp : [];
-  const src = coverUrl(st.game);
-  const back = '<div class="pk-face pk-back"><img src="/icon-192.png" alt=""></div>';
-  const xpCard = (n, k) => `<div class="pk-card" id="pk-c${k}"><div class="pk-in">${back}
-      <div class="pk-face pk-front pk-xp${n >= 20 ? ' pk-max' : ''}"><i>${n >= 20 ? '🌟' : '⚡'}</i><b id="pk-n${k}">+${animate ? 0 : n}</b><span>XP</span></div></div>
-      <div class="pk-tag" style="color:#ffca28">${n >= 20 ? (fr ? 'Jackpot' : 'Jackpot') : 'Loot'}</div></div>`;
-  let html = '';
-  if (xp.length === 2) html += xpCard(xp[0], 0) + xpCard(xp[1], 1);
-  html += `<div class="pk-card pk-big" id="pk-c2"><div class="pk-in">${back}
-      <div class="pk-face pk-front pk-game" style="box-shadow:0 0 0 3px ${rar.color},0 0 50px ${rar.color}">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;background:#1c1640">🎮</div>`}</div></div>
-      <div class="pk-tag" style="color:${rar.color}">${fr ? rar.fr : rar.en}</div></div>`;
-  stage.insertAdjacentHTML('beforeend', html);
-  const W = stage.clientWidth;
-  const side = Math.min(118, W * 0.3);
-  const place = (id, x, y, rot, delay) => {
-    const el = document.getElementById(id); if (!el) return;
-    if (!animate) { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = `translate(${x}px,${y}px) rotate(${rot}deg)`; el.classList.add('pk-flip'); return; }
-    el.style.transform = 'translate(0, 150px) scale(.4)';
-    setTimeout(() => { el.style.opacity = '1'; el.style.transform = `translate(${x}px,${y}px) rotate(${rot}deg)`; }, delay);
-  };
-  place('pk-c0', -side, 20, -8, 80);
-  place('pk-c1', side, 20, 8, 160);
-  place('pk-c2', 0, -10, 0, 240);
-  const countUp = (k, n) => { const el = document.getElementById('pk-n' + k); if (el) _recapCountUp('pk-n' + k, n, '+', 600); };
-  const flip = (id, d, fn) => setTimeout(() => { const el = document.getElementById(id); if (el) el.classList.add('pk-flip'); if (fn) fn(); }, d);
-  if (animate) {
-    if (xp.length === 2) { flip('pk-c0', 900, () => countUp(0, xp[0])); flip('pk-c1', 1400, () => countUp(1, xp[1])); }
-    flip('pk-c2', xp.length === 2 ? 2300 : 1000, () => _packBurst(rar.color, st.rarity === 'legendary' ? 120 : 50, 0.42));
-    setTimeout(() => _packPanel(st), xp.length === 2 ? 3000 : 1700);
-  } else _packPanel(st);
+const _wait = ms => new Promise(r => setTimeout(r, ms));
+const _anim = (el, kf, opt) => { try { return el.animate(kf, { fill: 'forwards', ...opt }).finished.catch(() => {}); } catch (e) { return _wait(opt.duration || 0); } };
+
+async function _packOpen() {
+  if (_packBusy) return;
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  _packBusy = true;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const before = obProfile.xp || 0;
+  const xpReq = _packClaimXp(st);
+  st.opened = true;
+  _saveMystery(st);
+  const jk = document.getElementById('pk-jacket'), tilt = document.getElementById('pk-tilt'), spin = document.getElementById('pk-spin');
+  const aura = document.getElementById('pk-aura'), rays = document.getElementById('pk-rays'), flash = document.getElementById('pk-flash');
+  const hint = document.getElementById('pk-hint');
+  jk.classList.remove('pk-idle');
+  tilt.style.transition = 'transform .4s ease'; tilt.style.setProperty('--rx', '0deg'); tilt.style.setProperty('--ry', '0deg');
+  if (hint) hint.style.display = 'none';
+  const big = st.rarity === 'legendary' || st.rarity === 'epic';
+  if (!reduce) {
+    // 1. Appui : la jaquette se tasse puis s'approche, les poussières sont aspirées
+    await _anim(jk, [{ transform: 'scale(1)' }, { transform: 'scale(.93)' }], { duration: 120, easing: 'ease-out' });
+    _pkBoost = 1;
+    aura.style.opacity = '.9'; aura.style.transform = 'scale(1.25)';
+    await _anim(jk, [{ transform: 'scale(.93)' }, { transform: 'scale(1.1) translateY(-6px)' }], { duration: 700, easing: 'cubic-bezier(.2,.8,.2,1)' });
+    // 2. Elle vibre de plus en plus, chargée de lumière
+    if (big) rays.style.opacity = '.55';
+    await _anim(jk, [0, 1, 2, 3, 4, 5, 6, 7].map(i => ({ transform: `scale(1.1) translate(${(i % 2 ? 1 : -1) * (1 + i * .6)}px, -6px) rotate(${(i % 2 ? 1 : -1) * (.4 + i * .25)}deg)` })), { duration: 520, easing: 'linear' });
+    // 3. Elle se retourne (1 tour et demi qui ralentit) sur la vraie jaquette
+    _pkBoost = 0;
+    const turn = _anim(spin, [{ transform: 'rotateY(0deg)' }, { transform: 'rotateY(540deg)' }], { duration: 1100, easing: 'cubic-bezier(.15,.6,.15,1)' });
+    await _wait(380);
+    _anim(flash, [{ opacity: 0 }, { opacity: big ? 1 : .8, offset: .18 }, { opacity: 0 }], { duration: 750, easing: 'ease-out' });
+    _packBurst(big ? 130 : 80);
+    _anim(jk, [{ transform: 'scale(1.1) translateY(-6px)' }, { transform: 'scale(1.12) translateY(-8px)' }], { duration: 700, easing: 'cubic-bezier(.2,.9,.3,1.2)' });
+    if (st.rarity === 'legendary') rays.style.opacity = '.9';
+    await turn;
+  } else {
+    spin.style.transform = 'rotateY(180deg)';
+  }
+  document.getElementById('pk-tag').style.opacity = '1';
+  // 4. Les orbes d'XP sortent de la jaquette et rejoignent le compteur
+  const res = await Promise.race([xpReq, _wait(5000).then(() => null)]);
+  _packApplyXp(st, res, before);
+  if (Array.isArray(st.xp)) await _packOrbs(st.xp, !reduce);
+  _packPanel(st);
+}
+
+// Scène rouverte plus tard : jaquette déjà retournée ; réclame l'XP si elle manque encore
+async function _packShowOpened(st) {
+  _packBusy = true;
+  const jk = document.getElementById('pk-jacket');
+  jk.classList.remove('pk-idle');
+  jk.style.transform = 'scale(1.12) translateY(-8px)';
+  document.getElementById('pk-spin').style.transform = 'rotateY(180deg)';
+  document.getElementById('pk-hint').style.display = 'none';
+  document.getElementById('pk-tag').style.opacity = '1';
+  document.getElementById('pk-aura').style.opacity = '.8';
+  if (st.rarity === 'legendary') document.getElementById('pk-rays').style.opacity = '.9';
+  if (!Array.isArray(st.xp)) {
+    const before = obProfile.xp || 0;
+    _packApplyXp(st, await _packClaimXp(st), before);
+    if (Array.isArray(st.xp)) await _packOrbs(st.xp, true);
+  } else {
+    const bar = document.getElementById('pk-xpbar');
+    bar.style.opacity = '1'; document.getElementById('pk-xpn').textContent = '+' + st.xp.reduce((a, b) => a + b, 0);
+  }
+  _packPanel(st);
+}
+
+async function _packOrbs(xp, animate) {
+  const stage = document.getElementById('pk-stage'), bar = document.getElementById('pk-xpbar'), num = document.getElementById('pk-xpn');
+  if (!stage || !bar) return;
+  bar.style.opacity = '1';
+  let total = 0;
+  if (!animate) { num.textContent = '+' + xp.reduce((a, b) => a + b, 0); return; }
+  const sr = stage.getBoundingClientRect(), br = bar.getBoundingClientRect(), jr = document.getElementById('pk-jacket').getBoundingClientRect();
+  const tx = br.left + br.width / 2 - sr.left, ty = br.top + br.height / 2 - sr.top;
+  for (let i = 0; i < xp.length; i++) {
+    const n = xp[i];
+    const orb = document.createElement('div');
+    orb.className = 'pk-orb' + (n >= 20 ? ' pk-max' : '');
+    orb.textContent = '+' + n;
+    const sx = jr.left + jr.width / 2 - sr.left + (i ? 40 : -40), sy = jr.top + jr.height * .55 - sr.top;
+    orb.style.left = sx + 'px'; orb.style.top = sy + 'px';
+    stage.appendChild(orb);
+    const mx = sx + (i ? 90 : -90), my = sy - 60;
+    // Jaillit sur le côté, flotte, puis file vers le compteur
+    await _anim(orb, [{ transform: 'translate(0,0) scale(.2)', opacity: 0 }, { transform: `translate(${mx - sx}px,${my - sy}px) scale(1.15)`, opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.2,.9,.3,1.3)' });
+    await _wait(n >= 20 ? 420 : 200);
+    await _anim(orb, [{ transform: `translate(${mx - sx}px,${my - sy}px) scale(1.15)`, opacity: 1 }, { transform: `translate(${tx - sx}px,${ty - sy}px) scale(.4)`, opacity: .9 }], { duration: 520, easing: 'cubic-bezier(.6,0,.4,1)' });
+    orb.remove();
+    const from = total; total += n;
+    bar.classList.remove('pk-pop'); void bar.offsetWidth; bar.classList.add('pk-pop');
+    const t0 = performance.now();
+    await new Promise(res => { (function step(now) { const k = Math.min(1, (now - t0) / 350); num.textContent = '+' + Math.round(from + (total - from) * k); if (k < 1) requestAnimationFrame(step); else res(); })(t0); });
+  }
 }
 
 function _packPanel(st) {
@@ -10698,9 +10721,6 @@ function _packPanel(st) {
   const wrap = document.getElementById('pk-panel-wrap');
   if (!wrap) return;
   const g = st.game;
-  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
-  const xp = Array.isArray(st.xp) ? st.xp : [];
-  const total = xp.reduce((a, b) => a + b, 0);
   const because = (st.sources || []).map(s => s.title).slice(0, 2).join(fr ? ' et ' : ' and ');
   const inLib = GAMES.some(x => String(x.id) === String(g.id) && (userGames[x.id] || {}).status);
   const choice = st.choice || (inLib ? 'wish' : null);
@@ -10708,49 +10728,56 @@ function _packPanel(st) {
     : choice === 'no' ? (fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again')
     : choice === 'known' ? (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it') : '';
   const btn = (k, label, primary) => `<button onclick="mysteryChoice('${k}')" style="flex:1;padding:12px 6px;border-radius:14px;font-size:12.5px;font-weight:800;cursor:pointer;${primary
-    ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff' : 'border:0.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff'}">${label}</button>`;
+    ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff' : 'border:0.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff'}">${label}</button>`;
   wrap.innerHTML = `<div class="pk-panel">
     <div style="text-align:center;margin-bottom:12px">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:900;line-height:1.15">${_esc(g.title)}</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${because ? ` · ${fr ? 'parce que tu as aimé' : 'because you loved'} <b style="color:#fff">${_esc(because)}</b>` : ''}</div>
-      ${total ? `<div style="display:inline-block;margin-top:8px;font-size:12.5px;font-weight:800;color:#ffca28">⚡ +${total} XP ${fr ? 'gagnés' : 'earned'}</div>` : ''}
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:900;line-height:1.15">${_esc(g.title)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:5px;line-height:1.45">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${because ? `<br>${fr ? 'Parce que tu as aimé' : 'Because you loved'} <b style="color:#fff">${_esc(because)}</b>` : ''}</div>
     </div>
     ${done ? `<div style="text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:10px">${done}</div>`
       : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
-    <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
+    <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
   </div>`;
 }
 
-// Particules de l'éclat (canvas de la scène)
-function _packBurst(color, n, yRatio) {
-  const cv = document.getElementById('pk-canvas');
+// Éclat de particules autour de la jaquette (canvas d'ambiance)
+function _packBurst(n) {
+  const cv = document.getElementById('pk-ambient');
   if (!cv) return;
-  const r = cv.getBoundingClientRect();
-  cv.width = r.width * (window.devicePixelRatio || 1); cv.height = r.height * (window.devicePixelRatio || 1);
-  const ctx = cv.getContext('2d'); ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
-  const cx = r.width / 2, cy = r.height * (yRatio || 0.76);
+  const color = getComputedStyle(document.getElementById('pack-overlay')).getPropertyValue('--pk-c').trim() || '#fff';
+  const w = cv.clientWidth, h = cv.clientHeight, cx = w / 2, cy = h * 0.40;
+  const layer = document.createElement('canvas');
+  layer.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7';
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  layer.width = w * dpr; layer.height = h * dpr;
+  document.getElementById('pk-stage').appendChild(layer);
+  const ctx = layer.getContext('2d'); ctx.scale(dpr, dpr);
   const cols = [color, '#ffffff', color, '#fd79a8', '#a29bfe'];
-  const P = Array.from({ length: n }, (_, i) => {
-    const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 9;
-    return { x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, s: 2 + Math.random() * 5, c: cols[i % cols.length], life: 1 };
-  });
+  const P = Array.from({ length: n }, (_, i) => { const a = Math.random() * Math.PI * 2, v = 2 + Math.random() * 9; return { x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, s: 1.5 + Math.random() * 3.5, c: cols[i % cols.length], life: 1, spark: Math.random() < .35 }; });
   (function frame() {
-    ctx.clearRect(0, 0, r.width, r.height);
+    ctx.clearRect(0, 0, w, h);
     let alive = 0;
     for (const p of P) {
-      p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy = p.vy * 0.96 + 0.18; p.life -= 0.016;
+      p.x += p.vx; p.y += p.vy; p.vx *= .955; p.vy = p.vy * .955 + .06; p.life -= .014;
       if (p.life <= 0) continue;
       alive++;
       ctx.globalAlpha = p.life; ctx.fillStyle = p.c;
-      ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+      if (p.spark) { ctx.beginPath(); ctx.arc(p.x, p.y, p.s * .7, 0, Math.PI * 2); ctx.fill(); }
+      else { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 6); ctx.fillRect(-p.s, -p.s / 2, p.s * 2, p.s); ctx.restore(); }
     }
-    ctx.globalAlpha = 1;
-    if (alive) requestAnimationFrame(frame); else ctx.clearRect(0, 0, r.width, r.height);
+    if (alive) requestAnimationFrame(frame); else layer.remove();
   })();
 }
 
+let _packClaiming = false;
 function _renderMysteryOpen(container, st, animate) {
   const fr = _lang !== 'en';
+  // Paquet ouvert sans XP (serveur pas prêt à ce moment-là) : on la réclame en silence
+  if (st.opened && !Array.isArray(st.xp) && !_packClaiming) {
+    _packClaiming = true;
+    const before = obProfile.xp || 0;
+    _packClaimXp(st).then(res => { _packApplyXp(st, res, before); if (Array.isArray(st.xp)) { const c = document.getElementById('home-recos'); if (c) _renderMysteryOpen(c, st, false); if (st._lvlUp) closePackScene(); } }).finally(() => { _packClaiming = false; });
+  }
   const g = st.game;
   const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
   const src = coverUrl(g);
