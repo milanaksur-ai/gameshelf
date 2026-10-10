@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10c</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10d</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10724,9 +10724,7 @@ function _packPanel(st) {
   const because = (st.sources || []).map(s => s.title).slice(0, 2).join(fr ? ' et ' : ' and ');
   const inLib = GAMES.some(x => String(x.id) === String(g.id) && (userGames[x.id] || {}).status);
   const choice = st.choice || (inLib ? 'wish' : null);
-  const done = choice === 'wish' ? (fr ? '✦ Ajouté à tes souhaits' : '✦ Added to your wishlist')
-    : choice === 'no' ? (fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again')
-    : choice === 'known' ? (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it') : '';
+  const done = _mysteryDoneHtml(st, choice);
   const btn = (k, label, primary) => `<button onclick="mysteryChoice('${k}')" style="flex:1;padding:12px 6px;border-radius:14px;font-size:12.5px;font-weight:800;cursor:pointer;${primary
     ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff' : 'border:0.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff'}">${label}</button>`;
   wrap.innerHTML = `<div class="pk-panel">
@@ -10735,7 +10733,7 @@ function _packPanel(st) {
       <div style="font-size:12px;color:rgba(255,255,255,.6);margin-top:5px;line-height:1.45">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${because ? `<br>${fr ? 'Parce que tu as aimé' : 'Because you loved'} <b style="color:#fff">${_esc(because)}</b>` : ''}</div>
     </div>
     ${done ? `<div style="text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:10px">${done}</div>`
-      : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+      : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('knownSheet', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
     <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
   </div>`;
 }
@@ -10792,9 +10790,7 @@ function _renderMysteryOpen(container, st, animate) {
   const btn = (k, label, primary) => `<button onclick="event.stopPropagation();mysteryChoice('${k}')" style="flex:1;padding:10px 6px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;${primary
     ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff'
     : 'border:0.5px solid var(--border2);background:var(--s2);color:var(--text)'}">${label}</button>`;
-  const done = choice === 'wish' ? (fr ? '✦ Ajouté à tes souhaits' : '✦ Added to your wishlist')
-    : choice === 'no' ? (fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again')
-    : choice === 'known' ? (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it') : '';
+  const done = _mysteryDoneHtml(st, choice);
   container.innerHTML = `
     <div class="${animate ? 'mys-reveal' : ''}" style="border-radius:20px;padding:2px;background:linear-gradient(135deg,${rar.color},rgba(255,255,255,0.08) 55%,${rar.color})">
       <div style="background:var(--s1);border-radius:18px;padding:14px">
@@ -10811,7 +10807,7 @@ function _renderMysteryOpen(container, st, animate) {
           </div>
         </div>
         ${done ? `<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--muted2);text-align:center">${done}</div>`
-          : `<div style="display:flex;gap:8px;margin-top:12px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+          : `<div style="display:flex;gap:8px;margin-top:12px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('knownSheet', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
         ${Array.isArray(st.xp) && st.xp.length ? `<div onclick="openPackScene()" style="margin-top:10px;display:flex;gap:6px;justify-content:center;cursor:pointer">${st.xp.map(n => `<span style="font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:20px;background:rgba(255,202,40,0.14);color:#ffca28;border:0.5px solid rgba(255,202,40,0.35)">${n >= 20 ? '🌟' : '⚡'} +${n} XP</span>`).join('')}</div>` : ''}
         <div style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center">🔄 ${fr ? `Nouveau paquet dans ${hrs}h` : `New pack in ${hrs}h`}</div>
       </div>
@@ -10819,6 +10815,7 @@ function _renderMysteryOpen(container, st, animate) {
 }
 
 function mysteryChoice(k) {
+  if (k === 'knownSheet') { openKnownSheet(); return; }
   const st = _mysteryState();
   if (!st || !st.game) return;
   st.choice = k;
@@ -10831,9 +10828,64 @@ function mysteryChoice(k) {
     refreshViews();
   }
   const inScene = document.getElementById('pack-overlay')?.style.display === 'flex';
-  if (k === 'known') { if (inScene) closePackScene(); openExternalGameDetail(g); }
-  else if (inScene) { _packPanel(st); return; }
+  if (inScene) { _packPanel(st); return; }
   _renderMysteryOpen(document.getElementById('home-recos'), st, false);
+}
+
+// « Je connais déjà » : on choisit où le ranger dans la bibliothèque
+const _KNOWN_STATUSES = ['playing-solo', 'finished', 'platine', 'paused', 'abandoned'];
+function openKnownSheet() {
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  const fr = _lang !== 'en';
+  let m = document.getElementById('known-sheet');
+  if (!m) {
+    m = document.createElement('div');
+    m.id = 'known-sheet';
+    m.style.cssText = 'display:none;position:fixed;inset:0;z-index:1090;background:rgba(0,0,0,0.6);align-items:flex-end;justify-content:center';
+    m.addEventListener('click', e => { if (e.target === m) closeKnownSheet(); });
+    document.body.appendChild(m);
+  }
+  const ico = { 'playing-solo': '▶️', finished: '✅', platine: '🏆', paused: '⏸️', abandoned: '🚫' };
+  m.innerHTML = `<div style="width:100%;max-width:560px;background:var(--s1);border-radius:24px 24px 0 0;padding:18px 18px calc(env(safe-area-inset-bottom) + 20px)">
+    <div style="width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 14px"></div>
+    <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800">${fr ? 'Tu y as déjà joué ?' : 'Already played it?'}</div>
+    <div style="font-size:12.5px;color:var(--muted2);margin:3px 0 14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${_esc(st.game.title)}</div>
+    ${_KNOWN_STATUSES.map(s => `<button onclick="mysteryKnown('${s}')" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--s2);border:0.5px solid var(--border2);border-radius:14px;padding:13px 14px;margin-bottom:8px;cursor:pointer;color:var(--text);font-size:14px;font-weight:700">
+      <span style="font-size:18px;width:24px;text-align:center">${ico[s]}</span>${statusLabel(s)}</button>`).join('')}
+  </div>`;
+  m.style.display = 'flex';
+}
+function closeKnownSheet() { const m = document.getElementById('known-sheet'); if (m) m.style.display = 'none'; }
+
+function mysteryKnown(status) {
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  const g = st.game;
+  const id = g.id;
+  const cur = (userGames[id] || {}).status;
+  if (status === 'playing-solo' && cur !== status && getSlotCount('playing-solo') >= 10) { showToast(t('toast.slots_full')); return; }
+  if (!GAMES.find(x => String(x.id) === String(id))) GAMES.push({ ...g, score: 0, notes: '', hours: 0 });
+  userGames[id] = { ...(userGames[id] || { score: 0, notes: '', hours: 0, vibe: null, ratedAt: null, platform: null }), status, lastActivityAt: new Date().toISOString() };
+  saveToStorage();
+  refreshViews();
+  st.choice = 'known'; st.knownStatus = status;
+  _saveMystery(st);
+  closeKnownSheet();
+  showToast(`${g.title} → ${statusLabel(status)}`);
+  if ((status === 'finished' || status === 'platine')) { try { celebrateStatus(status); } catch (e) {} }
+  const inScene = document.getElementById('pack-overlay')?.style.display === 'flex';
+  if (inScene) _packPanel(st); else _renderMysteryOpen(document.getElementById('home-recos'), st, false);
+}
+
+// Message une fois le choix fait (scène et accueil)
+function _mysteryDoneHtml(st, choice) {
+  const fr = _lang !== 'en';
+  if (choice === 'wish') return fr ? '✦ Ajouté à tes souhaits' : '✦ Added to your wishlist';
+  if (choice === 'no') return fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again';
+  if (choice === 'known') return (st.knownStatus ? `🎮 ${fr ? 'Ajouté' : 'Added'} · ${statusLabel(st.knownStatus)}` : (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it'))
+    + ` <a onclick="event.stopPropagation();closePackScene();openExternalGameDetail(_mysteryState().game)" style="color:var(--a);cursor:pointer;margin-left:6px">${fr ? 'Noter →' : 'Rate →'}</a>`;
+  return '';
 }
 
 // ══ IMPORT CSV (Backloggd, Grouvee, tableur…) ════════════════════════════════
@@ -20554,6 +20606,7 @@ document.addEventListener('visibilitychange', () => {
 // la page) ; s'il n'y en a aucun, on revient à l'écran précédent.
 const _hide = id => () => { const e = document.getElementById(id); if (e) e.style.display = 'none'; };
 const BACK_CLOSERS = {
+  'known-sheet': () => closeKnownSheet(),
   'pack-overlay': () => closePackScene(),
   'share-game-modal': () => closeShareModal(),
   'tirage-intro': () => closeTirageIntro(),
