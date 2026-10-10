@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10e</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10f</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -10500,7 +10500,7 @@ function openPackScene() {
   ov.innerHTML = `
     <canvas id="pk-ambient"></canvas>
     <div style="position:relative;z-index:9;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 0">
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.7">🎁 ${fr ? 'Paquet du jour' : 'Daily pack'}</div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.7">🎁 ${fr ? 'Paquet du jour' : 'Daily pack'}${_packTestOn() ? ' <span style="color:#ffca28">· TEST</span>' : ''}</div>
       <button onclick="closePackScene()" aria-label="${fr ? 'Fermer' : 'Close'}" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.08);border:none;color:#fff;font-size:15px;cursor:pointer">✕</button>
     </div>
     <div class="pk-stage" id="pk-stage">
@@ -10734,8 +10734,22 @@ function _packPanel(st) {
     </div>
     ${done ? `<div style="text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:10px">${done}</div>`
       : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('knownSheet', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+    ${_packTestOn() ? `<button onclick="_packReplay()" style="width:100%;padding:13px;border-radius:14px;border:1px dashed #ffca28;background:rgba(255,202,40,.08);color:#ffca28;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:8px">🧪 ${fr ? 'Rejouer l\'ouverture' : 'Replay the opening'}</button>` : ''}
     <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
   </div>`;
+}
+
+// Mode test (?paquet=test) : actif seulement le jour où il a été activé
+function _packTestOn() { try { return +localStorage.getItem('gs_pack_test') === _quizDayIndex(); } catch (e) { return false; } }
+function _packReplay() {
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  const order = ['common', 'rare', 'epic', 'legendary'];
+  st.rarity = order[(order.indexOf(st.rarity) + 1) % order.length];
+  st.opened = false; st.choice = null; delete st.knownStatus;
+  _saveMystery(st);
+  _packBusy = false;
+  openPackScene();
 }
 
 // Éclat de particules autour de la jaquette (canvas d'ambiance)
@@ -11786,6 +11800,11 @@ function initApp(){
   }, 200);
   // Check for shared tier list URL param
   if (window.__openProfileAfterBoot) { const _n = window.__openProfileAfterBoot; window.__openProfileAfterBoot = null; setTimeout(() => _openProfileFromLink(_n), 900); }
+  // ?paquet=test : paquet du jour rejouable à volonté jusqu'à minuit (UTC), raretés en boucle
+  if (new URLSearchParams(location.search).get('paquet') === 'test') {
+    try { localStorage.setItem('gs_pack_test', String(_quizDayIndex())); history.replaceState(null, '', location.pathname); } catch (e) {}
+    setTimeout(() => { try { showToast(_lang === 'en' ? '🧪 Pack test mode on for today' : '🧪 Mode test du paquet activé pour aujourd\'hui'); renderHomeRecos(); } catch (e) {} }, 900);
+  }
   // ?mystere=reset : retire le tirage du jour (le jeu déjà vu reste exclu → nouveau jeu)
   if (new URLSearchParams(location.search).get('mystere') === 'reset') {
     try { localStorage.removeItem('gs_mystery'); history.replaceState(null, '', location.pathname); } catch (e) {}
