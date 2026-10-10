@@ -2275,7 +2275,7 @@ html, body {
           <div style="padding-top:8px;text-align:center">
             <img src="/icon-192.png" alt="" style="width:48px;height:48px;border-radius:13px;display:block;margin:0 auto 8px">
             <div style="font-size:14px;font-weight:800;font-family:'Space Grotesk',sans-serif;color:var(--text);margin-bottom:4px">GameShelf</div>
-            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10a</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:12px">v2.4 · build 10.10b</div>
             <div style="font-size:12px;color:var(--muted2)" data-i18n="settings.about">Fait avec passion par Milan</div>
           </div>
 
@@ -3492,7 +3492,7 @@ const LANG = {
     feed: {
       playing:'En cours', playing_multi:'👥 Multi en cours', friends:'Chez tes amis', trending:'Tendances du moment',
       upcoming:'🗓️ Sorties à venir', upc_wish:'Souhaits', upc_all:'Tout',
-      gamepass:'Nouveautés Game Pass', foryou:'Pour toi', mystery:'🎁 Jeu mystère du jour', see_all:'Voir tout →',
+      gamepass:'Nouveautés Game Pass', foryou:'Pour toi', mystery:'🎁 Paquet du jour', see_all:'Voir tout →',
       today:"Aujourd'hui", yesterday:'Hier', this_week:'Cette semaine',
     },
     toast: {
@@ -3912,7 +3912,7 @@ const LANG = {
     feed: {
       playing:'Playing', playing_multi:'👥 Multiplayer', friends:'Friends activity', trending:'Trending now',
       upcoming:'🗓️ Coming soon', upc_wish:'Wishlist', upc_all:'All',
-      gamepass:'New on Game Pass', foryou:'For you', mystery:'🎁 Daily mystery game', see_all:'See all →',
+      gamepass:'New on Game Pass', foryou:'For you', mystery:'🎁 Daily pack', see_all:'See all →',
       today:'Today', yesterday:'Yesterday', this_week:'This week',
     },
     toast: {
@@ -10401,62 +10401,352 @@ async function renderHomeRecos() {
   _renderMysteryOpen(container, st, false);
 }
 
-function _renderMysteryClosed(container) {
-  const fr = _lang !== 'en';
-  const R = 34, C = 2 * Math.PI * R;
-  container.innerHTML = `
-    <button id="mys-card" class="mys-closed" aria-label="${fr ? 'Maintiens pour ouvrir ton jeu mystère' : 'Hold to open your mystery game'}"
-      style="position:relative;overflow:hidden;width:100%;border:1px solid rgba(162,155,254,0.4);border-radius:20px;padding:26px 18px 22px;cursor:pointer;color:#fff;text-align:center;
-      background:radial-gradient(circle at 30% 20%,rgba(253,121,168,0.35),transparent 55%),radial-gradient(circle at 75% 80%,rgba(108,92,231,0.45),transparent 60%),linear-gradient(135deg,#1c1640,#120f26);
-      touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none">
-      <div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.12) 50%,transparent 60%);background-size:200% 100%;animation:mysShine 3.2s linear infinite;pointer-events:none"></div>
-      <div style="position:relative;width:84px;height:84px;margin:0 auto 12px">
-        <svg width="84" height="84" viewBox="0 0 84 84" style="position:absolute;inset:0;transform:rotate(-90deg)">
-          <circle cx="42" cy="42" r="${R}" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="5"/>
-          <circle id="mys-ring" cx="42" cy="42" r="${R}" fill="none" stroke="url(#mysGrad)" stroke-width="5" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C}"/>
-          <defs><linearGradient id="mysGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a29bfe"/><stop offset="1" stop-color="#fd79a8"/></linearGradient></defs>
-        </svg>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:38px">🎁</div>
-      </div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800">${fr ? 'Ton jeu mystère du jour' : 'Your daily mystery game'}</div>
-      <div id="mys-hint" style="font-size:12.5px;color:rgba(255,255,255,0.7);margin-top:5px">${fr ? 'Maintiens appuyé pour l\'ouvrir' : 'Press and hold to open'}</div>
-    </button>`;
-  const card = container.querySelector('#mys-card');
-  const ring = container.querySelector('#mys-ring');
-  let raf = null, t0 = 0;
-  const HOLD = 1000;
-  const setP = p => { ring.style.strokeDashoffset = String(C * (1 - p)); };
-  const cancel = () => { if (raf) cancelAnimationFrame(raf); raf = null; setP(0); };
-  const step = now => {
-    const p = Math.min(1, (now - t0) / HOLD);
-    setP(p);
-    if (p >= 1) { raf = null; _openMystery(card); return; }
-    raf = requestAnimationFrame(step);
-  };
-  card.addEventListener('pointerdown', e => { e.preventDefault(); t0 = performance.now(); raf = requestAnimationFrame(step); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => card.addEventListener(ev, () => { if (raf) cancel(); }));
-  card.addEventListener('contextmenu', e => e.preventDefault());
-  // Clavier : Entrée / Espace ouvrent directement
-  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _openMystery(card); } });
+// ══ PAQUET DU JOUR ════════════════════════════════════════════════════════════
+// Un paquet par jour : le jeu mystère + 2 loots d'XP (tirés par le serveur).
+// Ouverture façon jeu de cartes : on glisse le paquet sur le socle (ou un tap le
+// fait voler jusqu'au socle), il éclate dans la couleur de la rareté, puis les
+// 3 cartes se retournent seules : XP, XP, et le jeu mystère en dernier.
+function _packCss() {
+  if (document.getElementById('pack-css')) return;
+  const st = document.createElement('style');
+  st.id = 'pack-css';
+  st.textContent = `
+  @keyframes pkBob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-8px) } }
+  @keyframes pkSocle { 0%,100% { box-shadow: 0 0 0 0 rgba(162,155,254,.35), inset 0 0 30px rgba(162,155,254,.25) } 50% { box-shadow: 0 0 0 14px rgba(162,155,254,0), inset 0 0 44px rgba(253,121,168,.35) } }
+  @keyframes pkSpin { to { transform: rotate(360deg) } }
+  @keyframes pkShake { 0%,100% { transform: translate(0,0) rotate(0) } 25% { transform: translate(-5px,2px) rotate(-3deg) } 50% { transform: translate(5px,-2px) rotate(3deg) } 75% { transform: translate(-4px,1px) rotate(-2deg) } }
+  @keyframes pkFlash { 0% { opacity: 0 } 15% { opacity: .95 } 100% { opacity: 0 } }
+  @keyframes pkScreen { 0%,100% { transform: translate(0,0) } 20% { transform: translate(-6px,3px) } 40% { transform: translate(6px,-4px) } 60% { transform: translate(-4px,-2px) } 80% { transform: translate(3px,4px) } }
+  @keyframes pkRise { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
+  @keyframes pkShine { from { background-position: -120% 0 } to { background-position: 220% 0 } }
+  #pack-overlay { position: fixed; inset: 0; z-index: 1080; display: none; flex-direction: column; overflow: hidden; color: #fff;
+    background: radial-gradient(ellipse 80% 55% at 50% 72%, rgba(108,92,231,.38), transparent 70%), radial-gradient(ellipse 70% 45% at 50% 10%, rgba(253,121,168,.16), transparent 70%), #07060f;
+    -webkit-user-select: none; user-select: none; touch-action: none }
+  #pack-overlay.pk-quake { animation: pkScreen .5s ease-in-out 2 }
+  .pk-stage { position: relative; flex: 1; perspective: 900px }
+  .pk-pack { position: absolute; left: 50%; top: 34%; width: 170px; height: 236px; margin: -118px 0 0 -85px; cursor: grab; transform-style: preserve-3d; z-index: 5; will-change: transform }
+  .pk-pack.pk-idle .pk-body { animation: pkBob 3s ease-in-out infinite }
+  .pk-body { position: absolute; inset: 0; border-radius: 18px; transform-style: preserve-3d;
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .12s ease-out;
+    background: linear-gradient(150deg, #8f7cff 0%, #6c5ce7 35%, #b05cc8 70%, #fd79a8 100%);
+    box-shadow: 0 24px 50px rgba(0,0,0,.55), 0 0 40px rgba(162,155,254,.35), inset 0 0 0 2px rgba(255,255,255,.35) }
+  .pk-body::before { content: ''; position: absolute; inset: 10px; border-radius: 12px; border: 1.5px dashed rgba(255,255,255,.35) }
+  .pk-foil { position: absolute; inset: 0; border-radius: 18px; pointer-events: none; mix-blend-mode: overlay;
+    background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,.75) 38%, rgba(160,240,255,.5) 46%, rgba(255,160,230,.5) 54%, transparent 70%);
+    background-size: 250% 250%; background-position: var(--fx, 50%) var(--fy, 50%) }
+  .pk-logo { position: absolute; left: 50%; top: 42%; width: 74px; height: 74px; margin: -37px 0 0 -37px; border-radius: 20px; box-shadow: 0 8px 22px rgba(0,0,0,.35); transform: translateZ(30px) }
+  .pk-name { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 15px; letter-spacing: .14em; text-shadow: 0 2px 8px rgba(0,0,0,.35); transform: translateZ(20px) }
+  .pk-sub { position: absolute; left: 0; right: 0; bottom: 14px; text-align: center; font-size: 10px; font-weight: 700; letter-spacing: .16em; opacity: .85; transform: translateZ(14px) }
+  .pk-cracks { position: absolute; inset: -30%; border-radius: 50%; opacity: 0; pointer-events: none; transition: opacity .25s;
+    background: repeating-conic-gradient(from 0deg, var(--pk-c, #fff) 0deg 4deg, transparent 4deg 22deg); filter: blur(1px); mix-blend-mode: screen; animation: pkSpin 2.4s linear infinite }
+  .pk-socle { position: absolute; left: 50%; top: 76%; width: 168px; height: 168px; margin: -84px 0 0 -84px; border-radius: 50%;
+    border: 2px solid rgba(162,155,254,.55); background: radial-gradient(circle, rgba(108,92,231,.35), rgba(8,8,16,.2) 65%); animation: pkSocle 2.2s ease-in-out infinite;
+    display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; font-weight: 700; color: rgba(255,255,255,.65); transition: transform .2s, border-color .2s }
+  .pk-socle::before { content: ''; position: absolute; inset: 14px; border-radius: 50%; border: 1px dashed rgba(255,255,255,.25); animation: pkSpin 14s linear infinite }
+  .pk-socle.pk-hot { transform: scale(1.12); border-color: #fd79a8 }
+  .pk-flash { position: absolute; inset: 0; pointer-events: none; opacity: 0; z-index: 20 }
+  .pk-card { position: absolute; left: 50%; top: 45%; width: 104px; height: 146px; margin: -73px 0 0 -52px; perspective: 800px; z-index: 6;
+    transition: transform .6s cubic-bezier(.2,.9,.2,1.15), opacity .3s; opacity: 0 }
+  .pk-card.pk-big { width: 136px; height: 190px; margin: -95px 0 0 -68px; z-index: 7 }
+  .pk-in { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .7s cubic-bezier(.3,1.3,.4,1) }
+  .pk-card.pk-flip .pk-in { transform: rotateY(180deg) }
+  .pk-face { position: absolute; inset: 0; border-radius: 14px; backface-visibility: hidden; -webkit-backface-visibility: hidden; overflow: hidden }
+  .pk-back { background: radial-gradient(circle at 50% 45%, #3a2f7a, #15112e 70%); box-shadow: inset 0 0 0 2px rgba(162,155,254,.5), 0 14px 30px rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center }
+  .pk-back img { width: 40%; border-radius: 10px; opacity: .85 }
+  .pk-front { transform: rotateY(180deg); box-shadow: 0 14px 34px rgba(0,0,0,.55) }
+  .pk-xp { background: linear-gradient(160deg, #ffd86b, #ffb142 55%, #e17055); color: #2a1600; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: inset 0 0 0 2px rgba(255,255,255,.5) }
+  .pk-xp b { font-family: 'Space Grotesk', sans-serif; font-size: 34px; font-weight: 900; line-height: 1 }
+  .pk-xp span { font-size: 11px; font-weight: 800; letter-spacing: .14em; margin-top: 4px }
+  .pk-xp i { font-style: normal; font-size: 26px; margin-bottom: 4px }
+  .pk-xp.pk-max { background: linear-gradient(160deg, #fff3b0, #ffca28 40%, #ff9f43); box-shadow: inset 0 0 0 2px #fff, 0 0 30px rgba(255,202,40,.8) }
+  .pk-game img { width: 100%; height: 100%; object-fit: cover; display: block }
+  .pk-game::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.35) 50%, transparent 65%); background-size: 250% 100%; animation: pkShine 2.6s linear infinite }
+  .pk-tag { position: absolute; left: 50%; bottom: -30px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; background: rgba(8,8,16,.75); opacity: 0; transition: opacity .4s .3s }
+  .pk-card.pk-flip .pk-tag { opacity: 1 }
+  .pk-panel { position: relative; z-index: 8; padding: 0 18px calc(18px + env(safe-area-inset-bottom)); animation: pkRise .5s cubic-bezier(.2,.9,.2,1) both; max-width: 560px; width: 100%; margin: 0 auto; box-sizing: border-box }
+  .pk-hint { position: absolute; left: 0; right: 0; top: calc(76% + 98px); text-align: center; font-size: 13px; font-weight: 600; color: rgba(255,255,255,.6) }
+  @media (prefers-reduced-motion: reduce) { .pk-pack.pk-idle .pk-body, .pk-socle, .pk-socle::before, .pk-cracks, .pk-game::after { animation: none !important } }`;
+  document.head.appendChild(st);
 }
 
-function _openMystery(card) {
+let _packBusy = false;
+
+// Accueil : le paquet fermé (un tap ouvre la scène)
+function _renderMysteryClosed(container) {
+  const fr = _lang !== 'en';
+  _packCss();
+  container.innerHTML = `
+    <button id="mys-card" onclick="openPackScene()" aria-label="${fr ? 'Ouvrir ton paquet du jour' : 'Open your daily pack'}"
+      style="position:relative;overflow:hidden;width:100%;border:1px solid rgba(162,155,254,0.4);border-radius:20px;padding:18px 16px;cursor:pointer;color:#fff;text-align:left;display:flex;align-items:center;gap:16px;
+      background:radial-gradient(circle at 20% 50%,rgba(108,92,231,0.5),transparent 60%),radial-gradient(circle at 90% 20%,rgba(253,121,168,0.3),transparent 55%),linear-gradient(135deg,#1c1640,#120f26)">
+      <div style="position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.12) 50%,transparent 60%);background-size:200% 100%;animation:mysShine 3.2s linear infinite;pointer-events:none"></div>
+      <div style="position:relative;width:62px;height:86px;flex-shrink:0;border-radius:10px;transform:rotate(-6deg);background:linear-gradient(150deg,#8f7cff,#6c5ce7 35%,#b05cc8 70%,#fd79a8);box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 0 0 1.5px rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center">
+        <img src="/icon-192.png" alt="" style="width:34px;height:34px;border-radius:9px">
+      </div>
+      <div style="position:relative;flex:1;min-width:0">
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800">${fr ? 'Ton paquet du jour' : 'Your daily pack'}</div>
+        <div style="font-size:12.5px;color:rgba(255,255,255,0.72);margin-top:4px;line-height:1.4">${fr ? 'Un jeu mystère et 2 loots d\'XP' : 'A mystery game and 2 XP loots'}</div>
+        <div style="display:inline-block;margin-top:9px;font-size:12px;font-weight:800;padding:6px 12px;border-radius:20px;background:linear-gradient(135deg,var(--a),var(--a2))">${fr ? 'Ouvrir →' : 'Open →'}</div>
+      </div>
+    </button>`;
+}
+
+function openPackScene() {
   const st = _mysteryState();
-  if (!st || st.opened) return;
+  if (!st || !st.game) return;
+  _packCss();
+  const fr = _lang !== 'en';
+  let ov = document.getElementById('pack-overlay');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'pack-overlay'; document.body.appendChild(ov); }
+  ov.className = '';
+  ov.innerHTML = `
+    <div style="position:relative;z-index:9;display:flex;align-items:center;justify-content:space-between;padding:calc(14px + env(safe-area-inset-top)) 16px 0">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;opacity:.75">🎁 ${fr ? 'Paquet du jour' : 'Daily pack'}</div>
+      <button onclick="closePackScene()" aria-label="${fr ? 'Fermer' : 'Close'}" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:15px;cursor:pointer">✕</button>
+    </div>
+    <div class="pk-stage" id="pk-stage">
+      <canvas id="pk-canvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4"></canvas>
+      <div class="pk-socle" id="pk-socle"><span style="position:relative;max-width:110px">${fr ? 'Glisse ton paquet ici' : 'Drop your pack here'}</span></div>
+      <div class="pk-hint" id="pk-hint">${fr ? 'ou touche le paquet' : 'or tap the pack'}</div>
+      <div class="pk-pack pk-idle" id="pk-pack">
+        <div class="pk-body" id="pk-body">
+          <div class="pk-cracks" id="pk-cracks"></div>
+          <img class="pk-logo" src="/icon-192.png" alt="">
+          <div class="pk-name">GAMESHELF</div>
+          <div class="pk-sub">${fr ? 'PAQUET DU JOUR' : 'DAILY PACK'}</div>
+          <div class="pk-foil"></div>
+        </div>
+      </div>
+      <div class="pk-flash" id="pk-flash"></div>
+    </div>
+    <div id="pk-panel-wrap"></div>`;
+  ov.style.display = 'flex';
+  if (st.opened) { _packShowResult(st, false); return; }
+  _packBindDrag();
+}
+
+function closePackScene() {
+  const ov = document.getElementById('pack-overlay');
+  if (ov) { ov.style.display = 'none'; ov.innerHTML = ''; }
+  _packBusy = false;
+  const c = document.getElementById('home-recos');
+  const st = _mysteryState();
+  if (c && st && st.game) { if (st.opened) _renderMysteryOpen(c, st, false); else _renderMysteryClosed(c); }
+  if (st && st._lvlUp) { const lv = XP_LEVELS.find(l => l.level === st._lvlUp); delete st._lvlUp; _saveMystery(st); if (lv) setTimeout(() => { try { _celebrateLevelUp(lv); } catch (e) {} }, 300); }
+}
+
+function _packBindDrag() {
+  const pack = document.getElementById('pk-pack');
+  const body = document.getElementById('pk-body');
+  const socle = document.getElementById('pk-socle');
+  const stage = document.getElementById('pk-stage');
+  let start = null, dx = 0, dy = 0, lastX = 0, t0 = 0;
+  const tilt = (rx, ry, fx, fy) => { body.style.setProperty('--rx', rx + 'deg'); body.style.setProperty('--ry', ry + 'deg'); body.style.setProperty('--fx', fx + '%'); body.style.setProperty('--fy', fy + '%'); };
+  const near = () => {
+    const a = pack.getBoundingClientRect(), b = socle.getBoundingClientRect();
+    return Math.hypot((a.left + a.width / 2) - (b.left + b.width / 2), (a.top + a.height / 2) - (b.top + b.height / 2)) < b.width * 0.75;
+  };
+  // Au repos : le paquet suit légèrement le doigt (reflet holographique)
+  stage.addEventListener('pointermove', e => {
+    if (start || _packBusy) return;
+    const r = pack.getBoundingClientRect();
+    const px = (e.clientX - (r.left + r.width / 2)) / r.width, py = (e.clientY - (r.top + r.height / 2)) / r.height;
+    tilt(Math.max(-14, Math.min(14, -py * 16)), Math.max(-16, Math.min(16, px * 18)), 50 + px * 60, 50 + py * 60);
+  });
+  pack.addEventListener('pointerdown', e => {
+    if (_packBusy) return;
+    e.preventDefault();
+    pack.setPointerCapture(e.pointerId);
+    start = { x: e.clientX, y: e.clientY }; dx = dy = 0; lastX = e.clientX; t0 = performance.now();
+    pack.classList.remove('pk-idle');
+    pack.style.transition = 'none';
+    pack.style.cursor = 'grabbing';
+  });
+  pack.addEventListener('pointermove', e => {
+    if (!start || _packBusy) return;
+    dx = e.clientX - start.x; dy = e.clientY - start.y;
+    const vx = e.clientX - lastX; lastX = e.clientX;
+    pack.style.transform = `translate3d(${dx}px,${dy}px,0) scale(1.05)`;
+    tilt(Math.max(-20, Math.min(20, -dy / 12)), Math.max(-28, Math.min(28, vx * 2.2)), 50 + vx * 4, 50 - dy / 6);
+    socle.classList.toggle('pk-hot', near());
+  });
+  const end = () => {
+    if (!start || _packBusy) return;
+    const moved = Math.hypot(dx, dy), quick = performance.now() - t0 < 350;
+    start = null; pack.style.cursor = '';
+    socle.classList.remove('pk-hot');
+    if (near() || (moved < 10 && quick)) { _packOpen(); return; }
+    // Relâché ailleurs : retour en place
+    pack.style.transition = 'transform .45s cubic-bezier(.3,1.4,.5,1)';
+    pack.style.transform = '';
+    tilt(0, 0, 50, 50);
+    setTimeout(() => { if (!_packBusy) pack.classList.add('pk-idle'); }, 450);
+  };
+  pack.addEventListener('pointerup', end);
+  pack.addEventListener('pointercancel', end);
+  pack.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); _packOpen(); } });
+  pack.tabIndex = 0;
+}
+
+async function _packOpen() {
+  if (_packBusy) return;
+  _packBusy = true;
+  const st = _mysteryState();
+  if (!st || !st.game) return;
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
+  // Le serveur tire l'XP pendant l'animation
+  const before = obProfile.xp || 0;
+  const xpReq = (async () => {
+    try {
+      const { data: { session } } = await _sb.auth.getSession();
+      if (!session) return null;
+      const { data, error } = await _sb.rpc('open_daily_pack', { p_day: st.day });
+      return error ? null : data;
+    } catch (e) { return null; }
+  })();
   st.opened = true;
   _saveMystery(st);
-  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const container = document.getElementById('home-recos');
-  if (reduce) { _renderMysteryOpen(container, st, false); return; }
-  const color = (MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common).color;
-  card.classList.remove('mys-closed');
-  card.classList.add('mys-shake');
-  setTimeout(() => {
-    const burst = document.createElement('div');
-    burst.style.cssText = `position:absolute;left:50%;top:42%;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#fff 0%,${color} 35%,transparent 70%);animation:mysBurst 0.55s ease-out forwards`;
-    card.appendChild(burst);
-    setTimeout(() => _renderMysteryOpen(container, st, true), 380);
-  }, 500);
+  const pack = document.getElementById('pk-pack');
+  const socle = document.getElementById('pk-socle');
+  const hint = document.getElementById('pk-hint');
+  if (hint) hint.style.opacity = '0';
+  if (!reduce) {
+    // 1. Le paquet vole jusqu'au socle et s'y pose
+    const a = pack.getBoundingClientRect(), b = socle.getBoundingClientRect();
+    const cur = new DOMMatrix(getComputedStyle(pack).transform);
+    const tx = cur.m41 + (b.left + b.width / 2) - (a.left + a.width / 2), ty = cur.m42 + (b.top + b.height / 2) - (a.top + a.height / 2);
+    pack.classList.remove('pk-idle');
+    pack.style.transition = 'transform .45s cubic-bezier(.2,.9,.25,1)';
+    pack.style.transform = `translate3d(${tx}px,${ty}px,0) scale(.82)`;
+    await new Promise(r => setTimeout(r, 470));
+    socle.style.borderColor = rar.color;
+    socle.style.boxShadow = `0 0 60px ${rar.color}, inset 0 0 50px ${rar.color}`;
+    // 2. Il tremble et se fissure dans la couleur de la rareté
+    const cracks = document.getElementById('pk-cracks');
+    cracks.style.setProperty('--pk-c', rar.color);
+    const body = document.getElementById('pk-body');
+    body.style.animation = 'pkShake .16s linear infinite';
+    cracks.style.opacity = '.55';
+    await new Promise(r => setTimeout(r, 650));
+    cracks.style.opacity = '1';
+    body.style.boxShadow = `0 0 80px ${rar.color}, 0 0 0 3px ${rar.color}`;
+    await new Promise(r => setTimeout(r, 450));
+    // 3. Éclat
+    const flash = document.getElementById('pk-flash');
+    flash.style.background = `radial-gradient(circle at 50% 76%, #fff, ${rar.color} 35%, transparent 75%)`;
+    flash.style.animation = 'pkFlash .7s ease-out forwards';
+    pack.style.transition = 'opacity .15s'; pack.style.opacity = '0';
+    _packBurst(rar.color, st.rarity === 'legendary' ? 140 : st.rarity === 'epic' ? 100 : 70);
+    if (st.rarity === 'legendary' || st.rarity === 'epic') document.getElementById('pack-overlay').classList.add('pk-quake');
+    socle.style.transition = 'opacity .5s'; socle.style.opacity = '0';
+  }
+  const res = await Promise.race([xpReq, new Promise(r => setTimeout(() => r(null), 5000))]);
+  st.xp = res && Array.isArray(res.xp) ? res.xp.map(n => +n || 0) : null;
+  if (res && typeof res.total === 'number') {
+    _applyServerXp(res.total);
+    const lb = getLevel(before).level, la = getLevel(res.total).level;
+    if (!res.already && la > lb) st._lvlUp = la;
+  }
+  _saveMystery(st);
+  _packShowResult(st, !reduce);
+}
+
+// Les 3 cartes : XP, XP, puis le jeu mystère
+function _packShowResult(st, animate) {
+  const fr = _lang !== 'en';
+  const stage = document.getElementById('pk-stage');
+  if (!stage) return;
+  const pack = document.getElementById('pk-pack'); if (pack) pack.style.display = 'none';
+  const socle = document.getElementById('pk-socle'); if (socle) socle.style.display = 'none';
+  const hint = document.getElementById('pk-hint'); if (hint) hint.style.display = 'none';
+  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
+  const xp = Array.isArray(st.xp) ? st.xp : [];
+  const src = coverUrl(st.game);
+  const back = '<div class="pk-face pk-back"><img src="/icon-192.png" alt=""></div>';
+  const xpCard = (n, k) => `<div class="pk-card" id="pk-c${k}"><div class="pk-in">${back}
+      <div class="pk-face pk-front pk-xp${n >= 20 ? ' pk-max' : ''}"><i>${n >= 20 ? '🌟' : '⚡'}</i><b id="pk-n${k}">+${animate ? 0 : n}</b><span>XP</span></div></div>
+      <div class="pk-tag" style="color:#ffca28">${n >= 20 ? (fr ? 'Jackpot' : 'Jackpot') : 'Loot'}</div></div>`;
+  let html = '';
+  if (xp.length === 2) html += xpCard(xp[0], 0) + xpCard(xp[1], 1);
+  html += `<div class="pk-card pk-big" id="pk-c2"><div class="pk-in">${back}
+      <div class="pk-face pk-front pk-game" style="box-shadow:0 0 0 3px ${rar.color},0 0 50px ${rar.color}">${src ? `<img src="${_attrUrl(src)}" referrerpolicy="no-referrer" alt="" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;background:#1c1640">🎮</div>`}</div></div>
+      <div class="pk-tag" style="color:${rar.color}">${fr ? rar.fr : rar.en}</div></div>`;
+  stage.insertAdjacentHTML('beforeend', html);
+  const W = stage.clientWidth;
+  const side = Math.min(118, W * 0.3);
+  const place = (id, x, y, rot, delay) => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!animate) { el.style.transition = 'none'; el.style.opacity = '1'; el.style.transform = `translate(${x}px,${y}px) rotate(${rot}deg)`; el.classList.add('pk-flip'); return; }
+    el.style.transform = 'translate(0, 150px) scale(.4)';
+    setTimeout(() => { el.style.opacity = '1'; el.style.transform = `translate(${x}px,${y}px) rotate(${rot}deg)`; }, delay);
+  };
+  place('pk-c0', -side, 20, -8, 80);
+  place('pk-c1', side, 20, 8, 160);
+  place('pk-c2', 0, -10, 0, 240);
+  const countUp = (k, n) => { const el = document.getElementById('pk-n' + k); if (el) _recapCountUp('pk-n' + k, n, '+', 600); };
+  const flip = (id, d, fn) => setTimeout(() => { const el = document.getElementById(id); if (el) el.classList.add('pk-flip'); if (fn) fn(); }, d);
+  if (animate) {
+    if (xp.length === 2) { flip('pk-c0', 900, () => countUp(0, xp[0])); flip('pk-c1', 1400, () => countUp(1, xp[1])); }
+    flip('pk-c2', xp.length === 2 ? 2300 : 1000, () => _packBurst(rar.color, st.rarity === 'legendary' ? 120 : 50, 0.42));
+    setTimeout(() => _packPanel(st), xp.length === 2 ? 3000 : 1700);
+  } else _packPanel(st);
+}
+
+function _packPanel(st) {
+  const fr = _lang !== 'en';
+  const wrap = document.getElementById('pk-panel-wrap');
+  if (!wrap) return;
+  const g = st.game;
+  const rar = MYSTERY_RARITY[st.rarity] || MYSTERY_RARITY.common;
+  const xp = Array.isArray(st.xp) ? st.xp : [];
+  const total = xp.reduce((a, b) => a + b, 0);
+  const because = (st.sources || []).map(s => s.title).slice(0, 2).join(fr ? ' et ' : ' and ');
+  const inLib = GAMES.some(x => String(x.id) === String(g.id) && (userGames[x.id] || {}).status);
+  const choice = st.choice || (inLib ? 'wish' : null);
+  const done = choice === 'wish' ? (fr ? '✦ Ajouté à tes souhaits' : '✦ Added to your wishlist')
+    : choice === 'no' ? (fr ? '👌 Noté, on ne te le reproposera pas' : '👌 Got it, we won\'t suggest it again')
+    : choice === 'known' ? (fr ? '🎮 Tu le connais déjà' : '🎮 You already know it') : '';
+  const btn = (k, label, primary) => `<button onclick="mysteryChoice('${k}')" style="flex:1;padding:12px 6px;border-radius:14px;font-size:12.5px;font-weight:800;cursor:pointer;${primary
+    ? 'border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff' : 'border:0.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff'}">${label}</button>`;
+  wrap.innerHTML = `<div class="pk-panel">
+    <div style="text-align:center;margin-bottom:12px">
+      <div style="font-family:'Space Grotesk',sans-serif;font-size:21px;font-weight:900;line-height:1.15">${_esc(g.title)}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:4px">${_esc(g.genre || '')}${g.year ? ' · ' + _esc(g.year) : ''}${because ? ` · ${fr ? 'parce que tu as aimé' : 'because you loved'} <b style="color:#fff">${_esc(because)}</b>` : ''}</div>
+      ${total ? `<div style="display:inline-block;margin-top:8px;font-size:12.5px;font-weight:800;color:#ffca28">⚡ +${total} XP ${fr ? 'gagnés' : 'earned'}</div>` : ''}
+    </div>
+    ${done ? `<div style="text-align:center;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);margin-bottom:10px">${done}</div>`
+      : `<div style="display:flex;gap:8px;margin-bottom:10px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
+    <button onclick="closePackScene()" style="width:100%;padding:13px;border-radius:14px;border:none;background:rgba(255,255,255,.12);color:#fff;font-size:14px;font-weight:700;cursor:pointer">${fr ? 'Fermer' : 'Close'}</button>
+  </div>`;
+}
+
+// Particules de l'éclat (canvas de la scène)
+function _packBurst(color, n, yRatio) {
+  const cv = document.getElementById('pk-canvas');
+  if (!cv) return;
+  const r = cv.getBoundingClientRect();
+  cv.width = r.width * (window.devicePixelRatio || 1); cv.height = r.height * (window.devicePixelRatio || 1);
+  const ctx = cv.getContext('2d'); ctx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+  const cx = r.width / 2, cy = r.height * (yRatio || 0.76);
+  const cols = [color, '#ffffff', color, '#fd79a8', '#a29bfe'];
+  const P = Array.from({ length: n }, (_, i) => {
+    const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 9;
+    return { x: cx, y: cy, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 2, s: 2 + Math.random() * 5, c: cols[i % cols.length], life: 1 };
+  });
+  (function frame() {
+    ctx.clearRect(0, 0, r.width, r.height);
+    let alive = 0;
+    for (const p of P) {
+      p.x += p.vx; p.y += p.vy; p.vx *= 0.96; p.vy = p.vy * 0.96 + 0.18; p.life -= 0.016;
+      if (p.life <= 0) continue;
+      alive++;
+      ctx.globalAlpha = p.life; ctx.fillStyle = p.c;
+      ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s);
+    }
+    ctx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(frame); else ctx.clearRect(0, 0, r.width, r.height);
+  })();
 }
 
 function _renderMysteryOpen(container, st, animate) {
@@ -10495,7 +10785,8 @@ function _renderMysteryOpen(container, st, animate) {
         </div>
         ${done ? `<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--muted2);text-align:center">${done}</div>`
           : `<div style="display:flex;gap:8px;margin-top:12px">${btn('wish', '✦ ' + (fr ? 'Souhaits' : 'Wishlist'), true)}${btn('no', fr ? 'Pas pour moi' : 'Not for me')}${btn('known', fr ? 'Je connais déjà' : 'Already know it')}</div>`}
-        <div style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center">🔄 ${fr ? `Nouveau mystère dans ${hrs}h` : `New mystery in ${hrs}h`}</div>
+        ${Array.isArray(st.xp) && st.xp.length ? `<div onclick="openPackScene()" style="margin-top:10px;display:flex;gap:6px;justify-content:center;cursor:pointer">${st.xp.map(n => `<span style="font-size:11.5px;font-weight:800;padding:4px 10px;border-radius:20px;background:rgba(255,202,40,0.14);color:#ffca28;border:0.5px solid rgba(255,202,40,0.35)">${n >= 20 ? '🌟' : '⚡'} +${n} XP</span>`).join('')}</div>` : ''}
+        <div style="margin-top:10px;font-size:10.5px;color:var(--muted);text-align:center">🔄 ${fr ? `Nouveau paquet dans ${hrs}h` : `New pack in ${hrs}h`}</div>
       </div>
     </div>`;
 }
@@ -10512,7 +10803,9 @@ function mysteryChoice(k) {
     saveToStorage();
     refreshViews();
   }
-  if (k === 'known') openExternalGameDetail(g);
+  const inScene = document.getElementById('pack-overlay')?.style.display === 'flex';
+  if (k === 'known') { if (inScene) closePackScene(); openExternalGameDetail(g); }
+  else if (inScene) { _packPanel(st); return; }
   _renderMysteryOpen(document.getElementById('home-recos'), st, false);
 }
 
@@ -20234,6 +20527,7 @@ document.addEventListener('visibilitychange', () => {
 // la page) ; s'il n'y en a aucun, on revient à l'écran précédent.
 const _hide = id => () => { const e = document.getElementById(id); if (e) e.style.display = 'none'; };
 const BACK_CLOSERS = {
+  'pack-overlay': () => closePackScene(),
   'share-game-modal': () => closeShareModal(),
   'tirage-intro': () => closeTirageIntro(),
   'csv-import-modal': () => closeCsvImport(),
